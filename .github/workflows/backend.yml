@@ -37,4 +37,4 @@ jobs:
 
       - run: go test -v -race ./...
 
-      - run: go build -v -o server .
+      - run: go build -v -o server ./cmd/api

@@ -9,5 +9,12 @@
       "backend": "GoLand"
     }
   },
+  "mounts": [
+    "source=go-mod-cache,target=/go/pkg/mod,type=volume",
+    "source=go-build-cache,target=/root/.cache/go-build,type=volume",
+    "source=golangci-lint-cache,target=/root/.cache/golangci-lint,type=volume",
+    "source=sqlc-cache,target=/root/.cache/sqlc,type=volume",
+    "source=vscode-extensions-cache,target=/root/.vscode-server/extensions,type=volume"
+  ],
   "remoteUser": "root"
 }
