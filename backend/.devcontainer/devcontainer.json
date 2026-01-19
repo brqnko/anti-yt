@@ -1,0 +1,13 @@
+{
+  "name": "Backend",
+  "dockerComposeFile": ["../../compose.yaml", "../../compose.override.yaml"],
+  "service": "server",
+  "workspaceFolder": "/src",
+  "forwardPorts": [8080],
+  "customizations": {
+    "jetbrains": {
+      "backend": "GoLand"
+    }
+  },
+  "remoteUser": "root"
+}

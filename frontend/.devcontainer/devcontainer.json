@@ -1,0 +1,13 @@
+{
+  "name": "Frontend",
+  "dockerComposeFile": ["../../compose.yaml", "../../compose.override.yaml"],
+  "service": "frontend",
+  "workspaceFolder": "/user/src/app",
+  "forwardPorts": [3000],
+  "customizations": {
+    "jetbrains": {
+      "backend": "WebStorm"
+    }
+  },
+  "remoteUser": "root"
+}
