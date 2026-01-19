@@ -1,0 +1,18 @@
+{
+  "name": "Frontend",
+  "dockerComposeFile": ["../../compose.yaml", "../../compose.override.yaml"],
+  "service": "frontend",
+  "workspaceFolder": "/usr/src/app",
+  "forwardPorts": [3000],
+  "customizations": {
+    "jetbrains": {
+      "backend": "WebStorm"
+    }
+  },
+  "mounts": [
+    "source=${localWorkspaceFolderBasename}-node_modules,target=/usr/src/app/node_modules,type=volume",
+    "source=${localWorkspaceFolderBasename}-pnpm-store,target=/root/.local/share/pnpm/store,type=volume",
+    "source=${localWorkspaceFolderBasename}-npm-cache,target=/root/.npm,type=volume"
+  ],
+  "remoteUser": "root"
+}

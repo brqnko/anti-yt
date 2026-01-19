@@ -1,0 +1,19 @@
+services:
+  server:
+    build:
+      context: backend
+      dockerfile: "Dockerfile"
+    depends_on:
+      db:
+        condition: service_healthy
+  frontend:
+    build:
+      context: frontend
+      dockerfile: "Dockerfile"
+  db:
+    image: "postgres:18.1"
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5

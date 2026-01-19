@@ -1,0 +1,38 @@
+services:
+  server:
+    build:
+      target: dev
+    volumes:
+    - ./backend:/src
+    - ./shared:/src/shared:ro
+    ports:
+      - "8080:8080"
+    secrets:
+      - db-password
+  frontend:
+    build:
+      target: dev
+    volumes:
+      - ./frontend:/usr/src/app
+      - ./shared:/usr/src/app/shared:ro
+    environment:
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+  db:
+   restart: always
+   user: postgres
+   secrets:
+     - db-password
+   volumes:
+     - db-data:/var/lib/postgresql
+   environment:
+     - POSTGRES_DB=example
+     - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+   expose:
+     - 5432
+volumes:
+ db-data:
+secrets:
+ db-password:
+   file: backend/password.txt
