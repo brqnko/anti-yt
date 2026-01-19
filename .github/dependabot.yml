@@ -11,6 +11,18 @@ updates:
    schedule:
      interval: weekly
  - package-ecosystem: "devcontainers"
-   directory: "/"
+   directory: "/frontend"
+   schedule:
+     interval: weekly
+ - package-ecosystem: "devcontainers"
+   directory: "/backend"
+   schedule:
+     interval: weekly
+ - package-ecosystem: "gomod"
+   directory: "backend"
+   schedule:
+     interval: weekly
+ - package-ecosystem: "pnpm"
+   directory: "frontend"
    schedule:
      interval: weekly
