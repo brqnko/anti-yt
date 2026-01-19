@@ -1,0 +1,40 @@
+name: backend
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  push:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+    branches: [main, prod]
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+          cache: true
+          cache-dependency-path: backend/go.sum
+
+      - run: go mod download
+
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: latest
+          working-directory: backend
+
+      - run: go test -v -race ./...
+
+      - run: go build -v -o server ./cmd/api
