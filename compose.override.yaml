@@ -13,8 +13,8 @@ services:
     build:
       target: dev
     volumes:
-      - ./frontend:/user/src/app
-      - ./shared:/user/src/app/shared:ro
+      - ./frontend:/usr/src/app
+      - ./shared:/usr/src/app/shared:ro
     environment:
       NODE_ENV: development
     ports:

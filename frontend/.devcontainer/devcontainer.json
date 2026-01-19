@@ -2,7 +2,7 @@
   "name": "Frontend",
   "dockerComposeFile": ["../../compose.yaml", "../../compose.override.yaml"],
   "service": "frontend",
-  "workspaceFolder": "/user/src/app",
+  "workspaceFolder": "/usr/src/app",
   "forwardPorts": [3000],
   "customizations": {
     "jetbrains": {
