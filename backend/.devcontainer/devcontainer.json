@@ -16,5 +16,6 @@
     "source=sqlc-cache,target=/root/.cache/sqlc,type=volume",
     "source=vscode-extensions-cache,target=/root/.vscode-server/extensions,type=volume"
   ],
-  "remoteUser": "root"
+  "remoteUser": "root",
+  "updateRemoteUserUID": true
 }

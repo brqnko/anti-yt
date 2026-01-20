@@ -14,5 +14,6 @@
     "source=${localWorkspaceFolderBasename}-pnpm-store,target=/root/.local/share/pnpm/store,type=volume",
     "source=${localWorkspaceFolderBasename}-npm-cache,target=/root/.npm,type=volume"
   ],
-  "remoteUser": "root"
+  "remoteUser": "root",
+  "updateRemoteUserUID": true
 }
