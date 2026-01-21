@@ -20,6 +20,8 @@ services:
     ports:
       - "3000:3000"
   db:
+   ports:
+     - "5432:5432"
    restart: always
    user: postgres
    secrets:
