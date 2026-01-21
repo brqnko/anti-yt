@@ -10,7 +10,7 @@
     }
   },
   "mounts": [
-    "source=go-mod-cache,target=/go/pkg/mod,type=volume",
+    "source=${localEnv:HOME}/go/pkg/mod,target=/go/pkg/mod,type=bind",
     "source=go-build-cache,target=/root/.cache/go-build,type=volume",
     "source=golangci-lint-cache,target=/root/.cache/golangci-lint,type=volume",
     "source=sqlc-cache,target=/root/.cache/sqlc,type=volume",
