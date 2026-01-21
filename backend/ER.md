@@ -65,7 +65,7 @@ erDiagram
 
     timestamptz joined_at
 
-    timestamptz left_AT
+    timestamptz left_at
     int leave_reason_code
 
     timestamptz created_at
@@ -195,7 +195,7 @@ erDiagram
 	  bigint m_user_id FK
 	  varchar(128) ai_summary_title
 	  varchar(4096) ai_summary_description
-	  varchar(126) ai_model
+	  varchar(128) ai_model
 	  timestamptz generated_at
 	  date target_month
 
@@ -254,7 +254,7 @@ erDiagram
   m_channel ||--o{ m_user_subscribing_channel: ""
   m_user ||--o{ m_user_subscribing_channel: ""
   m_video ||--o{ t_video_watch: ""
-  m_user ||--o{ h_video_watch: ""
+  m_user ||--o{ t_video_watch: ""
   m_video ||--o{ m_comment: ""
   m_user ||--o{ m_user_screen_time_range: ""
   m_channel ||--o{ m_video: ""
