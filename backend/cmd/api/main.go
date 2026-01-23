@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/handler"
+	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 	"github.com/labstack/echo/v4"
 )
 
@@ -21,10 +21,10 @@ func run(ctx context.Context) int {
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	h := handler.NewHandler()
+	h := v1.NewHandler()
 	e := echo.New()
 
-	handler.RegisterHandlers(e, h)
+	v1.RegisterHandlers(e, h)
 
 	go func() {
 		if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {

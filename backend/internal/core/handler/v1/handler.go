@@ -1,8 +1,7 @@
-package handler
+package v1
 
 import (
 	"database/sql"
-	"embed"
 	"errors"
 	"fmt"
 	"log"
@@ -10,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/brqnko/anti-yt/backend/migrations"
 	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/labstack/echo/v4"
@@ -22,19 +22,31 @@ type Handler struct {
 	db *sql.DB
 }
 
-//go:embed migrations/*.sql
-var embedMigrations embed.FS
+func (h *Handler) PostAuthGoogle(ctx echo.Context) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (h *Handler) GetAuthGoogleCallback(ctx echo.Context, params GetAuthGoogleCallbackParams) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (h *Handler) PostAuthRefresh(ctx echo.Context, params PostAuthRefreshParams) error {
+	//TODO implement me
+	panic("implement me")
+}
 
 func RunMigration(db *sql.DB) error {
 	fmt.Println("running migration")
-	goose.SetBaseFS(embedMigrations)
+	goose.SetBaseFS(migrations.EmbedMigrations)
 
 	if err := goose.SetDialect("postgres"); err != nil {
 		return err
 	}
 
 	// "migrations" は go:embed で指定したディレクトリ名
-	if err := goose.Up(db, "migrations"); err != nil {
+	if err := goose.Up(db, "."); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			fmt.Printf("Error: %s, Detail: %s, Hint: %s\n", pgErr.Message, pgErr.Detail, pgErr.Hint)
@@ -63,11 +75,5 @@ func NewHandler() *Handler {
 }
 
 func (h *Handler) GetHealth(ctx echo.Context) error {
-	var val int
-	err := h.db.QueryRow("SELECT 1 + 1").Scan(&val)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	return ctx.JSON(http.StatusOK, fmt.Sprintf("OK: %d", val))
+	return ctx.JSON(http.StatusOK, fmt.Sprintf("OK"))
 }
