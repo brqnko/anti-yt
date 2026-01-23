@@ -75,5 +75,5 @@ func NewHandler() *Handler {
 }
 
 func (h *Handler) GetHealth(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, fmt.Sprintf("OK"))
+	return ctx.JSON(http.StatusOK, "OK")
 }
