@@ -1,0 +1,20 @@
+version: "2"
+cloud:
+    organization: ""
+    project: ""
+    hostname: ""
+servers: []
+sql:
+    - engine: postgresql
+      queries: "query/*.sql"
+      schema: "migrations"
+      gen:
+          go:
+              package: "sqlc"
+              out: "internal/core/database/sqlc"
+              sql_package: "pgx/v5"
+overrides:
+    go: null
+plugins: []
+rules: []
+options: {}

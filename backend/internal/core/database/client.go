@@ -22,7 +22,7 @@ func RunMigration(db *sql.DB) error {
 		return err
 	}
 
-	if err := goose.Redo(db, "."); err != nil {
+	if err := goose.Up(db, "."); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			fmt.Printf("Error: %s, Detail: %s, Hint: %s\n", pgErr.Message, pgErr.Detail, pgErr.Hint)
