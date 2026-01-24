@@ -4,8 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"os"
-	"strings"
+	"log/slog"
 
 	"github.com/brqnko/anti-yt/backend/migrations"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -15,7 +14,7 @@ import (
 )
 
 func RunMigration(db *sql.DB) error {
-	fmt.Println("Running migration...")
+	slog.Info("running migration")
 	goose.SetBaseFS(migrations.EmbedMigrations)
 
 	if err := goose.SetDialect("postgres"); err != nil {
@@ -25,22 +24,17 @@ func RunMigration(db *sql.DB) error {
 	if err := goose.Up(db, "."); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			fmt.Printf("Error: %s, Detail: %s, Hint: %s\n", pgErr.Message, pgErr.Detail, pgErr.Hint)
+			slog.Error("migration error", "message", pgErr.Message, "detail", pgErr.Detail, "hint", pgErr.Hint)
 		}
 		return err
 	}
 
-	fmt.Println("migration ok")
+	slog.Info("migration completed")
 	return nil
 }
 
-func ConnectDB() (*sql.DB, error) {
-	data, err := os.ReadFile("/run/secrets/db-password")
-	if err != nil {
-		return nil, err
-	}
-
-	db, err := sql.Open("pgx", fmt.Sprintf("postgres://postgres:%s@db:5432/%s?sslmode=disable", strings.TrimSpace(string(data)), "example"))
+func ConnectDB(dbPassword string, dbName string) (*sql.DB, error) {
+	db, err := sql.Open("pgx", fmt.Sprintf("postgres://postgres:%s@db:5432/%s?sslmode=disable", dbPassword, dbName))
 	if err != nil {
 		return nil, err
 	}

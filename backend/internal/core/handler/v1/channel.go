@@ -1,16 +1,15 @@
 package v1
 
 import (
-	"github.com/labstack/echo/v4"
-	openapitypes "github.com/oapi-codegen/runtime/types"
+	"context"
 )
 
-func (h *Handler) GetChannelsChannelIdVideos(ctx echo.Context, channelId openapitypes.UUID, params GetChannelsChannelIdVideosParams) error {
+func (h *Handler) GetChannelsChannelIdVideos(c context.Context, request GetChannelsChannelIdVideosRequestObject) (GetChannelsChannelIdVideosResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) GetFeedChannels(ctx echo.Context) error {
+func (h *Handler) GetFeedChannels(c context.Context, request GetFeedChannelsRequestObject) (GetFeedChannelsResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }

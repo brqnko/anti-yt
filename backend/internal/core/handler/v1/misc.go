@@ -1,11 +1,9 @@
 package v1
 
 import (
-	"net/http"
-
-	"github.com/labstack/echo/v4"
+	"context"
 )
 
-func (h *Handler) GetHealth(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, "OK")
+func (h *Handler) GetHealth(c context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error) {
+	return GetHealth200JSONResponse{Status: "OK"}, nil
 }

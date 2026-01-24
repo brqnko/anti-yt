@@ -1,21 +1,20 @@
 package v1
 
 import (
-	"github.com/labstack/echo/v4"
-	openapitypes "github.com/oapi-codegen/runtime/types"
+	"context"
 )
 
-func (h *Handler) GetSubscriptions(ctx echo.Context, params GetSubscriptionsParams) error {
+func (h *Handler) GetSubscriptions(c context.Context, request GetSubscriptionsRequestObject) (GetSubscriptionsResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) PostSubscriptions(ctx echo.Context) error {
+func (h *Handler) PostSubscriptions(c context.Context, request PostSubscriptionsRequestObject) (PostSubscriptionsResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) DeleteSubscriptionsChannelId(ctx echo.Context, channelId openapitypes.UUID) error {
+func (h *Handler) DeleteSubscriptionsChannelId(c context.Context, request DeleteSubscriptionsChannelIdRequestObject) (DeleteSubscriptionsChannelIdResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }

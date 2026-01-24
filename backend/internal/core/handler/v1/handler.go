@@ -3,32 +3,37 @@ package v1
 import (
 	"context"
 	"database/sql"
+	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/database"
+	"github.com/brqnko/anti-yt/backend/internal/auth"
+	"golang.org/x/oauth2"
 )
 
-var _ ServerInterface = (*Handler)(nil)
+var _ StrictServerInterface = (*Handler)(nil)
+
+const (
+	internalErrorTitle  = "internal Server Error"
+	internalErrorDetail = "Something went wrong!"
+)
 
 type Handler struct {
 	db *sql.DB
+
+	authService *auth.Service
 }
 
-func NewHandler() (*Handler, error) {
-	db, err := database.ConnectDB()
+func NewHandler(db *sql.DB, oauth2Config *oauth2.Config) (*Handler, error) {
+	authService, err := auth.NewService(db, oauth2Config)
 	if err != nil {
 		return nil, err
 	}
-	if err = database.RunMigration(db); err != nil {
-		return nil, err
-	}
 
-	return &Handler{db: db}, nil
+	return &Handler{
+		db:          db,
+		authService: authService,
+	}, nil
 }
 
-func (h *Handler) Close(ctx context.Context) error {
-	if err := h.db.Close(); err != nil {
-		return err
-	}
-
-	return nil
+func newContext() (context.Context, func()) {
+	return context.WithTimeout(context.Background(), 10*time.Second)
 }

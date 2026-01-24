@@ -1,41 +1,40 @@
 package v1
 
 import (
-	"github.com/labstack/echo/v4"
-	openapitypes "github.com/oapi-codegen/runtime/types"
+	"context"
 )
 
-func (h *Handler) GetPlaylists(ctx echo.Context, params GetPlaylistsParams) error {
+func (h *Handler) GetPlaylists(c context.Context, request GetPlaylistsRequestObject) (GetPlaylistsResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) PostPlaylists(ctx echo.Context) error {
+func (h *Handler) PostPlaylists(c context.Context, request PostPlaylistsRequestObject) (PostPlaylistsResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) DeletePlaylistsPlaylistId(ctx echo.Context, playlistId openapitypes.UUID) error {
+func (h *Handler) DeletePlaylistsPlaylistId(c context.Context, request DeletePlaylistsPlaylistIdRequestObject) (DeletePlaylistsPlaylistIdResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) GetPlaylistsPlaylistId(ctx echo.Context, playlistId openapitypes.UUID, params GetPlaylistsPlaylistIdParams) error {
+func (h *Handler) GetPlaylistsPlaylistId(c context.Context, request GetPlaylistsPlaylistIdRequestObject) (GetPlaylistsPlaylistIdResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) PatchPlaylistsPlaylistId(ctx echo.Context, playlistId openapitypes.UUID) error {
+func (h *Handler) PatchPlaylistsPlaylistId(c context.Context, request PatchPlaylistsPlaylistIdRequestObject) (PatchPlaylistsPlaylistIdResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) DeletePlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapitypes.UUID, params DeletePlaylistsPlaylistIdVideosParams) error {
+func (h *Handler) DeletePlaylistsPlaylistIdVideos(c context.Context, request DeletePlaylistsPlaylistIdVideosRequestObject) (DeletePlaylistsPlaylistIdVideosResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) PostPlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapitypes.UUID) error {
+func (h *Handler) PostPlaylistsPlaylistIdVideos(c context.Context, request PostPlaylistsPlaylistIdVideosRequestObject) (PostPlaylistsPlaylistIdVideosResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
