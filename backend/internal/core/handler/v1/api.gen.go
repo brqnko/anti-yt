@@ -14,12 +14,46 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
 	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
+
+const (
+	CookieJwtAuthScopes = "CookieJwtAuth.Scopes"
+)
+
+// Defines values for PlaylistType.
+const (
+	PlaylistTypeNormal PlaylistType = "normal"
+)
+
+// Defines values for PlaylistVisibility.
+const (
+	PlaylistVisibilityPrivate PlaylistVisibility = "private"
+)
+
+// Defines values for ResourceType.
+const (
+	ResourceTypeChannel ResourceType = "channel"
+	ResourceTypeVideo   ResourceType = "video"
+)
+
+// Defines values for SearchType.
+const (
+	SearchTypeChannel SearchType = "channel"
+	SearchTypeVideo   SearchType = "video"
+)
+
+// PlaylistType プレイリストのタイプ
+type PlaylistType string
+
+// PlaylistVisibility プレイリストの公開範囲
+type PlaylistVisibility string
 
 // ProblemDetailError defines model for ProblemDetailError.
 type ProblemDetailError struct {
@@ -27,11 +61,54 @@ type ProblemDetailError struct {
 	Title  string `json:"title"`
 }
 
-// CookieCsrfToken defines model for CookieCsrfToken.
-type CookieCsrfToken = string
+// ResourceType リソースのタイプ
+type ResourceType string
 
-// HeaderCsrfToken CSRF Token
-type HeaderCsrfToken = string
+// ScreenTimeSlot スクリーン時間の許可時間帯
+type ScreenTimeSlot struct {
+	// EndTime 終了時刻 (HH:mm形式)
+	EndTime string `json:"end_time"`
+
+	// Id スロットID
+	Id openapi_types.UUID `json:"id"`
+
+	// StartTime 開始時刻 (HH:mm形式)
+	StartTime string `json:"start_time"`
+}
+
+// SearchType 検索のタイプ
+type SearchType string
+
+// User defines model for User.
+type User struct {
+	// DailyRemainingSeconds 今日の残りの時間（設定していない場合はなし）
+	DailyRemainingSeconds *int `json:"daily_remaining_seconds,omitempty"`
+
+	// DailyScreenSeconds 毎日のスクリーン時間制限
+	DailyScreenSeconds *int `json:"daily_screen_seconds,omitempty"`
+
+	// DisplayName ユーザーの表示名
+	DisplayName string `json:"display_name"`
+
+	// Id ユーザーID
+	Id openapi_types.UUID `json:"id"`
+
+	// JoinedAt アカウント作成日
+	JoinedAt time.Time `json:"joined_at"`
+
+	// LanguageCode アカウントの言語コード
+	LanguageCode *string          `json:"language_code,omitempty"`
+	ScreenTime   []ScreenTimeSlot `json:"screen_time"`
+}
+
+// CookieCSRFToken defines model for CookieCSRFToken.
+type CookieCSRFToken = string
+
+// HeaderCSRFToken CSRF Token
+type HeaderCSRFToken = string
+
+// BadRequest defines model for BadRequest.
+type BadRequest = ProblemDetailError
 
 // Forbidden defines model for Forbidden.
 type Forbidden = ProblemDetailError
@@ -41,6 +118,12 @@ type InternalServerError = ProblemDetailError
 
 // NotFound defines model for NotFound.
 type NotFound = ProblemDetailError
+
+// PayloadTooLarge defines model for PayloadTooLarge.
+type PayloadTooLarge = ProblemDetailError
+
+// TooManyRequests defines model for TooManyRequests.
+type TooManyRequests = ProblemDetailError
 
 // Unauthorized defines model for Unauthorized.
 type Unauthorized = ProblemDetailError
@@ -59,24 +142,258 @@ type GetAuthGoogleCallbackParams struct {
 
 // PostAuthRefreshParams defines parameters for PostAuthRefresh.
 type PostAuthRefreshParams struct {
-	XCsrfToken   HeaderCsrfToken `json:"X-csrf-token"`
+	XCsrfToken   HeaderCSRFToken `json:"x-csrf-token"`
 	RefreshToken string          `form:"refresh_token" json:"refresh_token"`
 
 	// CsrfToken CSRF Token
-	CsrfToken CookieCsrfToken `form:"csrf_token" json:"csrf_token"`
+	CsrfToken CookieCSRFToken `form:"csrf_token" json:"csrf_token"`
 }
+
+// GetChannelsChannelIdVideosParams defines parameters for GetChannelsChannelIdVideos.
+type GetChannelsChannelIdVideosParams struct {
+	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// GetFeedParams defines parameters for GetFeed.
+type GetFeedParams struct {
+	// Limit 取得する最大の数
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor 最後に取得した動画ID(ページネーション)
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// GetHistoryParams defines parameters for GetHistory.
+type GetHistoryParams struct {
+	// Limit 取得する最大の数
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor 最後に取得した動画内部ID(ページネーション)
+	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// GetPlaylistsParams defines parameters for GetPlaylists.
+type GetPlaylistsParams struct {
+	// Limit 取得する最大の数
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor ページネーション
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// PostPlaylistsJSONBody defines parameters for PostPlaylists.
+type PostPlaylistsJSONBody struct {
+	PlaylistDescription *string `json:"playlist_description,omitempty"`
+	PlaylistTitle       *string `json:"playlist_title,omitempty"`
+
+	// PlaylistType プレイリストのタイプ
+	PlaylistType PlaylistType `json:"playlist_type"`
+
+	// PlaylistVisibility プレイリストの公開範囲
+	PlaylistVisibility PlaylistVisibility `json:"playlist_visibility"`
+}
+
+// GetPlaylistsPlaylistIdParams defines parameters for GetPlaylistsPlaylistId.
+type GetPlaylistsPlaylistIdParams struct {
+	// Limit 取得する最大の数
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor 最後に取得した動画ID(ページネーション)
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// PatchPlaylistsPlaylistIdJSONBody defines parameters for PatchPlaylistsPlaylistId.
+type PatchPlaylistsPlaylistIdJSONBody struct {
+	PlaylistDescription *string `json:"playlist_description,omitempty"`
+	PlaylistTitle       *string `json:"playlist_title,omitempty"`
+}
+
+// DeletePlaylistsPlaylistIdVideosParams defines parameters for DeletePlaylistsPlaylistIdVideos.
+type DeletePlaylistsPlaylistIdVideosParams struct {
+	VideoId openapi_types.UUID `form:"video_id" json:"video_id"`
+}
+
+// PostPlaylistsPlaylistIdVideosJSONBody defines parameters for PostPlaylistsPlaylistIdVideos.
+type PostPlaylistsPlaylistIdVideosJSONBody struct {
+	VideoId openapi_types.UUID `json:"video_id"`
+}
+
+// GetSearchParams defines parameters for GetSearch.
+type GetSearchParams struct {
+	// Limit 検索の結果の制限数
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor ページネーション
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Query 検索のクエリ文字列
+	Query string `form:"query" json:"query"`
+
+	// SearchType 検索のタイプ
+	SearchType SearchType `form:"search_type" json:"search_type"`
+}
+
+// GetStatisticsDailyParams defines parameters for GetStatisticsDaily.
+type GetStatisticsDailyParams struct {
+	TargetDay openapi_types.Date `form:"target_day" json:"target_day"`
+}
+
+// GetStatisticsMonthlyParams defines parameters for GetStatisticsMonthly.
+type GetStatisticsMonthlyParams struct {
+	TargetMonth openapi_types.Date `form:"target_month" json:"target_month"`
+}
+
+// GetSubscriptionsParams defines parameters for GetSubscriptions.
+type GetSubscriptionsParams struct {
+	// Limit 取得する最大の数
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor 最後に取得したチャンネルID(ページネーション)
+	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// PostSubscriptionsJSONBody defines parameters for PostSubscriptions.
+type PostSubscriptionsJSONBody struct {
+	// ChannelId 登録するチャンネルID or ハンドル名
+	ChannelId string `json:"channel_id"`
+}
+
+// PostUsersMeJSONBody defines parameters for PostUsersMe.
+type PostUsersMeJSONBody struct {
+	// DailyScreenSeconds 毎日のスクリーン時間制限
+	DailyScreenSeconds *int `json:"daily_screen_seconds,omitempty"`
+
+	// DisplayName ユーザーの表示名
+	DisplayName string `json:"display_name"`
+
+	// LanguageCode アカウントの言語コード
+	LanguageCode string           `json:"language_code"`
+	ScreenTime   []ScreenTimeSlot `json:"screen_time"`
+}
+
+// PatchUsersMeStatusJSONBody defines parameters for PatchUsersMeStatus.
+type PatchUsersMeStatusJSONBody struct {
+	// DailyScreenSeconds 毎日のスクリーン時間制限
+	DailyScreenSeconds *int `json:"daily_screen_seconds,omitempty"`
+
+	// DisplayName ユーザーの表示名
+	DisplayName *string `json:"display_name,omitempty"`
+
+	// LanguageCode アカウントの言語コード
+	LanguageCode *string           `json:"language_code,omitempty"`
+	ScreenTime   *[]ScreenTimeSlot `json:"screen_time,omitempty"`
+}
+
+// PostPlaylistsJSONRequestBody defines body for PostPlaylists for application/json ContentType.
+type PostPlaylistsJSONRequestBody PostPlaylistsJSONBody
+
+// PatchPlaylistsPlaylistIdJSONRequestBody defines body for PatchPlaylistsPlaylistId for application/json ContentType.
+type PatchPlaylistsPlaylistIdJSONRequestBody PatchPlaylistsPlaylistIdJSONBody
+
+// PostPlaylistsPlaylistIdVideosJSONRequestBody defines body for PostPlaylistsPlaylistIdVideos for application/json ContentType.
+type PostPlaylistsPlaylistIdVideosJSONRequestBody PostPlaylistsPlaylistIdVideosJSONBody
+
+// PostSubscriptionsJSONRequestBody defines body for PostSubscriptions for application/json ContentType.
+type PostSubscriptionsJSONRequestBody PostSubscriptionsJSONBody
+
+// PostUsersMeJSONRequestBody defines body for PostUsersMe for application/json ContentType.
+type PostUsersMeJSONRequestBody PostUsersMeJSONBody
+
+// PatchUsersMeStatusJSONRequestBody defines body for PatchUsersMeStatus for application/json ContentType.
+type PatchUsersMeStatusJSONRequestBody PatchUsersMeStatusJSONBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Google authentication
-	// (POST /api/v1/auth/google)
-	PostAuthGoogle(ctx echo.Context) error
+	// (GET /api/v1/auth/google)
+	GetAuthGoogle(ctx echo.Context) error
 	// Google Authorization Code Callback
 	// (GET /api/v1/auth/google/callback)
 	GetAuthGoogleCallback(ctx echo.Context, params GetAuthGoogleCallbackParams) error
+	// Logout
+	// (POST /api/v1/auth/logout)
+	PostAuthLogout(ctx echo.Context) error
 	// Refresh access token
 	// (POST /api/v1/auth/refresh)
 	PostAuthRefresh(ctx echo.Context, params PostAuthRefreshParams) error
+	// Get latest channel uploads
+	// (GET /api/v1/channels/{channel_id}/videos)
+	GetChannelsChannelIdVideos(ctx echo.Context, channelId openapi_types.UUID, params GetChannelsChannelIdVideosParams) error
+	// Get latest videos
+	// (GET /api/v1/feed)
+	GetFeed(ctx echo.Context, params GetFeedParams) error
+	// Get channels
+	// (GET /api/v1/feed/channels)
+	GetFeedChannels(ctx echo.Context) error
+	// Get video history
+	// (GET /api/v1/history)
+	GetHistory(ctx echo.Context, params GetHistoryParams) error
+	// Get playlists
+	// (GET /api/v1/playlists)
+	GetPlaylists(ctx echo.Context, params GetPlaylistsParams) error
+	// Create new playlist
+	// (POST /api/v1/playlists)
+	PostPlaylists(ctx echo.Context) error
+	// Delete playlist
+	// (DELETE /api/v1/playlists/{playlist_id})
+	DeletePlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID) error
+	// Get playlist
+	// (GET /api/v1/playlists/{playlist_id})
+	GetPlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID, params GetPlaylistsPlaylistIdParams) error
+	// Patch playlist
+	// (PATCH /api/v1/playlists/{playlist_id})
+	PatchPlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID) error
+	// Remove a video from playlist
+	// (DELETE /api/v1/playlists/{playlist_id}/videos)
+	DeletePlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdVideosParams) error
+	// Insert a new video into playlist
+	// (POST /api/v1/playlists/{playlist_id}/videos)
+	PostPlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapi_types.UUID) error
+	// Get search result
+	// (GET /api/v1/search)
+	GetSearch(ctx echo.Context, params GetSearchParams) error
+	// Get User Statics by day
+	// (GET /api/v1/statistics/daily)
+	GetStatisticsDaily(ctx echo.Context, params GetStatisticsDailyParams) error
+	// Get User Statistics by month
+	// (GET /api/v1/statistics/monthly)
+	GetStatisticsMonthly(ctx echo.Context, params GetStatisticsMonthlyParams) error
+	// Get subscriptions
+	// (GET /api/v1/subscriptions)
+	GetSubscriptions(ctx echo.Context, params GetSubscriptionsParams) error
+	// Subscribe new channel
+	// (POST /api/v1/subscriptions)
+	PostSubscriptions(ctx echo.Context) error
+	// Delete subscription
+	// (DELETE /api/v1/subscriptions/{channel_id})
+	DeleteSubscriptionsChannelId(ctx echo.Context, channelId openapi_types.UUID) error
+	// Create a new account
+	// (POST /api/v1/users)
+	PostUsersMe(ctx echo.Context) error
+	// Delete User's Account
+	// (DELETE /api/v1/users/me)
+	DeleteUsersMe(ctx echo.Context) error
+	// Get Current User's Status
+	// (GET /api/v1/users/me)
+	GetUsersMeStatus(ctx echo.Context) error
+	// Update User Status
+	// (PATCH /api/v1/users/me)
+	PatchUsersMeStatus(ctx echo.Context) error
+	// Get User Detail
+	// (GET /api/v1/users/me/limits)
+	GetUsersMeLimits(ctx echo.Context) error
+	// User session list
+	// (GET /api/v1/users/me/sessions)
+	GetUsersMeSessions(ctx echo.Context) error
+	// Delete session
+	// (DELETE /api/v1/users/me/sessions/{session_id})
+	DeleteUsersMeSessionsSessionId(ctx echo.Context, sessionId openapi_types.UUID) error
+	// Get video detail
+	// (GET /api/v1/videos/{external_video_id})
+	GetVideosVideoId(ctx echo.Context, externalVideoId string) error
+	// Heartbeats
+	// (POST /api/v1/videos/{external_video_id}/heartbeats)
+	PostVideosVideoIdHeartbeats(ctx echo.Context, externalVideoId string) error
 	// Health check
 	// (GET /health)
 	GetHealth(ctx echo.Context) error
@@ -87,12 +404,12 @@ type ServerInterfaceWrapper struct {
 	Handler ServerInterface
 }
 
-// PostAuthGoogle converts echo context to params.
-func (w *ServerInterfaceWrapper) PostAuthGoogle(ctx echo.Context) error {
+// GetAuthGoogle converts echo context to params.
+func (w *ServerInterfaceWrapper) GetAuthGoogle(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostAuthGoogle(ctx)
+	err = w.Handler.GetAuthGoogle(ctx)
 	return err
 }
 
@@ -128,6 +445,17 @@ func (w *ServerInterfaceWrapper) GetAuthGoogleCallback(ctx echo.Context) error {
 	return err
 }
 
+// PostAuthLogout converts echo context to params.
+func (w *ServerInterfaceWrapper) PostAuthLogout(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostAuthLogout(ctx)
+	return err
+}
+
 // PostAuthRefresh converts echo context to params.
 func (w *ServerInterfaceWrapper) PostAuthRefresh(ctx echo.Context) error {
 	var err error
@@ -136,22 +464,22 @@ func (w *ServerInterfaceWrapper) PostAuthRefresh(ctx echo.Context) error {
 	var params PostAuthRefreshParams
 
 	headers := ctx.Request().Header
-	// ------------- Required header parameter "X-csrf-token" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-csrf-token")]; found {
-		var XCsrfToken HeaderCsrfToken
+	// ------------- Required header parameter "x-csrf-token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("x-csrf-token")]; found {
+		var XCsrfToken HeaderCSRFToken
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-csrf-token, got %d", n))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for x-csrf-token, got %d", n))
 		}
 
-		err = runtime.BindStyledParameterWithOptions("simple", "X-csrf-token", valueList[0], &XCsrfToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		err = runtime.BindStyledParameterWithOptions("simple", "x-csrf-token", valueList[0], &XCsrfToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-csrf-token: %s", err))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter x-csrf-token: %s", err))
 		}
 
 		params.XCsrfToken = XCsrfToken
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-csrf-token is required, but not found"))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter x-csrf-token is required, but not found"))
 	}
 
 	if cookie, err := ctx.Cookie("refresh_token"); err == nil {
@@ -169,7 +497,7 @@ func (w *ServerInterfaceWrapper) PostAuthRefresh(ctx echo.Context) error {
 
 	if cookie, err := ctx.Cookie("csrf_token"); err == nil {
 
-		var value CookieCsrfToken
+		var value CookieCSRFToken
 		err = runtime.BindStyledParameterWithOptions("simple", "csrf_token", cookie.Value, &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationCookie, Explode: true, Required: true})
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter csrf_token: %s", err))
@@ -182,6 +510,508 @@ func (w *ServerInterfaceWrapper) PostAuthRefresh(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PostAuthRefresh(ctx, params)
+	return err
+}
+
+// GetChannelsChannelIdVideos converts echo context to params.
+func (w *ServerInterfaceWrapper) GetChannelsChannelIdVideos(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "channel_id" -------------
+	var channelId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "channel_id", ctx.Param("channel_id"), &channelId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter channel_id: %s", err))
+	}
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetChannelsChannelIdVideosParams
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetChannelsChannelIdVideos(ctx, channelId, params)
+	return err
+}
+
+// GetFeed converts echo context to params.
+func (w *ServerInterfaceWrapper) GetFeed(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetFeedParams
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetFeed(ctx, params)
+	return err
+}
+
+// GetFeedChannels converts echo context to params.
+func (w *ServerInterfaceWrapper) GetFeedChannels(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetFeedChannels(ctx)
+	return err
+}
+
+// GetHistory converts echo context to params.
+func (w *ServerInterfaceWrapper) GetHistory(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetHistoryParams
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetHistory(ctx, params)
+	return err
+}
+
+// GetPlaylists converts echo context to params.
+func (w *ServerInterfaceWrapper) GetPlaylists(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetPlaylistsParams
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetPlaylists(ctx, params)
+	return err
+}
+
+// PostPlaylists converts echo context to params.
+func (w *ServerInterfaceWrapper) PostPlaylists(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostPlaylists(ctx)
+	return err
+}
+
+// DeletePlaylistsPlaylistId converts echo context to params.
+func (w *ServerInterfaceWrapper) DeletePlaylistsPlaylistId(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "playlist_id" -------------
+	var playlistId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", ctx.Param("playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter playlist_id: %s", err))
+	}
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeletePlaylistsPlaylistId(ctx, playlistId)
+	return err
+}
+
+// GetPlaylistsPlaylistId converts echo context to params.
+func (w *ServerInterfaceWrapper) GetPlaylistsPlaylistId(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "playlist_id" -------------
+	var playlistId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", ctx.Param("playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter playlist_id: %s", err))
+	}
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetPlaylistsPlaylistIdParams
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetPlaylistsPlaylistId(ctx, playlistId, params)
+	return err
+}
+
+// PatchPlaylistsPlaylistId converts echo context to params.
+func (w *ServerInterfaceWrapper) PatchPlaylistsPlaylistId(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "playlist_id" -------------
+	var playlistId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", ctx.Param("playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter playlist_id: %s", err))
+	}
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PatchPlaylistsPlaylistId(ctx, playlistId)
+	return err
+}
+
+// DeletePlaylistsPlaylistIdVideos converts echo context to params.
+func (w *ServerInterfaceWrapper) DeletePlaylistsPlaylistIdVideos(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "playlist_id" -------------
+	var playlistId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", ctx.Param("playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter playlist_id: %s", err))
+	}
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DeletePlaylistsPlaylistIdVideosParams
+	// ------------- Required query parameter "video_id" -------------
+
+	err = runtime.BindQueryParameter("form", true, true, "video_id", ctx.QueryParams(), &params.VideoId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter video_id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeletePlaylistsPlaylistIdVideos(ctx, playlistId, params)
+	return err
+}
+
+// PostPlaylistsPlaylistIdVideos converts echo context to params.
+func (w *ServerInterfaceWrapper) PostPlaylistsPlaylistIdVideos(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "playlist_id" -------------
+	var playlistId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", ctx.Param("playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter playlist_id: %s", err))
+	}
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostPlaylistsPlaylistIdVideos(ctx, playlistId)
+	return err
+}
+
+// GetSearch converts echo context to params.
+func (w *ServerInterfaceWrapper) GetSearch(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetSearchParams
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
+	}
+
+	// ------------- Required query parameter "query" -------------
+
+	err = runtime.BindQueryParameter("form", true, true, "query", ctx.QueryParams(), &params.Query)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter query: %s", err))
+	}
+
+	// ------------- Required query parameter "search_type" -------------
+
+	err = runtime.BindQueryParameter("form", true, true, "search_type", ctx.QueryParams(), &params.SearchType)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter search_type: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetSearch(ctx, params)
+	return err
+}
+
+// GetStatisticsDaily converts echo context to params.
+func (w *ServerInterfaceWrapper) GetStatisticsDaily(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetStatisticsDailyParams
+	// ------------- Required query parameter "target_day" -------------
+
+	err = runtime.BindQueryParameter("form", true, true, "target_day", ctx.QueryParams(), &params.TargetDay)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter target_day: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetStatisticsDaily(ctx, params)
+	return err
+}
+
+// GetStatisticsMonthly converts echo context to params.
+func (w *ServerInterfaceWrapper) GetStatisticsMonthly(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetStatisticsMonthlyParams
+	// ------------- Required query parameter "target_month" -------------
+
+	err = runtime.BindQueryParameter("form", true, true, "target_month", ctx.QueryParams(), &params.TargetMonth)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter target_month: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetStatisticsMonthly(ctx, params)
+	return err
+}
+
+// GetSubscriptions converts echo context to params.
+func (w *ServerInterfaceWrapper) GetSubscriptions(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetSubscriptionsParams
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetSubscriptions(ctx, params)
+	return err
+}
+
+// PostSubscriptions converts echo context to params.
+func (w *ServerInterfaceWrapper) PostSubscriptions(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostSubscriptions(ctx)
+	return err
+}
+
+// DeleteSubscriptionsChannelId converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteSubscriptionsChannelId(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "channel_id" -------------
+	var channelId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "channel_id", ctx.Param("channel_id"), &channelId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter channel_id: %s", err))
+	}
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteSubscriptionsChannelId(ctx, channelId)
+	return err
+}
+
+// PostUsersMe converts echo context to params.
+func (w *ServerInterfaceWrapper) PostUsersMe(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostUsersMe(ctx)
+	return err
+}
+
+// DeleteUsersMe converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteUsersMe(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteUsersMe(ctx)
+	return err
+}
+
+// GetUsersMeStatus converts echo context to params.
+func (w *ServerInterfaceWrapper) GetUsersMeStatus(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetUsersMeStatus(ctx)
+	return err
+}
+
+// PatchUsersMeStatus converts echo context to params.
+func (w *ServerInterfaceWrapper) PatchUsersMeStatus(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PatchUsersMeStatus(ctx)
+	return err
+}
+
+// GetUsersMeLimits converts echo context to params.
+func (w *ServerInterfaceWrapper) GetUsersMeLimits(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetUsersMeLimits(ctx)
+	return err
+}
+
+// GetUsersMeSessions converts echo context to params.
+func (w *ServerInterfaceWrapper) GetUsersMeSessions(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetUsersMeSessions(ctx)
+	return err
+}
+
+// DeleteUsersMeSessionsSessionId converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteUsersMeSessionsSessionId(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "session_id" -------------
+	var sessionId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "session_id", ctx.Param("session_id"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter session_id: %s", err))
+	}
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteUsersMeSessionsSessionId(ctx, sessionId)
+	return err
+}
+
+// GetVideosVideoId converts echo context to params.
+func (w *ServerInterfaceWrapper) GetVideosVideoId(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "external_video_id" -------------
+	var externalVideoId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "external_video_id", ctx.Param("external_video_id"), &externalVideoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter external_video_id: %s", err))
+	}
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetVideosVideoId(ctx, externalVideoId)
+	return err
+}
+
+// PostVideosVideoIdHeartbeats converts echo context to params.
+func (w *ServerInterfaceWrapper) PostVideosVideoIdHeartbeats(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "external_video_id" -------------
+	var externalVideoId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "external_video_id", ctx.Param("external_video_id"), &externalVideoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter external_video_id: %s", err))
+	}
+
+	ctx.Set(CookieJwtAuthScopes, []string{})
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostVideosVideoIdHeartbeats(ctx, externalVideoId)
 	return err
 }
 
@@ -222,12 +1052,41 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.POST(baseURL+"/api/v1/auth/google", wrapper.PostAuthGoogle)
+	router.GET(baseURL+"/api/v1/auth/google", wrapper.GetAuthGoogle)
 	router.GET(baseURL+"/api/v1/auth/google/callback", wrapper.GetAuthGoogleCallback)
+	router.POST(baseURL+"/api/v1/auth/logout", wrapper.PostAuthLogout)
 	router.POST(baseURL+"/api/v1/auth/refresh", wrapper.PostAuthRefresh)
+	router.GET(baseURL+"/api/v1/channels/:channel_id/videos", wrapper.GetChannelsChannelIdVideos)
+	router.GET(baseURL+"/api/v1/feed", wrapper.GetFeed)
+	router.GET(baseURL+"/api/v1/feed/channels", wrapper.GetFeedChannels)
+	router.GET(baseURL+"/api/v1/history", wrapper.GetHistory)
+	router.GET(baseURL+"/api/v1/playlists", wrapper.GetPlaylists)
+	router.POST(baseURL+"/api/v1/playlists", wrapper.PostPlaylists)
+	router.DELETE(baseURL+"/api/v1/playlists/:playlist_id", wrapper.DeletePlaylistsPlaylistId)
+	router.GET(baseURL+"/api/v1/playlists/:playlist_id", wrapper.GetPlaylistsPlaylistId)
+	router.PATCH(baseURL+"/api/v1/playlists/:playlist_id", wrapper.PatchPlaylistsPlaylistId)
+	router.DELETE(baseURL+"/api/v1/playlists/:playlist_id/videos", wrapper.DeletePlaylistsPlaylistIdVideos)
+	router.POST(baseURL+"/api/v1/playlists/:playlist_id/videos", wrapper.PostPlaylistsPlaylistIdVideos)
+	router.GET(baseURL+"/api/v1/search", wrapper.GetSearch)
+	router.GET(baseURL+"/api/v1/statistics/daily", wrapper.GetStatisticsDaily)
+	router.GET(baseURL+"/api/v1/statistics/monthly", wrapper.GetStatisticsMonthly)
+	router.GET(baseURL+"/api/v1/subscriptions", wrapper.GetSubscriptions)
+	router.POST(baseURL+"/api/v1/subscriptions", wrapper.PostSubscriptions)
+	router.DELETE(baseURL+"/api/v1/subscriptions/:channel_id", wrapper.DeleteSubscriptionsChannelId)
+	router.POST(baseURL+"/api/v1/users", wrapper.PostUsersMe)
+	router.DELETE(baseURL+"/api/v1/users/me", wrapper.DeleteUsersMe)
+	router.GET(baseURL+"/api/v1/users/me", wrapper.GetUsersMeStatus)
+	router.PATCH(baseURL+"/api/v1/users/me", wrapper.PatchUsersMeStatus)
+	router.GET(baseURL+"/api/v1/users/me/limits", wrapper.GetUsersMeLimits)
+	router.GET(baseURL+"/api/v1/users/me/sessions", wrapper.GetUsersMeSessions)
+	router.DELETE(baseURL+"/api/v1/users/me/sessions/:session_id", wrapper.DeleteUsersMeSessionsSessionId)
+	router.GET(baseURL+"/api/v1/videos/:external_video_id", wrapper.GetVideosVideoId)
+	router.POST(baseURL+"/api/v1/videos/:external_video_id/heartbeats", wrapper.PostVideosVideoIdHeartbeats)
 	router.GET(baseURL+"/health", wrapper.GetHealth)
 
 }
+
+type BadRequestJSONResponse ProblemDetailError
 
 type ForbiddenJSONResponse ProblemDetailError
 
@@ -235,63 +1094,94 @@ type InternalServerErrorJSONResponse ProblemDetailError
 
 type NotFoundJSONResponse ProblemDetailError
 
+type PayloadTooLargeJSONResponse ProblemDetailError
+
+type TooManyRequestsJSONResponse ProblemDetailError
+
 type UnauthorizedJSONResponse ProblemDetailError
 
-type PostAuthGoogleRequestObject struct {
+type GetAuthGoogleRequestObject struct {
 }
 
-type PostAuthGoogleResponseObject interface {
-	VisitPostAuthGoogleResponse(w http.ResponseWriter) error
+type GetAuthGoogleResponseObject interface {
+	VisitGetAuthGoogleResponse(w http.ResponseWriter) error
 }
 
-type PostAuthGoogle302ResponseHeaders struct {
+type GetAuthGoogle302ResponseHeaders struct {
 	Location  string
 	SetCookie string
 }
 
-type PostAuthGoogle302Response struct {
-	Headers PostAuthGoogle302ResponseHeaders
+type GetAuthGoogle302Response struct {
+	Headers GetAuthGoogle302ResponseHeaders
 }
 
-func (response PostAuthGoogle302Response) VisitPostAuthGoogleResponse(w http.ResponseWriter) error {
+func (response GetAuthGoogle302Response) VisitGetAuthGoogleResponse(w http.ResponseWriter) error {
 	w.Header().Set("Location", fmt.Sprint(response.Headers.Location))
 	w.Header().Set("Set-Cookie", fmt.Sprint(response.Headers.SetCookie))
 	w.WriteHeader(302)
 	return nil
 }
 
-type PostAuthGoogle401JSONResponse struct{ UnauthorizedJSONResponse }
+type GetAuthGoogle400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response PostAuthGoogle401JSONResponse) VisitPostAuthGoogleResponse(w http.ResponseWriter) error {
+func (response GetAuthGoogle400JSONResponse) VisitGetAuthGoogleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthGoogle401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetAuthGoogle401JSONResponse) VisitGetAuthGoogleResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type PostAuthGoogle403JSONResponse struct{ ForbiddenJSONResponse }
+type GetAuthGoogle403JSONResponse struct{ ForbiddenJSONResponse }
 
-func (response PostAuthGoogle403JSONResponse) VisitPostAuthGoogleResponse(w http.ResponseWriter) error {
+func (response GetAuthGoogle403JSONResponse) VisitGetAuthGoogleResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type PostAuthGoogle404JSONResponse struct{ NotFoundJSONResponse }
+type GetAuthGoogle404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response PostAuthGoogle404JSONResponse) VisitPostAuthGoogleResponse(w http.ResponseWriter) error {
+func (response GetAuthGoogle404JSONResponse) VisitGetAuthGoogleResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type PostAuthGoogle500JSONResponse struct {
+type GetAuthGoogle413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetAuthGoogle413JSONResponse) VisitGetAuthGoogleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthGoogle429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetAuthGoogle429JSONResponse) VisitGetAuthGoogleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthGoogle500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response PostAuthGoogle500JSONResponse) VisitPostAuthGoogleResponse(w http.ResponseWriter) error {
+func (response GetAuthGoogle500JSONResponse) VisitGetAuthGoogleResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(500)
 
@@ -322,11 +1212,29 @@ func (response GetAuthGoogleCallback302Response) VisitGetAuthGoogleCallbackRespo
 	return nil
 }
 
+type GetAuthGoogleCallback400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetAuthGoogleCallback400JSONResponse) VisitGetAuthGoogleCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type GetAuthGoogleCallback401JSONResponse struct{ UnauthorizedJSONResponse }
 
 func (response GetAuthGoogleCallback401JSONResponse) VisitGetAuthGoogleCallbackResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthGoogleCallback403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetAuthGoogleCallback403JSONResponse) VisitGetAuthGoogleCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -340,11 +1248,112 @@ func (response GetAuthGoogleCallback404JSONResponse) VisitGetAuthGoogleCallbackR
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetAuthGoogleCallback413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetAuthGoogleCallback413JSONResponse) VisitGetAuthGoogleCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthGoogleCallback429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetAuthGoogleCallback429JSONResponse) VisitGetAuthGoogleCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type GetAuthGoogleCallback500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
 func (response GetAuthGoogleCallback500JSONResponse) VisitGetAuthGoogleCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostAuthLogoutRequestObject struct {
+}
+
+type PostAuthLogoutResponseObject interface {
+	VisitPostAuthLogoutResponse(w http.ResponseWriter) error
+}
+
+type PostAuthLogout200JSONResponse struct {
+	LoggedOutAt time.Time `json:"logged_out_at"`
+}
+
+func (response PostAuthLogout200JSONResponse) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostAuthLogout400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PostAuthLogout400JSONResponse) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostAuthLogout401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PostAuthLogout401JSONResponse) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostAuthLogout403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response PostAuthLogout403JSONResponse) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostAuthLogout404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PostAuthLogout404JSONResponse) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostAuthLogout413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response PostAuthLogout413JSONResponse) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostAuthLogout429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response PostAuthLogout429JSONResponse) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostAuthLogout500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response PostAuthLogout500JSONResponse) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(500)
 
@@ -378,6 +1387,15 @@ func (response PostAuthRefresh200JSONResponse) VisitPostAuthRefreshResponse(w ht
 	return json.NewEncoder(w).Encode(response.Body)
 }
 
+type PostAuthRefresh400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PostAuthRefresh400JSONResponse) VisitPostAuthRefreshResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type PostAuthRefresh401JSONResponse struct{ UnauthorizedJSONResponse }
 
 func (response PostAuthRefresh401JSONResponse) VisitPostAuthRefreshResponse(w http.ResponseWriter) error {
@@ -405,11 +1423,2493 @@ func (response PostAuthRefresh404JSONResponse) VisitPostAuthRefreshResponse(w ht
 	return json.NewEncoder(w).Encode(response)
 }
 
+type PostAuthRefresh413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response PostAuthRefresh413JSONResponse) VisitPostAuthRefreshResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostAuthRefresh429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response PostAuthRefresh429JSONResponse) VisitPostAuthRefreshResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type PostAuthRefresh500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
 func (response PostAuthRefresh500JSONResponse) VisitPostAuthRefreshResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsChannelIdVideosRequestObject struct {
+	ChannelId openapi_types.UUID `json:"channel_id"`
+	Params    GetChannelsChannelIdVideosParams
+}
+
+type GetChannelsChannelIdVideosResponseObject interface {
+	VisitGetChannelsChannelIdVideosResponse(w http.ResponseWriter) error
+}
+
+type GetChannelsChannelIdVideos200JSONResponse struct {
+	HasNext   bool `json:"has_next"`
+	ItemCount int  `json:"item_count"`
+	Items     []struct {
+		ExternalVideoCreatedAt     time.Time          `json:"external_video_created_at"`
+		ExternalVideoDescription   string             `json:"external_video_description"`
+		ExternalVideoId            string             `json:"external_video_id"`
+		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string             `json:"external_video_title"`
+		ExternalVideoWatchCount    int                `json:"external_video_watch_count"`
+		LastWatchSeconds           *int               `json:"last_watch_seconds,omitempty"`
+		VideoId                    openapi_types.UUID `json:"video_id"`
+	} `json:"items"`
+}
+
+func (response GetChannelsChannelIdVideos200JSONResponse) VisitGetChannelsChannelIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsChannelIdVideos400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetChannelsChannelIdVideos400JSONResponse) VisitGetChannelsChannelIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsChannelIdVideos401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetChannelsChannelIdVideos401JSONResponse) VisitGetChannelsChannelIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsChannelIdVideos403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetChannelsChannelIdVideos403JSONResponse) VisitGetChannelsChannelIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsChannelIdVideos404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetChannelsChannelIdVideos404JSONResponse) VisitGetChannelsChannelIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsChannelIdVideos413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetChannelsChannelIdVideos413JSONResponse) VisitGetChannelsChannelIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsChannelIdVideos429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetChannelsChannelIdVideos429JSONResponse) VisitGetChannelsChannelIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsChannelIdVideos500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetChannelsChannelIdVideos500JSONResponse) VisitGetChannelsChannelIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeedRequestObject struct {
+	Params GetFeedParams
+}
+
+type GetFeedResponseObject interface {
+	VisitGetFeedResponse(w http.ResponseWriter) error
+}
+
+type GetFeed200JSONResponse struct {
+	HasNext   bool `json:"has_next"`
+	ItemCount int  `json:"item_count"`
+	Items     []struct {
+		ChannelId                  openapi_types.UUID `json:"channel_id"`
+		ExternalChannelDisplayName string             `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string             `json:"external_channel_icon_url"`
+		ExternalChannelId          string             `json:"external_channel_id"`
+		ExternalVideoCreatedAt     time.Time          `json:"external_video_created_at"`
+		ExternalVideoDescription   string             `json:"external_video_description"`
+		ExternalVideoId            string             `json:"external_video_id"`
+		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string             `json:"external_video_title"`
+		ExternalVideoWatchCount    int                `json:"external_video_watch_count"`
+		LastWatchSeconds           *int               `json:"last_watch_seconds,omitempty"`
+
+		// ResourceType リソースのタイプ
+		ResourceType ResourceType       `json:"resource_type"`
+		VideoId      openapi_types.UUID `json:"video_id"`
+	} `json:"items"`
+	SearchKey string `json:"search_key"`
+}
+
+func (response GetFeed200JSONResponse) VisitGetFeedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeed400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetFeed400JSONResponse) VisitGetFeedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeed401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetFeed401JSONResponse) VisitGetFeedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeed403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetFeed403JSONResponse) VisitGetFeedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeed404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetFeed404JSONResponse) VisitGetFeedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeed413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetFeed413JSONResponse) VisitGetFeedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeed429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetFeed429JSONResponse) VisitGetFeedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeed500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetFeed500JSONResponse) VisitGetFeedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeedChannelsRequestObject struct {
+}
+
+type GetFeedChannelsResponseObject interface {
+	VisitGetFeedChannelsResponse(w http.ResponseWriter) error
+}
+
+type GetFeedChannels200JSONResponse struct {
+	ItemCount int `json:"item_count"`
+	Items     []struct {
+		ChannelId              openapi_types.UUID `json:"channel_id"`
+		ExternalChannelIconUrl string             `json:"external_channel_icon_url"`
+		ExternalChannelId      *string            `json:"external_channel_id,omitempty"`
+		Videos                 *struct {
+			ItemCount int `json:"item_count"`
+			Items     []struct {
+				ExternalChannelDisplayName *string            `json:"external_channel_display_name,omitempty"`
+				ExternalVideoDescription   string             `json:"external_video_description"`
+				ExternalVideoId            string             `json:"external_video_id"`
+				ExternalVideoLengthSeconds *int               `json:"external_video_length_seconds,omitempty"`
+				ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
+				ExternalVideoTitle         string             `json:"external_video_title"`
+				VideoId                    openapi_types.UUID `json:"video_id"`
+			} `json:"items"`
+		} `json:"videos,omitempty"`
+	} `json:"items"`
+}
+
+func (response GetFeedChannels200JSONResponse) VisitGetFeedChannelsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeedChannels400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetFeedChannels400JSONResponse) VisitGetFeedChannelsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeedChannels401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetFeedChannels401JSONResponse) VisitGetFeedChannelsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeedChannels403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetFeedChannels403JSONResponse) VisitGetFeedChannelsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeedChannels404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetFeedChannels404JSONResponse) VisitGetFeedChannelsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeedChannels413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetFeedChannels413JSONResponse) VisitGetFeedChannelsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeedChannels429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetFeedChannels429JSONResponse) VisitGetFeedChannelsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFeedChannels500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetFeedChannels500JSONResponse) VisitGetFeedChannelsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetHistoryRequestObject struct {
+	Params GetHistoryParams
+}
+
+type GetHistoryResponseObject interface {
+	VisitGetHistoryResponse(w http.ResponseWriter) error
+}
+
+type GetHistory200JSONResponse struct {
+	// HasNext ページネーションで次のページがあるかどうか
+	HasNext bool `json:"has_next"`
+
+	// ItemCount レスポンスの総件数
+	ItemCount int `json:"item_count"`
+	Items     []struct {
+		// ChannelId チャンネルの内部ID
+		ChannelId openapi_types.UUID `json:"channel_id"`
+
+		// ExternalChannelDisplayName チャンネルの表示名
+		ExternalChannelDisplayName string `json:"external_channel_display_name"`
+
+		// ExternalChannelIconUrl チャンネルのアイコンURL
+		ExternalChannelIconUrl string `json:"external_channel_icon_url"`
+
+		// ExternalChannelId チャンネルのYouTube ID
+		ExternalChannelId string `json:"external_channel_id"`
+		ExternalVideoId   string `json:"external_video_id"`
+
+		// ExternalVideoLengthSeconds 動画の長さ(秒数)
+		ExternalVideoLengthSeconds int `json:"external_video_length_seconds"`
+
+		// ExternalVideoLikeCount 高評価の数
+		ExternalVideoLikeCount int `json:"external_video_like_count"`
+
+		// ExternalVideoThumbnailUrl サムネイルURL
+		ExternalVideoThumbnailUrl string `json:"external_video_thumbnail_url"`
+
+		// ExternalVideoTitle 動画のタイトル
+		ExternalVideoTitle string `json:"external_video_title"`
+
+		// ExternalVideoWatchCount 再生数
+		ExternalVideoWatchCount int `json:"external_video_watch_count"`
+
+		// VideoId 内部ID
+		VideoId openapi_types.UUID `json:"video_id"`
+
+		// WatchPositionSeconds 視聴途中の時間
+		WatchPositionSeconds int `json:"watch_position_seconds"`
+
+		// WatchedAt 履歴の時刻
+		WatchedAt time.Time `json:"watched_at"`
+	} `json:"items"`
+}
+
+func (response GetHistory200JSONResponse) VisitGetHistoryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetHistory400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetHistory400JSONResponse) VisitGetHistoryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetHistory401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetHistory401JSONResponse) VisitGetHistoryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetHistory403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetHistory403JSONResponse) VisitGetHistoryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetHistory404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetHistory404JSONResponse) VisitGetHistoryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetHistory413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetHistory413JSONResponse) VisitGetHistoryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetHistory429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetHistory429JSONResponse) VisitGetHistoryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetHistory500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetHistory500JSONResponse) VisitGetHistoryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylistsRequestObject struct {
+	Params GetPlaylistsParams
+}
+
+type GetPlaylistsResponseObject interface {
+	VisitGetPlaylistsResponse(w http.ResponseWriter) error
+}
+
+type GetPlaylists200JSONResponse struct {
+	HasNext   bool `json:"has_next"`
+	ItemCount int  `json:"item_count"`
+	Items     []struct {
+		PlaylistCreatedAt   time.Time          `json:"playlist_created_at"`
+		PlaylistDescription string             `json:"playlist_description"`
+		PlaylistId          openapi_types.UUID `json:"playlist_id"`
+		PlaylistTitle       string             `json:"playlist_title"`
+
+		// PlaylistType プレイリストのタイプ
+		PlaylistType                  PlaylistType `json:"playlist_type"`
+		PlaylistUpdatedAt             time.Time    `json:"playlist_updated_at"`
+		PlaylistVideoCount            int          `json:"playlist_video_count"`
+		PlaylistVideoItemCountSeconds int          `json:"playlist_video_item_count_seconds"`
+
+		// PlaylistVisibility プレイリストの公開範囲
+		PlaylistVisibility   PlaylistVisibility `json:"playlist_visibility"`
+		TopVideoThumbnailUrl *string            `json:"top_video_thumbnail_url,omitempty"`
+	} `json:"items"`
+}
+
+func (response GetPlaylists200JSONResponse) VisitGetPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylists400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetPlaylists400JSONResponse) VisitGetPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylists401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetPlaylists401JSONResponse) VisitGetPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylists403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetPlaylists403JSONResponse) VisitGetPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylists404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetPlaylists404JSONResponse) VisitGetPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylists413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetPlaylists413JSONResponse) VisitGetPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylists429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetPlaylists429JSONResponse) VisitGetPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylists500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetPlaylists500JSONResponse) VisitGetPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylistsRequestObject struct {
+	Body *PostPlaylistsJSONRequestBody
+}
+
+type PostPlaylistsResponseObject interface {
+	VisitPostPlaylistsResponse(w http.ResponseWriter) error
+}
+
+type PostPlaylists201JSONResponse struct {
+	HasNext   *bool `json:"has_next,omitempty"`
+	ItemCount *int  `json:"item_count,omitempty"`
+	Items     *[]struct {
+		PlaylistCreatedAt   time.Time          `json:"playlist_created_at"`
+		PlaylistDescription string             `json:"playlist_description"`
+		PlaylistId          openapi_types.UUID `json:"playlist_id"`
+		PlaylistTitle       string             `json:"playlist_title"`
+
+		// PlaylistType プレイリストのタイプ
+		PlaylistType                  PlaylistType `json:"playlist_type"`
+		PlaylistUpdatedAt             time.Time    `json:"playlist_updated_at"`
+		PlaylistVideoCount            int          `json:"playlist_video_count"`
+		PlaylistVideoItemCountSeconds int          `json:"playlist_video_item_count_seconds"`
+
+		// PlaylistVisibility プレイリストの公開範囲
+		PlaylistVisibility   PlaylistVisibility `json:"playlist_visibility"`
+		TopVideoThumbnailUrl *string            `json:"top_video_thumbnail_url,omitempty"`
+	} `json:"items,omitempty"`
+}
+
+func (response PostPlaylists201JSONResponse) VisitPostPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylists400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PostPlaylists400JSONResponse) VisitPostPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylists401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PostPlaylists401JSONResponse) VisitPostPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylists403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response PostPlaylists403JSONResponse) VisitPostPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylists404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PostPlaylists404JSONResponse) VisitPostPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylists413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response PostPlaylists413JSONResponse) VisitPostPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylists429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response PostPlaylists429JSONResponse) VisitPostPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylists500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response PostPlaylists500JSONResponse) VisitPostPlaylistsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeletePlaylistsPlaylistIdRequestObject struct {
+	PlaylistId openapi_types.UUID `json:"playlist_id"`
+}
+
+type DeletePlaylistsPlaylistIdResponseObject interface {
+	VisitDeletePlaylistsPlaylistIdResponse(w http.ResponseWriter) error
+}
+
+type DeletePlaylistsPlaylistId204Response struct {
+}
+
+func (response DeletePlaylistsPlaylistId204Response) VisitDeletePlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeletePlaylistsPlaylistId400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response DeletePlaylistsPlaylistId400JSONResponse) VisitDeletePlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeletePlaylistsPlaylistId401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeletePlaylistsPlaylistId401JSONResponse) VisitDeletePlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeletePlaylistsPlaylistId403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeletePlaylistsPlaylistId403JSONResponse) VisitDeletePlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeletePlaylistsPlaylistId404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeletePlaylistsPlaylistId404JSONResponse) VisitDeletePlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeletePlaylistsPlaylistId413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response DeletePlaylistsPlaylistId413JSONResponse) VisitDeletePlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeletePlaylistsPlaylistId429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response DeletePlaylistsPlaylistId429JSONResponse) VisitDeletePlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeletePlaylistsPlaylistId500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response DeletePlaylistsPlaylistId500JSONResponse) VisitDeletePlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylistsPlaylistIdRequestObject struct {
+	PlaylistId openapi_types.UUID `json:"playlist_id"`
+	Params     GetPlaylistsPlaylistIdParams
+}
+
+type GetPlaylistsPlaylistIdResponseObject interface {
+	VisitGetPlaylistsPlaylistIdResponse(w http.ResponseWriter) error
+}
+
+type GetPlaylistsPlaylistId200JSONResponse struct {
+	HasNext   bool `json:"has_next"`
+	ItemCount int  `json:"item_count"`
+	Items     []struct {
+		ChannelId                  openapi_types.UUID `json:"channel_id"`
+		ExternalChannelDisplayName string             `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string             `json:"external_channel_icon_url"`
+		ExternalChannelId          string             `json:"external_channel_id"`
+		ExternalVideoCreatedAt     time.Time          `json:"external_video_created_at"`
+		ExternalVideoDescription   string             `json:"external_video_description"`
+		ExternalVideoId            string             `json:"external_video_id"`
+		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string             `json:"external_video_title"`
+		ExternalVideoWatchCount    int                `json:"external_video_watch_count"`
+		LastWatchSeconds           *int               `json:"last_watch_seconds,omitempty"`
+		VideoId                    openapi_types.UUID `json:"video_id"`
+	} `json:"items"`
+}
+
+func (response GetPlaylistsPlaylistId200JSONResponse) VisitGetPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylistsPlaylistId400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetPlaylistsPlaylistId400JSONResponse) VisitGetPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylistsPlaylistId401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetPlaylistsPlaylistId401JSONResponse) VisitGetPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylistsPlaylistId403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetPlaylistsPlaylistId403JSONResponse) VisitGetPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylistsPlaylistId404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetPlaylistsPlaylistId404JSONResponse) VisitGetPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylistsPlaylistId413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetPlaylistsPlaylistId413JSONResponse) VisitGetPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylistsPlaylistId429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetPlaylistsPlaylistId429JSONResponse) VisitGetPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetPlaylistsPlaylistId500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetPlaylistsPlaylistId500JSONResponse) VisitGetPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchPlaylistsPlaylistIdRequestObject struct {
+	PlaylistId openapi_types.UUID `json:"playlist_id"`
+	Body       *PatchPlaylistsPlaylistIdJSONRequestBody
+}
+
+type PatchPlaylistsPlaylistIdResponseObject interface {
+	VisitPatchPlaylistsPlaylistIdResponse(w http.ResponseWriter) error
+}
+
+type PatchPlaylistsPlaylistId200JSONResponse struct {
+	PlaylistDescription string             `json:"playlist_description"`
+	PlaylistId          openapi_types.UUID `json:"playlist_id"`
+	PlaylistTitle       string             `json:"playlist_title"`
+	PlaylistUpdatedAt   time.Time          `json:"playlist_updated_at"`
+}
+
+func (response PatchPlaylistsPlaylistId200JSONResponse) VisitPatchPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchPlaylistsPlaylistId400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PatchPlaylistsPlaylistId400JSONResponse) VisitPatchPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchPlaylistsPlaylistId401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PatchPlaylistsPlaylistId401JSONResponse) VisitPatchPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchPlaylistsPlaylistId403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response PatchPlaylistsPlaylistId403JSONResponse) VisitPatchPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchPlaylistsPlaylistId404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PatchPlaylistsPlaylistId404JSONResponse) VisitPatchPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchPlaylistsPlaylistId413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response PatchPlaylistsPlaylistId413JSONResponse) VisitPatchPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchPlaylistsPlaylistId429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response PatchPlaylistsPlaylistId429JSONResponse) VisitPatchPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchPlaylistsPlaylistId500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response PatchPlaylistsPlaylistId500JSONResponse) VisitPatchPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeletePlaylistsPlaylistIdVideosRequestObject struct {
+	PlaylistId openapi_types.UUID `json:"playlist_id"`
+	Params     DeletePlaylistsPlaylistIdVideosParams
+}
+
+type DeletePlaylistsPlaylistIdVideosResponseObject interface {
+	VisitDeletePlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error
+}
+
+type DeletePlaylistsPlaylistIdVideos204Response struct {
+}
+
+func (response DeletePlaylistsPlaylistIdVideos204Response) VisitDeletePlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeletePlaylistsPlaylistIdVideos400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response DeletePlaylistsPlaylistIdVideos400JSONResponse) VisitDeletePlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeletePlaylistsPlaylistIdVideos401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeletePlaylistsPlaylistIdVideos401JSONResponse) VisitDeletePlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeletePlaylistsPlaylistIdVideos403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeletePlaylistsPlaylistIdVideos403JSONResponse) VisitDeletePlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeletePlaylistsPlaylistIdVideos404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeletePlaylistsPlaylistIdVideos404JSONResponse) VisitDeletePlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeletePlaylistsPlaylistIdVideos413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response DeletePlaylistsPlaylistIdVideos413JSONResponse) VisitDeletePlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeletePlaylistsPlaylistIdVideos429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response DeletePlaylistsPlaylistIdVideos429JSONResponse) VisitDeletePlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeletePlaylistsPlaylistIdVideos500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response DeletePlaylistsPlaylistIdVideos500JSONResponse) VisitDeletePlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylistsPlaylistIdVideosRequestObject struct {
+	PlaylistId openapi_types.UUID `json:"playlist_id"`
+	Body       *PostPlaylistsPlaylistIdVideosJSONRequestBody
+}
+
+type PostPlaylistsPlaylistIdVideosResponseObject interface {
+	VisitPostPlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error
+}
+
+type PostPlaylistsPlaylistIdVideos201JSONResponse struct {
+	InsertedAt time.Time          `json:"inserted_at"`
+	PlaylistId openapi_types.UUID `json:"playlist_id"`
+	VideoId    openapi_types.UUID `json:"video_id"`
+}
+
+func (response PostPlaylistsPlaylistIdVideos201JSONResponse) VisitPostPlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylistsPlaylistIdVideos400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PostPlaylistsPlaylistIdVideos400JSONResponse) VisitPostPlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylistsPlaylistIdVideos401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PostPlaylistsPlaylistIdVideos401JSONResponse) VisitPostPlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylistsPlaylistIdVideos403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response PostPlaylistsPlaylistIdVideos403JSONResponse) VisitPostPlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylistsPlaylistIdVideos404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PostPlaylistsPlaylistIdVideos404JSONResponse) VisitPostPlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylistsPlaylistIdVideos413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response PostPlaylistsPlaylistIdVideos413JSONResponse) VisitPostPlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylistsPlaylistIdVideos429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response PostPlaylistsPlaylistIdVideos429JSONResponse) VisitPostPlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostPlaylistsPlaylistIdVideos500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response PostPlaylistsPlaylistIdVideos500JSONResponse) VisitPostPlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSearchRequestObject struct {
+	Params GetSearchParams
+}
+
+type GetSearchResponseObject interface {
+	VisitGetSearchResponse(w http.ResponseWriter) error
+}
+
+type GetSearch200JSONResponse struct {
+	HasNext   bool `json:"has_next"`
+	ItemCount int  `json:"item_count"`
+	Items     []struct {
+		ChannelId                  openapi_types.UUID `json:"channel_id"`
+		ExternalChannelDisplayName string             `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string             `json:"external_channel_icon_url"`
+		ExternalChannelId          string             `json:"external_channel_id"`
+		ExternalVideoCreatedAt     time.Time          `json:"external_video_created_at"`
+		ExternalVideoDescription   string             `json:"external_video_description"`
+		ExternalVideoId            string             `json:"external_video_id"`
+		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string             `json:"external_video_title"`
+		ExternalVideoWatchCount    int                `json:"external_video_watch_count"`
+		LastWatchSeconds           *int               `json:"last_watch_seconds,omitempty"`
+
+		// ResourceType リソースのタイプ
+		ResourceType *ResourceType      `json:"resource_type,omitempty"`
+		VideoId      openapi_types.UUID `json:"video_id"`
+	} `json:"items"`
+	SearchKey string `json:"search_key"`
+}
+
+func (response GetSearch200JSONResponse) VisitGetSearchResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSearch400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetSearch400JSONResponse) VisitGetSearchResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSearch401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetSearch401JSONResponse) VisitGetSearchResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSearch403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetSearch403JSONResponse) VisitGetSearchResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSearch404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetSearch404JSONResponse) VisitGetSearchResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSearch413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetSearch413JSONResponse) VisitGetSearchResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSearch429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetSearch429JSONResponse) VisitGetSearchResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSearch500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetSearch500JSONResponse) VisitGetSearchResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsDailyRequestObject struct {
+	Params GetStatisticsDailyParams
+}
+
+type GetStatisticsDailyResponseObject interface {
+	VisitGetStatisticsDailyResponse(w http.ResponseWriter) error
+}
+
+type GetStatisticsDaily200JSONResponse struct {
+	// AiSummaryLong AIの要約分(long)
+	AiSummaryLong string `json:"ai_summary_long"`
+
+	// AiSummaryShort AIの要約分(short)
+	AiSummaryShort string `json:"ai_summary_short"`
+
+	// ItemCount 総件数
+	ItemCount int `json:"item_count"`
+	Items     []struct {
+		ExternalVideoId            string             `json:"external_video_id"`
+		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
+		VideoId                    openapi_types.UUID `json:"video_id"`
+		WatchEndAt                 time.Time          `json:"watch_end_at"`
+		WatchSeconds               int                `json:"watch_seconds"`
+		WatchStartAt               time.Time          `json:"watch_start_at"`
+	} `json:"items"`
+	TargetDay         openapi_types.Date `json:"target_day"`
+	TotalWatchCount   int                `json:"total_watch_count"`
+	TotalWatchSeconds int                `json:"total_watch_seconds"`
+}
+
+func (response GetStatisticsDaily200JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsDaily400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetStatisticsDaily400JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsDaily401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetStatisticsDaily401JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsDaily403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetStatisticsDaily403JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsDaily404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetStatisticsDaily404JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsDaily413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetStatisticsDaily413JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsDaily429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetStatisticsDaily429JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsDaily500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetStatisticsDaily500JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsMonthlyRequestObject struct {
+	Params GetStatisticsMonthlyParams
+}
+
+type GetStatisticsMonthlyResponseObject interface {
+	VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error
+}
+
+type GetStatisticsMonthly200JSONResponse struct {
+	// ItemCount 総件数
+	ItemCount int `json:"item_count"`
+	Items     []struct {
+		TargetDay openapi_types.Date `json:"target_day"`
+
+		// VideoWatchCount その日に動画を視聴した回数
+		VideoWatchCount   int `json:"video_watch_count"`
+		VideoWatchSeconds int `json:"video_watch_seconds"`
+	} `json:"items"`
+	TargetMonth openapi_types.Date `json:"target_month"`
+}
+
+func (response GetStatisticsMonthly200JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsMonthly400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetStatisticsMonthly400JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsMonthly401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetStatisticsMonthly401JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsMonthly403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetStatisticsMonthly403JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsMonthly404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetStatisticsMonthly404JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsMonthly413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetStatisticsMonthly413JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsMonthly429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetStatisticsMonthly429JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetStatisticsMonthly500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetStatisticsMonthly500JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSubscriptionsRequestObject struct {
+	Params GetSubscriptionsParams
+}
+
+type GetSubscriptionsResponseObject interface {
+	VisitGetSubscriptionsResponse(w http.ResponseWriter) error
+}
+
+type GetSubscriptions200JSONResponse struct {
+	// HasNext ページネーションで次のページがあるかどうか
+	HasNext bool `json:"has_next"`
+
+	// ItemCount レスポンスの総件数
+	ItemCount int `json:"item_count"`
+	Items     []struct {
+		// ChannelCreatedAt チャンネルの作成日
+		ChannelCreatedAt time.Time `json:"channel_created_at"`
+
+		// ChannelCustomId チャンネルのカスタムID(ハンドル名)
+		ChannelCustomId string `json:"channel_custom_id"`
+
+		// ChannelDescription 登録したチャンネルの説明文
+		ChannelDescription string `json:"channel_description"`
+
+		// ChannelId 登録したチャンネルID(内部)
+		ChannelId openapi_types.UUID `json:"channel_id"`
+
+		// ChannelSubscribersCount チャンネルの登録者数
+		ChannelSubscribersCount int `json:"channel_subscribers_count"`
+
+		// CreatedAt 登録日時
+		CreatedAt time.Time `json:"created_at"`
+
+		// ExternalChannelDisplayName 登録したチャンネルの表示名
+		ExternalChannelDisplayName string `json:"external_channel_display_name"`
+
+		// ExternalChannelIconUrl チャンネルのアイコンURL
+		ExternalChannelIconUrl string `json:"external_channel_icon_url"`
+
+		// ExternalChannelId 登録したチャンネルID(ハンドル名ではない)
+		ExternalChannelId string `json:"external_channel_id"`
+	} `json:"items"`
+}
+
+func (response GetSubscriptions200JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSubscriptions400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetSubscriptions400JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSubscriptions401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetSubscriptions401JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSubscriptions403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetSubscriptions403JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSubscriptions404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetSubscriptions404JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSubscriptions413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetSubscriptions413JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSubscriptions429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetSubscriptions429JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSubscriptions500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetSubscriptions500JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostSubscriptionsRequestObject struct {
+	Body *PostSubscriptionsJSONRequestBody
+}
+
+type PostSubscriptionsResponseObject interface {
+	VisitPostSubscriptionsResponse(w http.ResponseWriter) error
+}
+
+type PostSubscriptions201ResponseHeaders struct {
+	Location string
+}
+
+type PostSubscriptions201JSONResponse struct {
+	Body struct {
+		// ChannelCreatedAt チャンネルの作成日
+		ChannelCreatedAt time.Time `json:"channel_created_at"`
+
+		// ChannelCustomId チャンネルのカスタムID(ハンドル名)
+		ChannelCustomId string `json:"channel_custom_id"`
+
+		// ChannelDescription 登録したチャンネルの説明文
+		ChannelDescription string `json:"channel_description"`
+
+		// ChannelId 登録したチャンネルID(内部)
+		ChannelId openapi_types.UUID `json:"channel_id"`
+
+		// ChannelSubscribersCount チャンネルの登録者数
+		ChannelSubscribersCount int `json:"channel_subscribers_count"`
+
+		// CreatedAt 登録日時
+		CreatedAt time.Time `json:"created_at"`
+
+		// ExternalChannelDisplayName 登録したチャンネルの表示名
+		ExternalChannelDisplayName string `json:"external_channel_display_name"`
+
+		// ExternalChannelIconUrl チャンネルのアイコンURL
+		ExternalChannelIconUrl string `json:"external_channel_icon_url"`
+
+		// ExternalChannelId 登録したチャンネルID(ハンドル名ではない)
+		ExternalChannelId string `json:"external_channel_id"`
+	}
+	Headers PostSubscriptions201ResponseHeaders
+}
+
+func (response PostSubscriptions201JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Location", fmt.Sprint(response.Headers.Location))
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type PostSubscriptions400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PostSubscriptions400JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostSubscriptions401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PostSubscriptions401JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostSubscriptions403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response PostSubscriptions403JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostSubscriptions404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PostSubscriptions404JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostSubscriptions413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response PostSubscriptions413JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostSubscriptions429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response PostSubscriptions429JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostSubscriptions500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response PostSubscriptions500JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteSubscriptionsChannelIdRequestObject struct {
+	ChannelId openapi_types.UUID `json:"channel_id"`
+}
+
+type DeleteSubscriptionsChannelIdResponseObject interface {
+	VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error
+}
+
+type DeleteSubscriptionsChannelId204Response struct {
+}
+
+func (response DeleteSubscriptionsChannelId204Response) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteSubscriptionsChannelId400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response DeleteSubscriptionsChannelId400JSONResponse) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteSubscriptionsChannelId401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteSubscriptionsChannelId401JSONResponse) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteSubscriptionsChannelId403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeleteSubscriptionsChannelId403JSONResponse) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteSubscriptionsChannelId404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteSubscriptionsChannelId404JSONResponse) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteSubscriptionsChannelId413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response DeleteSubscriptionsChannelId413JSONResponse) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteSubscriptionsChannelId429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response DeleteSubscriptionsChannelId429JSONResponse) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteSubscriptionsChannelId500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response DeleteSubscriptionsChannelId500JSONResponse) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostUsersMeRequestObject struct {
+	Body *PostUsersMeJSONRequestBody
+}
+
+type PostUsersMeResponseObject interface {
+	VisitPostUsersMeResponse(w http.ResponseWriter) error
+}
+
+type PostUsersMe201JSONResponse User
+
+func (response PostUsersMe201JSONResponse) VisitPostUsersMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostUsersMe400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PostUsersMe400JSONResponse) VisitPostUsersMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostUsersMe401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PostUsersMe401JSONResponse) VisitPostUsersMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostUsersMe403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response PostUsersMe403JSONResponse) VisitPostUsersMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostUsersMe404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PostUsersMe404JSONResponse) VisitPostUsersMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostUsersMe413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response PostUsersMe413JSONResponse) VisitPostUsersMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostUsersMe429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response PostUsersMe429JSONResponse) VisitPostUsersMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostUsersMe500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response PostUsersMe500JSONResponse) VisitPostUsersMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUsersMeRequestObject struct {
+}
+
+type DeleteUsersMeResponseObject interface {
+	VisitDeleteUsersMeResponse(w http.ResponseWriter) error
+}
+
+type DeleteUsersMe204Response struct {
+}
+
+func (response DeleteUsersMe204Response) VisitDeleteUsersMeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteUsersMe400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response DeleteUsersMe400JSONResponse) VisitDeleteUsersMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUsersMe401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteUsersMe401JSONResponse) VisitDeleteUsersMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUsersMe403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeleteUsersMe403JSONResponse) VisitDeleteUsersMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUsersMe404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteUsersMe404JSONResponse) VisitDeleteUsersMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUsersMe413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response DeleteUsersMe413JSONResponse) VisitDeleteUsersMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUsersMe429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response DeleteUsersMe429JSONResponse) VisitDeleteUsersMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUsersMe500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response DeleteUsersMe500JSONResponse) VisitDeleteUsersMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeStatusRequestObject struct {
+}
+
+type GetUsersMeStatusResponseObject interface {
+	VisitGetUsersMeStatusResponse(w http.ResponseWriter) error
+}
+
+type GetUsersMeStatus200JSONResponse User
+
+func (response GetUsersMeStatus200JSONResponse) VisitGetUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeStatus400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetUsersMeStatus400JSONResponse) VisitGetUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeStatus401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetUsersMeStatus401JSONResponse) VisitGetUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeStatus403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetUsersMeStatus403JSONResponse) VisitGetUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeStatus404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetUsersMeStatus404JSONResponse) VisitGetUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeStatus413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetUsersMeStatus413JSONResponse) VisitGetUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeStatus429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetUsersMeStatus429JSONResponse) VisitGetUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeStatus500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetUsersMeStatus500JSONResponse) VisitGetUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchUsersMeStatusRequestObject struct {
+	Body *PatchUsersMeStatusJSONRequestBody
+}
+
+type PatchUsersMeStatusResponseObject interface {
+	VisitPatchUsersMeStatusResponse(w http.ResponseWriter) error
+}
+
+type PatchUsersMeStatus200JSONResponse User
+
+func (response PatchUsersMeStatus200JSONResponse) VisitPatchUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchUsersMeStatus400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PatchUsersMeStatus400JSONResponse) VisitPatchUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchUsersMeStatus401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PatchUsersMeStatus401JSONResponse) VisitPatchUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchUsersMeStatus403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response PatchUsersMeStatus403JSONResponse) VisitPatchUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchUsersMeStatus404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PatchUsersMeStatus404JSONResponse) VisitPatchUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchUsersMeStatus413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response PatchUsersMeStatus413JSONResponse) VisitPatchUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchUsersMeStatus429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response PatchUsersMeStatus429JSONResponse) VisitPatchUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchUsersMeStatus500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response PatchUsersMeStatus500JSONResponse) VisitPatchUsersMeStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeLimitsRequestObject struct {
+}
+
+type GetUsersMeLimitsResponseObject interface {
+	VisitGetUsersMeLimitsResponse(w http.ResponseWriter) error
+}
+
+type GetUsersMeLimits200JSONResponse struct {
+	// DailyRemainingSeconds 今日の残りの時間。残り時間を設定していない場合はなし。
+	DailyRemainingSeconds *int `json:"daily_remaining_seconds,omitempty"`
+
+	// DailyScreenSeconds 毎日のスクリーン時間制限
+	DailyScreenSeconds *int             `json:"daily_screen_seconds,omitempty"`
+	ScreenTime         []ScreenTimeSlot `json:"screen_time"`
+}
+
+func (response GetUsersMeLimits200JSONResponse) VisitGetUsersMeLimitsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeLimits400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetUsersMeLimits400JSONResponse) VisitGetUsersMeLimitsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeLimits401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetUsersMeLimits401JSONResponse) VisitGetUsersMeLimitsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeLimits403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetUsersMeLimits403JSONResponse) VisitGetUsersMeLimitsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeLimits404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetUsersMeLimits404JSONResponse) VisitGetUsersMeLimitsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeLimits413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetUsersMeLimits413JSONResponse) VisitGetUsersMeLimitsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeLimits429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetUsersMeLimits429JSONResponse) VisitGetUsersMeLimitsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeLimits500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetUsersMeLimits500JSONResponse) VisitGetUsersMeLimitsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeSessionsRequestObject struct {
+}
+
+type GetUsersMeSessionsResponseObject interface {
+	VisitGetUsersMeSessionsResponse(w http.ResponseWriter) error
+}
+
+type GetUsersMeSessions200JSONResponse struct {
+	// ItemCount 総件数
+	ItemCount int `json:"item_count"`
+	Items     []struct {
+		// BrowserName ブラウザの名前
+		BrowserName string `json:"browser_name"`
+
+		// CityName セッションの住所
+		CityName string `json:"city_name"`
+
+		// CountryCode 国コード
+		CountryCode string `json:"country_code"`
+
+		// CreatedAt ログイン時刻
+		CreatedAt time.Time `json:"created_at"`
+
+		// Id ID
+		Id openapi_types.UUID `json:"id"`
+
+		// LastLoggedInAt 最終ログイン時刻
+		LastLoggedInAt time.Time `json:"last_logged_in_at"`
+	} `json:"items"`
+}
+
+func (response GetUsersMeSessions200JSONResponse) VisitGetUsersMeSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeSessions400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetUsersMeSessions400JSONResponse) VisitGetUsersMeSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeSessions401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetUsersMeSessions401JSONResponse) VisitGetUsersMeSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeSessions403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetUsersMeSessions403JSONResponse) VisitGetUsersMeSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeSessions404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetUsersMeSessions404JSONResponse) VisitGetUsersMeSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeSessions413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetUsersMeSessions413JSONResponse) VisitGetUsersMeSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeSessions429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetUsersMeSessions429JSONResponse) VisitGetUsersMeSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsersMeSessions500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetUsersMeSessions500JSONResponse) VisitGetUsersMeSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUsersMeSessionsSessionIdRequestObject struct {
+	SessionId openapi_types.UUID `json:"session_id"`
+}
+
+type DeleteUsersMeSessionsSessionIdResponseObject interface {
+	VisitDeleteUsersMeSessionsSessionIdResponse(w http.ResponseWriter) error
+}
+
+type DeleteUsersMeSessionsSessionId204Response struct {
+}
+
+func (response DeleteUsersMeSessionsSessionId204Response) VisitDeleteUsersMeSessionsSessionIdResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteUsersMeSessionsSessionId400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response DeleteUsersMeSessionsSessionId400JSONResponse) VisitDeleteUsersMeSessionsSessionIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUsersMeSessionsSessionId401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteUsersMeSessionsSessionId401JSONResponse) VisitDeleteUsersMeSessionsSessionIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUsersMeSessionsSessionId403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeleteUsersMeSessionsSessionId403JSONResponse) VisitDeleteUsersMeSessionsSessionIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUsersMeSessionsSessionId404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteUsersMeSessionsSessionId404JSONResponse) VisitDeleteUsersMeSessionsSessionIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUsersMeSessionsSessionId413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response DeleteUsersMeSessionsSessionId413JSONResponse) VisitDeleteUsersMeSessionsSessionIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUsersMeSessionsSessionId429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response DeleteUsersMeSessionsSessionId429JSONResponse) VisitDeleteUsersMeSessionsSessionIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUsersMeSessionsSessionId500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response DeleteUsersMeSessionsSessionId500JSONResponse) VisitDeleteUsersMeSessionsSessionIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVideosVideoIdRequestObject struct {
+	ExternalVideoId string `json:"external_video_id"`
+}
+
+type GetVideosVideoIdResponseObject interface {
+	VisitGetVideosVideoIdResponse(w http.ResponseWriter) error
+}
+
+type GetVideosVideoId200JSONResponse struct {
+	ChannelId openapi_types.UUID `json:"channel_id"`
+	Comments  struct {
+		ItemCount int `json:"item_count"`
+		Items     []struct {
+			ExternalCommentContent string `json:"external_comment_content"`
+		} `json:"items"`
+	} `json:"comments"`
+	ExternalChannelDisplayName      string             `json:"external_channel_display_name"`
+	ExternalChannelIconUrl          string             `json:"external_channel_icon_url"`
+	ExternalChannelId               string             `json:"external_channel_id"`
+	ExternalChannelSubscribersCount int                `json:"external_channel_subscribers_count"`
+	ExternalVideoDescription        string             `json:"external_video_description"`
+	ExternalVideoId                 string             `json:"external_video_id"`
+	ExternalVideoLikeCount          int                `json:"external_video_like_count"`
+	ExternalVideoThumbnailUrl       string             `json:"external_video_thumbnail_url"`
+	ExternalVideoTitle              string             `json:"external_video_title"`
+	VideoId                         openapi_types.UUID `json:"video_id"`
+}
+
+func (response GetVideosVideoId200JSONResponse) VisitGetVideosVideoIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVideosVideoId400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetVideosVideoId400JSONResponse) VisitGetVideosVideoIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVideosVideoId401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetVideosVideoId401JSONResponse) VisitGetVideosVideoIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVideosVideoId403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetVideosVideoId403JSONResponse) VisitGetVideosVideoIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVideosVideoId404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetVideosVideoId404JSONResponse) VisitGetVideosVideoIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVideosVideoId413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetVideosVideoId413JSONResponse) VisitGetVideosVideoIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVideosVideoId429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetVideosVideoId429JSONResponse) VisitGetVideosVideoIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVideosVideoId500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetVideosVideoId500JSONResponse) VisitGetVideosVideoIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostVideosVideoIdHeartbeatsRequestObject struct {
+	ExternalVideoId string `json:"external_video_id"`
+}
+
+type PostVideosVideoIdHeartbeatsResponseObject interface {
+	VisitPostVideosVideoIdHeartbeatsResponse(w http.ResponseWriter) error
+}
+
+type PostVideosVideoIdHeartbeats200JSONResponse struct {
+	// DailyRemainingSeconds 今日の残り時間。無い場合は400が返る。
+	DailyRemainingSeconds int `json:"daily_remaining_seconds"`
+}
+
+func (response PostVideosVideoIdHeartbeats200JSONResponse) VisitPostVideosVideoIdHeartbeatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostVideosVideoIdHeartbeats400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PostVideosVideoIdHeartbeats400JSONResponse) VisitPostVideosVideoIdHeartbeatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostVideosVideoIdHeartbeats401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PostVideosVideoIdHeartbeats401JSONResponse) VisitPostVideosVideoIdHeartbeatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostVideosVideoIdHeartbeats403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response PostVideosVideoIdHeartbeats403JSONResponse) VisitPostVideosVideoIdHeartbeatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostVideosVideoIdHeartbeats404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PostVideosVideoIdHeartbeats404JSONResponse) VisitPostVideosVideoIdHeartbeatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostVideosVideoIdHeartbeats413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response PostVideosVideoIdHeartbeats413JSONResponse) VisitPostVideosVideoIdHeartbeatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostVideosVideoIdHeartbeats429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response PostVideosVideoIdHeartbeats429JSONResponse) VisitPostVideosVideoIdHeartbeatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostVideosVideoIdHeartbeats500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response PostVideosVideoIdHeartbeats500JSONResponse) VisitPostVideosVideoIdHeartbeatsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(500)
 
@@ -434,20 +3934,11 @@ func (response GetHealth200JSONResponse) VisitGetHealthResponse(w http.ResponseW
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetHealth401JSONResponse struct{ UnauthorizedJSONResponse }
+type GetHealth400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response GetHealth401JSONResponse) VisitGetHealthResponse(w http.ResponseWriter) error {
+func (response GetHealth400JSONResponse) VisitGetHealthResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(401)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetHealth403JSONResponse struct{ ForbiddenJSONResponse }
-
-func (response GetHealth403JSONResponse) VisitGetHealthResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(403)
+	w.WriteHeader(400)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -457,6 +3948,24 @@ type GetHealth404JSONResponse struct{ NotFoundJSONResponse }
 func (response GetHealth404JSONResponse) VisitGetHealthResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetHealth413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetHealth413JSONResponse) VisitGetHealthResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetHealth429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetHealth429JSONResponse) VisitGetHealthResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -475,14 +3984,95 @@ func (response GetHealth500JSONResponse) VisitGetHealthResponse(w http.ResponseW
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// Google authentication
-	// (POST /api/v1/auth/google)
-	PostAuthGoogle(ctx context.Context, request PostAuthGoogleRequestObject) (PostAuthGoogleResponseObject, error)
+	// (GET /api/v1/auth/google)
+	GetAuthGoogle(ctx context.Context, request GetAuthGoogleRequestObject) (GetAuthGoogleResponseObject, error)
 	// Google Authorization Code Callback
 	// (GET /api/v1/auth/google/callback)
 	GetAuthGoogleCallback(ctx context.Context, request GetAuthGoogleCallbackRequestObject) (GetAuthGoogleCallbackResponseObject, error)
+	// Logout
+	// (POST /api/v1/auth/logout)
+	PostAuthLogout(ctx context.Context, request PostAuthLogoutRequestObject) (PostAuthLogoutResponseObject, error)
 	// Refresh access token
 	// (POST /api/v1/auth/refresh)
 	PostAuthRefresh(ctx context.Context, request PostAuthRefreshRequestObject) (PostAuthRefreshResponseObject, error)
+	// Get latest channel uploads
+	// (GET /api/v1/channels/{channel_id}/videos)
+	GetChannelsChannelIdVideos(ctx context.Context, request GetChannelsChannelIdVideosRequestObject) (GetChannelsChannelIdVideosResponseObject, error)
+	// Get latest videos
+	// (GET /api/v1/feed)
+	GetFeed(ctx context.Context, request GetFeedRequestObject) (GetFeedResponseObject, error)
+	// Get channels
+	// (GET /api/v1/feed/channels)
+	GetFeedChannels(ctx context.Context, request GetFeedChannelsRequestObject) (GetFeedChannelsResponseObject, error)
+	// Get video history
+	// (GET /api/v1/history)
+	GetHistory(ctx context.Context, request GetHistoryRequestObject) (GetHistoryResponseObject, error)
+	// Get playlists
+	// (GET /api/v1/playlists)
+	GetPlaylists(ctx context.Context, request GetPlaylistsRequestObject) (GetPlaylistsResponseObject, error)
+	// Create new playlist
+	// (POST /api/v1/playlists)
+	PostPlaylists(ctx context.Context, request PostPlaylistsRequestObject) (PostPlaylistsResponseObject, error)
+	// Delete playlist
+	// (DELETE /api/v1/playlists/{playlist_id})
+	DeletePlaylistsPlaylistId(ctx context.Context, request DeletePlaylistsPlaylistIdRequestObject) (DeletePlaylistsPlaylistIdResponseObject, error)
+	// Get playlist
+	// (GET /api/v1/playlists/{playlist_id})
+	GetPlaylistsPlaylistId(ctx context.Context, request GetPlaylistsPlaylistIdRequestObject) (GetPlaylistsPlaylistIdResponseObject, error)
+	// Patch playlist
+	// (PATCH /api/v1/playlists/{playlist_id})
+	PatchPlaylistsPlaylistId(ctx context.Context, request PatchPlaylistsPlaylistIdRequestObject) (PatchPlaylistsPlaylistIdResponseObject, error)
+	// Remove a video from playlist
+	// (DELETE /api/v1/playlists/{playlist_id}/videos)
+	DeletePlaylistsPlaylistIdVideos(ctx context.Context, request DeletePlaylistsPlaylistIdVideosRequestObject) (DeletePlaylistsPlaylistIdVideosResponseObject, error)
+	// Insert a new video into playlist
+	// (POST /api/v1/playlists/{playlist_id}/videos)
+	PostPlaylistsPlaylistIdVideos(ctx context.Context, request PostPlaylistsPlaylistIdVideosRequestObject) (PostPlaylistsPlaylistIdVideosResponseObject, error)
+	// Get search result
+	// (GET /api/v1/search)
+	GetSearch(ctx context.Context, request GetSearchRequestObject) (GetSearchResponseObject, error)
+	// Get User Statics by day
+	// (GET /api/v1/statistics/daily)
+	GetStatisticsDaily(ctx context.Context, request GetStatisticsDailyRequestObject) (GetStatisticsDailyResponseObject, error)
+	// Get User Statistics by month
+	// (GET /api/v1/statistics/monthly)
+	GetStatisticsMonthly(ctx context.Context, request GetStatisticsMonthlyRequestObject) (GetStatisticsMonthlyResponseObject, error)
+	// Get subscriptions
+	// (GET /api/v1/subscriptions)
+	GetSubscriptions(ctx context.Context, request GetSubscriptionsRequestObject) (GetSubscriptionsResponseObject, error)
+	// Subscribe new channel
+	// (POST /api/v1/subscriptions)
+	PostSubscriptions(ctx context.Context, request PostSubscriptionsRequestObject) (PostSubscriptionsResponseObject, error)
+	// Delete subscription
+	// (DELETE /api/v1/subscriptions/{channel_id})
+	DeleteSubscriptionsChannelId(ctx context.Context, request DeleteSubscriptionsChannelIdRequestObject) (DeleteSubscriptionsChannelIdResponseObject, error)
+	// Create a new account
+	// (POST /api/v1/users)
+	PostUsersMe(ctx context.Context, request PostUsersMeRequestObject) (PostUsersMeResponseObject, error)
+	// Delete User's Account
+	// (DELETE /api/v1/users/me)
+	DeleteUsersMe(ctx context.Context, request DeleteUsersMeRequestObject) (DeleteUsersMeResponseObject, error)
+	// Get Current User's Status
+	// (GET /api/v1/users/me)
+	GetUsersMeStatus(ctx context.Context, request GetUsersMeStatusRequestObject) (GetUsersMeStatusResponseObject, error)
+	// Update User Status
+	// (PATCH /api/v1/users/me)
+	PatchUsersMeStatus(ctx context.Context, request PatchUsersMeStatusRequestObject) (PatchUsersMeStatusResponseObject, error)
+	// Get User Detail
+	// (GET /api/v1/users/me/limits)
+	GetUsersMeLimits(ctx context.Context, request GetUsersMeLimitsRequestObject) (GetUsersMeLimitsResponseObject, error)
+	// User session list
+	// (GET /api/v1/users/me/sessions)
+	GetUsersMeSessions(ctx context.Context, request GetUsersMeSessionsRequestObject) (GetUsersMeSessionsResponseObject, error)
+	// Delete session
+	// (DELETE /api/v1/users/me/sessions/{session_id})
+	DeleteUsersMeSessionsSessionId(ctx context.Context, request DeleteUsersMeSessionsSessionIdRequestObject) (DeleteUsersMeSessionsSessionIdResponseObject, error)
+	// Get video detail
+	// (GET /api/v1/videos/{external_video_id})
+	GetVideosVideoId(ctx context.Context, request GetVideosVideoIdRequestObject) (GetVideosVideoIdResponseObject, error)
+	// Heartbeats
+	// (POST /api/v1/videos/{external_video_id}/heartbeats)
+	PostVideosVideoIdHeartbeats(ctx context.Context, request PostVideosVideoIdHeartbeatsRequestObject) (PostVideosVideoIdHeartbeatsResponseObject, error)
 	// Health check
 	// (GET /health)
 	GetHealth(ctx context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error)
@@ -500,23 +4090,23 @@ type strictHandler struct {
 	middlewares []StrictMiddlewareFunc
 }
 
-// PostAuthGoogle operation middleware
-func (sh *strictHandler) PostAuthGoogle(ctx echo.Context) error {
-	var request PostAuthGoogleRequestObject
+// GetAuthGoogle operation middleware
+func (sh *strictHandler) GetAuthGoogle(ctx echo.Context) error {
+	var request GetAuthGoogleRequestObject
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostAuthGoogle(ctx.Request().Context(), request.(PostAuthGoogleRequestObject))
+		return sh.ssi.GetAuthGoogle(ctx.Request().Context(), request.(GetAuthGoogleRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostAuthGoogle")
+		handler = middleware(handler, "GetAuthGoogle")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return err
-	} else if validResponse, ok := response.(PostAuthGoogleResponseObject); ok {
-		return validResponse.VisitPostAuthGoogleResponse(ctx.Response())
+	} else if validResponse, ok := response.(GetAuthGoogleResponseObject); ok {
+		return validResponse.VisitGetAuthGoogleResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}
@@ -548,6 +4138,29 @@ func (sh *strictHandler) GetAuthGoogleCallback(ctx echo.Context, params GetAuthG
 	return nil
 }
 
+// PostAuthLogout operation middleware
+func (sh *strictHandler) PostAuthLogout(ctx echo.Context) error {
+	var request PostAuthLogoutRequestObject
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.PostAuthLogout(ctx.Request().Context(), request.(PostAuthLogoutRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostAuthLogout")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(PostAuthLogoutResponseObject); ok {
+		return validResponse.VisitPostAuthLogoutResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
 // PostAuthRefresh operation middleware
 func (sh *strictHandler) PostAuthRefresh(ctx echo.Context, params PostAuthRefreshParams) error {
 	var request PostAuthRefreshRequestObject
@@ -567,6 +4180,677 @@ func (sh *strictHandler) PostAuthRefresh(ctx echo.Context, params PostAuthRefres
 		return err
 	} else if validResponse, ok := response.(PostAuthRefreshResponseObject); ok {
 		return validResponse.VisitPostAuthRefreshResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetChannelsChannelIdVideos operation middleware
+func (sh *strictHandler) GetChannelsChannelIdVideos(ctx echo.Context, channelId openapi_types.UUID, params GetChannelsChannelIdVideosParams) error {
+	var request GetChannelsChannelIdVideosRequestObject
+
+	request.ChannelId = channelId
+	request.Params = params
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetChannelsChannelIdVideos(ctx.Request().Context(), request.(GetChannelsChannelIdVideosRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetChannelsChannelIdVideos")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetChannelsChannelIdVideosResponseObject); ok {
+		return validResponse.VisitGetChannelsChannelIdVideosResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetFeed operation middleware
+func (sh *strictHandler) GetFeed(ctx echo.Context, params GetFeedParams) error {
+	var request GetFeedRequestObject
+
+	request.Params = params
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetFeed(ctx.Request().Context(), request.(GetFeedRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetFeed")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetFeedResponseObject); ok {
+		return validResponse.VisitGetFeedResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetFeedChannels operation middleware
+func (sh *strictHandler) GetFeedChannels(ctx echo.Context) error {
+	var request GetFeedChannelsRequestObject
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetFeedChannels(ctx.Request().Context(), request.(GetFeedChannelsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetFeedChannels")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetFeedChannelsResponseObject); ok {
+		return validResponse.VisitGetFeedChannelsResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetHistory operation middleware
+func (sh *strictHandler) GetHistory(ctx echo.Context, params GetHistoryParams) error {
+	var request GetHistoryRequestObject
+
+	request.Params = params
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetHistory(ctx.Request().Context(), request.(GetHistoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetHistory")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetHistoryResponseObject); ok {
+		return validResponse.VisitGetHistoryResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetPlaylists operation middleware
+func (sh *strictHandler) GetPlaylists(ctx echo.Context, params GetPlaylistsParams) error {
+	var request GetPlaylistsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetPlaylists(ctx.Request().Context(), request.(GetPlaylistsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetPlaylists")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetPlaylistsResponseObject); ok {
+		return validResponse.VisitGetPlaylistsResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// PostPlaylists operation middleware
+func (sh *strictHandler) PostPlaylists(ctx echo.Context) error {
+	var request PostPlaylistsRequestObject
+
+	var body PostPlaylistsJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.PostPlaylists(ctx.Request().Context(), request.(PostPlaylistsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostPlaylists")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(PostPlaylistsResponseObject); ok {
+		return validResponse.VisitPostPlaylistsResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// DeletePlaylistsPlaylistId operation middleware
+func (sh *strictHandler) DeletePlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID) error {
+	var request DeletePlaylistsPlaylistIdRequestObject
+
+	request.PlaylistId = playlistId
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeletePlaylistsPlaylistId(ctx.Request().Context(), request.(DeletePlaylistsPlaylistIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeletePlaylistsPlaylistId")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(DeletePlaylistsPlaylistIdResponseObject); ok {
+		return validResponse.VisitDeletePlaylistsPlaylistIdResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetPlaylistsPlaylistId operation middleware
+func (sh *strictHandler) GetPlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID, params GetPlaylistsPlaylistIdParams) error {
+	var request GetPlaylistsPlaylistIdRequestObject
+
+	request.PlaylistId = playlistId
+	request.Params = params
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetPlaylistsPlaylistId(ctx.Request().Context(), request.(GetPlaylistsPlaylistIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetPlaylistsPlaylistId")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetPlaylistsPlaylistIdResponseObject); ok {
+		return validResponse.VisitGetPlaylistsPlaylistIdResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// PatchPlaylistsPlaylistId operation middleware
+func (sh *strictHandler) PatchPlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID) error {
+	var request PatchPlaylistsPlaylistIdRequestObject
+
+	request.PlaylistId = playlistId
+
+	var body PatchPlaylistsPlaylistIdJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.PatchPlaylistsPlaylistId(ctx.Request().Context(), request.(PatchPlaylistsPlaylistIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PatchPlaylistsPlaylistId")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(PatchPlaylistsPlaylistIdResponseObject); ok {
+		return validResponse.VisitPatchPlaylistsPlaylistIdResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// DeletePlaylistsPlaylistIdVideos operation middleware
+func (sh *strictHandler) DeletePlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdVideosParams) error {
+	var request DeletePlaylistsPlaylistIdVideosRequestObject
+
+	request.PlaylistId = playlistId
+	request.Params = params
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeletePlaylistsPlaylistIdVideos(ctx.Request().Context(), request.(DeletePlaylistsPlaylistIdVideosRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeletePlaylistsPlaylistIdVideos")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(DeletePlaylistsPlaylistIdVideosResponseObject); ok {
+		return validResponse.VisitDeletePlaylistsPlaylistIdVideosResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// PostPlaylistsPlaylistIdVideos operation middleware
+func (sh *strictHandler) PostPlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapi_types.UUID) error {
+	var request PostPlaylistsPlaylistIdVideosRequestObject
+
+	request.PlaylistId = playlistId
+
+	var body PostPlaylistsPlaylistIdVideosJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.PostPlaylistsPlaylistIdVideos(ctx.Request().Context(), request.(PostPlaylistsPlaylistIdVideosRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostPlaylistsPlaylistIdVideos")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(PostPlaylistsPlaylistIdVideosResponseObject); ok {
+		return validResponse.VisitPostPlaylistsPlaylistIdVideosResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetSearch operation middleware
+func (sh *strictHandler) GetSearch(ctx echo.Context, params GetSearchParams) error {
+	var request GetSearchRequestObject
+
+	request.Params = params
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetSearch(ctx.Request().Context(), request.(GetSearchRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetSearch")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetSearchResponseObject); ok {
+		return validResponse.VisitGetSearchResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetStatisticsDaily operation middleware
+func (sh *strictHandler) GetStatisticsDaily(ctx echo.Context, params GetStatisticsDailyParams) error {
+	var request GetStatisticsDailyRequestObject
+
+	request.Params = params
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetStatisticsDaily(ctx.Request().Context(), request.(GetStatisticsDailyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetStatisticsDaily")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetStatisticsDailyResponseObject); ok {
+		return validResponse.VisitGetStatisticsDailyResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetStatisticsMonthly operation middleware
+func (sh *strictHandler) GetStatisticsMonthly(ctx echo.Context, params GetStatisticsMonthlyParams) error {
+	var request GetStatisticsMonthlyRequestObject
+
+	request.Params = params
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetStatisticsMonthly(ctx.Request().Context(), request.(GetStatisticsMonthlyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetStatisticsMonthly")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetStatisticsMonthlyResponseObject); ok {
+		return validResponse.VisitGetStatisticsMonthlyResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetSubscriptions operation middleware
+func (sh *strictHandler) GetSubscriptions(ctx echo.Context, params GetSubscriptionsParams) error {
+	var request GetSubscriptionsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetSubscriptions(ctx.Request().Context(), request.(GetSubscriptionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetSubscriptions")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetSubscriptionsResponseObject); ok {
+		return validResponse.VisitGetSubscriptionsResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// PostSubscriptions operation middleware
+func (sh *strictHandler) PostSubscriptions(ctx echo.Context) error {
+	var request PostSubscriptionsRequestObject
+
+	var body PostSubscriptionsJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.PostSubscriptions(ctx.Request().Context(), request.(PostSubscriptionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostSubscriptions")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(PostSubscriptionsResponseObject); ok {
+		return validResponse.VisitPostSubscriptionsResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// DeleteSubscriptionsChannelId operation middleware
+func (sh *strictHandler) DeleteSubscriptionsChannelId(ctx echo.Context, channelId openapi_types.UUID) error {
+	var request DeleteSubscriptionsChannelIdRequestObject
+
+	request.ChannelId = channelId
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteSubscriptionsChannelId(ctx.Request().Context(), request.(DeleteSubscriptionsChannelIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteSubscriptionsChannelId")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(DeleteSubscriptionsChannelIdResponseObject); ok {
+		return validResponse.VisitDeleteSubscriptionsChannelIdResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// PostUsersMe operation middleware
+func (sh *strictHandler) PostUsersMe(ctx echo.Context) error {
+	var request PostUsersMeRequestObject
+
+	var body PostUsersMeJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.PostUsersMe(ctx.Request().Context(), request.(PostUsersMeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostUsersMe")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(PostUsersMeResponseObject); ok {
+		return validResponse.VisitPostUsersMeResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// DeleteUsersMe operation middleware
+func (sh *strictHandler) DeleteUsersMe(ctx echo.Context) error {
+	var request DeleteUsersMeRequestObject
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteUsersMe(ctx.Request().Context(), request.(DeleteUsersMeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteUsersMe")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(DeleteUsersMeResponseObject); ok {
+		return validResponse.VisitDeleteUsersMeResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetUsersMeStatus operation middleware
+func (sh *strictHandler) GetUsersMeStatus(ctx echo.Context) error {
+	var request GetUsersMeStatusRequestObject
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUsersMeStatus(ctx.Request().Context(), request.(GetUsersMeStatusRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetUsersMeStatus")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetUsersMeStatusResponseObject); ok {
+		return validResponse.VisitGetUsersMeStatusResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// PatchUsersMeStatus operation middleware
+func (sh *strictHandler) PatchUsersMeStatus(ctx echo.Context) error {
+	var request PatchUsersMeStatusRequestObject
+
+	var body PatchUsersMeStatusJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.PatchUsersMeStatus(ctx.Request().Context(), request.(PatchUsersMeStatusRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PatchUsersMeStatus")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(PatchUsersMeStatusResponseObject); ok {
+		return validResponse.VisitPatchUsersMeStatusResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetUsersMeLimits operation middleware
+func (sh *strictHandler) GetUsersMeLimits(ctx echo.Context) error {
+	var request GetUsersMeLimitsRequestObject
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUsersMeLimits(ctx.Request().Context(), request.(GetUsersMeLimitsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetUsersMeLimits")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetUsersMeLimitsResponseObject); ok {
+		return validResponse.VisitGetUsersMeLimitsResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetUsersMeSessions operation middleware
+func (sh *strictHandler) GetUsersMeSessions(ctx echo.Context) error {
+	var request GetUsersMeSessionsRequestObject
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUsersMeSessions(ctx.Request().Context(), request.(GetUsersMeSessionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetUsersMeSessions")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetUsersMeSessionsResponseObject); ok {
+		return validResponse.VisitGetUsersMeSessionsResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// DeleteUsersMeSessionsSessionId operation middleware
+func (sh *strictHandler) DeleteUsersMeSessionsSessionId(ctx echo.Context, sessionId openapi_types.UUID) error {
+	var request DeleteUsersMeSessionsSessionIdRequestObject
+
+	request.SessionId = sessionId
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteUsersMeSessionsSessionId(ctx.Request().Context(), request.(DeleteUsersMeSessionsSessionIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteUsersMeSessionsSessionId")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(DeleteUsersMeSessionsSessionIdResponseObject); ok {
+		return validResponse.VisitDeleteUsersMeSessionsSessionIdResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetVideosVideoId operation middleware
+func (sh *strictHandler) GetVideosVideoId(ctx echo.Context, externalVideoId string) error {
+	var request GetVideosVideoIdRequestObject
+
+	request.ExternalVideoId = externalVideoId
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetVideosVideoId(ctx.Request().Context(), request.(GetVideosVideoIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetVideosVideoId")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetVideosVideoIdResponseObject); ok {
+		return validResponse.VisitGetVideosVideoIdResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// PostVideosVideoIdHeartbeats operation middleware
+func (sh *strictHandler) PostVideosVideoIdHeartbeats(ctx echo.Context, externalVideoId string) error {
+	var request PostVideosVideoIdHeartbeatsRequestObject
+
+	request.ExternalVideoId = externalVideoId
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.PostVideosVideoIdHeartbeats(ctx.Request().Context(), request.(PostVideosVideoIdHeartbeatsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostVideosVideoIdHeartbeats")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(PostVideosVideoIdHeartbeatsResponseObject); ok {
+		return validResponse.VisitPostVideosVideoIdHeartbeatsResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}
@@ -599,27 +4883,95 @@ func (sh *strictHandler) GetHealth(ctx echo.Context) error {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xXbW/bVBT+K9aFj27tNUWa8q3K2NYNbdM6BFIVVa590nhNfL3rm6IwRZptBJtaVKi6",
-	"jk5MExOwMGg7USFeWvFnDlm6f4Huvc6LE6fpeKlA8KVqfM89z/E553nO8W1i06pPPfB4QPK3iW8xqwoc",
-	"mPxVoHTZhULASjfoMnjikQOBzVyfu9QjeVKYu35eU2c6ccUTW14hOvGsKojfASst8MSCwa2ay8Ahec5q",
-	"oJPALkPVEm553RfWAWeut0QaDZ1cBMsBlsKWAGX5vAfw7oSAmBgPcUzkg+gN4SfwqReAzMN5yhZdx1FR",
-	"2NTj4HHxr+X7Fde2hEvjZkDlcQ/wdQYlkievGb0UG+o0MK4xuliB6jngllt5kzHKFGw6yGkzp/WwGzqZ",
-	"9Tgwz6rMAVsBpu6dbkhvmKbWiUJTYWiJsU6uUH6e1jzn1NM0rV2hXFPYDZ287Vk1XqbMfR9OP5YzWgpe",
-	"mCQuBEKGF0E7Rn1g3FXt5sjDDFrohLu8AtmE6XX+fGKmdzwVuy1OF2+CzVVQYNeYy+tzIjjo4/ul9/hM",
-	"jZeHOXPpnRvajG1DECjmaK6nFTp8z2S/Ja27/E+CsHz3MtRV9lyvRIeRLI+7E3WuWb5Lui898HQFWKCs",
-	"z0yak6bIDvXBE4d5kps0J3NEJ77Fy/LVDMt3jZUzhqiMsUTpkkqjTwM+DH9BnmtXZ88VMHyK8Q5GzzH6",
-	"EuN9ytrbBy/XvicSjMk+mnVInlyjgcyaukoGBCRnTg2j5MwpjYHjMlERPRE2af4WVR2abs6sGDHcPXr2",
-	"8VHzsL158PLREwx/wvgZxndktN9htIfx3QyB08kc8ImkdseABNzigGHTpg4srABzSy4wjDZerH3U2n2Y",
-	"pZwNXVBgFJe6STHSHBGXcuMvpbRw2pwef6OrSA1dSNf4C1kK288Wkp8v6iSoVasWq/daRbwMeDxRFpEY",
-	"aykQTBQHpCg8ZHSgYVuVyqJlL4u4loAfX+XW+h5G+xgfYnwPo43W+gMMP22tb2G0iuFjjMKhprwAfT1Z",
-	"6GDpqSk/PwpyFaN77e1fjr5Yw/A+RmsYPh4IosP6WzVg9b6RTx14tWGfNZxbe7+2d7bam80RKLI1/xwM",
-	"Rk2Mv8H4cAQEyOof57L49/Nc6U2H3quC23GM0Y8Yf4Xx591C/FGGY/REqER0gNHPGN8V/oRo7GPYlEpy",
-	"X8hIDzBl0NuhMNo4au60dh/ineivVYV/EMdnktBkybQCdUDrcmqI4AxKDILy6BkzJrvRRnuzieEHGH79",
-	"Yus5hg/E/6NqFW10iLotxEDWIHs8XU/CGtKAzPGdvMTCqy7XCcrI/VrPrlAvJGNw+z/BlcGPlSFyTqne",
-	"OPEymF7KhN7UgvGrV2KXsXIN7YpTpqldvZyWhJOxtn+vwrCZqtP/47mPup1OVAnTuovo8HQug1VRS2/m",
-	"IJ65NovRD1JuPxF/w12MP8P4W0nFEKOnksZ7QggFDz/MIuEF4BcVyr+kM/9r3aKqo9llkGtSp0uqbmCL",
-	"LknfHPpcmi8KyQkkVtZiJaZ9pUwDrikbopMaq5A8KXPu5w2j0jnPnzXPmlK/kggGPamVv+8zS+Bn7Dfh",
-	"Iwx3fzvY6lnKV2kUG78HAAD//+XvQAv4EQAA",
+	"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",
+	"RPtrVrPVkeq/AgAA//+x2P8ZA7oAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

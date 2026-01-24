@@ -22,6 +22,8 @@ tags:
     description: ユーザー
   - name: history
     description: 履歴
+  - name: playlist
+    description: プレイリスト
 
 security:
   - CookieJwtAuth: [ ]
@@ -67,7 +69,7 @@ paths:
           in: cookie
           schema:
             type: string
-        - $ref: "#/components/parameters/HeaderCsrfToken"
+        - $ref: "#/components/parameters/HeaderCSRFToken"
         - $ref: "#/components/parameters/CookieCSRFToken"
       tags: [ auth ]
       security: [ ]
@@ -136,6 +138,371 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /api/v1/search:
+    get:
+      tags: [ video ]
+      summary: Get search result
+      description: 検索を行う
+      operationId: getSearch
+      parameters:
+        - name: limit
+          description: 検索の結果の制限数
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: cursor
+          description: ページネーション
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: query
+          in: query
+          required: true
+          description: 検索のクエリ文字列
+          schema:
+            type: string
+            minLength: 1
+        - name: search_type
+          in: query
+          required: true
+          description: 検索のタイプ
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/SearchType"
+            default: video
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item_count:
+                    type: integer
+                    minimum: 0
+                  has_next:
+                    type: boolean
+                  items:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      type: object
+                      properties:
+                        video_id:
+                          type: string
+                          format: uuid
+                        channel_id:
+                          type: string
+                          format: uuid
+                        external_video_id:
+                          type: string
+                        external_channel_id:
+                          type: string
+                        external_video_thumbnail_url:
+                          type: string
+                          format: uri
+                        external_channel_icon_url:
+                          type: string
+                          format: uri
+                        external_video_watch_count:
+                          type: integer
+                          minimum: 0
+                        external_video_title:
+                          type: string
+                        external_video_description:
+                          type: string
+                        external_channel_display_name:
+                          type: string
+                        external_video_created_at:
+                          type: string
+                          format: date-time
+                        external_video_length_seconds:
+                          type: integer
+                          minimum: 0
+                        last_watch_seconds:
+                          type: integer
+                          minimum: 0
+                        resource_type:
+                          $ref: "#/components/schemas/ResourceType"
+                      required: [ video_id, channel_id, external_video_id, external_channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_watch_count, external_video_title, external_video_description, external_channel_display_name, external_video_created_at, external_video_length_seconds ]
+                  search_key:
+                    type: string
+                required: [ item_count, has_next, items, search_key ]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/feed:
+    get:
+      tags: [ video ]
+      summary: Get latest videos
+      description: チャンネル登録しているチャンネルの最新の一覧を取得
+      operationId: getFeed
+      parameters:
+        - name: limit
+          description: 取得する最大の数
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: cursor
+          description: 最後に取得した動画ID(ページネーション)
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item_count:
+                    type: integer
+                    minimum: 0
+                  has_next:
+                    type: boolean
+                  items:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      type: object
+                      properties:
+                        video_id:
+                          type: string
+                          format: uuid
+                        channel_id:
+                          type: string
+                          format: uuid
+                        external_video_id:
+                          type: string
+                        external_channel_id:
+                          type: string
+                        external_video_thumbnail_url:
+                          type: string
+                          format: uri
+                        external_channel_icon_url:
+                          type: string
+                          format: uri
+                        external_video_watch_count:
+                          type: integer
+                          minimum: 0
+                        external_video_title:
+                          type: string
+                        external_video_description:
+                          type: string
+                        external_channel_display_name:
+                          type: string
+                        external_video_created_at:
+                          type: string
+                          format: date-time
+                        external_video_length_seconds:
+                          type: integer
+                          minimum: 0
+                        last_watch_seconds:
+                          type: integer
+                          minimum: 0
+                        resource_type:
+                          $ref: "#/components/schemas/ResourceType"
+                      required: [ video_id, channel_id, external_video_id, external_channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_watch_count, external_video_title, external_video_description, external_channel_display_name, external_video_created_at, external_video_length_seconds, resource_type ]
+                  search_key:
+                    type: string
+                required: [ item_count, has_next, items, search_key ]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/feed/channels:
+    get:
+      tags: [ channel ]
+      summary: Get channels
+      description: 有益なチャンネル一覧を取得
+      operationId: getFeedChannels
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item_count:
+                    type: integer
+                    minimum: 0
+                  items:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      type: object
+                      properties:
+                        channel_id:
+                          type: string
+                          format: uuid
+                        external_channel_icon_url:
+                          type: string
+                          format: uri
+                        external_channel_id:
+                          type: string
+                        videos:
+                          type: object
+                          properties:
+                            item_count:
+                              type: integer
+                              minimum: 0
+                            items:
+                              type: array
+                              uniqueItems: true
+                              items:
+                                type: object
+                                properties:
+                                  video_id:
+                                    type: string
+                                    format: uuid
+                                  external_video_id:
+                                    type: string
+                                  external_video_thumbnail_url:
+                                    type: string
+                                    format: uri
+                                  external_video_title:
+                                    type: string
+                                  external_video_description:
+                                    type: string
+                                  external_channel_display_name:
+                                    type: string
+                                  external_video_length_seconds:
+                                    type: integer
+                                    minimum: 0
+                                required: [ video_id, external_video_id, external_video_thumbnail_url, external_video_title, external_video_description ]
+                          required: [ item_count, items ]
+                      required: [ channel_id, external_channel_icon_url, external_channel_display_name ]
+                required: [ item_count, items ]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/channels/{channel_id}/videos:
+    get:
+      tags: [ channel ]
+      summary: Get latest channel uploads
+      description: チャンネルが投稿している動画を一覧で表示する
+      operationId: getChannelsChannelIdVideos
+      parameters:
+        - name: channel_id
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: cursor
+          in: query
+          schema:
+            type: string
+            format: uuid
+          required: false
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item_count:
+                    type: integer
+                    minimum: 0
+                  has_next:
+                    type: boolean
+                  items:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      type: object
+                      properties:
+                        video_id:
+                          type: string
+                          format: uuid
+                        external_video_id:
+                          type: string
+                        external_video_thumbnail_url:
+                          type: string
+                          format: uri
+                        external_video_watch_count:
+                          type: integer
+                          minimum: 0
+                        external_video_title:
+                          type: string
+                        external_video_description:
+                          type: string
+                        external_video_created_at:
+                          type: string
+                          format: date-time
+                        external_video_length_seconds:
+                          type: integer
+                          minimum: 0
+                        last_watch_seconds:
+                          type: integer
+                          minimum: 0
+                      required: [ video_id, external_video_id, external_video_thumbnail_url, external_video_watch_count, external_video_title, external_video_description, external_video_created_at, external_video_length_seconds ]
+                required: [ item_count, has_next, items ]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /api/v1/subscriptions:
     get:
       tags: [ channel ]
@@ -170,7 +537,7 @@ paths:
                   has_next:
                     type: boolean
                     description: ページネーションで次のページがあるかどうか
-                  total_count:
+                  item_count:
                     type: integer
                     minimum: 0
                     description: レスポンスの総件数
@@ -215,7 +582,7 @@ paths:
                           format: date-time
                           description: チャンネルの作成日
                       required: [ channel_id, external_channel_id, created_at, external_channel_display_name, channel_custom_id, channel_description, external_channel_icon_url, channel_subscribers_count, channel_created_at ]
-                required: [ items, total_count, has_next ]
+                required: [ items, item_count, has_next ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -342,20 +709,102 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /api/v1/videos/{external_video_id}:
+    parameters:
+      - name: external_video_id
+        required: true
+        schema:
+          type: string
+          pattern: "^[a-zA-Z0-9_-]{11}$"
+        description: YouTube側のID
+        in: path
+    get:
+      tags: [video]
+      summary: Get video detail
+      description: 特定の動画の詳細を取得する
+      operationId: getVideosVideoId
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  video_id:
+                    type: string
+                    format: uuid
+                  external_video_id:
+                    type: string
+                  external_video_title:
+                    type: string
+                  external_video_description:
+                    type: string
+                  external_video_thumbnail_url:
+                    type: string
+                    format: uri
+                  channel_id:
+                    type: string
+                    format: uuid
+                  external_channel_id:
+                    type: string
+                  external_channel_display_name:
+                    type: string
+                  external_channel_icon_url:
+                    type: string
+                    format: uri
+                  external_channel_subscribers_count:
+                    type: integer
+                    minimum: 0
+                  external_video_like_count:
+                    type: integer
+                    minimum: 0
+                  comments:
+                    type: object
+                    properties:
+                      item_count:
+                        type: integer
+                        minimum: 0
+                      items:
+                        type: array
+                        uniqueItems: true
+                        items:
+                          type: object
+                          properties:
+                            external_comment_content:
+                              type: string
+                          required: [external_comment_content]
+                    required: [item_count, items]
+                required: [video_id, external_video_id, external_video_title, external_video_description, external_video_thumbnail_url, channel_id, external_channel_id, external_channel_display_name, external_channel_subscribers_count, external_channel_icon_url, external_video_like_count, comments]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /api/v1/videos/{external_video_id}/heartbeats:
+    parameters:
+      - name: external_video_id
+        required: true
+        schema:
+          type: string
+          pattern: "^[a-zA-Z0-9_-]{11}$"
+        description: YouTube側のID
+        in: path
     post:
       tags: [ video ]
       summary: Heartbeats
       description: 視聴時間をトラックするためのハートビート用エンドポイント。一分ごとに送られる。
       operationId: postVideosVideoIdHeartbeats
-      parameters:
-        - name: external_video_id
-          required: true
-          schema:
-            type: string
-            pattern: "^[a-zA-Z0-9_-]{11}$"
-          description: YouTube側のID
-          in: path
       responses:
         "200":
           description: 200 OK
@@ -389,7 +838,7 @@ paths:
       tags: [ history ]
       summary: Get video history
       description: 視聴履歴を取得
-      operationId: getVideosHistory
+      operationId: getHistory
       parameters:
         - name: limit
           description: 取得する最大の数
@@ -418,7 +867,7 @@ paths:
                   has_next:
                     type: boolean
                     description: ページネーションで次のページがあるかどうか
-                  total_count:
+                  item_count:
                     type: integer
                     minimum: 0
                     description: レスポンスの総件数
@@ -442,22 +891,22 @@ paths:
                           type: string
                           format: date-time
                           description: 履歴の時刻
-                        video_thumbnail_url:
+                        external_video_thumbnail_url:
                           type: string
                           format: uri
                           description: サムネイルURL
-                        video_title:
+                        external_video_title:
                           type: string
                           description: 動画のタイトル
-                        video_watch_count:
+                        external_video_watch_count:
                           type: integer
                           description: 再生数
                           minimum: 0
-                        video_like_count:
+                        external_video_like_count:
                           type: integer
                           description: 高評価の数
                           minimum: 0
-                        video_length_seconds:
+                        external_video_length_seconds:
                           type: integer
                           description: 動画の長さ(秒数)
                           minimum: 0
@@ -476,9 +925,9 @@ paths:
                         external_channel_display_name:
                           type: string
                           description: チャンネルの表示名
-                      required: [ video_id, external_video_id, watch_position_seconds, watched_at, video_thumbnail_url, video_title, video_watch_count, video_like_count, video_length_seconds, channel_id, external_channel_id, external_channel_display_name, external_channel_icon_url ]
+                      required: [ video_id, external_video_id, watch_position_seconds, watched_at, external_video_thumbnail_url, external_video_title, external_video_watch_count, external_video_like_count, external_video_length_seconds, channel_id, external_channel_id, external_channel_display_name, external_channel_icon_url ]
                     uniqueItems: true
-                required: [ total_count, has_next, items ]
+                required: [ item_count, has_next, items ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -518,12 +967,13 @@ paths:
                   target_month:
                     type: string
                     format: date
-                  total_count:
+                  item_count:
                     type: integer
                     minimum: 0
                     description: 総件数
                   items:
                     type: array
+                    uniqueItems: true
                     items:
                       type: object
                       properties:
@@ -533,11 +983,12 @@ paths:
                         video_watch_count:
                           type: integer
                           minimum: 0
+                          description: その日に動画を視聴した回数
                         video_watch_seconds:
                           type: integer
                           minimum: 0
                       required: [ target_day, video_watch_count, video_watch_seconds ]
-                required: [ target_month, total_count, items ]
+                required: [ target_month, item_count, items ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -583,7 +1034,7 @@ paths:
                   ai_summary_long:
                     type: string
                     description: AIの要約分(long)
-                  total_count:
+                  item_count:
                     type: integer
                     minimum: 0
                     description: 総件数
@@ -595,6 +1046,7 @@ paths:
                     minimum: 0
                   items:
                     type: array
+                    uniqueItems: true
                     items:
                       type: object
                       properties:
@@ -604,10 +1056,10 @@ paths:
                         external_video_id:
                           type: string
                           pattern: "^[a-zA-Z0-9_-]{11}$"
-                        video_thumbnail_url:
+                        external_video_thumbnail_url:
                           type: string
                           format: uri
-                        video_length_seconds:
+                        external_video_length_seconds:
                           type: integer
                           minimum: 0
                         watch_start_at:
@@ -619,8 +1071,8 @@ paths:
                         watch_seconds:
                           type: integer
                           minimum: 0
-                      required: [ video_id, external_video_id, video_thumbnail_url, video_length_seconds, watch_end_at, watch_start_at, watch_seconds ]
-                required: [ total_count, items, target_day, total_watch_seconds, total_watch_count, ai_summary_long, ai_summary_short ]
+                      required: [ video_id, external_video_id, external_video_thumbnail_url, external_video_length_seconds, watch_end_at, watch_start_at, watch_seconds ]
+                required: [ item_count, items, target_day, total_watch_seconds, total_watch_count, ai_summary_long, ai_summary_short ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -688,58 +1140,6 @@ paths:
       responses:
         "200":
           description: 200 OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "413":
-          $ref: "#/components/responses/PayloadTooLarge"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
-    post:
-      tags: [ user ]
-      summary: Create a new account
-      description: 新しいアカウントを作成
-      operationId: postUsersMe
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                screen_time:
-                  type: array
-                  uniqueItems: true
-                  items:
-                    $ref: "#/components/schemas/ScreenTimeSlot"
-                daily_screen_seconds:
-                  type: integer
-                  description: 毎日のスクリーン時間制限
-                  minimum: 0
-                display_name:
-                  type: string
-                  description: ユーザーの表示名
-                  minLength: 3
-                language_code:
-                  type: string
-                  minLength: 2
-                  maxLength: 2
-                  description: アカウントの言語コード
-              required: [ screen_time, display_name, language_code ]
-      responses:
-        "201":
-          description: 201 Created
           content:
             application/json:
               schema:
@@ -834,6 +1234,59 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /api/v1/users:
+    post:
+      tags: [ user ]
+      summary: Create a new account
+      description: 新しいアカウントを作成
+      operationId: postUsersMe
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                screen_time:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    $ref: "#/components/schemas/ScreenTimeSlot"
+                daily_screen_seconds:
+                  type: integer
+                  description: 毎日のスクリーン時間制限
+                  minimum: 0
+                display_name:
+                  type: string
+                  description: ユーザーの表示名
+                  minLength: 3
+                language_code:
+                  type: string
+                  minLength: 2
+                  maxLength: 2
+                  description: アカウントの言語コード
+              required: [ screen_time, display_name, language_code ]
+      responses:
+        "201":
+          description: 201 Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /api/v1/users/me/sessions:
     get:
       tags: [ auth ]
@@ -848,7 +1301,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  total_count:
+                  item_count:
                     description: 総件数
                     minimum: 0
                     type: integer
@@ -882,7 +1335,7 @@ paths:
                           maxLength: 2
                           minLength: 2
                       required: [ id, created_at, last_logged_in_at, city_name, browser_name, country_code ]
-                required: [ total_count, items ]
+                required: [ item_count, items ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -928,6 +1381,462 @@ paths:
           $ref: "#/components/responses/TooManyRequests"
         "500":
           $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/playlists:
+    get:
+      tags: [ playlist ]
+      summary: Get playlists
+      description: ユーザーのプレイリスト一覧を取得する
+      operationId: getPlaylists
+      parameters:
+        - name: limit
+          description: 取得する最大の数
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: cursor
+          description: ページネーション
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item_count:
+                    type: integer
+                    minimum: 0
+                  has_next:
+                    type: boolean
+                  items:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      type: object
+                      properties:
+                        playlist_id:
+                          type: string
+                          format: uuid
+                        playlist_type:
+                          $ref: "#/components/schemas/PlaylistType"
+                        playlist_visibility:
+                          $ref: "#/components/schemas/PlaylistVisibility"
+                        playlist_title:
+                          type: string
+                        playlist_description:
+                          type: string
+                        playlist_video_count:
+                          type: integer
+                          minimum: 0
+                        playlist_video_item_count_seconds:
+                          type: integer
+                          minimum: 0
+                        playlist_created_at:
+                          type: string
+                          format: date-time
+                        playlist_updated_at:
+                          type: string
+                          format: date-time
+                        top_video_thumbnail_url:
+                          type: string
+                          format: uri
+                      required: [ playlist_id, playlist_type, playlist_visibility, playlist_title, playlist_description, playlist_video_count, playlist_video_item_count_seconds, playlist_created_at, playlist_updated_at ]
+                required: [ item_count, has_next, items ]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      tags: [ playlist ]
+      summary: Create new playlist
+      description: 新しいプレイリストを作成する
+      operationId: postPlaylists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                playlist_title:
+                  type: string
+                playlist_description:
+                  type: string
+                playlist_type:
+                  $ref: "#/components/schemas/PlaylistType"
+                playlist_visibility:
+                  $ref: "#/components/schemas/PlaylistVisibility"
+              required: [playlist_type, playlist_visibility]
+      responses:
+        "201":
+          description: 201 Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item_count:
+                    type: integer
+                    minimum: 0
+                  has_next:
+                    type: boolean
+                  items:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      type: object
+                      properties:
+                        playlist_id:
+                          type: string
+                          format: uuid
+                        playlist_type:
+                          $ref: "#/components/schemas/PlaylistType"
+                        playlist_visibility:
+                          $ref: "#/components/schemas/PlaylistVisibility"
+                        playlist_title:
+                          type: string
+                        playlist_description:
+                          type: string
+                        playlist_video_count:
+                          type: integer
+                          minimum: 0
+                        playlist_video_item_count_seconds:
+                          type: integer
+                          minimum: 0
+                        playlist_created_at:
+                          type: string
+                          format: date-time
+                        playlist_updated_at:
+                          type: string
+                          format: date-time
+                        top_video_thumbnail_url:
+                          type: string
+                          format: uri
+                      required: [ playlist_id, playlist_type, playlist_visibility, playlist_title, playlist_description, playlist_video_count, playlist_video_item_count_seconds, playlist_created_at, playlist_updated_at ]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/playlists/{playlist_id}/videos:
+    parameters:
+      - name: playlist_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+        in: path
+    post:
+      tags: [ playlist ]
+      summary: Insert a new video into playlist
+      description: 新しい動画をプレイリストに挿入する
+      operationId: postPlaylistsPlaylistIdVideos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                video_id:
+                  type: string
+                  format: uuid
+              required: [video_id]
+      responses:
+        "201":
+          description: 201 Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  playlist_id:
+                    type: string
+                    format: uuid
+                  video_id:
+                    type: string
+                    format: uuid
+                  inserted_at:
+                    type: string
+                    format: date-time
+                required: [playlist_id, video_id, inserted_at]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags: [ playlist ]
+      summary: Remove a video from playlist
+      description: プレイリストから動画を取り除く
+      operationId: deletePlaylistsPlaylistIdVideos
+      parameters:
+        - name: video_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          in: query
+      responses:
+        "204":
+          description: 204 No Content
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    
+  /api/v1/playlists/{playlist_id}:
+    parameters:
+      - name: playlist_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+        in: path
+    get:
+      tags: [ playlist ]
+      summary: Get playlist
+      description: 特定のプレイリストにある動画一覧を取得する
+      operationId: getPlaylistsPlaylistId
+      parameters:
+        - name: limit
+          description: 取得する最大の数
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: cursor
+          description: 最後に取得した動画ID(ページネーション)
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item_count:
+                    type: integer
+                    minimum: 0
+                  has_next:
+                    type: boolean
+                  items:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      type: object
+                      properties:
+                        video_id:
+                          type: string
+                          format: uuid
+                        channel_id:
+                          type: string
+                          format: uuid
+                        external_video_id:
+                          type: string
+                        external_channel_id:
+                          type: string
+                        external_video_thumbnail_url:
+                          type: string
+                          format: uri
+                        external_channel_icon_url:
+                          type: string
+                          format: uri
+                        external_video_watch_count:
+                          type: integer
+                          minimum: 0
+                        external_video_title:
+                          type: string
+                        external_video_description:
+                          type: string
+                        external_channel_display_name:
+                          type: string
+                        external_video_created_at:
+                          type: string
+                          format: date-time
+                        external_video_length_seconds:
+                          type: integer
+                          minimum: 0
+                        last_watch_seconds:
+                          type: integer
+                          minimum: 0
+                      required: [ video_id, channel_id, external_video_id, external_channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_watch_count, external_video_title, external_video_description, external_channel_display_name, external_video_created_at, external_video_length_seconds ]
+                required: [item_count, has_next, items]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    patch:
+      tags: [ playlist ]
+      summary: Patch playlist
+      description: 特定のプレイリストの情報を編集する
+      operationId: patchPlaylistsPlaylistId
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                playlist_title:
+                  type: string
+                playlist_description:
+                  type: string
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  playlist_id:
+                    type: string
+                    format: uuid
+                  playlist_title:
+                    type: string
+                  playlist_description:
+                    type: string
+                  playlist_updated_at:
+                    type: string
+                    format: date-time
+                required: [playlist_id, playlist_title, playlist_description, playlist_updated_at]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    
+    delete:
+      tags: [ playlist ]
+      summary: Delete playlist
+      description: 特定のプレイリストを削除する
+      operationId: deletePlaylistsPlaylistId
+      responses:
+        "204":
+          description: 204 No Content
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/auth/logout:
+    post:
+      tags: [auth]
+      summary: Logout
+      description: ログアウトする
+      operationId: postAuthLogout
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logged_out_at:
+                    type: string
+                    format: date-time
+                required: [logged_out_at]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        
 
   /api/v1/auth/google/callback:
     get:
@@ -1096,6 +2005,26 @@ components:
           minimum: 0
       required: [ id, display_name, joined_at, screen_time ]
 
+    SearchType:
+      type: string
+      enum: [ video, channel ]
+      description: 検索のタイプ
+
+    ResourceType:
+      type: string
+      enum: [ video, channel ]
+      description: リソースのタイプ
+
+    PlaylistType:
+      type: string
+      enum: [ normal ]
+      description: プレイリストのタイプ
+
+    PlaylistVisibility:
+      type: string
+      enum: [ private ]
+      description: プレイリストの公開範囲
+
   parameters:
     CookieCSRFToken:
       name: csrf_token
@@ -1105,7 +2034,7 @@ components:
         type: string
       description: CSRF Token
 
-    HeaderCsrfToken:
+    HeaderCSRFToken:
       name: x-csrf-token
       required: true
       in: header
