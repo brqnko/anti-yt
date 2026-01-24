@@ -1,0 +1,15 @@
+package: v1
+
+output: api.gen.go
+
+generate:
+  models: true
+  echo-server: true
+  strict-server: true
+  embedded-spec: true
+
+compatibility:
+  always-prefix-enum-values: true
+
+output-options:
+  skip-fmt: false
