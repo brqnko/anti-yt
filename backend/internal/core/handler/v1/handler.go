@@ -1,26 +1,40 @@
 package v1
 
 import (
+	"context"
 	"database/sql"
-	"errors"
-	"fmt"
-	"log"
 	"net/http"
-	"os"
-	"strings"
 
-	"github.com/brqnko/anti-yt/backend/migrations"
-	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/brqnko/anti-yt/backend/internal/core/database"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/labstack/echo/v4"
-	openapi_types "github.com/oapi-codegen/runtime/types"
-	"github.com/pressly/goose/v3"
+	openapitypes "github.com/oapi-codegen/runtime/types"
 )
 
 var _ ServerInterface = (*Handler)(nil)
 
 type Handler struct {
 	db *sql.DB
+}
+
+func NewHandler() (*Handler, error) {
+	db, err := database.ConnectDB()
+	if err != nil {
+		return nil, err
+	}
+	if err = database.RunMigration(db); err != nil {
+		return nil, err
+	}
+
+	return &Handler{db: db}, nil
+}
+
+func (h *Handler) Close(ctx context.Context) error {
+	if err := h.db.Close(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (h *Handler) GetAuthGoogle(ctx echo.Context) error {
@@ -33,7 +47,7 @@ func (h *Handler) PostAuthLogout(ctx echo.Context) error {
 	panic("implement me")
 }
 
-func (h *Handler) GetChannelsChannelIdVideos(ctx echo.Context, channelId openapi_types.UUID, params GetChannelsChannelIdVideosParams) error {
+func (h *Handler) GetChannelsChannelIdVideos(ctx echo.Context, channelId openapitypes.UUID, params GetChannelsChannelIdVideosParams) error {
 	//TODO implement me
 	panic("implement me")
 }
@@ -63,27 +77,27 @@ func (h *Handler) PostPlaylists(ctx echo.Context) error {
 	panic("implement me")
 }
 
-func (h *Handler) DeletePlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID) error {
+func (h *Handler) DeletePlaylistsPlaylistId(ctx echo.Context, playlistId openapitypes.UUID) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) GetPlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID, params GetPlaylistsPlaylistIdParams) error {
+func (h *Handler) GetPlaylistsPlaylistId(ctx echo.Context, playlistId openapitypes.UUID, params GetPlaylistsPlaylistIdParams) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) PatchPlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID) error {
+func (h *Handler) PatchPlaylistsPlaylistId(ctx echo.Context, playlistId openapitypes.UUID) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) DeletePlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdVideosParams) error {
+func (h *Handler) DeletePlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapitypes.UUID, params DeletePlaylistsPlaylistIdVideosParams) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) PostPlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapi_types.UUID) error {
+func (h *Handler) PostPlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapitypes.UUID) error {
 	//TODO implement me
 	panic("implement me")
 }
@@ -113,7 +127,7 @@ func (h *Handler) PostSubscriptions(ctx echo.Context) error {
 	panic("implement me")
 }
 
-func (h *Handler) DeleteSubscriptionsChannelId(ctx echo.Context, channelId openapi_types.UUID) error {
+func (h *Handler) DeleteSubscriptionsChannelId(ctx echo.Context, channelId openapitypes.UUID) error {
 	//TODO implement me
 	panic("implement me")
 }
@@ -148,7 +162,7 @@ func (h *Handler) GetUsersMeSessions(ctx echo.Context) error {
 	panic("implement me")
 }
 
-func (h *Handler) DeleteUsersMeSessionsSessionId(ctx echo.Context, sessionId openapi_types.UUID) error {
+func (h *Handler) DeleteUsersMeSessionsSessionId(ctx echo.Context, sessionId openapitypes.UUID) error {
 	//TODO implement me
 	panic("implement me")
 }
@@ -176,43 +190,6 @@ func (h *Handler) GetAuthGoogleCallback(ctx echo.Context, params GetAuthGoogleCa
 func (h *Handler) PostAuthRefresh(ctx echo.Context, params PostAuthRefreshParams) error {
 	//TODO implement me
 	panic("implement me")
-}
-
-func RunMigration(db *sql.DB) error {
-	fmt.Println("running migration")
-	goose.SetBaseFS(migrations.EmbedMigrations)
-
-	if err := goose.SetDialect("postgres"); err != nil {
-		return err
-	}
-
-	// "migrations" は go:embed で指定したディレクトリ名
-	if err := goose.Up(db, "."); err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			fmt.Printf("Error: %s, Detail: %s, Hint: %s\n", pgErr.Message, pgErr.Detail, pgErr.Hint)
-		}
-		return err
-	}
-
-	fmt.Println("migration ok")
-	return nil
-}
-
-func NewHandler() *Handler {
-	data, err := os.ReadFile("/run/secrets/db-password")
-	if err != nil {
-		log.Fatal(err)
-	}
-	db, err := sql.Open("pgx", fmt.Sprintf("postgres://postgres:%s@db:5432/example?sslmode=disable", strings.TrimSpace(string(data))))
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err = RunMigration(db); err != nil {
-		log.Fatal(err)
-	}
-
-	return &Handler{db: db}
 }
 
 func (h *Handler) GetHealth(ctx echo.Context) error {

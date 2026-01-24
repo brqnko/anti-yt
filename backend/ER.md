@@ -20,7 +20,6 @@ erDiagram
         bigint m_user_authorization_id PK
         varchar(256) issuer "https://accounts.google.com"
         varchar(256) sub
-        varchar(256) email_address
         timestamptz last_logged_in_at
         timestamptz created_at
         timestamptz updated_at

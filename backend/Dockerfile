@@ -16,3 +16,5 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
 FROM base AS dev
 
 EXPOSE 8080
+
+FROM base AS builder

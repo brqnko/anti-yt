@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,7 +22,19 @@ func run(ctx context.Context) int {
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	h := v1.NewHandler()
+	h, err := v1.NewHandler()
+	if err != nil {
+		fmt.Printf("failed to create handler: %v\n", err)
+		return 1
+	}
+
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := h.Close(ctx); err != nil {
+			fmt.Printf("failed to close handler: %v\n", err)
+		}
+	}()
 	e := echo.New()
 
 	v1.RegisterHandlers(e, h)
@@ -38,7 +51,7 @@ func run(ctx context.Context) int {
 	defer cancel()
 
 	if err := e.Shutdown(shutdownCtx); err != nil {
-		e.Logger.Fatal(err)
+		e.Logger.Printf("failed to shutdown: %v\n", err)
 		return 1
 	}
 
