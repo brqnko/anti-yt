@@ -10,6 +10,8 @@ import (
 	"github.com/brqnko/anti-yt/backend/migrations"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/pressly/goose/v3"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func RunMigration(db *sql.DB) error {
@@ -20,7 +22,7 @@ func RunMigration(db *sql.DB) error {
 		return err
 	}
 
-	if err := goose.Up(db, "."); err != nil {
+	if err := goose.Redo(db, "."); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			fmt.Printf("Error: %s, Detail: %s, Hint: %s\n", pgErr.Message, pgErr.Detail, pgErr.Hint)
@@ -38,7 +40,7 @@ func ConnectDB() (*sql.DB, error) {
 		return nil, err
 	}
 
-	db, err := sql.Open("pgx", fmt.Sprintf("postgres://postgres:%s@db:5432/%s?sslmode=disable", "example", strings.TrimSpace(string(data))))
+	db, err := sql.Open("pgx", fmt.Sprintf("postgres://postgres:%s@db:5432/%s?sslmode=disable", strings.TrimSpace(string(data)), "example"))
 	if err != nil {
 		return nil, err
 	}

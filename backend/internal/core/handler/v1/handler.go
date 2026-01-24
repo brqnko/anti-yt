@@ -5,7 +5,6 @@ import (
 	"database/sql"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database"
-	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 var _ ServerInterface = (*Handler)(nil)
