@@ -107,6 +107,21 @@ type CookieCSRFToken = string
 // HeaderCSRFToken CSRF Token
 type HeaderCSRFToken = string
 
+// HeaderCfIpCountry defines model for HeaderCfIpCountry.
+type HeaderCfIpCountry = string
+
+// HeaderCfRay defines model for HeaderCfRay.
+type HeaderCfRay = string
+
+// HeaderDeviceFingerprint defines model for HeaderDeviceFingerprint.
+type HeaderDeviceFingerprint = string
+
+// HeaderUserAgent defines model for HeaderUserAgent.
+type HeaderUserAgent = string
+
+// HeaderXRealIP defines model for HeaderXRealIP.
+type HeaderXRealIP = string
+
 // BadRequest defines model for BadRequest.
 type BadRequest = ProblemDetailError
 
@@ -128,6 +143,22 @@ type TooManyRequests = ProblemDetailError
 // Unauthorized defines model for Unauthorized.
 type Unauthorized = ProblemDetailError
 
+// GetAuthGoogleParams defines parameters for GetAuthGoogle.
+type GetAuthGoogleParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
 // GetAuthGoogleCallbackParams defines parameters for GetAuthGoogleCallback.
 type GetAuthGoogleCallbackParams struct {
 	// Code Googleから発行された認可コード
@@ -138,12 +169,56 @@ type GetAuthGoogleCallbackParams struct {
 
 	// Error エラー
 	Error *string `form:"error,omitempty" json:"error,omitempty"`
+
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+
+	// Csrf CSRF対策
+	Csrf string `form:"csrf" json:"csrf"`
+}
+
+// PostAuthLogoutParams defines parameters for PostAuthLogout.
+type PostAuthLogoutParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
 // PostAuthRefreshParams defines parameters for PostAuthRefresh.
 type PostAuthRefreshParams struct {
-	XCsrfToken   HeaderCSRFToken `json:"x-csrf-token"`
-	RefreshToken string          `form:"refresh_token" json:"refresh_token"`
+	XCsrfToken HeaderCSRFToken `json:"x-csrf-token"`
+
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 
 	// CsrfToken CSRF Token
 	CsrfToken CookieCSRFToken `form:"csrf_token" json:"csrf_token"`
@@ -152,6 +227,19 @@ type PostAuthRefreshParams struct {
 // GetChannelsChannelIdVideosParams defines parameters for GetChannelsChannelIdVideos.
 type GetChannelsChannelIdVideosParams struct {
 	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
 // GetFeedParams defines parameters for GetFeed.
@@ -161,6 +249,35 @@ type GetFeedParams struct {
 
 	// Cursor 最後に取得した動画ID(ページネーション)
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
+// GetFeedChannelsParams defines parameters for GetFeedChannels.
+type GetFeedChannelsParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
 // GetHistoryParams defines parameters for GetHistory.
@@ -170,6 +287,19 @@ type GetHistoryParams struct {
 
 	// Cursor 最後に取得した動画内部ID(ページネーション)
 	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
 // GetPlaylistsParams defines parameters for GetPlaylists.
@@ -179,6 +309,19 @@ type GetPlaylistsParams struct {
 
 	// Cursor ページネーション
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
 // PostPlaylistsJSONBody defines parameters for PostPlaylists.
@@ -193,6 +336,38 @@ type PostPlaylistsJSONBody struct {
 	PlaylistVisibility PlaylistVisibility `json:"playlist_visibility"`
 }
 
+// PostPlaylistsParams defines parameters for PostPlaylists.
+type PostPlaylistsParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
+// DeletePlaylistsPlaylistIdParams defines parameters for DeletePlaylistsPlaylistId.
+type DeletePlaylistsPlaylistIdParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
 // GetPlaylistsPlaylistIdParams defines parameters for GetPlaylistsPlaylistId.
 type GetPlaylistsPlaylistIdParams struct {
 	// Limit 取得する最大の数
@@ -200,6 +375,19 @@ type GetPlaylistsPlaylistIdParams struct {
 
 	// Cursor 最後に取得した動画ID(ページネーション)
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
 // PatchPlaylistsPlaylistIdJSONBody defines parameters for PatchPlaylistsPlaylistId.
@@ -208,14 +396,59 @@ type PatchPlaylistsPlaylistIdJSONBody struct {
 	PlaylistTitle       *string `json:"playlist_title,omitempty"`
 }
 
+// PatchPlaylistsPlaylistIdParams defines parameters for PatchPlaylistsPlaylistId.
+type PatchPlaylistsPlaylistIdParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
 // DeletePlaylistsPlaylistIdVideosParams defines parameters for DeletePlaylistsPlaylistIdVideos.
 type DeletePlaylistsPlaylistIdVideosParams struct {
 	VideoId openapi_types.UUID `form:"video_id" json:"video_id"`
+
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
 // PostPlaylistsPlaylistIdVideosJSONBody defines parameters for PostPlaylistsPlaylistIdVideos.
 type PostPlaylistsPlaylistIdVideosJSONBody struct {
 	VideoId openapi_types.UUID `json:"video_id"`
+}
+
+// PostPlaylistsPlaylistIdVideosParams defines parameters for PostPlaylistsPlaylistIdVideos.
+type PostPlaylistsPlaylistIdVideosParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
 // GetSearchParams defines parameters for GetSearch.
@@ -231,16 +464,55 @@ type GetSearchParams struct {
 
 	// SearchType 検索のタイプ
 	SearchType SearchType `form:"search_type" json:"search_type"`
+
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
 // GetStatisticsDailyParams defines parameters for GetStatisticsDaily.
 type GetStatisticsDailyParams struct {
 	TargetDay openapi_types.Date `form:"target_day" json:"target_day"`
+
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
 // GetStatisticsMonthlyParams defines parameters for GetStatisticsMonthly.
 type GetStatisticsMonthlyParams struct {
 	TargetMonth openapi_types.Date `form:"target_month" json:"target_month"`
+
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
 // GetSubscriptionsParams defines parameters for GetSubscriptions.
@@ -250,12 +522,57 @@ type GetSubscriptionsParams struct {
 
 	// Cursor 最後に取得したチャンネルID(ページネーション)
 	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
 // PostSubscriptionsJSONBody defines parameters for PostSubscriptions.
 type PostSubscriptionsJSONBody struct {
 	// ChannelId 登録するチャンネルID or ハンドル名
 	ChannelId string `json:"channel_id"`
+}
+
+// PostSubscriptionsParams defines parameters for PostSubscriptions.
+type PostSubscriptionsParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
+// DeleteSubscriptionsChannelIdParams defines parameters for DeleteSubscriptionsChannelId.
+type DeleteSubscriptionsChannelIdParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
 // PostUsersMeJSONBody defines parameters for PostUsersMe.
@@ -271,6 +588,54 @@ type PostUsersMeJSONBody struct {
 	ScreenTime   []ScreenTimeSlot `json:"screen_time"`
 }
 
+// PostUsersMeParams defines parameters for PostUsersMe.
+type PostUsersMeParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
+// DeleteUsersMeParams defines parameters for DeleteUsersMe.
+type DeleteUsersMeParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
+// GetUsersMeStatusParams defines parameters for GetUsersMeStatus.
+type GetUsersMeStatusParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
 // PatchUsersMeStatusJSONBody defines parameters for PatchUsersMeStatus.
 type PatchUsersMeStatusJSONBody struct {
 	// DailyScreenSeconds 毎日のスクリーン時間制限
@@ -282,6 +647,118 @@ type PatchUsersMeStatusJSONBody struct {
 	// LanguageCode アカウントの言語コード
 	LanguageCode *string           `json:"language_code,omitempty"`
 	ScreenTime   *[]ScreenTimeSlot `json:"screen_time,omitempty"`
+}
+
+// PatchUsersMeStatusParams defines parameters for PatchUsersMeStatus.
+type PatchUsersMeStatusParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
+// GetUsersMeLimitsParams defines parameters for GetUsersMeLimits.
+type GetUsersMeLimitsParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
+// GetUsersMeSessionsParams defines parameters for GetUsersMeSessions.
+type GetUsersMeSessionsParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
+// DeleteUsersMeSessionsSessionIdParams defines parameters for DeleteUsersMeSessionsSessionId.
+type DeleteUsersMeSessionsSessionIdParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
+// GetVideosVideoIdParams defines parameters for GetVideosVideoId.
+type GetVideosVideoIdParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
+// PostVideosVideoIdHeartbeatsParams defines parameters for PostVideosVideoIdHeartbeats.
+type PostVideosVideoIdHeartbeatsParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
+// GetHealthParams defines parameters for GetHealth.
+type GetHealthParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
 // PostPlaylistsJSONRequestBody defines body for PostPlaylists for application/json ContentType.
@@ -306,13 +783,13 @@ type PatchUsersMeStatusJSONRequestBody PatchUsersMeStatusJSONBody
 type ServerInterface interface {
 	// Google authentication
 	// (GET /api/v1/auth/google)
-	GetAuthGoogle(ctx echo.Context) error
+	GetAuthGoogle(ctx echo.Context, params GetAuthGoogleParams) error
 	// Google Authorization Code Callback
 	// (GET /api/v1/auth/google/callback)
 	GetAuthGoogleCallback(ctx echo.Context, params GetAuthGoogleCallbackParams) error
 	// Logout
 	// (POST /api/v1/auth/logout)
-	PostAuthLogout(ctx echo.Context) error
+	PostAuthLogout(ctx echo.Context, params PostAuthLogoutParams) error
 	// Refresh access token
 	// (POST /api/v1/auth/refresh)
 	PostAuthRefresh(ctx echo.Context, params PostAuthRefreshParams) error
@@ -324,7 +801,7 @@ type ServerInterface interface {
 	GetFeed(ctx echo.Context, params GetFeedParams) error
 	// Get channels
 	// (GET /api/v1/feed/channels)
-	GetFeedChannels(ctx echo.Context) error
+	GetFeedChannels(ctx echo.Context, params GetFeedChannelsParams) error
 	// Get video history
 	// (GET /api/v1/history)
 	GetHistory(ctx echo.Context, params GetHistoryParams) error
@@ -333,22 +810,22 @@ type ServerInterface interface {
 	GetPlaylists(ctx echo.Context, params GetPlaylistsParams) error
 	// Create new playlist
 	// (POST /api/v1/playlists)
-	PostPlaylists(ctx echo.Context) error
+	PostPlaylists(ctx echo.Context, params PostPlaylistsParams) error
 	// Delete playlist
 	// (DELETE /api/v1/playlists/{playlist_id})
-	DeletePlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID) error
+	DeletePlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdParams) error
 	// Get playlist
 	// (GET /api/v1/playlists/{playlist_id})
 	GetPlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID, params GetPlaylistsPlaylistIdParams) error
 	// Patch playlist
 	// (PATCH /api/v1/playlists/{playlist_id})
-	PatchPlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID) error
+	PatchPlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID, params PatchPlaylistsPlaylistIdParams) error
 	// Remove a video from playlist
 	// (DELETE /api/v1/playlists/{playlist_id}/videos)
 	DeletePlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdVideosParams) error
 	// Insert a new video into playlist
 	// (POST /api/v1/playlists/{playlist_id}/videos)
-	PostPlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapi_types.UUID) error
+	PostPlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapi_types.UUID, params PostPlaylistsPlaylistIdVideosParams) error
 	// Get search result
 	// (GET /api/v1/search)
 	GetSearch(ctx echo.Context, params GetSearchParams) error
@@ -363,40 +840,40 @@ type ServerInterface interface {
 	GetSubscriptions(ctx echo.Context, params GetSubscriptionsParams) error
 	// Subscribe new channel
 	// (POST /api/v1/subscriptions)
-	PostSubscriptions(ctx echo.Context) error
+	PostSubscriptions(ctx echo.Context, params PostSubscriptionsParams) error
 	// Delete subscription
 	// (DELETE /api/v1/subscriptions/{channel_id})
-	DeleteSubscriptionsChannelId(ctx echo.Context, channelId openapi_types.UUID) error
+	DeleteSubscriptionsChannelId(ctx echo.Context, channelId openapi_types.UUID, params DeleteSubscriptionsChannelIdParams) error
 	// Create a new account
 	// (POST /api/v1/users)
-	PostUsersMe(ctx echo.Context) error
+	PostUsersMe(ctx echo.Context, params PostUsersMeParams) error
 	// Delete User's Account
 	// (DELETE /api/v1/users/me)
-	DeleteUsersMe(ctx echo.Context) error
+	DeleteUsersMe(ctx echo.Context, params DeleteUsersMeParams) error
 	// Get Current User's Status
 	// (GET /api/v1/users/me)
-	GetUsersMeStatus(ctx echo.Context) error
+	GetUsersMeStatus(ctx echo.Context, params GetUsersMeStatusParams) error
 	// Update User Status
 	// (PATCH /api/v1/users/me)
-	PatchUsersMeStatus(ctx echo.Context) error
+	PatchUsersMeStatus(ctx echo.Context, params PatchUsersMeStatusParams) error
 	// Get User Detail
 	// (GET /api/v1/users/me/limits)
-	GetUsersMeLimits(ctx echo.Context) error
+	GetUsersMeLimits(ctx echo.Context, params GetUsersMeLimitsParams) error
 	// User session list
 	// (GET /api/v1/users/me/sessions)
-	GetUsersMeSessions(ctx echo.Context) error
+	GetUsersMeSessions(ctx echo.Context, params GetUsersMeSessionsParams) error
 	// Delete session
 	// (DELETE /api/v1/users/me/sessions/{session_id})
-	DeleteUsersMeSessionsSessionId(ctx echo.Context, sessionId openapi_types.UUID) error
+	DeleteUsersMeSessionsSessionId(ctx echo.Context, sessionId openapi_types.UUID, params DeleteUsersMeSessionsSessionIdParams) error
 	// Get video detail
 	// (GET /api/v1/videos/{external_video_id})
-	GetVideosVideoId(ctx echo.Context, externalVideoId string) error
+	GetVideosVideoId(ctx echo.Context, externalVideoId string, params GetVideosVideoIdParams) error
 	// Heartbeats
 	// (POST /api/v1/videos/{external_video_id}/heartbeats)
-	PostVideosVideoIdHeartbeats(ctx echo.Context, externalVideoId string) error
+	PostVideosVideoIdHeartbeats(ctx echo.Context, externalVideoId string, params PostVideosVideoIdHeartbeatsParams) error
 	// Health check
 	// (GET /health)
-	GetHealth(ctx echo.Context) error
+	GetHealth(ctx echo.Context, params GetHealthParams) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -408,8 +885,98 @@ type ServerInterfaceWrapper struct {
 func (w *ServerInterfaceWrapper) GetAuthGoogle(ctx echo.Context) error {
 	var err error
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAuthGoogleParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetAuthGoogle(ctx)
+	err = w.Handler.GetAuthGoogle(ctx, params)
 	return err
 }
 
@@ -440,6 +1007,106 @@ func (w *ServerInterfaceWrapper) GetAuthGoogleCallback(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter error: %s", err))
 	}
 
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
+	if cookie, err := ctx.Cookie("csrf"); err == nil {
+
+		var value string
+		err = runtime.BindStyledParameterWithOptions("simple", "csrf", cookie.Value, &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationCookie, Explode: true, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter csrf: %s", err))
+		}
+		params.Csrf = value
+
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Query argument csrf is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetAuthGoogleCallback(ctx, params)
 	return err
@@ -451,8 +1118,98 @@ func (w *ServerInterfaceWrapper) PostAuthLogout(ctx echo.Context) error {
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PostAuthLogoutParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostAuthLogout(ctx)
+	err = w.Handler.PostAuthLogout(ctx, params)
 	return err
 }
 
@@ -481,18 +1238,90 @@ func (w *ServerInterfaceWrapper) PostAuthRefresh(ctx echo.Context) error {
 	} else {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter x-csrf-token is required, but not found"))
 	}
-
-	if cookie, err := ctx.Cookie("refresh_token"); err == nil {
-
-		var value string
-		err = runtime.BindStyledParameterWithOptions("simple", "refresh_token", cookie.Value, &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationCookie, Explode: true, Required: true})
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter refresh_token: %s", err))
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
 		}
-		params.RefreshToken = value
 
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Query argument refresh_token is required, but not found"))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
 	}
 
 	if cookie, err := ctx.Cookie("csrf_token"); err == nil {
@@ -535,6 +1364,93 @@ func (w *ServerInterfaceWrapper) GetChannelsChannelIdVideos(ctx echo.Context) er
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
 	}
 
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetChannelsChannelIdVideos(ctx, channelId, params)
 	return err
@@ -562,6 +1478,93 @@ func (w *ServerInterfaceWrapper) GetFeed(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
 	}
 
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetFeed(ctx, params)
 	return err
@@ -573,8 +1576,98 @@ func (w *ServerInterfaceWrapper) GetFeedChannels(ctx echo.Context) error {
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetFeedChannelsParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetFeedChannels(ctx)
+	err = w.Handler.GetFeedChannels(ctx, params)
 	return err
 }
 
@@ -598,6 +1691,93 @@ func (w *ServerInterfaceWrapper) GetHistory(ctx echo.Context) error {
 	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
+	}
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
@@ -627,6 +1807,93 @@ func (w *ServerInterfaceWrapper) GetPlaylists(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
 	}
 
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetPlaylists(ctx, params)
 	return err
@@ -638,8 +1905,98 @@ func (w *ServerInterfaceWrapper) PostPlaylists(ctx echo.Context) error {
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PostPlaylistsParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostPlaylists(ctx)
+	err = w.Handler.PostPlaylists(ctx, params)
 	return err
 }
 
@@ -656,8 +2013,98 @@ func (w *ServerInterfaceWrapper) DeletePlaylistsPlaylistId(ctx echo.Context) err
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DeletePlaylistsPlaylistIdParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.DeletePlaylistsPlaylistId(ctx, playlistId)
+	err = w.Handler.DeletePlaylistsPlaylistId(ctx, playlistId, params)
 	return err
 }
 
@@ -690,6 +2137,93 @@ func (w *ServerInterfaceWrapper) GetPlaylistsPlaylistId(ctx echo.Context) error 
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
 	}
 
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetPlaylistsPlaylistId(ctx, playlistId, params)
 	return err
@@ -708,8 +2242,98 @@ func (w *ServerInterfaceWrapper) PatchPlaylistsPlaylistId(ctx echo.Context) erro
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PatchPlaylistsPlaylistIdParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PatchPlaylistsPlaylistId(ctx, playlistId)
+	err = w.Handler.PatchPlaylistsPlaylistId(ctx, playlistId, params)
 	return err
 }
 
@@ -735,6 +2359,93 @@ func (w *ServerInterfaceWrapper) DeletePlaylistsPlaylistIdVideos(ctx echo.Contex
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter video_id: %s", err))
 	}
 
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.DeletePlaylistsPlaylistIdVideos(ctx, playlistId, params)
 	return err
@@ -753,8 +2464,98 @@ func (w *ServerInterfaceWrapper) PostPlaylistsPlaylistIdVideos(ctx echo.Context)
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PostPlaylistsPlaylistIdVideosParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostPlaylistsPlaylistIdVideos(ctx, playlistId)
+	err = w.Handler.PostPlaylistsPlaylistIdVideos(ctx, playlistId, params)
 	return err
 }
 
@@ -794,6 +2595,93 @@ func (w *ServerInterfaceWrapper) GetSearch(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter search_type: %s", err))
 	}
 
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetSearch(ctx, params)
 	return err
@@ -814,6 +2702,93 @@ func (w *ServerInterfaceWrapper) GetStatisticsDaily(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter target_day: %s", err))
 	}
 
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetStatisticsDaily(ctx, params)
 	return err
@@ -832,6 +2807,93 @@ func (w *ServerInterfaceWrapper) GetStatisticsMonthly(ctx echo.Context) error {
 	err = runtime.BindQueryParameter("form", true, true, "target_month", ctx.QueryParams(), &params.TargetMonth)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter target_month: %s", err))
+	}
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
@@ -861,6 +2923,93 @@ func (w *ServerInterfaceWrapper) GetSubscriptions(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
 	}
 
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetSubscriptions(ctx, params)
 	return err
@@ -872,8 +3021,98 @@ func (w *ServerInterfaceWrapper) PostSubscriptions(ctx echo.Context) error {
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PostSubscriptionsParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostSubscriptions(ctx)
+	err = w.Handler.PostSubscriptions(ctx, params)
 	return err
 }
 
@@ -890,8 +3129,98 @@ func (w *ServerInterfaceWrapper) DeleteSubscriptionsChannelId(ctx echo.Context) 
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DeleteSubscriptionsChannelIdParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.DeleteSubscriptionsChannelId(ctx, channelId)
+	err = w.Handler.DeleteSubscriptionsChannelId(ctx, channelId, params)
 	return err
 }
 
@@ -901,8 +3230,98 @@ func (w *ServerInterfaceWrapper) PostUsersMe(ctx echo.Context) error {
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PostUsersMeParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostUsersMe(ctx)
+	err = w.Handler.PostUsersMe(ctx, params)
 	return err
 }
 
@@ -912,8 +3331,98 @@ func (w *ServerInterfaceWrapper) DeleteUsersMe(ctx echo.Context) error {
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DeleteUsersMeParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.DeleteUsersMe(ctx)
+	err = w.Handler.DeleteUsersMe(ctx, params)
 	return err
 }
 
@@ -923,8 +3432,98 @@ func (w *ServerInterfaceWrapper) GetUsersMeStatus(ctx echo.Context) error {
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetUsersMeStatusParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetUsersMeStatus(ctx)
+	err = w.Handler.GetUsersMeStatus(ctx, params)
 	return err
 }
 
@@ -934,8 +3533,98 @@ func (w *ServerInterfaceWrapper) PatchUsersMeStatus(ctx echo.Context) error {
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PatchUsersMeStatusParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PatchUsersMeStatus(ctx)
+	err = w.Handler.PatchUsersMeStatus(ctx, params)
 	return err
 }
 
@@ -945,8 +3634,98 @@ func (w *ServerInterfaceWrapper) GetUsersMeLimits(ctx echo.Context) error {
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetUsersMeLimitsParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetUsersMeLimits(ctx)
+	err = w.Handler.GetUsersMeLimits(ctx, params)
 	return err
 }
 
@@ -956,8 +3735,98 @@ func (w *ServerInterfaceWrapper) GetUsersMeSessions(ctx echo.Context) error {
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetUsersMeSessionsParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetUsersMeSessions(ctx)
+	err = w.Handler.GetUsersMeSessions(ctx, params)
 	return err
 }
 
@@ -974,8 +3843,98 @@ func (w *ServerInterfaceWrapper) DeleteUsersMeSessionsSessionId(ctx echo.Context
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DeleteUsersMeSessionsSessionIdParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.DeleteUsersMeSessionsSessionId(ctx, sessionId)
+	err = w.Handler.DeleteUsersMeSessionsSessionId(ctx, sessionId, params)
 	return err
 }
 
@@ -992,8 +3951,98 @@ func (w *ServerInterfaceWrapper) GetVideosVideoId(ctx echo.Context) error {
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetVideosVideoIdParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetVideosVideoId(ctx, externalVideoId)
+	err = w.Handler.GetVideosVideoId(ctx, externalVideoId, params)
 	return err
 }
 
@@ -1010,8 +4059,98 @@ func (w *ServerInterfaceWrapper) PostVideosVideoIdHeartbeats(ctx echo.Context) e
 
 	ctx.Set(CookieJwtAuthScopes, []string{})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PostVideosVideoIdHeartbeatsParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostVideosVideoIdHeartbeats(ctx, externalVideoId)
+	err = w.Handler.PostVideosVideoIdHeartbeats(ctx, externalVideoId, params)
 	return err
 }
 
@@ -1019,8 +4158,98 @@ func (w *ServerInterfaceWrapper) PostVideosVideoIdHeartbeats(ctx echo.Context) e
 func (w *ServerInterfaceWrapper) GetHealth(ctx echo.Context) error {
 	var err error
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetHealthParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+		}
+
+		params.XRealIP = XRealIP
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+		}
+
+		params.CfIpcountry = CfIpcountry
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+	}
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+		}
+
+		params.CfRay = CfRay
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+	}
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+		}
+
+		params.UserAgent = UserAgent
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetHealth(ctx)
+	err = w.Handler.GetHealth(ctx, params)
 	return err
 }
 
@@ -1101,6 +4330,7 @@ type TooManyRequestsJSONResponse ProblemDetailError
 type UnauthorizedJSONResponse ProblemDetailError
 
 type GetAuthGoogleRequestObject struct {
+	Params GetAuthGoogleParams
 }
 
 type GetAuthGoogleResponseObject interface {
@@ -1109,7 +4339,7 @@ type GetAuthGoogleResponseObject interface {
 
 type GetAuthGoogle302ResponseHeaders struct {
 	Location  string
-	SetCookie string
+	SetCookie []string
 }
 
 type GetAuthGoogle302Response struct {
@@ -1198,7 +4428,7 @@ type GetAuthGoogleCallbackResponseObject interface {
 
 type GetAuthGoogleCallback302ResponseHeaders struct {
 	Location  string
-	SetCookie string
+	SetCookie []string
 }
 
 type GetAuthGoogleCallback302Response struct {
@@ -1278,21 +4508,25 @@ func (response GetAuthGoogleCallback500JSONResponse) VisitGetAuthGoogleCallbackR
 }
 
 type PostAuthLogoutRequestObject struct {
+	Params PostAuthLogoutParams
 }
 
 type PostAuthLogoutResponseObject interface {
 	VisitPostAuthLogoutResponse(w http.ResponseWriter) error
 }
 
-type PostAuthLogout200JSONResponse struct {
-	LoggedOutAt time.Time `json:"logged_out_at"`
+type PostAuthLogout200ResponseHeaders struct {
+	SetCookie []string
 }
 
-func (response PostAuthLogout200JSONResponse) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
+type PostAuthLogout200Response struct {
+	Headers PostAuthLogout200ResponseHeaders
+}
 
-	return json.NewEncoder(w).Encode(response)
+func (response PostAuthLogout200Response) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
+	w.Header().Set("Set-Cookie", fmt.Sprint(response.Headers.SetCookie))
+	w.WriteHeader(200)
+	return nil
 }
 
 type PostAuthLogout400JSONResponse struct{ BadRequestJSONResponse }
@@ -1369,22 +4603,17 @@ type PostAuthRefreshResponseObject interface {
 }
 
 type PostAuthRefresh200ResponseHeaders struct {
-	SetCookie string
+	SetCookie []string
 }
 
-type PostAuthRefresh200JSONResponse struct {
-	Body struct {
-		Status string `json:"status"`
-	}
+type PostAuthRefresh200Response struct {
 	Headers PostAuthRefresh200ResponseHeaders
 }
 
-func (response PostAuthRefresh200JSONResponse) VisitPostAuthRefreshResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
+func (response PostAuthRefresh200Response) VisitPostAuthRefreshResponse(w http.ResponseWriter) error {
 	w.Header().Set("Set-Cookie", fmt.Sprint(response.Headers.SetCookie))
 	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response.Body)
+	return nil
 }
 
 type PostAuthRefresh400JSONResponse struct{ BadRequestJSONResponse }
@@ -1654,6 +4883,7 @@ func (response GetFeed500JSONResponse) VisitGetFeedResponse(w http.ResponseWrite
 }
 
 type GetFeedChannelsRequestObject struct {
+	Params GetFeedChannelsParams
 }
 
 type GetFeedChannelsResponseObject interface {
@@ -1981,7 +5211,8 @@ func (response GetPlaylists500JSONResponse) VisitGetPlaylistsResponse(w http.Res
 }
 
 type PostPlaylistsRequestObject struct {
-	Body *PostPlaylistsJSONRequestBody
+	Params PostPlaylistsParams
+	Body   *PostPlaylistsJSONRequestBody
 }
 
 type PostPlaylistsResponseObject interface {
@@ -2083,6 +5314,7 @@ func (response PostPlaylists500JSONResponse) VisitPostPlaylistsResponse(w http.R
 
 type DeletePlaylistsPlaylistIdRequestObject struct {
 	PlaylistId openapi_types.UUID `json:"playlist_id"`
+	Params     DeletePlaylistsPlaylistIdParams
 }
 
 type DeletePlaylistsPlaylistIdResponseObject interface {
@@ -2265,6 +5497,7 @@ func (response GetPlaylistsPlaylistId500JSONResponse) VisitGetPlaylistsPlaylistI
 
 type PatchPlaylistsPlaylistIdRequestObject struct {
 	PlaylistId openapi_types.UUID `json:"playlist_id"`
+	Params     PatchPlaylistsPlaylistIdParams
 	Body       *PatchPlaylistsPlaylistIdJSONRequestBody
 }
 
@@ -2435,6 +5668,7 @@ func (response DeletePlaylistsPlaylistIdVideos500JSONResponse) VisitDeletePlayli
 
 type PostPlaylistsPlaylistIdVideosRequestObject struct {
 	PlaylistId openapi_types.UUID `json:"playlist_id"`
+	Params     PostPlaylistsPlaylistIdVideosParams
 	Body       *PostPlaylistsPlaylistIdVideosJSONRequestBody
 }
 
@@ -2937,7 +6171,8 @@ func (response GetSubscriptions500JSONResponse) VisitGetSubscriptionsResponse(w 
 }
 
 type PostSubscriptionsRequestObject struct {
-	Body *PostSubscriptionsJSONRequestBody
+	Params PostSubscriptionsParams
+	Body   *PostSubscriptionsJSONRequestBody
 }
 
 type PostSubscriptionsResponseObject interface {
@@ -3055,6 +6290,7 @@ func (response PostSubscriptions500JSONResponse) VisitPostSubscriptionsResponse(
 
 type DeleteSubscriptionsChannelIdRequestObject struct {
 	ChannelId openapi_types.UUID `json:"channel_id"`
+	Params    DeleteSubscriptionsChannelIdParams
 }
 
 type DeleteSubscriptionsChannelIdResponseObject interface {
@@ -3135,7 +6371,8 @@ func (response DeleteSubscriptionsChannelId500JSONResponse) VisitDeleteSubscript
 }
 
 type PostUsersMeRequestObject struct {
-	Body *PostUsersMeJSONRequestBody
+	Params PostUsersMeParams
+	Body   *PostUsersMeJSONRequestBody
 }
 
 type PostUsersMeResponseObject interface {
@@ -3217,6 +6454,7 @@ func (response PostUsersMe500JSONResponse) VisitPostUsersMeResponse(w http.Respo
 }
 
 type DeleteUsersMeRequestObject struct {
+	Params DeleteUsersMeParams
 }
 
 type DeleteUsersMeResponseObject interface {
@@ -3297,6 +6535,7 @@ func (response DeleteUsersMe500JSONResponse) VisitDeleteUsersMeResponse(w http.R
 }
 
 type GetUsersMeStatusRequestObject struct {
+	Params GetUsersMeStatusParams
 }
 
 type GetUsersMeStatusResponseObject interface {
@@ -3378,7 +6617,8 @@ func (response GetUsersMeStatus500JSONResponse) VisitGetUsersMeStatusResponse(w 
 }
 
 type PatchUsersMeStatusRequestObject struct {
-	Body *PatchUsersMeStatusJSONRequestBody
+	Params PatchUsersMeStatusParams
+	Body   *PatchUsersMeStatusJSONRequestBody
 }
 
 type PatchUsersMeStatusResponseObject interface {
@@ -3460,6 +6700,7 @@ func (response PatchUsersMeStatus500JSONResponse) VisitPatchUsersMeStatusRespons
 }
 
 type GetUsersMeLimitsRequestObject struct {
+	Params GetUsersMeLimitsParams
 }
 
 type GetUsersMeLimitsResponseObject interface {
@@ -3548,6 +6789,7 @@ func (response GetUsersMeLimits500JSONResponse) VisitGetUsersMeLimitsResponse(w 
 }
 
 type GetUsersMeSessionsRequestObject struct {
+	Params GetUsersMeSessionsParams
 }
 
 type GetUsersMeSessionsResponseObject interface {
@@ -3652,6 +6894,7 @@ func (response GetUsersMeSessions500JSONResponse) VisitGetUsersMeSessionsRespons
 
 type DeleteUsersMeSessionsSessionIdRequestObject struct {
 	SessionId openapi_types.UUID `json:"session_id"`
+	Params    DeleteUsersMeSessionsSessionIdParams
 }
 
 type DeleteUsersMeSessionsSessionIdResponseObject interface {
@@ -3733,6 +6976,7 @@ func (response DeleteUsersMeSessionsSessionId500JSONResponse) VisitDeleteUsersMe
 
 type GetVideosVideoIdRequestObject struct {
 	ExternalVideoId string `json:"external_video_id"`
+	Params          GetVideosVideoIdParams
 }
 
 type GetVideosVideoIdResponseObject interface {
@@ -3833,6 +7077,7 @@ func (response GetVideosVideoId500JSONResponse) VisitGetVideosVideoIdResponse(w 
 
 type PostVideosVideoIdHeartbeatsRequestObject struct {
 	ExternalVideoId string `json:"external_video_id"`
+	Params          PostVideosVideoIdHeartbeatsParams
 }
 
 type PostVideosVideoIdHeartbeatsResponseObject interface {
@@ -3917,6 +7162,7 @@ func (response PostVideosVideoIdHeartbeats500JSONResponse) VisitPostVideosVideoI
 }
 
 type GetHealthRequestObject struct {
+	Params GetHealthParams
 }
 
 type GetHealthResponseObject interface {
@@ -4091,8 +7337,10 @@ type strictHandler struct {
 }
 
 // GetAuthGoogle operation middleware
-func (sh *strictHandler) GetAuthGoogle(ctx echo.Context) error {
+func (sh *strictHandler) GetAuthGoogle(ctx echo.Context, params GetAuthGoogleParams) error {
 	var request GetAuthGoogleRequestObject
+
+	request.Params = params
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.GetAuthGoogle(ctx.Request().Context(), request.(GetAuthGoogleRequestObject))
@@ -4139,8 +7387,10 @@ func (sh *strictHandler) GetAuthGoogleCallback(ctx echo.Context, params GetAuthG
 }
 
 // PostAuthLogout operation middleware
-func (sh *strictHandler) PostAuthLogout(ctx echo.Context) error {
+func (sh *strictHandler) PostAuthLogout(ctx echo.Context, params PostAuthLogoutParams) error {
 	var request PostAuthLogoutRequestObject
+
+	request.Params = params
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.PostAuthLogout(ctx.Request().Context(), request.(PostAuthLogoutRequestObject))
@@ -4238,8 +7488,10 @@ func (sh *strictHandler) GetFeed(ctx echo.Context, params GetFeedParams) error {
 }
 
 // GetFeedChannels operation middleware
-func (sh *strictHandler) GetFeedChannels(ctx echo.Context) error {
+func (sh *strictHandler) GetFeedChannels(ctx echo.Context, params GetFeedChannelsParams) error {
 	var request GetFeedChannelsRequestObject
+
+	request.Params = params
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.GetFeedChannels(ctx.Request().Context(), request.(GetFeedChannelsRequestObject))
@@ -4311,8 +7563,10 @@ func (sh *strictHandler) GetPlaylists(ctx echo.Context, params GetPlaylistsParam
 }
 
 // PostPlaylists operation middleware
-func (sh *strictHandler) PostPlaylists(ctx echo.Context) error {
+func (sh *strictHandler) PostPlaylists(ctx echo.Context, params PostPlaylistsParams) error {
 	var request PostPlaylistsRequestObject
+
+	request.Params = params
 
 	var body PostPlaylistsJSONRequestBody
 	if err := ctx.Bind(&body); err != nil {
@@ -4340,10 +7594,11 @@ func (sh *strictHandler) PostPlaylists(ctx echo.Context) error {
 }
 
 // DeletePlaylistsPlaylistId operation middleware
-func (sh *strictHandler) DeletePlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID) error {
+func (sh *strictHandler) DeletePlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdParams) error {
 	var request DeletePlaylistsPlaylistIdRequestObject
 
 	request.PlaylistId = playlistId
+	request.Params = params
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.DeletePlaylistsPlaylistId(ctx.Request().Context(), request.(DeletePlaylistsPlaylistIdRequestObject))
@@ -4391,10 +7646,11 @@ func (sh *strictHandler) GetPlaylistsPlaylistId(ctx echo.Context, playlistId ope
 }
 
 // PatchPlaylistsPlaylistId operation middleware
-func (sh *strictHandler) PatchPlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID) error {
+func (sh *strictHandler) PatchPlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID, params PatchPlaylistsPlaylistIdParams) error {
 	var request PatchPlaylistsPlaylistIdRequestObject
 
 	request.PlaylistId = playlistId
+	request.Params = params
 
 	var body PatchPlaylistsPlaylistIdJSONRequestBody
 	if err := ctx.Bind(&body); err != nil {
@@ -4448,10 +7704,11 @@ func (sh *strictHandler) DeletePlaylistsPlaylistIdVideos(ctx echo.Context, playl
 }
 
 // PostPlaylistsPlaylistIdVideos operation middleware
-func (sh *strictHandler) PostPlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapi_types.UUID) error {
+func (sh *strictHandler) PostPlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapi_types.UUID, params PostPlaylistsPlaylistIdVideosParams) error {
 	var request PostPlaylistsPlaylistIdVideosRequestObject
 
 	request.PlaylistId = playlistId
+	request.Params = params
 
 	var body PostPlaylistsPlaylistIdVideosJSONRequestBody
 	if err := ctx.Bind(&body); err != nil {
@@ -4579,8 +7836,10 @@ func (sh *strictHandler) GetSubscriptions(ctx echo.Context, params GetSubscripti
 }
 
 // PostSubscriptions operation middleware
-func (sh *strictHandler) PostSubscriptions(ctx echo.Context) error {
+func (sh *strictHandler) PostSubscriptions(ctx echo.Context, params PostSubscriptionsParams) error {
 	var request PostSubscriptionsRequestObject
+
+	request.Params = params
 
 	var body PostSubscriptionsJSONRequestBody
 	if err := ctx.Bind(&body); err != nil {
@@ -4608,10 +7867,11 @@ func (sh *strictHandler) PostSubscriptions(ctx echo.Context) error {
 }
 
 // DeleteSubscriptionsChannelId operation middleware
-func (sh *strictHandler) DeleteSubscriptionsChannelId(ctx echo.Context, channelId openapi_types.UUID) error {
+func (sh *strictHandler) DeleteSubscriptionsChannelId(ctx echo.Context, channelId openapi_types.UUID, params DeleteSubscriptionsChannelIdParams) error {
 	var request DeleteSubscriptionsChannelIdRequestObject
 
 	request.ChannelId = channelId
+	request.Params = params
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.DeleteSubscriptionsChannelId(ctx.Request().Context(), request.(DeleteSubscriptionsChannelIdRequestObject))
@@ -4633,8 +7893,10 @@ func (sh *strictHandler) DeleteSubscriptionsChannelId(ctx echo.Context, channelI
 }
 
 // PostUsersMe operation middleware
-func (sh *strictHandler) PostUsersMe(ctx echo.Context) error {
+func (sh *strictHandler) PostUsersMe(ctx echo.Context, params PostUsersMeParams) error {
 	var request PostUsersMeRequestObject
+
+	request.Params = params
 
 	var body PostUsersMeJSONRequestBody
 	if err := ctx.Bind(&body); err != nil {
@@ -4662,8 +7924,10 @@ func (sh *strictHandler) PostUsersMe(ctx echo.Context) error {
 }
 
 // DeleteUsersMe operation middleware
-func (sh *strictHandler) DeleteUsersMe(ctx echo.Context) error {
+func (sh *strictHandler) DeleteUsersMe(ctx echo.Context, params DeleteUsersMeParams) error {
 	var request DeleteUsersMeRequestObject
+
+	request.Params = params
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.DeleteUsersMe(ctx.Request().Context(), request.(DeleteUsersMeRequestObject))
@@ -4685,8 +7949,10 @@ func (sh *strictHandler) DeleteUsersMe(ctx echo.Context) error {
 }
 
 // GetUsersMeStatus operation middleware
-func (sh *strictHandler) GetUsersMeStatus(ctx echo.Context) error {
+func (sh *strictHandler) GetUsersMeStatus(ctx echo.Context, params GetUsersMeStatusParams) error {
 	var request GetUsersMeStatusRequestObject
+
+	request.Params = params
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.GetUsersMeStatus(ctx.Request().Context(), request.(GetUsersMeStatusRequestObject))
@@ -4708,8 +7974,10 @@ func (sh *strictHandler) GetUsersMeStatus(ctx echo.Context) error {
 }
 
 // PatchUsersMeStatus operation middleware
-func (sh *strictHandler) PatchUsersMeStatus(ctx echo.Context) error {
+func (sh *strictHandler) PatchUsersMeStatus(ctx echo.Context, params PatchUsersMeStatusParams) error {
 	var request PatchUsersMeStatusRequestObject
+
+	request.Params = params
 
 	var body PatchUsersMeStatusJSONRequestBody
 	if err := ctx.Bind(&body); err != nil {
@@ -4737,8 +8005,10 @@ func (sh *strictHandler) PatchUsersMeStatus(ctx echo.Context) error {
 }
 
 // GetUsersMeLimits operation middleware
-func (sh *strictHandler) GetUsersMeLimits(ctx echo.Context) error {
+func (sh *strictHandler) GetUsersMeLimits(ctx echo.Context, params GetUsersMeLimitsParams) error {
 	var request GetUsersMeLimitsRequestObject
+
+	request.Params = params
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.GetUsersMeLimits(ctx.Request().Context(), request.(GetUsersMeLimitsRequestObject))
@@ -4760,8 +8030,10 @@ func (sh *strictHandler) GetUsersMeLimits(ctx echo.Context) error {
 }
 
 // GetUsersMeSessions operation middleware
-func (sh *strictHandler) GetUsersMeSessions(ctx echo.Context) error {
+func (sh *strictHandler) GetUsersMeSessions(ctx echo.Context, params GetUsersMeSessionsParams) error {
 	var request GetUsersMeSessionsRequestObject
+
+	request.Params = params
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.GetUsersMeSessions(ctx.Request().Context(), request.(GetUsersMeSessionsRequestObject))
@@ -4783,10 +8055,11 @@ func (sh *strictHandler) GetUsersMeSessions(ctx echo.Context) error {
 }
 
 // DeleteUsersMeSessionsSessionId operation middleware
-func (sh *strictHandler) DeleteUsersMeSessionsSessionId(ctx echo.Context, sessionId openapi_types.UUID) error {
+func (sh *strictHandler) DeleteUsersMeSessionsSessionId(ctx echo.Context, sessionId openapi_types.UUID, params DeleteUsersMeSessionsSessionIdParams) error {
 	var request DeleteUsersMeSessionsSessionIdRequestObject
 
 	request.SessionId = sessionId
+	request.Params = params
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.DeleteUsersMeSessionsSessionId(ctx.Request().Context(), request.(DeleteUsersMeSessionsSessionIdRequestObject))
@@ -4808,10 +8081,11 @@ func (sh *strictHandler) DeleteUsersMeSessionsSessionId(ctx echo.Context, sessio
 }
 
 // GetVideosVideoId operation middleware
-func (sh *strictHandler) GetVideosVideoId(ctx echo.Context, externalVideoId string) error {
+func (sh *strictHandler) GetVideosVideoId(ctx echo.Context, externalVideoId string, params GetVideosVideoIdParams) error {
 	var request GetVideosVideoIdRequestObject
 
 	request.ExternalVideoId = externalVideoId
+	request.Params = params
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.GetVideosVideoId(ctx.Request().Context(), request.(GetVideosVideoIdRequestObject))
@@ -4833,10 +8107,11 @@ func (sh *strictHandler) GetVideosVideoId(ctx echo.Context, externalVideoId stri
 }
 
 // PostVideosVideoIdHeartbeats operation middleware
-func (sh *strictHandler) PostVideosVideoIdHeartbeats(ctx echo.Context, externalVideoId string) error {
+func (sh *strictHandler) PostVideosVideoIdHeartbeats(ctx echo.Context, externalVideoId string, params PostVideosVideoIdHeartbeatsParams) error {
 	var request PostVideosVideoIdHeartbeatsRequestObject
 
 	request.ExternalVideoId = externalVideoId
+	request.Params = params
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.PostVideosVideoIdHeartbeats(ctx.Request().Context(), request.(PostVideosVideoIdHeartbeatsRequestObject))
@@ -4858,8 +8133,10 @@ func (sh *strictHandler) PostVideosVideoIdHeartbeats(ctx echo.Context, externalV
 }
 
 // GetHealth operation middleware
-func (sh *strictHandler) GetHealth(ctx echo.Context) error {
+func (sh *strictHandler) GetHealth(ctx echo.Context, params GetHealthParams) error {
 	var request GetHealthRequestObject
+
+	request.Params = params
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.GetHealth(ctx.Request().Context(), request.(GetHealthRequestObject))
@@ -4883,95 +8160,102 @@ func (sh *strictHandler) GetHealth(ctx echo.Context) error {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"RPtrVrPVkeq/AgAA//+x2P8ZA7oAAA==",
+	"H4sIAAAAAAAC/+xdbXMTx5b+K1Ozt2qhSopkm9y68Tdib4JzSaAwuZu7lFc1ltrWBGlGmRmR+LKu8swQ",
+	"ImMTs75gh+CEhAvY2FiGBRKIneTHtEeyP+UvbHX3zGheel4ky45N5gtYUr+c7j59ztPnnD59mc2L5Yoo",
+	"AEGR2f7LbIWTuDJQgIQ/DYjiRR4MDJ9757x4EQjoqwKQ8xJfUXhRYPtZ9BNDfkuxPPomj6uwKVbgygB9",
+	"lqWxnGKWkMAnVV4CBbZfkaogxcr5IihzqFllooJKy4rEC+Ps5GSKPQW4ApBcfeMOivj7VgefpVEX6egu",
+	"QigP7H1sqDIgVgVFmqC0UBKrhbESJwGozjbuLxlf/ATVRajehdoG1B9B7T7U7kH9GdRrUK0bd36G2jOo",
+	"b0F9+ret2tDwGaav589/TvcwXKlS5NK9v21NW3PoHeLAWHqokjfpCBvimCiVOYXtZ3lZTJPm02bzbIot",
+	"c5+dBsK4UmT7e1NsmRccn4Jn4BwXPnZ9FY1XW4HaKzLS7ZdTjStzO+tfGbUHxvqN37Zq6Hv9MRq79iOa",
+	"EO1J8+ZK+HhRr53wyyC4xOfBO7wwDqSKxAtKIN98lCZl087CnXT5oQykk+OAdOWeJionQH0Bf/kQaj9A",
+	"fRP/tIin8ak1RctQf9bQPze+exo0RajTNOm1E5o/Oge40tDZmBQb9bu7X9+Ban3oLP56Gq2m9gqv7CLU",
+	"16G2DrUfmy9mmzefouLfPTdu1ELW96M06j49dDaUdvAZV66UUPnebN8b2Td6evre6HnrTTblYPPKpROU",
+	"7TuJmpUroiADLMbe5grnwCdVIOMlyouCYq4WV6mU+DyHxp75WBaxkGkR8CcJjLH97L9lWiIyQ36VM2cl",
+	"cbQEyoNA4fjSf0iSKJF+3bN5Iptl3uYKjNX7ZIp9R5RG+UKBCLQDJaWPafU9mWKHBAVIAlcaBtIlIJF6",
+	"B0vSm9ksY1HBEDIYs3CK/UBU3hGrQuHAp+kE84GoMKTvyRR7lpsoiVzhvCie5qRxcNDk9PQxJgXMeVFk",
+	"CA2TKfa8KL7PCRMmY8kHTVbvW5gcRAJj0zCZYj8UuKpSFCX+H+DgV66HcXWPiphNoB7OlriJEi8r57Gw",
+	"8Mk9JMgeI7mHBLGpyaD2K/5mkU2xQKiW2f4LrIBkT4kd8UmdlN3D33iZH+VLvDIRsx/j88e7CzPNjSvG",
+	"nf9zdFWR+EucAuh9+ecEoTdJrABJ4YnYK+AfKWogxSq8UgJ0BdESyBfMYimrpRYh4ujHII/l2Tkgi1Up",
+	"D4KmdRVqP2O19ipgQi/xBSCyKTZf5AQB0Gd2OC8BIJzny2C4JFL17CusuFYxvnrWuK3tLvwTqvWdlafG",
+	"3Ab5aLzcYFOeGQJCIafwZQrhzRfa9k9XG7c1o7bJHDt1qr9cNn6+Z2zNHUeNcAqSWmw/+9/HLmTTPSMX",
+	"sum3Rv6n90I23TdyvP9CNv0m+epPLGUwfIE+AH0d6jrUa0ODThVXrfIFWiuywklKAPG7CzPG8sw+EO9h",
+	"D0yZg5BUa0JprDIMOClfpDNK4/5S8/m9PbAIAkSULcDxpYmcBMocL/DCeE4GeVEoyP7+tzevNRYfQLXe",
+	"qM9A7Rr6A3PNb1u1nZV1o/41hvYPoXoFqqtQvUIwDlQ38MdFAnbKvMCXEclZm0BeUMA4wBqN0CJjVg4m",
+	"pLHxJSGEytNG7Yfd2zeiu+LlSombyBG85d+UD/GO/AH9q9Z3vl9p3v/JuHGddR0K+uKyrqO1eKz7scgL",
+	"oJDjqBv5HtTWEDbG2HP756VG7UZj8YGz2QKngLTJb762S5wwXuXGQS4vFkBk+1hETO2sfmsfzdo7JiEF",
+	"g5fT2oe8AspylD7zSLNJu1lOkvCxpyrwn1TBEGkLwWLqxnMtsnNW3VT5dyIiG+SrEq9MDCOSgOOs/96n",
+	"yskqGqx35t77z/PMyXweyDI5NTO8wAxYZ33qyZ/Dpe2zvzXGCv9XMEEUOC+Mif6eOEHh0xMKw1V41tZU",
+	"nm8vAUkmpXveyL6RRXMoVoCAfuxn0WGhj0i6Ih5ahqvwmUs9GQQOMuOiOE503zigcOC7+GfmzNDgAFSX",
+	"8eHmCRZIz0SpeXtzdxZpaCRiMJIZKqAqAM8Zqcl6zh592V5/J33ZXkYCBV5C65Eyz0e4+GmRQCQ3OqKR",
+	"iHh39frOylbz5ubuN/eg+hLLiilM7GMsOmpUCT4MlLS5ciGdyAqnAKiuoH2UuwQkfowHEtTmG7NfGPWv",
+	"0ZpbrO4HF05unsQrfSKbDdoV9mxlHMc0XKUnuoob8KFKfdGVXMegE9kT0TXswwiq0BOjC++pAdXrfSu6",
+	"nhfWT6bQKSm6Hu0w59znbP+FkRQrV8tlTppocTmaPCAoJixH3MKNy0jAoB/YkcmUyx54gU5Fq0jGbVyY",
+	"TMWs4DSztVHpHNdG8ZaVJnYVvy1pEk0JRZpk8lypNMrlL0aIFbJnjbkNW99Abd6YW4Tq/xpzC1CbwdZD",
+	"NVzCDFh9+VaH3uUM1Kabt3/a+X4WqregNgvVux4iLAn+SRVgA6NlukUqtC3rEs3Iamz80lxfaN5cCegF",
+	"C5pudRNmhd5bH1BbgfojqG8FDAPgPRfW5Mj+awaioCyFMIO0ga5ji+IDqC/Zi92pTsDoaQNqm+bJFcG+",
+	"DYSk1BWse25hK6/doatAy94OtXkTUk9piR55LfTISXPyMIMyA2IBMA4plSiVNpVKSRwXq4rXHZfMFBKh",
+	"FVGmnRtNnH4PH+1qUL0NtRmfGj0ryliPnibz65HHvWSDuBvuzWaZM391S+I9CsspNUJYTqlIWDq/Mqav",
+	"7d6+n8jLoyMvbQlp85pHCnr3vATGJCAXk03fzqYP3UbafPPmCjbYPWwsPMH2uyuBm1KbtyAykhxkp9GF",
+	"xzlzoTpTY614hhhT4g2/8EHILossp8UGqismS5qfk6P/6wHZTP5lyGIztnkuUDyZVnc5c9n8K8cXJjPY",
+	"Ji8HnnehrkL9X9jKeh3qa1CdbVy71Vz5tWVG12aMmVvNm5tQm99+ObXzcBmqy8QUHaC93wXKgEmK+f9Q",
+	"4W+ECt9exCe0CqcUHUdAm/h4ITR06zXatdSzclWSPee/qJYCNnNsl6nb01Hk5JwAPlMc23JUFEuAw6yO",
+	"dmwORxCh38OdB/butv/wOM0+IwyXwyyQy0uAU2xzfjwrvacJF+tcjixOvBBRpUrYau90tIQP21NdKVbL",
+	"owLHl3JVqeReTomPMaYgD6uv4Kecki/GXZsSJytmjdgDc05aJHe73Ax2TdoSRMxY6DgDZiuUMVIhjBe1",
+	"+DRvZNs+l9YWSrV2m7VdKF4WX4SCqZgTnXgIYPm7QGFKnAJkhTEVA1OtIBplhy60/c2JzSLMZjEGSLBP",
+	"HCBALJROFOBDCvXG0hQG7HUTF2jzxtyC8csiDRG8g/qOMIST2gRVNJamjPvLqJNbTwIsuSW+zCusO3J4",
+	"jKuWFLa/N4vdw0TYvpl1uOF7/JLXb0NGnf8yC9U1i6JFqN4lKGho8BjUv8bnkZd4IlqBoMeDzPN+yPG6",
+	"QAwHVotWWg7hb9Xzxj9E1+DzotC2pneTGaXoE6B0yIGSZIay5RQzRCksiMMV99YtlOU6o4RCrrCSgUDM",
+	"x+z7CdKoe3EvIM67QB2BOnQu5qR8MXcRTETHP4ZjPldbCQA8sgDwkmVEsHAfiTdMUF8k6rNtQ4Hwr7E0",
+	"3bxzDaqrHpgXE9pZBh+2q0DmMEGV/QAeLdvc/o17D5jrj4hlDokRJoYK77qtJNBA4q5DRzRhkIXKeQdH",
+	"fqLeD7l6z7eUR2LRaUu3F3lZEcmdZ6pW33m4sKM+N54+aKw/D9Xhp8yGXgMLjXH18119pTt2mt/PNeQ1",
+	"ztGHAtXlxuPv8V1lq4A6C1UNR6jOQPURVK9CdaZFeaAdyNvfY+x4/wa73F9Btd78cW578wey1N0EYhHe",
+	"yLq1mnHuq0RCnajOnDds2kOEUS3jeIb7OJD32YfnTrtG0xaGjOro72L1fHUUMHjGHFfIPhy4wKX/cTL9",
+	"X9n0W7n0yOXe3sk/xQBKpFNHO+5WenpiteJHex6xQhzMan331o9QvXWsuTzfuPXkeCSrebvhL4Igjt5d",
+	"+2rn0a3tX763BdbeAKc3huwF1L9Di6Ddh/pamyvswaQBc2NduKtBfS1Gcx4rnKfRq9ebN+/GmQcnG3jb",
+	"iL8zCTEVUeZR5WBGIPpqd+rm9st1+2pfJI249YCLaqbuw20Ztc2Y99Pag/YBo3MR1qUDQKjdz8H/0Ta6",
+	"CBhfaMdE6JOIiR83wfl+nI85kSnaUNMC+9Y3CdgPBfsVM21BWDCX68KwP4eBx5oXHMB11u7rqJwIgiDy",
+	"H88pa/FJR45Mu3KU2c8uGNOgapcPtr21isTw67nShDgrVyuFzkdtOrviLYSnVmsN49s1HU04c5HEGbgj",
+	"ewnSrmKlM9uoR+s6l9W7InRyfUsbwEQBsxxnGlNUnqaveQI9Eujhhx4Vhz6zYIf1XYI72rjL0bqh4U+Q",
+	"pM2TPCAht7qcuEIiS/22WJjYg15tX2HttwLamygPkschEpgmkCZ94KUnAS8JeEnAy2sJXmLgkR5mgPSe",
+	"gJLDAErIYjAC+NTGJnRoQjMAZC47OH2SKOkSUGjp8aZf4Zxodaq6Nq8r09X1IG7SVtjWH0MFf4zPCdrl",
+	"xhPMByIzYOqbhOcOAc+RFY3gtxTdtBTGSOoacTkSV0X7NiYXayU3BJIbAskNgeSGwO9/lTIJ8k9uaibo",
+	"oiMzW0wrG+X2v/sIt6fr/4kND81tvtgmmKuTBy2gNt/8cWX3ztUgax5qOuh0cLgMe5Ox7GPZA6V1HwxP",
+	"7duOYppPYhpGQu0Yiew+zLIbb+Y9GyIcuWaC7BE0gTMDtWk7xQxOr0qsEnPxTRKh6WU8hy0HgOtcvYwk",
+	"NpCjyennQFm8BBjODEYak8RyglqOlufRlhVUU1Rj9lfj8wdxXJAU8dEd5NKF0+f+u/R4QQZSx66mmPCl",
+	"85lw7yiHzHbSPZJ4Po6eBB7CC8hw2PdBpDAvKGJ89EEu8wffZCYv1GjzOEvkVZrlmTxwE2Vstp+6ab64",
+	"0fh2Cap18qrL6xHdmAp52Qc/E6mvNha+MNYXjdpiQC/Wx2B953iUpSfVFgmtx4WouehJPgfTsRvcP1cq",
+	"nRkLDOix33lpvXeE1I+9ZmZ+gcT4nhjfE+N7kp7nj2y5T9LxJOjNtvKT5WMkICM1maTjaesWj6xwCi8r",
+	"fF7O4IcGg3Hs4oPtza+gehOqK9hU77rb03zxdGelZpvqo2Ithu1eB3GnsSxlCuI5JVfgYj5mXiAPBO1v",
+	"6ALH50xuzJVEYdw/byeHoFrfeag2n18xalePoULHafrT0ZBcFCUlsiVcitpU2FX67l2cP6Cr2fuLWtrQ",
+	"79bFWiC0B/bahCtmcfw6aseuk64m//Hd1XXNg49i74g7VPCO3R69qVOsIipcqT0w6awSc3miE/6k3GKK",
+	"1geN2JRPkFAkQgJOjh44QRqbweouLzOjE4zJFslV4w5BSlkUlGIYTFmqdR2jvG/22Q5KwXQeIpxyMJig",
+	"TaEdIzUIVL+Bah0/bb1me1pIXg4zyvXOt/ETh+xF2LvkOu1cTetib8qPMFEMXqFSarFgkpbuNdMksqVM",
+	"rBVO1El76qQ6ajN6cPaK5twvxhJSI+bbA20noh12dXOkrxJ4Bp9kszvs2ezcXomoLG3knnRj8UHMfFQt",
+	"k3a+KitiOWYyOKitofFqv0L9O8xCc/jXaaivGTeum/nVLAddX0ivHocJ7TFjKt/id7QfN776srHwRdio",
+	"aMMJaXZo8BjJPnY8TvIxqxNTCo0CSQ7mFC/5hIqdqc/jMEsYE5CGGosPGre12KveZkbDiJU4atkNwznA",
+	"w81QXYbqBlRXoXrleCe5D9tLc4zdTFSnS4DDxr+B6dsr3M8UzMspmijq1i0N2YtqbeGeANsj6L/x4KQk",
+	"6XJX8qG4paI2b4mvwEhEL17tTvRhHIl62/+e19AgI0qMR6i2IyXpksBtjuluCGOCvRLslWCvBHsdFewV",
+	"Hpzsegf8tEhkoFv8RSTDSV7xPgwIa9hiDxzgbGEqGsoKspC5HvAOze5CNqk2v7P8r6hELi6wYb/LHWUl",
+	"CxL+Q4O23WlfXu9O7lcd7RwzTn5OThjt2sursqkGkjlq9xSG0NAa1B5ikdVKSUk9fyGi5PdB105eOJ4v",
+	"J+clAELeOGhsfIm9q3V8PNiA+irUt6D+jDx2QK6YRKLdqJdNXH54J/iMOHSUOGG8yo2DXF4s0Br2TK9a",
+	"31mZ2ln9FsPPLahPs9gVYvXQ6+qvl9KfOVkYgzuN7KHXNXCd83wZDJfEjkxazl49c+mdgv24iBc2OMST",
+	"yTW2o5PAj1xj4/LWQcDSdEiEuyEeFuoZa7sGXI937y8zP9+Udv7M4BnmzNDgAM61FoLynCItgU9HFj6h",
+	"Zfx3mTkZxFapCA+6VwGsrBv1r/GVSKQJgkOwTPYZVjiluue3XDsTc4mr4DC5CgaqkgQExWJImzF8/Jgg",
+	"1Zi5l4K2ZuPOc4xig5Mt+TdnAlpfc9DagUMlkdF/JBn9Ic651QpVpAlnCgbN4HC24FA8M9FB3MhtUzKd",
+	"Jo12NYqMiCcJlDle4IXxYAm1vXmNSKhGfQZq1+zXA+GURr4xP2rzpshVF6H6EKpXiNvC+O65caNmeTEW",
+	"4ZQWLc4OTnL+/sfkJM7jiAYwDwKF40sJZGvfAIvkpAxkOTRo2fvknrYJdd2OaCVBy2EnLav9I3j3ZFQS",
+	"P5WBFAjnFqD+CKEu7Qeo1o0b141pqvc7zyuBkNA9mzh4Y64xPUVthjBZAAY07vzcMdwLDy9Zh9oTnKvm",
+	"WVsvzKZYmtc93mu6OClHSRwfB4UcL1DpaixNNV9oHVPnDQH0edz9JDgXMuXmDc/idD11dHLF5khCV6Sd",
+	"TPnKeBJ/oTlMdFSbOipz2fwrKmzAK1ath2DCbcqWqjL/p8UOUOIBWiQl8QB/5HgAwgbJFm9ri5N8ypnL",
+	"vpQSk8GX6KzU7ubdXbW+8+hZ8/mTGKd4kgUV/0t75CnbtZjk6KhRsVxGExaFbLuUT8XsLucYXDgeCqx5",
+	"YNDm8CfrC438bSvHzP5k6+Mvgg7p2b9MfV1Jfhcn/0xbGejoOWtixOjGzmEXFlnbRtY9x5o6ZEhyLjh6",
+	"liuSFrjgNV0FJphzr+bfxer56igw1OdQreMjNQWY0rZJMD5tM81Wksg9LpDJFAEnKaOAU2gBj8m6HqEg",
+	"TJIkxnazQL0G9Uf4oLlh3jhT70JNxeEpc9gUV4P6P8kfzZsrOOc0uVPyDTFZoQJT2vbLKaN21coxtLY7",
+	"pUJtGmqzqEHspfEHdrqQ7KkWgx0Kz5Ttlmpe+d7peDqRzUJ1dufXm/bA2siVE0RMovyOlvJzMatX7SGB",
+	"WgRcSQlOfn/y7BDUXuA9dcP0SOhf4euor6CuQm3Z3I9WdnzaDnoXKKdIL13dLzJxT0cersxyB8C5rzVL",
+	"gXxVwg+yXxjxMFhJKTL5IshfdLBYmZfziTWGBmLcc3mZHRDFizx471PlZBXtwwsjSCHKePZpmOW0mOdK",
+	"RVFWGFKGTbH41MgWFaXSn8mUrN/7/5L9SxZrV3NNfOp19frOylYL6GADGuWlCJy/bXtzoVUSLy7tTQnX",
+	"3S7fHS5KFWJU8rylRW265RVtlcaeZ0qjTx801p+3illJtWjNeh/88T/BhNbs/wMAAP//zoWCfS3XAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -10,6 +10,8 @@ services:
     secrets:
       - db-password
       - oidc-google-client-secret
+      - jwt-private
+      - jwt-public
     env_file:
       - backend/.env
   frontend:
@@ -43,3 +45,7 @@ secrets:
    file: backend/password.txt
  oidc-google-client-secret:
    file: backend/oidc_secret.txt
+ jwt-private:
+   file: backend/jwt_private.pem
+ jwt-public:
+   file: backend/jwt_public.pem

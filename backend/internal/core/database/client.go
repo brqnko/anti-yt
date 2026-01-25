@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -8,12 +9,23 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/migrations"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pressly/goose/v3"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-func RunMigration(db *sql.DB) error {
+func InitDB(ctx context.Context, dbPassword, dbName string) error {
+	db, err := sql.Open("pgx", fmt.Sprintf("postgres://postgres:%s@db:5432/%s?sslmode=disable", dbPassword, dbName))
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := db.Close(); err != nil {
+			slog.Error("failed to close db in migration", "error", err)
+		}
+	}()
+
 	slog.Info("running migration")
 	goose.SetBaseFS(migrations.EmbedMigrations)
 
@@ -33,9 +45,14 @@ func RunMigration(db *sql.DB) error {
 	return nil
 }
 
-func ConnectDB(dbPassword string, dbName string) (*sql.DB, error) {
-	db, err := sql.Open("pgx", fmt.Sprintf("postgres://postgres:%s@db:5432/%s?sslmode=disable", dbPassword, dbName))
+func ConnectDB(ctx context.Context, dbPassword string, dbName string) (*pgxpool.Pool, error) {
+	db, err := pgxpool.New(ctx, fmt.Sprintf("postgres://postgres:%s@db:5432/%s?sslmode=disable", dbPassword, dbName))
 	if err != nil {
+		return nil, err
+	}
+
+	if err := db.Ping(ctx); err != nil {
+		db.Close()
 		return nil, err
 	}
 

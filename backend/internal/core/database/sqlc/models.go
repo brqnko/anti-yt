@@ -5,6 +5,9 @@
 package sqlc
 
 import (
+	"time"
+
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -12,9 +15,9 @@ type HSearch struct {
 	HSearchID     int64
 	MUserID       int64
 	SearchKeyword string
-	SearchedAt    pgtype.Timestamptz
-	CreatedAt     pgtype.Timestamptz
-	UpdatedAt     pgtype.Timestamptz
+	SearchedAt    time.Time
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 type HUser struct {
@@ -23,12 +26,12 @@ type HUser struct {
 	DisplayName            string
 	LanguageCode           string
 	DailyScreenTimeSeconds int32
-	JoinedAt               pgtype.Timestamptz
-	LeftAt                 pgtype.Timestamptz
+	JoinedAt               time.Time
+	LeftAt                 time.Time
 	LeaveReasonCode        int32
-	CreatedAt              pgtype.Timestamptz
-	UpdatedAt              pgtype.Timestamptz
-	PublicID               pgtype.UUID
+	CreatedAt              time.Time
+	UpdatedAt              time.Time
+	PublicID               uuid.UUID
 }
 
 type MChannel struct {
@@ -39,11 +42,11 @@ type MChannel struct {
 	ExternalIconUrl          string
 	ExternalDescription      string
 	ExternalSubscribersCount int64
-	ExternalCreatedAt        pgtype.Timestamptz
-	FetchedAt                pgtype.Timestamptz
-	CreatedAt                pgtype.Timestamptz
-	UpdatedAt                pgtype.Timestamptz
-	PublicID                 pgtype.UUID
+	ExternalCreatedAt        time.Time
+	FetchedAt                time.Time
+	CreatedAt                time.Time
+	UpdatedAt                time.Time
+	PublicID                 uuid.UUID
 }
 
 type MComment struct {
@@ -56,11 +59,11 @@ type MComment struct {
 	ExternalUserDisplayName string
 	ExternalUserCustomID    string
 	ExternalEditedFlg       bool
-	ExternalCreatedAt       pgtype.Timestamptz
-	FetchedAt               pgtype.Timestamptz
-	CreatedAt               pgtype.Timestamptz
-	UpdatedAt               pgtype.Timestamptz
-	PublicID                pgtype.UUID
+	ExternalCreatedAt       time.Time
+	FetchedAt               time.Time
+	CreatedAt               time.Time
+	UpdatedAt               time.Time
+	PublicID                uuid.UUID
 }
 
 type MPlaylist struct {
@@ -71,9 +74,9 @@ type MPlaylist struct {
 	PlaylistCode                    int32
 	VideoCount                      int32
 	PlaylistTotalVideoLengthSeconds int32
-	CreatedAt                       pgtype.Timestamptz
-	UpdatedAt                       pgtype.Timestamptz
-	PublicID                        pgtype.UUID
+	CreatedAt                       time.Time
+	UpdatedAt                       time.Time
+	PublicID                        uuid.UUID
 }
 
 type MPlaylistVideo struct {
@@ -81,8 +84,8 @@ type MPlaylistVideo struct {
 	MPlaylistID      int64
 	MVideoID         int64
 	PlaylistPosition int64
-	CreatedAt        pgtype.Timestamptz
-	UpdatedAt        pgtype.Timestamptz
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 type MRefreshToken struct {
@@ -97,9 +100,10 @@ type MRefreshToken struct {
 	CityName             string
 	BrowserName          string
 	DeviceType           string
-	ExpiresAt            pgtype.Timestamptz
-	CreatedAt            pgtype.Timestamptz
-	UpdatedAt            pgtype.Timestamptz
+	ExpiresAt            time.Time
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+	PublicID             uuid.UUID
 }
 
 type MUser struct {
@@ -108,19 +112,20 @@ type MUser struct {
 	DisplayName            string
 	LanguageCode           string
 	DailyScreenTimeSeconds int32
-	JoinedAt               pgtype.Timestamptz
-	CreatedAt              pgtype.Timestamptz
-	UpdatedAt              pgtype.Timestamptz
-	PublicID               pgtype.UUID
+	JoinedAt               time.Time
+	CreatedAt              time.Time
+	UpdatedAt              time.Time
+	PublicID               uuid.UUID
 }
 
 type MUserAuthorization struct {
 	MUserAuthorizationID int64
 	Issuer               string
 	Sub                  string
-	LastLoggedInAt       pgtype.Timestamptz
-	CreatedAt            pgtype.Timestamptz
-	UpdatedAt            pgtype.Timestamptz
+	LastLoggedInAt       time.Time
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+	PublicID             uuid.UUID
 }
 
 type MUserScreenTimeRange struct {
@@ -128,19 +133,19 @@ type MUserScreenTimeRange struct {
 	MUserID                int64
 	ScreenTimeRangeStart   pgtype.Time
 	ScreenTimeRangeEnd     pgtype.Time
-	CreatedAt              pgtype.Timestamptz
-	UpdatedAt              pgtype.Timestamptz
-	PublicID               pgtype.UUID
+	CreatedAt              time.Time
+	UpdatedAt              time.Time
+	PublicID               uuid.UUID
 }
 
 type MUserSubscribingChannel struct {
 	MUserSubscribingChannelID int64
 	MUserID                   int64
 	MChannelID                int64
-	SubscribedAt              pgtype.Timestamptz
-	CreatedAt                 pgtype.Timestamptz
-	UpdatedAt                 pgtype.Timestamptz
-	PublicID                  pgtype.UUID
+	SubscribedAt              time.Time
+	CreatedAt                 time.Time
+	UpdatedAt                 time.Time
+	PublicID                  uuid.UUID
 }
 
 type MVideo struct {
@@ -152,10 +157,10 @@ type MVideo struct {
 	ExternalLikeCount   int64
 	ExternalWatchCount  int64
 	LengthSeconds       int64
-	FetchedAt           pgtype.Timestamptz
-	CreatedAt           pgtype.Timestamptz
-	UpdatedAt           pgtype.Timestamptz
-	PublicID            pgtype.UUID
+	FetchedAt           time.Time
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	PublicID            uuid.UUID
 }
 
 type SMonthlyVideoWatch struct {
@@ -164,29 +169,29 @@ type SMonthlyVideoWatch struct {
 	AiSummaryTitle       string
 	AiSummaryDescription string
 	AiModel              string
-	GeneratedAt          pgtype.Timestamptz
+	GeneratedAt          time.Time
 	TargetMonth          pgtype.Date
 	WMonthlyVideoWatchID int64
-	CreatedAt            pgtype.Timestamptz
-	UpdatedAt            pgtype.Timestamptz
-	PublicID             pgtype.UUID
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+	PublicID             uuid.UUID
 }
 
 type TJtiBlacklist struct {
-	Jti       pgtype.UUID
-	ExpiresAt pgtype.Timestamptz
+	Jti       uuid.UUID
+	ExpiresAt time.Time
 }
 
 type TVideoWatch struct {
 	TVideoWatchID        int64
 	MUserID              int64
 	MVideoID             int64
-	WatchStartAt         pgtype.Timestamptz
-	WatchEndAt           pgtype.Timestamptz
+	WatchStartAt         time.Time
+	WatchEndAt           time.Time
 	WatchPositionSeconds int32
-	CreatedAt            pgtype.Timestamptz
-	UpdatedAt            pgtype.Timestamptz
-	PublicID             pgtype.UUID
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+	PublicID             uuid.UUID
 }
 
 type WMonthlyVideoWatch struct {
@@ -194,8 +199,8 @@ type WMonthlyVideoWatch struct {
 	MUserID              int64
 	BatchStatusCode      int32
 	AiModel              string
-	StartedAt            pgtype.Timestamptz
-	FinishedAt           pgtype.Timestamptz
-	CreatedAt            pgtype.Timestamptz
-	UpdatedAt            pgtype.Timestamptz
+	StartedAt            time.Time
+	FinishedAt           time.Time
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
 }

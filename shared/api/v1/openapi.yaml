@@ -30,6 +30,12 @@ security:
 
 paths:
   /health:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       summary: Health check
       description: APIサーバーのヘルスチェックを行う。
@@ -59,16 +65,17 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/auth/refresh:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     post:
       summary: Refresh access token
       description: リフレッシュトークンを用いて新しいアクセストークンを発行する。
       operationId: postAuthRefresh
       parameters:
-        - name: refresh_token
-          required: true
-          in: cookie
-          schema:
-            type: string
         - $ref: "#/components/parameters/HeaderCSRFToken"
         - $ref: "#/components/parameters/CookieCSRFToken"
       tags: [ auth ]
@@ -76,18 +83,12 @@ paths:
       responses:
         "200":
           description: 200 OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                required: [ status ]
           headers:
             Set-Cookie:
               schema:
-                type: string
+                type: array
+                items:
+                  type: string
                 description: access_tokenとrefresh_tokenを指定
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -105,6 +106,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/auth/google:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       summary: Google authentication
       description: Google OIDCでログインor登録
@@ -121,7 +128,9 @@ paths:
                 description: Googleの認証画面へリダイレクト
             Set-Cookie:
               schema:
-                type: string
+                type: array
+                items:
+                  type: string
                 description: stateとcode_verifierを指定
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -139,6 +148,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/search:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ video ]
       summary: Get search result
@@ -250,6 +265,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/feed:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ video ]
       summary: Get latest videos
@@ -346,6 +367,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/feed/channels:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ channel ]
       summary: Get channels
@@ -425,6 +452,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/channels/{channel_id}/videos:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ channel ]
       summary: Get latest channel uploads
@@ -504,6 +537,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/subscriptions:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ channel ]
       summary: Get subscriptions
@@ -678,6 +717,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/subscriptions/{channel_id}:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     delete:
       tags: [ channel ]
       summary: Delete subscription
@@ -718,8 +763,13 @@ paths:
           pattern: "^[a-zA-Z0-9_-]{11}$"
         description: YouTube側のID
         in: path
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
-      tags: [video]
+      tags: [ video ]
       summary: Get video detail
       description: 特定の動画の詳細を取得する
       operationId: getVideosVideoId
@@ -773,9 +823,9 @@ paths:
                           properties:
                             external_comment_content:
                               type: string
-                          required: [external_comment_content]
-                    required: [item_count, items]
-                required: [video_id, external_video_id, external_video_title, external_video_description, external_video_thumbnail_url, channel_id, external_channel_id, external_channel_display_name, external_channel_subscribers_count, external_channel_icon_url, external_video_like_count, comments]
+                          required: [ external_comment_content ]
+                    required: [ item_count, items ]
+                required: [ video_id, external_video_id, external_video_title, external_video_description, external_video_thumbnail_url, channel_id, external_channel_id, external_channel_display_name, external_channel_subscribers_count, external_channel_icon_url, external_video_like_count, comments ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -800,6 +850,11 @@ paths:
           pattern: "^[a-zA-Z0-9_-]{11}$"
         description: YouTube側のID
         in: path
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     post:
       tags: [ video ]
       summary: Heartbeats
@@ -834,6 +889,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/history:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ history ]
       summary: Get video history
@@ -944,6 +1005,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/statistics/monthly:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ history ]
       summary: Get User Statistics by month
@@ -1005,6 +1072,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/statistics/daily:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ history ]
       summary: Get User Statics by day
@@ -1089,6 +1162,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/users/me/limits:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ user ]
       summary: Get User Detail
@@ -1132,6 +1211,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/users/me:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ user ]
       summary: Get Current User's Status
@@ -1235,6 +1320,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/users:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     post:
       tags: [ user ]
       summary: Create a new account
@@ -1288,6 +1379,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/users/me/sessions:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ auth ]
       summary: User session list
@@ -1352,6 +1449,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/users/me/sessions/{session_id}:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     delete:
       tags: [ auth ]
       summary: Delete session
@@ -1383,6 +1486,12 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/playlists:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ playlist ]
       summary: Get playlists
@@ -1485,7 +1594,7 @@ paths:
                   $ref: "#/components/schemas/PlaylistType"
                 playlist_visibility:
                   $ref: "#/components/schemas/PlaylistVisibility"
-              required: [playlist_type, playlist_visibility]
+              required: [ playlist_type, playlist_visibility ]
       responses:
         "201":
           description: 201 Created
@@ -1555,6 +1664,11 @@ paths:
           format: uuid
         required: true
         in: path
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     post:
       tags: [ playlist ]
       summary: Insert a new video into playlist
@@ -1569,7 +1683,7 @@ paths:
                 video_id:
                   type: string
                   format: uuid
-              required: [video_id]
+              required: [ video_id ]
       responses:
         "201":
           description: 201 Created
@@ -1587,7 +1701,7 @@ paths:
                   inserted_at:
                     type: string
                     format: date-time
-                required: [playlist_id, video_id, inserted_at]
+                required: [ playlist_id, video_id, inserted_at ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1632,7 +1746,7 @@ paths:
           $ref: "#/components/responses/TooManyRequests"
         "500":
           $ref: "#/components/responses/InternalServerError"
-    
+
   /api/v1/playlists/{playlist_id}:
     parameters:
       - name: playlist_id
@@ -1641,6 +1755,11 @@ paths:
           format: uuid
         required: true
         in: path
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ playlist ]
       summary: Get playlist
@@ -1716,7 +1835,7 @@ paths:
                           type: integer
                           minimum: 0
                       required: [ video_id, channel_id, external_video_id, external_channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_watch_count, external_video_title, external_video_description, external_channel_display_name, external_video_created_at, external_video_length_seconds ]
-                required: [item_count, has_next, items]
+                required: [ item_count, has_next, items ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1765,7 +1884,7 @@ paths:
                   playlist_updated_at:
                     type: string
                     format: date-time
-                required: [playlist_id, playlist_title, playlist_description, playlist_updated_at]
+                required: [ playlist_id, playlist_title, playlist_description, playlist_updated_at ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1805,23 +1924,27 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/auth/logout:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     post:
-      tags: [auth]
+      tags: [ auth ]
       summary: Logout
       description: ログアウトする
       operationId: postAuthLogout
       responses:
         "200":
           description: 200 OK
-          content:
-            application/json:
+          headers:
+            Set-Cookie:
               schema:
-                type: object
-                properties:
-                  logged_out_at:
-                    type: string
-                    format: date-time
-                required: [logged_out_at]
+                type: array
+                items:
+                  type: string
+                description: アクセストークン、リフレッシュトークン、CSRFトークン削除。
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1836,9 +1959,14 @@ paths:
           $ref: "#/components/responses/TooManyRequests"
         "500":
           $ref: "#/components/responses/InternalServerError"
-        
 
   /api/v1/auth/google/callback:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ auth ]
       summary: Google Authorization Code Callback
@@ -1858,6 +1986,12 @@ paths:
           description: CSRF対策用
           schema:
             type: string
+        - name: csrf
+          in: cookie
+          required: true
+          description: CSRF対策
+          schema:
+            type: string
         - name: error
           in: query
           required: false
@@ -1874,7 +2008,9 @@ paths:
                 description: 登録画面かダッシュボード
             Set-Cookie:
               schema:
-                type: string
+                type: array
+                items:
+                  type: string
                 description: アクセストークンとリフレッシュトークンとCSRF Tokenを設定。
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -2026,6 +2162,43 @@ components:
       description: プレイリストの公開範囲
 
   parameters:
+    HeaderXRealIP:
+      name: X-Real-IP
+      in: header
+      description: クライアントの実際のIPアドレス（プロキシ経由の場合）
+      required: true
+      schema:
+        type: string
+        format: ipv4
+        example: "203.0.113.195"
+
+    HeaderCfIpCountry:
+      name: Cf-Ipcountry
+      in: header
+      description: Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+      required: true
+      schema:
+        type: string
+        format: iso-3166-1-alpha-2
+        minLength: 2
+        maxLength: 2
+
+    HeaderCfRay:
+      name: Cf-Ray
+      in: header
+      description: Cloudflareリクエストの一意識別子（トレーシング用）
+      required: true
+      schema:
+        type: string
+
+    HeaderUserAgent:
+      name: User-Agent
+      in: header
+      description: クライアントのブラウザ・アプリケーション情報
+      required: true
+      schema:
+        type: string
+
     CookieCSRFToken:
       name: csrf_token
       in: cookie
@@ -2041,6 +2214,13 @@ components:
       schema:
         type: string
         description: CSRF Token
+
+    HeaderDeviceFingerprint:
+      name: X-Device-Fingerprint
+      in: header
+      required: true
+      schema:
+        type: string
 
   securitySchemes:
     CookieJwtAuth:

@@ -7,15 +7,249 @@ package sqlc
 
 import (
 	"context"
+	"time"
+
+	"github.com/google/uuid"
 )
 
-const listUsers = `-- name: ListUsers :one
-SELECT 1 + 1
+const cleanupExpiredJTIBlacklist = `-- name: CleanupExpiredJTIBlacklist :exec
+DELETE FROM t_jti_blacklist WHERE expires_at < $1
 `
 
-func (q *Queries) ListUsers(ctx context.Context) (int32, error) {
-	row := q.db.QueryRow(ctx, listUsers)
-	var column_1 int32
-	err := row.Scan(&column_1)
-	return column_1, err
+func (q *Queries) CleanupExpiredJTIBlacklist(ctx context.Context, expiresAt time.Time) error {
+	_, err := q.db.Exec(ctx, cleanupExpiredJTIBlacklist, expiresAt)
+	return err
+}
+
+const createAuthorization = `-- name: CreateAuthorization :one
+INSERT INTO m_user_authorization (issuer, sub)
+VALUES ($1, $2)
+ON CONFLICT (issuer, sub) DO UPDATE
+    SET issuer = EXCLUDED.issuer
+RETURNING m_user_authorization_id, public_id, (xmax = 0) AS is_created
+`
+
+type CreateAuthorizationParams struct {
+	Issuer string
+	Sub    string
+}
+
+type CreateAuthorizationRow struct {
+	MUserAuthorizationID int64
+	PublicID             uuid.UUID
+	IsCreated            bool
+}
+
+func (q *Queries) CreateAuthorization(ctx context.Context, arg CreateAuthorizationParams) (CreateAuthorizationRow, error) {
+	row := q.db.QueryRow(ctx, createAuthorization, arg.Issuer, arg.Sub)
+	var i CreateAuthorizationRow
+	err := row.Scan(&i.MUserAuthorizationID, &i.PublicID, &i.IsCreated)
+	return i, err
+}
+
+const createRefreshToken = `-- name: CreateRefreshToken :exec
+INSERT INTO m_refresh_token (m_user_authorization_id, token_hash, ip_address, device_fingerprint, user_agent,
+                             country_code, city_name, browser_name, device_type, expires_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+ON CONFLICT DO NOTHING
+`
+
+type CreateRefreshTokenParams struct {
+	MUserAuthorizationID int64
+	TokenHash            string
+	IpAddress            string
+	DeviceFingerprint    string
+	UserAgent            string
+	CountryCode          string
+	CityName             string
+	BrowserName          string
+	DeviceType           string
+	ExpiresAt            time.Time
+}
+
+func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) error {
+	_, err := q.db.Exec(ctx, createRefreshToken,
+		arg.MUserAuthorizationID,
+		arg.TokenHash,
+		arg.IpAddress,
+		arg.DeviceFingerprint,
+		arg.UserAgent,
+		arg.CountryCode,
+		arg.CityName,
+		arg.BrowserName,
+		arg.DeviceType,
+		arg.ExpiresAt,
+	)
+	return err
+}
+
+const getUserAllRefreshTokens = `-- name: GetUserAllRefreshTokens :many
+SELECT public_id, created_at, updated_at, country_code, city_name, browser_name FROM m_refresh_token WHERE m_user_authorization_id = $1
+`
+
+type GetUserAllRefreshTokensRow struct {
+	PublicID    uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	CountryCode string
+	CityName    string
+	BrowserName string
+}
+
+func (q *Queries) GetUserAllRefreshTokens(ctx context.Context, mUserAuthorizationID int64) ([]GetUserAllRefreshTokensRow, error) {
+	rows, err := q.db.Query(ctx, getUserAllRefreshTokens, mUserAuthorizationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserAllRefreshTokensRow
+	for rows.Next() {
+		var i GetUserAllRefreshTokensRow
+		if err := rows.Scan(
+			&i.PublicID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CountryCode,
+			&i.CityName,
+			&i.BrowserName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserAuthorizationID = `-- name: GetUserAuthorizationID :one
+SELECT m_user_authorization_id FROM m_user WHERE public_id = $1
+`
+
+func (q *Queries) GetUserAuthorizationID(ctx context.Context, publicID uuid.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, getUserAuthorizationID, publicID)
+	var m_user_authorization_id int64
+	err := row.Scan(&m_user_authorization_id)
+	return m_user_authorization_id, err
+}
+
+const getUserIDByAuthorization = `-- name: GetUserIDByAuthorization :one
+SELECT public_id
+FROM m_user
+WHERE m_user_authorization_id = $1
+`
+
+func (q *Queries) GetUserIDByAuthorization(ctx context.Context, mUserAuthorizationID int64) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, getUserIDByAuthorization, mUserAuthorizationID)
+	var public_id uuid.UUID
+	err := row.Scan(&public_id)
+	return public_id, err
+}
+
+const isJTIBlacklisted = `-- name: IsJTIBlacklisted :one
+SELECT expires_at FROM t_jti_blacklist WHERE jti = $1
+`
+
+func (q *Queries) IsJTIBlacklisted(ctx context.Context, jti uuid.UUID) (time.Time, error) {
+	row := q.db.QueryRow(ctx, isJTIBlacklisted, jti)
+	var expires_at time.Time
+	err := row.Scan(&expires_at)
+	return expires_at, err
+}
+
+const removeRefreshToken = `-- name: RemoveRefreshToken :one
+DELETE
+FROM m_refresh_token
+WHERE token_hash = $1
+RETURNING token_hash
+`
+
+func (q *Queries) RemoveRefreshToken(ctx context.Context, tokenHash string) (string, error) {
+	row := q.db.QueryRow(ctx, removeRefreshToken, tokenHash)
+	var token_hash string
+	err := row.Scan(&token_hash)
+	return token_hash, err
+}
+
+const removeRefreshTokenByID = `-- name: RemoveRefreshTokenByID :one
+DELETE FROM m_refresh_token WHERE public_id = $1 RETURNING public_id
+`
+
+func (q *Queries) RemoveRefreshTokenByID(ctx context.Context, publicID uuid.UUID) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, removeRefreshTokenByID, publicID)
+	var public_id uuid.UUID
+	err := row.Scan(&public_id)
+	return public_id, err
+}
+
+const saveJTIBlacklist = `-- name: SaveJTIBlacklist :exec
+INSERT INTO t_jti_blacklist (jti, expires_at)
+VALUES ($1, $2)
+ON CONFLICT DO NOTHING
+`
+
+type SaveJTIBlacklistParams struct {
+	Jti       uuid.UUID
+	ExpiresAt time.Time
+}
+
+func (q *Queries) SaveJTIBlacklist(ctx context.Context, arg SaveJTIBlacklistParams) error {
+	_, err := q.db.Exec(ctx, saveJTIBlacklist, arg.Jti, arg.ExpiresAt)
+	return err
+}
+
+const saveRefreshToken = `-- name: SaveRefreshToken :one
+UPDATE m_refresh_token
+SET token_hash         = $1,
+    expires_at         = $2,
+    ip_address         = $3,
+    device_fingerprint = $4,
+    user_agent         = $5,
+    country_code       = $6,
+    city_name          = $7,
+    browser_name       = $8,
+    device_type        = $9,
+    updated_at         = current_timestamp,
+    generation         = generation + 1
+WHERE token_hash = $10
+  AND $11 < expires_at
+  AND updated_at < $12
+  AND device_fingerprint = $4
+RETURNING m_user_authorization_id
+`
+
+type SaveRefreshTokenParams struct {
+	TokenHash         string
+	ExpiresAt         time.Time
+	IpAddress         string
+	DeviceFingerprint string
+	UserAgent         string
+	CountryCode       string
+	CityName          string
+	BrowserName       string
+	DeviceType        string
+	TokenHash_2       string
+	ExpiresAt_2       time.Time
+	UpdatedAt         time.Time
+}
+
+func (q *Queries) SaveRefreshToken(ctx context.Context, arg SaveRefreshTokenParams) (int64, error) {
+	row := q.db.QueryRow(ctx, saveRefreshToken,
+		arg.TokenHash,
+		arg.ExpiresAt,
+		arg.IpAddress,
+		arg.DeviceFingerprint,
+		arg.UserAgent,
+		arg.CountryCode,
+		arg.CityName,
+		arg.BrowserName,
+		arg.DeviceType,
+		arg.TokenHash_2,
+		arg.ExpiresAt_2,
+		arg.UpdatedAt,
+	)
+	var m_user_authorization_id int64
+	err := row.Scan(&m_user_authorization_id)
+	return m_user_authorization_id, err
 }
