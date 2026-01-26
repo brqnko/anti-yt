@@ -11,7 +11,7 @@ services:
       context: frontend
       dockerfile: "Dockerfile"
   db:
-    image: "postgres:18.1"
+    image: "postgres:18.1-alpine3.23"
     healthcheck:
       test: [ "CMD", "pg_isready" ]
       interval: 10s
