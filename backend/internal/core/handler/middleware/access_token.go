@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"crypto/ed25519"
 	"errors"
 	"net/http"
@@ -10,8 +9,8 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/core/claims"
 	"github.com/brqnko/anti-yt/backend/internal/core/database/sqlc"
-	"github.com/brqnko/anti-yt/backend/internal/core/handler"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
@@ -50,7 +49,7 @@ func AccessTokenMiddleware(jwtPublic ed25519.PublicKey, db *pgxpool.Pool) func(v
 			}
 
 			if errors.Is(err, pgx.ErrNoRows) || !time.Now().Before(expiresAt) {
-				newCtx := context.WithValue(req.Context(), handler.UserIDKey{}, userID)
+				newCtx := util.WithUserID(req.Context(), userID)
 				ctx.SetRequest(req.WithContext(newCtx))
 				return f(ctx, request)
 			}

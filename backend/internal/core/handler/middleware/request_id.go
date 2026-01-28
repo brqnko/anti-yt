@@ -1,11 +1,10 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/handler"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -17,7 +16,7 @@ func RequestIDMiddleware(f v1.StrictHandlerFunc, operationID string) v1.StrictHa
 			return nil, echo.NewHTTPError(http.StatusInternalServerError, "internal server error")
 		}
 		req := ctx.Request()
-		newCtx := context.WithValue(req.Context(), handler.RequestIDKey{}, requestID)
+		newCtx := util.WithRequestID(req.Context(), requestID)
 		ctx.SetRequest(req.WithContext(newCtx))
 		return f(ctx, request)
 	}

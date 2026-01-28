@@ -8,8 +8,7 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/auth"
-	"github.com/brqnko/anti-yt/backend/internal/core/handler"
-	"github.com/google/uuid"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -129,7 +128,7 @@ func (h *Handler) GetAuthGoogleCallback(c context.Context, request GetAuthGoogle
 }
 
 func (h *Handler) PostAuthLogout(c context.Context, request PostAuthLogoutRequestObject) (PostAuthLogoutResponseObject, error) {
-	refreshToken, ok := c.Value(handler.RefreshTokenKey{}).(string)
+	refreshToken, ok := util.RefreshTokenFromContext(c)
 	if !ok {
 		return PostAuthLogout400JSONResponse{
 			BadRequestJSONResponse: BadRequestJSONResponse{
@@ -138,7 +137,7 @@ func (h *Handler) PostAuthLogout(c context.Context, request PostAuthLogoutReques
 			},
 		}, nil
 	}
-	accessToken, ok := c.Value(handler.AccessTokenKey{}).(string)
+	accessToken, ok := util.AccessTokenFromContext(c)
 	if !ok {
 		return PostAuthLogout500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
@@ -193,7 +192,7 @@ func (h *Handler) PostAuthLogout(c context.Context, request PostAuthLogoutReques
 }
 
 func (h *Handler) PostAuthRefresh(c context.Context, request PostAuthRefreshRequestObject) (PostAuthRefreshResponseObject, error) {
-	refreshToken, ok := c.Value(handler.RefreshTokenKey{}).(string)
+	refreshToken, ok := util.RefreshTokenFromContext(c)
 	if !ok {
 		return PostAuthRefresh400JSONResponse{
 			BadRequestJSONResponse: BadRequestJSONResponse{
@@ -240,7 +239,7 @@ func (h *Handler) PostAuthRefresh(c context.Context, request PostAuthRefreshRequ
 }
 
 func (h *Handler) GetUsersMeSessions(c context.Context, request GetUsersMeSessionsRequestObject) (GetUsersMeSessionsResponseObject, error) {
-	userID, ok := c.Value(handler.UserIDKey{}).(uuid.UUID)
+	userID, ok := util.UserIDFromContext(c)
 	if !ok {
 		return GetUsersMeSessions500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{

@@ -1,11 +1,10 @@
 package middleware
 
 import (
-	"context"
 	"strings"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/handler"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/labstack/echo/v4"
 )
 
@@ -32,10 +31,10 @@ func AuthTokensMiddleware(f v1.StrictHandlerFunc, operationID string) v1.StrictH
 		req := c.Request()
 		ctx := req.Context()
 		if cookie, err := req.Cookie("access_token"); err == nil {
-			ctx = context.WithValue(ctx, handler.AccessTokenKey{}, cookie.Value)
+			ctx = util.WithAccessToken(ctx, cookie.Value)
 		}
 		if cookie, err := req.Cookie("refresh_token"); err == nil {
-			ctx = context.WithValue(ctx, handler.RefreshTokenKey{}, cookie.Value)
+			ctx = util.WithRefreshToken(ctx, cookie.Value)
 		}
 		c.SetRequest(req.WithContext(ctx))
 		return f(c, request)
