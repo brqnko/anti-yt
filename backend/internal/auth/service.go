@@ -374,5 +374,13 @@ func (s *Service) RemoveSession(ctx context.Context, sessionID uuid.UUID) (uuid.
 		return uuid.Nil, err
 	}
 
+	if err := q.SaveJTIBlacklist(ctx, sqlc.SaveJTIBlacklistParams{
+		Jti:       jti,
+		ExpiresAt: expiresAt,
+	}); err != nil {
+		// NOTE: ユーザーはlogoutを望んでいるのでブラックリストの更新の失敗で、でrollbackすべきではない
+		slog.Error("failed to save jti into blacklist", "error", err)
+	}
+
 	return tokenID, nil
 }

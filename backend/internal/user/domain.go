@@ -87,3 +87,10 @@ type CreateUserInput struct {
 func NewCreateUserInput(displayName *string, languageCode string, dailyScreenLimit *time.Duration, dailyScreenTimeLimitRangeSet []struct{ start, end int }) (*CreateUserInput, error) {
 	return nil, nil
 }
+
+type UserLimitation struct {
+}
+
+func NewUserLimitation() (*UserLimitation, error) {
+	return nil, nil
+}

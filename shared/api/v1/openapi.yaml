@@ -29,41 +29,9 @@ security:
   - CookieJwtAuth: [ ]
 
 paths:
-  /health:
-    parameters:
-      - $ref: '#/components/parameters/HeaderXRealIP'
-      - $ref: '#/components/parameters/HeaderCfIpCountry'
-      - $ref: '#/components/parameters/HeaderCfRay'
-      - $ref: '#/components/parameters/HeaderUserAgent'
-      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-    get:
-      summary: Health check
-      description: APIサーバーのヘルスチェックを行う。
-      operationId: getHealth
-      tags: [ misc ]
-      security: [ ]
-      responses:
-        "200":
-          description: 200 OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                required: [ status ]
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "413":
-          $ref: "#/components/responses/PayloadTooLarge"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
+  # ========================================
+  # auth - 認証
+  # ========================================
   /api/v1/auth/refresh:
     parameters:
       - $ref: '#/components/parameters/HeaderXRealIP'
@@ -147,7 +115,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/search:
+  /api/v1/auth/google/callback:
     parameters:
       - $ref: '#/components/parameters/HeaderXRealIP'
       - $ref: '#/components/parameters/HeaderCfIpCountry'
@@ -155,100 +123,50 @@ paths:
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
-      tags: [ video ]
-      summary: Get search result
-      description: 検索を行う
-      operationId: getSearch
+      tags: [ auth ]
+      summary: Google Authorization Code Callback
+      description: Googleの認可コードを受け取るため
+      operationId: getAuthGoogleCallback
+      security: [ ]
       parameters:
-        - name: limit
-          description: 検索の結果の制限数
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 20
-        - name: cursor
-          description: ページネーション
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: query
+        - name: code
+          description: Googleから発行された認可コード
           in: query
           required: true
-          description: 検索のクエリ文字列
           schema:
             type: string
-            minLength: 1
-        - name: search_type
+        - name: state
           in: query
           required: true
-          description: 検索のタイプ
+          description: CSRF対策用
           schema:
-            allOf:
-              - $ref: "#/components/schemas/SearchType"
-            default: video
+            type: string
+        - name: csrf
+          in: cookie
+          required: true
+          description: CSRF対策
+          schema:
+            type: string
+        - name: error
+          in: query
+          required: false
+          description: エラー
+          schema:
+            type: string
       responses:
-        "200":
-          description: 200 OK
-          content:
-            application/json:
+        "302":
+          description: 302 redirect
+          headers:
+            Location:
               schema:
-                type: object
-                properties:
-                  item_count:
-                    type: integer
-                    minimum: 0
-                  has_next:
-                    type: boolean
-                  items:
-                    type: array
-                    uniqueItems: true
-                    items:
-                      type: object
-                      properties:
-                        video_id:
-                          type: string
-                          format: uuid
-                        channel_id:
-                          type: string
-                          format: uuid
-                        external_video_id:
-                          type: string
-                        external_channel_id:
-                          type: string
-                        external_video_thumbnail_url:
-                          type: string
-                          format: uri
-                        external_channel_icon_url:
-                          type: string
-                          format: uri
-                        external_video_watch_count:
-                          type: integer
-                          minimum: 0
-                        external_video_title:
-                          type: string
-                        external_video_description:
-                          type: string
-                        external_channel_display_name:
-                          type: string
-                        external_video_created_at:
-                          type: string
-                          format: date-time
-                        external_video_length_seconds:
-                          type: integer
-                          minimum: 0
-                        last_watch_seconds:
-                          type: integer
-                          minimum: 0
-                        resource_type:
-                          $ref: "#/components/schemas/ResourceType"
-                      required: [ video_id, channel_id, external_video_id, external_channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_watch_count, external_video_title, external_video_description, external_channel_display_name, external_video_created_at, external_video_length_seconds ]
-                  search_key:
-                    type: string
-                required: [ item_count, has_next, items, search_key ]
+                type: string
+                description: 登録画面かダッシュボード
+            Set-Cookie:
+              schema:
+                type: array
+                items:
+                  type: string
+                description: アクセストークンとリフレッシュトークンとCSRF Tokenを設定。
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -264,93 +182,28 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/feed:
+  /api/v1/auth/logout:
     parameters:
       - $ref: '#/components/parameters/HeaderXRealIP'
       - $ref: '#/components/parameters/HeaderCfIpCountry'
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-    get:
-      tags: [ video ]
-      summary: Get latest videos
-      description: チャンネル登録しているチャンネルの最新の一覧を取得
-      operationId: getFeed
-      parameters:
-        - name: limit
-          description: 取得する最大の数
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 20
-        - name: cursor
-          description: 最後に取得した動画ID(ページネーション)
-          in: query
-          required: false
-          schema:
-            type: string
+    post:
+      tags: [ auth ]
+      summary: Logout
+      description: ログアウトする
+      operationId: postAuthLogout
       responses:
         "200":
           description: 200 OK
-          content:
-            application/json:
+          headers:
+            Set-Cookie:
               schema:
-                type: object
-                properties:
-                  item_count:
-                    type: integer
-                    minimum: 0
-                  has_next:
-                    type: boolean
-                  items:
-                    type: array
-                    uniqueItems: true
-                    items:
-                      type: object
-                      properties:
-                        video_id:
-                          type: string
-                          format: uuid
-                        channel_id:
-                          type: string
-                          format: uuid
-                        external_video_id:
-                          type: string
-                        external_channel_id:
-                          type: string
-                        external_video_thumbnail_url:
-                          type: string
-                          format: uri
-                        external_channel_icon_url:
-                          type: string
-                          format: uri
-                        external_video_watch_count:
-                          type: integer
-                          minimum: 0
-                        external_video_title:
-                          type: string
-                        external_video_description:
-                          type: string
-                        external_channel_display_name:
-                          type: string
-                        external_video_created_at:
-                          type: string
-                          format: date-time
-                        external_video_length_seconds:
-                          type: integer
-                          minimum: 0
-                        last_watch_seconds:
-                          type: integer
-                          minimum: 0
-                        resource_type:
-                          $ref: "#/components/schemas/ResourceType"
-                      required: [ video_id, channel_id, external_video_id, external_channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_watch_count, external_video_title, external_video_description, external_channel_display_name, external_video_created_at, external_video_length_seconds, resource_type ]
-                  search_key:
-                    type: string
-                required: [ item_count, has_next, items, search_key ]
+                type: array
+                items:
+                  type: string
+                description: アクセストークン、リフレッシュトークン、CSRFトークン削除。
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -366,6 +219,154 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /api/v1/users/me/sessions:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
+    get:
+      tags: [ auth ]
+      summary: User session list
+      description: ユーザーのセッション一覧
+      operationId: getUsersMeSessions
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item_count:
+                    description: 総件数
+                    minimum: 0
+                    type: integer
+                  items:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: ID
+                        created_at:
+                          type: string
+                          format: date-time
+                          description: ログイン時刻
+                        last_logged_in_at:
+                          type: string
+                          format: date-time
+                          description: 最終ログイン時刻
+                        city_name:
+                          type: string
+                          description: セッションの住所
+                        browser_name:
+                          type: string
+                          description: ブラウザの名前
+                        country_code:
+                          type: string
+                          description: 国コード
+                          maxLength: 2
+                          minLength: 2
+                      required: [ id, created_at, last_logged_in_at, city_name, browser_name, country_code ]
+                required: [ item_count, items ]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/users/me/sessions/{session_id}:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
+    delete:
+      tags: [ auth ]
+      summary: Delete session
+      description: セッションを削除
+      operationId: deleteUsersMeSessionsSessionId
+      parameters:
+        - name: session_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          in: path
+      responses:
+        "204":
+          description: 204 No Content
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ========================================
+  # misc - その他
+  # ========================================
+  /health:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
+    get:
+      summary: Health check
+      description: APIサーバーのヘルスチェックを行う。
+      operationId: getHealth
+      tags: [ misc ]
+      security: [ ]
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                required: [ status ]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ========================================
+  # channel - チャンネル
+  # ========================================
   /api/v1/feed/channels:
     parameters:
       - $ref: '#/components/parameters/HeaderXRealIP'
@@ -754,6 +755,228 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  # ========================================
+  # video - 動画
+  # ========================================
+  /api/v1/search:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
+    get:
+      tags: [ video ]
+      summary: Get search result
+      description: 検索を行う
+      operationId: getSearch
+      parameters:
+        - name: limit
+          description: 検索の結果の制限数
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: cursor
+          description: ページネーション
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: query
+          in: query
+          required: true
+          description: 検索のクエリ文字列
+          schema:
+            type: string
+            minLength: 1
+        - name: search_type
+          in: query
+          required: true
+          description: 検索のタイプ
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/SearchType"
+            default: video
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item_count:
+                    type: integer
+                    minimum: 0
+                  has_next:
+                    type: boolean
+                  items:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      type: object
+                      properties:
+                        video_id:
+                          type: string
+                          format: uuid
+                        channel_id:
+                          type: string
+                          format: uuid
+                        external_video_id:
+                          type: string
+                        external_channel_id:
+                          type: string
+                        external_video_thumbnail_url:
+                          type: string
+                          format: uri
+                        external_channel_icon_url:
+                          type: string
+                          format: uri
+                        external_video_watch_count:
+                          type: integer
+                          minimum: 0
+                        external_video_title:
+                          type: string
+                        external_video_description:
+                          type: string
+                        external_channel_display_name:
+                          type: string
+                        external_video_created_at:
+                          type: string
+                          format: date-time
+                        external_video_length_seconds:
+                          type: integer
+                          minimum: 0
+                        last_watch_seconds:
+                          type: integer
+                          minimum: 0
+                        resource_type:
+                          $ref: "#/components/schemas/ResourceType"
+                      required: [ video_id, channel_id, external_video_id, external_channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_watch_count, external_video_title, external_video_description, external_channel_display_name, external_video_created_at, external_video_length_seconds ]
+                  search_key:
+                    type: string
+                required: [ item_count, has_next, items, search_key ]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/feed:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
+    get:
+      tags: [ video ]
+      summary: Get latest videos
+      description: チャンネル登録しているチャンネルの最新の一覧を取得
+      operationId: getFeed
+      parameters:
+        - name: limit
+          description: 取得する最大の数
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: cursor
+          description: 最後に取得した動画ID(ページネーション)
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item_count:
+                    type: integer
+                    minimum: 0
+                  has_next:
+                    type: boolean
+                  items:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      type: object
+                      properties:
+                        video_id:
+                          type: string
+                          format: uuid
+                        channel_id:
+                          type: string
+                          format: uuid
+                        external_video_id:
+                          type: string
+                        external_channel_id:
+                          type: string
+                        external_video_thumbnail_url:
+                          type: string
+                          format: uri
+                        external_channel_icon_url:
+                          type: string
+                          format: uri
+                        external_video_watch_count:
+                          type: integer
+                          minimum: 0
+                        external_video_title:
+                          type: string
+                        external_video_description:
+                          type: string
+                        external_channel_display_name:
+                          type: string
+                        external_video_created_at:
+                          type: string
+                          format: date-time
+                        external_video_length_seconds:
+                          type: integer
+                          minimum: 0
+                        last_watch_seconds:
+                          type: integer
+                          minimum: 0
+                        resource_type:
+                          $ref: "#/components/schemas/ResourceType"
+                      required: [ video_id, channel_id, external_video_id, external_channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_watch_count, external_video_title, external_video_description, external_channel_display_name, external_video_created_at, external_video_length_seconds, resource_type ]
+                  search_key:
+                    type: string
+                required: [ item_count, has_next, items, search_key ]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /api/v1/videos/{external_video_id}:
     parameters:
       - name: external_video_id
@@ -888,6 +1111,229 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  # ========================================
+  # user - ユーザー
+  # ========================================
+  /api/v1/users:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
+    post:
+      tags: [ user ]
+      summary: Create a new account
+      description: 新しいアカウントを作成
+      operationId: postUsersMe
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                screen_time:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    $ref: "#/components/schemas/ScreenTimeSlot"
+                daily_screen_seconds:
+                  type: integer
+                  description: 毎日のスクリーン時間制限
+                  minimum: 0
+                display_name:
+                  type: string
+                  description: ユーザーの表示名
+                  minLength: 3
+                language_code:
+                  type: string
+                  minLength: 2
+                  maxLength: 2
+                  description: アカウントの言語コード
+              required: [ screen_time, display_name, language_code ]
+      responses:
+        "201":
+          description: 201 Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/users/me:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
+    get:
+      tags: [ user ]
+      summary: Get Current User's Status
+      description: 現在のユーザーの設定を表示する
+      operationId: getUsersMeStatus
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    patch:
+      tags: [ user ]
+      summary: Update User Status
+      description: ユーザーの設定を更新する
+      operationId: patchUsersMeStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                screen_time:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    $ref: "#/components/schemas/ScreenTimeSlot"
+                daily_screen_seconds:
+                  type: integer
+                  description: 毎日のスクリーン時間制限
+                  minimum: 0
+                display_name:
+                  type: string
+                  description: ユーザーの表示名
+                  minLength: 3
+                language_code:
+                  type: string
+                  minLength: 2
+                  maxLength: 2
+                  description: アカウントの言語コード
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags: [ user ]
+      summary: Delete User's Account
+      description: アカウント削除。TODO OIDCにする
+      operationId: deleteUsersMe
+      responses:
+        "204":
+          description: 204 No Content
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/users/me/limits:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
+    get:
+      tags: [ user ]
+      summary: Get User Detail
+      description: 制限情報を取得する
+      operationId: getUsersMeLimits
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  screen_time:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      $ref: "#/components/schemas/ScreenTimeSlot"
+                  daily_remaining_seconds:
+                    type: integer
+                    description: 今日の残りの時間。残り時間を設定していない場合はなし。
+                    minimum: 0
+                  daily_screen_seconds:
+                    type: integer
+                    description: 毎日のスクリーン時間制限
+                    minimum: 0
+                required: [ screen_time ]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ========================================
+  # history - 履歴
+  # ========================================
   /api/v1/history:
     parameters:
       - $ref: '#/components/parameters/HeaderXRealIP'
@@ -1161,330 +1607,9 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/users/me/limits:
-    parameters:
-      - $ref: '#/components/parameters/HeaderXRealIP'
-      - $ref: '#/components/parameters/HeaderCfIpCountry'
-      - $ref: '#/components/parameters/HeaderCfRay'
-      - $ref: '#/components/parameters/HeaderUserAgent'
-      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-    get:
-      tags: [ user ]
-      summary: Get User Detail
-      description: 制限情報を取得する
-      operationId: getUsersMeLimits
-      responses:
-        "200":
-          description: 200 OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  screen_time:
-                    type: array
-                    uniqueItems: true
-                    items:
-                      $ref: "#/components/schemas/ScreenTimeSlot"
-                  daily_remaining_seconds:
-                    type: integer
-                    description: 今日の残りの時間。残り時間を設定していない場合はなし。
-                    minimum: 0
-                  daily_screen_seconds:
-                    type: integer
-                    description: 毎日のスクリーン時間制限
-                    minimum: 0
-                required: [ screen_time ]
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "413":
-          $ref: "#/components/responses/PayloadTooLarge"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
-  /api/v1/users/me:
-    parameters:
-      - $ref: '#/components/parameters/HeaderXRealIP'
-      - $ref: '#/components/parameters/HeaderCfIpCountry'
-      - $ref: '#/components/parameters/HeaderCfRay'
-      - $ref: '#/components/parameters/HeaderUserAgent'
-      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-    get:
-      tags: [ user ]
-      summary: Get Current User's Status
-      description: 現在のユーザーの設定を表示する
-      operationId: getUsersMeStatus
-      responses:
-        "200":
-          description: 200 OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "413":
-          $ref: "#/components/responses/PayloadTooLarge"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
-    patch:
-      tags: [ user ]
-      summary: Update User Status
-      description: ユーザーの設定を更新する
-      operationId: patchUsersMeStatus
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                screen_time:
-                  type: array
-                  uniqueItems: true
-                  items:
-                    $ref: "#/components/schemas/ScreenTimeSlot"
-                daily_screen_seconds:
-                  type: integer
-                  description: 毎日のスクリーン時間制限
-                  minimum: 0
-                display_name:
-                  type: string
-                  description: ユーザーの表示名
-                  minLength: 3
-                language_code:
-                  type: string
-                  minLength: 2
-                  maxLength: 2
-                  description: アカウントの言語コード
-      responses:
-        "200":
-          description: 200 OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "413":
-          $ref: "#/components/responses/PayloadTooLarge"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
-    delete:
-      tags: [ user ]
-      summary: Delete User's Account
-      description: アカウント削除。TODO OIDCにする
-      operationId: deleteUsersMe
-      responses:
-        "204":
-          description: 204 No Content
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "413":
-          $ref: "#/components/responses/PayloadTooLarge"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
-  /api/v1/users:
-    parameters:
-      - $ref: '#/components/parameters/HeaderXRealIP'
-      - $ref: '#/components/parameters/HeaderCfIpCountry'
-      - $ref: '#/components/parameters/HeaderCfRay'
-      - $ref: '#/components/parameters/HeaderUserAgent'
-      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-    post:
-      tags: [ user ]
-      summary: Create a new account
-      description: 新しいアカウントを作成
-      operationId: postUsersMe
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                screen_time:
-                  type: array
-                  uniqueItems: true
-                  items:
-                    $ref: "#/components/schemas/ScreenTimeSlot"
-                daily_screen_seconds:
-                  type: integer
-                  description: 毎日のスクリーン時間制限
-                  minimum: 0
-                display_name:
-                  type: string
-                  description: ユーザーの表示名
-                  minLength: 3
-                language_code:
-                  type: string
-                  minLength: 2
-                  maxLength: 2
-                  description: アカウントの言語コード
-              required: [ screen_time, display_name, language_code ]
-      responses:
-        "201":
-          description: 201 Created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "413":
-          $ref: "#/components/responses/PayloadTooLarge"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
-  /api/v1/users/me/sessions:
-    parameters:
-      - $ref: '#/components/parameters/HeaderXRealIP'
-      - $ref: '#/components/parameters/HeaderCfIpCountry'
-      - $ref: '#/components/parameters/HeaderCfRay'
-      - $ref: '#/components/parameters/HeaderUserAgent'
-      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-    get:
-      tags: [ auth ]
-      summary: User session list
-      description: ユーザーのセッション一覧
-      operationId: getUsersMeSessions
-      responses:
-        "200":
-          description: 200 OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  item_count:
-                    description: 総件数
-                    minimum: 0
-                    type: integer
-                  items:
-                    type: array
-                    uniqueItems: true
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          format: uuid
-                          description: ID
-                        created_at:
-                          type: string
-                          format: date-time
-                          description: ログイン時刻
-                        last_logged_in_at:
-                          type: string
-                          format: date-time
-                          description: 最終ログイン時刻
-                        city_name:
-                          type: string
-                          description: セッションの住所
-                        browser_name:
-                          type: string
-                          description: ブラウザの名前
-                        country_code:
-                          type: string
-                          description: 国コード
-                          maxLength: 2
-                          minLength: 2
-                      required: [ id, created_at, last_logged_in_at, city_name, browser_name, country_code ]
-                required: [ item_count, items ]
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "413":
-          $ref: "#/components/responses/PayloadTooLarge"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
-  /api/v1/users/me/sessions/{session_id}:
-    parameters:
-      - $ref: '#/components/parameters/HeaderXRealIP'
-      - $ref: '#/components/parameters/HeaderCfIpCountry'
-      - $ref: '#/components/parameters/HeaderCfRay'
-      - $ref: '#/components/parameters/HeaderUserAgent'
-      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-    delete:
-      tags: [ auth ]
-      summary: Delete session
-      description: セッションを削除
-      operationId: deleteUsersMeSessionsSessionId
-      parameters:
-        - name: session_id
-          required: true
-          schema:
-            type: string
-            format: uuid
-          in: path
-      responses:
-        "204":
-          description: 204 No Content
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "413":
-          $ref: "#/components/responses/PayloadTooLarge"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
+  # ========================================
+  # playlist - プレイリスト
+  # ========================================
   /api/v1/playlists:
     parameters:
       - $ref: '#/components/parameters/HeaderXRealIP'
@@ -1656,97 +1781,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/playlists/{playlist_id}/videos:
-    parameters:
-      - name: playlist_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-        in: path
-      - $ref: '#/components/parameters/HeaderXRealIP'
-      - $ref: '#/components/parameters/HeaderCfIpCountry'
-      - $ref: '#/components/parameters/HeaderCfRay'
-      - $ref: '#/components/parameters/HeaderUserAgent'
-      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-    post:
-      tags: [ playlist ]
-      summary: Insert a new video into playlist
-      description: 新しい動画をプレイリストに挿入する
-      operationId: postPlaylistsPlaylistIdVideos
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                video_id:
-                  type: string
-                  format: uuid
-              required: [ video_id ]
-      responses:
-        "201":
-          description: 201 Created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  playlist_id:
-                    type: string
-                    format: uuid
-                  video_id:
-                    type: string
-                    format: uuid
-                  inserted_at:
-                    type: string
-                    format: date-time
-                required: [ playlist_id, video_id, inserted_at ]
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "413":
-          $ref: "#/components/responses/PayloadTooLarge"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
-    delete:
-      tags: [ playlist ]
-      summary: Remove a video from playlist
-      description: プレイリストから動画を取り除く
-      operationId: deletePlaylistsPlaylistIdVideos
-      parameters:
-        - name: video_id
-          schema:
-            type: string
-            format: uuid
-          required: true
-          in: query
-      responses:
-        "204":
-          description: 204 No Content
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "413":
-          $ref: "#/components/responses/PayloadTooLarge"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
   /api/v1/playlists/{playlist_id}:
     parameters:
       - name: playlist_id
@@ -1899,7 +1933,7 @@ paths:
           $ref: "#/components/responses/TooManyRequests"
         "500":
           $ref: "#/components/responses/InternalServerError"
-    
+
     delete:
       tags: [ playlist ]
       summary: Delete playlist
@@ -1923,28 +1957,52 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/auth/logout:
+  /api/v1/playlists/{playlist_id}/videos:
     parameters:
+      - name: playlist_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+        in: path
       - $ref: '#/components/parameters/HeaderXRealIP'
       - $ref: '#/components/parameters/HeaderCfIpCountry'
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     post:
-      tags: [ auth ]
-      summary: Logout
-      description: ログアウトする
-      operationId: postAuthLogout
-      responses:
-        "200":
-          description: 200 OK
-          headers:
-            Set-Cookie:
-              schema:
-                type: array
-                items:
+      tags: [ playlist ]
+      summary: Insert a new video into playlist
+      description: 新しい動画をプレイリストに挿入する
+      operationId: postPlaylistsPlaylistIdVideos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                video_id:
                   type: string
-                description: アクセストークン、リフレッシュトークン、CSRFトークン削除。
+                  format: uuid
+              required: [ video_id ]
+      responses:
+        "201":
+          description: 201 Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  playlist_id:
+                    type: string
+                    format: uuid
+                  video_id:
+                    type: string
+                    format: uuid
+                  inserted_at:
+                    type: string
+                    format: date-time
+                required: [ playlist_id, video_id, inserted_at ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1960,58 +2018,21 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/auth/google/callback:
-    parameters:
-      - $ref: '#/components/parameters/HeaderXRealIP'
-      - $ref: '#/components/parameters/HeaderCfIpCountry'
-      - $ref: '#/components/parameters/HeaderCfRay'
-      - $ref: '#/components/parameters/HeaderUserAgent'
-      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-    get:
-      tags: [ auth ]
-      summary: Google Authorization Code Callback
-      description: Googleの認可コードを受け取るため
-      operationId: getAuthGoogleCallback
-      security: [ ]
+    delete:
+      tags: [ playlist ]
+      summary: Remove a video from playlist
+      description: プレイリストから動画を取り除く
+      operationId: deletePlaylistsPlaylistIdVideos
       parameters:
-        - name: code
-          description: Googleから発行された認可コード
-          in: query
+        - name: video_id
+          schema:
+            type: string
+            format: uuid
           required: true
-          schema:
-            type: string
-        - name: state
           in: query
-          required: true
-          description: CSRF対策用
-          schema:
-            type: string
-        - name: csrf
-          in: cookie
-          required: true
-          description: CSRF対策
-          schema:
-            type: string
-        - name: error
-          in: query
-          required: false
-          description: エラー
-          schema:
-            type: string
       responses:
-        "302":
-          description: 302 redirect
-          headers:
-            Location:
-              schema:
-                type: string
-                description: 登録画面かダッシュボード
-            Set-Cookie:
-              schema:
-                type: array
-                items:
-                  type: string
-                description: アクセストークンとリフレッシュトークンとCSRF Tokenを設定。
+        "204":
+          description: 204 No Content
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
