@@ -30,6 +30,7 @@ erDiagram
         bigint m_refresh_token_id PK
         bigint m_user_authorization_id FK
         varchar(64) token_hash "sha256(base64url(safeRandom(32bit)))"
+        varchar(256) access_token_hash "sha256(access_token)"
         int generation
         varchar(64) ip_address "RFC 5952"
         varchar(32) device_fingerprint "FingerprintJSのvisitorId"
@@ -103,23 +104,6 @@ erDiagram
         bigint external_watch_count
         timestamptz external_created_at
         int external_length_seconds
-        timestamptz fetched_at
-        timestamptz created_at
-        timestamptz updated_at
-        uuid public_id
-    }
-
-    m_comment {
-        bigint m_comment_id PK
-        bigint m_video_id FK
-        varchar(512) external_id
-        varchar(8192) external_content
-        bigint external_like_count
-        varchar(32) external_user_id
-        varchar(64) external_user_display_name
-        varchar(64) external_user_custom_id
-        bool external_edited_flg
-        timestamptz external_created_at
         timestamptz fetched_at
         timestamptz created_at
         timestamptz updated_at
@@ -205,7 +189,6 @@ erDiagram
     m_user ||--o{ m_user_subscribing_channel: ""
     m_video ||--o{ t_video_watch: ""
     m_user ||--o{ t_video_watch: ""
-    m_video ||--o{ m_comment: ""
     m_user ||--o{ m_user_screen_time_range: ""
     m_channel ||--o{ m_video: ""
     m_user ||--o{ h_search: ""
@@ -242,9 +225,6 @@ erDiagram
 | m_video                    | idx_1_m_video                    | m_channel_id                                              |
 | m_video                    | uk_1_m_video                     | public_id                                                 |
 | m_video                    | uk_2_m_video                     | external_id                                               |
-| m_comment                  | idx_1_m_comment                  | m_video_id                                                |
-| m_comment                  | uk_1_m_comment                   | public_id                                                 |
-| m_comment                  | uk_2_m_comment                   | external_id                                               |
 | t_video_watch              | uk_1_t_video_watch               | public_id                                                 |
 | t_video_watch              | idx_1_t_video_watch              | m_user_id                                                 |
 | h_search                   | idx_1_h_search                   | m_user_id                                                 |

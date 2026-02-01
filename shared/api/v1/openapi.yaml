@@ -1032,23 +1032,7 @@ paths:
                   external_video_like_count:
                     type: integer
                     minimum: 0
-                  comments:
-                    type: object
-                    properties:
-                      item_count:
-                        type: integer
-                        minimum: 0
-                      items:
-                        type: array
-                        uniqueItems: true
-                        items:
-                          type: object
-                          properties:
-                            external_comment_content:
-                              type: string
-                          required: [ external_comment_content ]
-                    required: [ item_count, items ]
-                required: [ video_id, external_video_id, external_video_title, external_video_description, external_video_thumbnail_url, channel_id, external_channel_id, external_channel_display_name, external_channel_subscribers_count, external_channel_icon_url, external_video_like_count, comments ]
+                required: [ video_id, external_video_id, external_video_title, external_video_description, external_video_thumbnail_url, channel_id, external_channel_id, external_channel_display_name, external_channel_subscribers_count, external_channel_icon_url, external_video_like_count ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
