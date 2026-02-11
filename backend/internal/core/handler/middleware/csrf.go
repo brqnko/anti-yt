@@ -1,11 +1,11 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
-	"github.com/labstack/echo/v4"
 )
 
 var (
@@ -17,29 +17,29 @@ var (
 )
 
 func CsrfMiddleware(f v1.StrictHandlerFunc, operationID string) v1.StrictHandlerFunc {
-	return func(c echo.Context, request interface{}) (response interface{}, err error) {
-		method := c.Request().Method
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (response interface{}, err error) {
+		method := r.Method
 		if method == http.MethodGet || method == http.MethodHead || method == http.MethodOptions || method == http.MethodTrace {
-			return f(c, request)
+			return f(ctx, w, r, request)
 		}
 		for _, prefix := range csrfExcludedPathPrefixes {
-			if strings.HasPrefix(c.Path(), prefix) {
-				return f(c, request)
+			if strings.HasPrefix(r.URL.Path, prefix) {
+				return f(ctx, w, r, request)
 			}
 		}
 
-		cookie, err := c.Cookie("csrf_token")
+		cookie, err := r.Cookie("csrf_token")
 		if err != nil {
-			return nil, echo.NewHTTPError(http.StatusBadRequest, "bad request")
+			return writeErrorJSON(w, http.StatusBadRequest, "bad request", "bad request")
 		}
-		header := c.Request().Header.Get("x-csrf-token")
+		header := r.Header.Get("x-csrf-token")
 		if header == "" || cookie.Value == "" {
-			return nil, echo.NewHTTPError(http.StatusBadRequest, "bad request")
+			return writeErrorJSON(w, http.StatusBadRequest, "bad request", "bad request")
 		}
 		if header != cookie.Value {
-			return nil, echo.NewHTTPError(http.StatusBadRequest, "bad request")
+			return writeErrorJSON(w, http.StatusBadRequest, "bad request", "bad request")
 		}
 
-		return f(c, request)
+		return f(ctx, w, r, request)
 	}
 }

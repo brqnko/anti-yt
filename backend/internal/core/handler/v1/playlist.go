@@ -4,37 +4,37 @@ import (
 	"context"
 )
 
-func (h *Handler) GetPlaylists(c context.Context, request GetPlaylistsRequestObject) (GetPlaylistsResponseObject, error) {
+func (h *APIHandler) GetPlaylists(c context.Context, request GetPlaylistsRequestObject) (GetPlaylistsResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) PostPlaylists(c context.Context, request PostPlaylistsRequestObject) (PostPlaylistsResponseObject, error) {
+func (h *APIHandler) PostPlaylists(c context.Context, request PostPlaylistsRequestObject) (PostPlaylistsResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) DeletePlaylistsPlaylistId(c context.Context, request DeletePlaylistsPlaylistIdRequestObject) (DeletePlaylistsPlaylistIdResponseObject, error) {
+func (h *APIHandler) DeletePlaylistsPlaylistId(c context.Context, request DeletePlaylistsPlaylistIdRequestObject) (DeletePlaylistsPlaylistIdResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) GetPlaylistsPlaylistId(c context.Context, request GetPlaylistsPlaylistIdRequestObject) (GetPlaylistsPlaylistIdResponseObject, error) {
+func (h *APIHandler) GetPlaylistsPlaylistId(c context.Context, request GetPlaylistsPlaylistIdRequestObject) (GetPlaylistsPlaylistIdResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) PatchPlaylistsPlaylistId(c context.Context, request PatchPlaylistsPlaylistIdRequestObject) (PatchPlaylistsPlaylistIdResponseObject, error) {
+func (h *APIHandler) PatchPlaylistsPlaylistId(c context.Context, request PatchPlaylistsPlaylistIdRequestObject) (PatchPlaylistsPlaylistIdResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) DeletePlaylistsPlaylistIdVideos(c context.Context, request DeletePlaylistsPlaylistIdVideosRequestObject) (DeletePlaylistsPlaylistIdVideosResponseObject, error) {
+func (h *APIHandler) DeletePlaylistsPlaylistIdVideos(c context.Context, request DeletePlaylistsPlaylistIdVideosRequestObject) (DeletePlaylistsPlaylistIdVideosResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) PostPlaylistsPlaylistIdVideos(c context.Context, request PostPlaylistsPlaylistIdVideosRequestObject) (PostPlaylistsPlaylistIdVideosResponseObject, error) {
+func (h *APIHandler) PostPlaylistsPlaylistIdVideos(c context.Context, request PostPlaylistsPlaylistIdVideosRequestObject) (PostPlaylistsPlaylistIdVideosResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }

@@ -4,12 +4,12 @@ import (
 	"context"
 )
 
-func (h *Handler) GetChannelsChannelIdVideos(c context.Context, request GetChannelsChannelIdVideosRequestObject) (GetChannelsChannelIdVideosResponseObject, error) {
+func (h *APIHandler) GetChannelsChannelIdVideos(c context.Context, request GetChannelsChannelIdVideosRequestObject) (GetChannelsChannelIdVideosResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) GetFeedChannels(c context.Context, request GetFeedChannelsRequestObject) (GetFeedChannelsResponseObject, error) {
+func (h *APIHandler) GetFeedChannels(c context.Context, request GetFeedChannelsRequestObject) (GetFeedChannelsResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }

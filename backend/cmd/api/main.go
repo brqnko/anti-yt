@@ -20,8 +20,8 @@ import (
 	middleware2 "github.com/brqnko/anti-yt/backend/internal/core/handler/middleware"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
@@ -115,24 +115,30 @@ func run(ctx context.Context) int {
 		return 1
 	}
 
-	h, err := v1.NewHandler(db, oauth2Config, verifier, cfg.serverURL, cfg.frontendURL, jwtPrivate, jwtPublic)
+	h, err := v1.NewAPIHandler(db, oauth2Config, verifier, cfg.serverURL, cfg.frontendURL, jwtPrivate, jwtPublic)
 	if err != nil {
 		slog.Error("failed to create handler", "error", err)
 		return 1
 	}
 
-	e := echo.New()
+	r := chi.NewRouter()
 	// NOTE: RateLimit, gzip, loggerはLB(pingora, nginx等)で行う。各リクエストへのレートリミットはHandlerが行う
-	e.Use(middleware.Recover(), middleware.Secure())
-	v1.RegisterHandlers(e, v1.NewStrictHandler(h, []v1.StrictMiddlewareFunc{
+	r.Use(middleware.Recoverer)
+	r.Use(secureHeaders)
+	v1.HandlerFromMux(v1.NewStrictHandler(h, []v1.StrictMiddlewareFunc{
 		middleware2.AccessTokenMiddleware(jwtPublic, db),
 		middleware2.CsrfMiddleware,
 		middleware2.AuthTokensMiddleware,
 		middleware2.RequestIDMiddleware,
-	}))
+	}), r)
+
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: r,
+	}
 
 	go func() {
-		if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("shutting down the server")
 		}
 	}()
@@ -142,12 +148,21 @@ func run(ctx context.Context) int {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := e.Shutdown(shutdownCtx); err != nil {
+	if err := srv.Shutdown(shutdownCtx); err != nil {
 		slog.Error("failed to shutdown server", "error", err)
 		return 1
 	}
 
 	return 0
+}
+
+func secureHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		next.ServeHTTP(w, r)
+	})
 }
 
 func loadPrivateKey(path string) (ed25519.PrivateKey, error) {

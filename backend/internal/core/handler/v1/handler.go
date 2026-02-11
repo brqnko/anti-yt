@@ -10,14 +10,14 @@ import (
 	"golang.org/x/oauth2"
 )
 
-var _ StrictServerInterface = (*Handler)(nil)
+var _ StrictServerInterface = (*APIHandler)(nil)
 
 const (
 	internalErrorTitle  = "internal Server Error"
 	internalErrorDetail = "Something went wrong!"
 )
 
-type Handler struct {
+type APIHandler struct {
 	db *pgxpool.Pool
 
 	authService *auth.Service
@@ -25,13 +25,13 @@ type Handler struct {
 	frontendURL string
 }
 
-func NewHandler(db *pgxpool.Pool, oauth2Config *oauth2.Config, verifier *oidc.IDTokenVerifier, serverURL, frontendURL string, jwtPrivate ed25519.PrivateKey, jwtPublic ed25519.PublicKey) (*Handler, error) {
+func NewAPIHandler(db *pgxpool.Pool, oauth2Config *oauth2.Config, verifier *oidc.IDTokenVerifier, serverURL, frontendURL string, jwtPrivate ed25519.PrivateKey, jwtPublic ed25519.PublicKey) (*APIHandler, error) {
 	authService, err := auth.NewService(db, oauth2Config, verifier, 30*time.Minute, 30*24*time.Hour, serverURL, jwtPrivate, jwtPublic)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Handler{
+	return &APIHandler{
 		db:          db,
 		authService: authService,
 		serverURL:   serverURL,

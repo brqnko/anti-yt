@@ -4,27 +4,27 @@ import (
 	"context"
 )
 
-func (h *Handler) DeleteUsersMe(c context.Context, request DeleteUsersMeRequestObject) (DeleteUsersMeResponseObject, error) {
+func (h *APIHandler) DeleteUsersMe(c context.Context, request DeleteUsersMeRequestObject) (DeleteUsersMeResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) GetUsersMeStatus(c context.Context, request GetUsersMeStatusRequestObject) (GetUsersMeStatusResponseObject, error) {
+func (h *APIHandler) GetUsersMeStatus(c context.Context, request GetUsersMeStatusRequestObject) (GetUsersMeStatusResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) PatchUsersMeStatus(c context.Context, request PatchUsersMeStatusRequestObject) (PatchUsersMeStatusResponseObject, error) {
+func (h *APIHandler) PatchUsersMeStatus(c context.Context, request PatchUsersMeStatusRequestObject) (PatchUsersMeStatusResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) PostUsersMe(c context.Context, request PostUsersMeRequestObject) (PostUsersMeResponseObject, error) {
+func (h *APIHandler) PostUsersMe(c context.Context, request PostUsersMeRequestObject) (PostUsersMeResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h *Handler) GetUsersMeLimits(c context.Context, request GetUsersMeLimitsRequestObject) (GetUsersMeLimitsResponseObject, error) {
+func (h *APIHandler) GetUsersMeLimits(c context.Context, request GetUsersMeLimitsRequestObject) (GetUsersMeLimitsResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }

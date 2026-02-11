@@ -12,7 +12,7 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
-func (h *Handler) GetAuthGoogle(c context.Context, request GetAuthGoogleRequestObject) (GetAuthGoogleResponseObject, error) {
+func (h *APIHandler) GetAuthGoogle(c context.Context, request GetAuthGoogleRequestObject) (GetAuthGoogleResponseObject, error) {
 	url, csrf, err := h.authService.CreateAuthCode(c)
 	if err != nil {
 		return GetAuthGoogle500JSONResponse{
@@ -41,7 +41,7 @@ func (h *Handler) GetAuthGoogle(c context.Context, request GetAuthGoogleRequestO
 	}, nil
 }
 
-func (h *Handler) GetAuthGoogleCallback(c context.Context, request GetAuthGoogleCallbackRequestObject) (GetAuthGoogleCallbackResponseObject, error) {
+func (h *APIHandler) GetAuthGoogleCallback(c context.Context, request GetAuthGoogleCallbackRequestObject) (GetAuthGoogleCallbackResponseObject, error) {
 	result, err := h.authService.GoogleOIDCCallback(c, auth.GoogleOIDCCallbackParams{
 		CSRF:              request.Params.Csrf,
 		State:             request.Params.State,
@@ -127,7 +127,7 @@ func (h *Handler) GetAuthGoogleCallback(c context.Context, request GetAuthGoogle
 	}, nil
 }
 
-func (h *Handler) PostAuthLogout(c context.Context, request PostAuthLogoutRequestObject) (PostAuthLogoutResponseObject, error) {
+func (h *APIHandler) PostAuthLogout(c context.Context, request PostAuthLogoutRequestObject) (PostAuthLogoutResponseObject, error) {
 	refreshToken, ok := util.RefreshTokenFromContext(c)
 	if !ok {
 		return PostAuthLogout400JSONResponse{
@@ -191,7 +191,7 @@ func (h *Handler) PostAuthLogout(c context.Context, request PostAuthLogoutReques
 	}, nil
 }
 
-func (h *Handler) PostAuthRefresh(c context.Context, request PostAuthRefreshRequestObject) (PostAuthRefreshResponseObject, error) {
+func (h *APIHandler) PostAuthRefresh(c context.Context, request PostAuthRefreshRequestObject) (PostAuthRefreshResponseObject, error) {
 	refreshToken, ok := util.RefreshTokenFromContext(c)
 	if !ok {
 		return PostAuthRefresh400JSONResponse{
@@ -238,7 +238,7 @@ func (h *Handler) PostAuthRefresh(c context.Context, request PostAuthRefreshRequ
 	}, nil
 }
 
-func (h *Handler) GetUsersMeSessions(c context.Context, request GetUsersMeSessionsRequestObject) (GetUsersMeSessionsResponseObject, error) {
+func (h *APIHandler) GetUsersMeSessions(c context.Context, request GetUsersMeSessionsRequestObject) (GetUsersMeSessionsResponseObject, error) {
 	userID, ok := util.UserIDFromContext(c)
 	if !ok {
 		return GetUsersMeSessions500JSONResponse{
@@ -259,40 +259,31 @@ func (h *Handler) GetUsersMeSessions(c context.Context, request GetUsersMeSessio
 		}, nil
 	}
 
-	items := make([]struct {
-		BrowserName    string             `json:"browser_name"`
-		CityName       string             `json:"city_name"`
-		CountryCode    string             `json:"country_code"`
-		CreatedAt      time.Time          `json:"created_at"`
-		Id             openapi_types.UUID `json:"id"`
-		LastLoggedInAt time.Time          `json:"last_logged_in_at"`
-	}, len(sessions))
-
-	for i, session := range sessions {
-		items[i] = struct {
+	resp := GetUsersMeSessions200JSONResponse{
+		ItemCount: len(sessions),
+		Items:     make([]struct {
 			BrowserName    string             `json:"browser_name"`
 			CityName       string             `json:"city_name"`
 			CountryCode    string             `json:"country_code"`
 			CreatedAt      time.Time          `json:"created_at"`
 			Id             openapi_types.UUID `json:"id"`
 			LastLoggedInAt time.Time          `json:"last_logged_in_at"`
-		}{
-			BrowserName:    session.BrowserName,
-			CityName:       session.CityName,
-			CountryCode:    session.CountryCode,
-			CreatedAt:      session.CreatedAt,
-			Id:             session.ID,
-			LastLoggedInAt: session.LastLoggedInAt,
-		}
+		}, len(sessions)),
 	}
 
-	return GetUsersMeSessions200JSONResponse{
-		ItemCount: len(sessions),
-		Items:     items,
-	}, nil
+	for i, session := range sessions {
+		resp.Items[i].BrowserName = session.BrowserName
+		resp.Items[i].CityName = session.CityName
+		resp.Items[i].CountryCode = session.CountryCode
+		resp.Items[i].CreatedAt = session.CreatedAt
+		resp.Items[i].Id = session.ID
+		resp.Items[i].LastLoggedInAt = session.LastLoggedInAt
+	}
+
+	return resp, nil
 }
 
-func (h *Handler) DeleteUsersMeSessionsSessionId(c context.Context, request DeleteUsersMeSessionsSessionIdRequestObject) (DeleteUsersMeSessionsSessionIdResponseObject, error) {
+func (h *APIHandler) DeleteUsersMeSessionsSessionId(c context.Context, request DeleteUsersMeSessionsSessionIdRequestObject) (DeleteUsersMeSessionsSessionIdResponseObject, error) {
 	if _, err := h.authService.RemoveSession(c, request.SessionId); err != nil {
 		if errors.Is(err, auth.ErrNoSuchRefreshToken) {
 			return DeleteUsersMeSessionsSessionId400JSONResponse{

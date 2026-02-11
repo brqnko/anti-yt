@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"crypto/ed25519"
 	"errors"
 	"net/http"
@@ -13,7 +14,6 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/labstack/echo/v4"
 )
 
 var (
@@ -27,34 +27,32 @@ func AccessTokenMiddleware(jwtPublic ed25519.PublicKey, db *pgxpool.Pool) func(v
 	q := sqlc.New(db)
 
 	return func(f v1.StrictHandlerFunc, operationID string) v1.StrictHandlerFunc {
-		return func(ctx echo.Context, request interface{}) (response interface{}, err error) {
+		return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (response interface{}, err error) {
 			for _, prefix := range accessTokenIgnorePathPrefixes {
-				if strings.HasPrefix(ctx.Path(), prefix) {
-					return f(ctx, request)
+				if strings.HasPrefix(r.URL.Path, prefix) {
+					return f(ctx, w, r, request)
 				}
 			}
 
-			cookie, err := ctx.Cookie("access_token")
+			cookie, err := r.Cookie("access_token")
 			if err != nil {
-				return nil, echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 			}
 			userID, jti, _, err := claims.VerifyUserAccessTokenWithExpiry(jwtPublic, cookie.Value)
 			if err != nil {
-				return nil, echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 			}
-			req := ctx.Request()
-			expiresAt, err := q.IsJTIBlacklisted(req.Context(), jti)
+			expiresAt, err := q.IsJTIBlacklisted(ctx, jti)
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-				return nil, echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 			}
 
 			if errors.Is(err, pgx.ErrNoRows) || !time.Now().Before(expiresAt) {
-				newCtx := util.WithUserID(req.Context(), userID)
-				ctx.SetRequest(req.WithContext(newCtx))
-				return f(ctx, request)
+				newCtx := util.WithUserID(ctx, userID)
+				return f(newCtx, w, r.WithContext(newCtx), request)
 			}
 
-			return nil, echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+			return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 		}
 	}
 }

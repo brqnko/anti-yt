@@ -4,7 +4,7 @@ output: api.gen.go
 
 generate:
   models: true
-  echo-server: true
+  chi-server: true
   strict-server: true
   embedded-spec: true
 

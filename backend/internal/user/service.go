@@ -36,7 +36,7 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 		duration := time.Second * time.Duration(*dailyScreenLimit)
 		dailyScreenLimitDuration = &duration
 	}
-	createUserInput, err := NewCreateUserInput(displayName, languageCode, dailyScreenLimitDuration, screenLimits)
+	_, err = NewCreateUserInput(displayName, languageCode, dailyScreenLimitDuration, screenLimits)
 	if err != nil {
 		return err
 	}

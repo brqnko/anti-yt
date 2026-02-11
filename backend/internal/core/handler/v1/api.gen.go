@@ -17,9 +17,9 @@ import (
 	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/labstack/echo/v4"
+	"github.com/go-chi/chi/v5"
 	"github.com/oapi-codegen/runtime"
-	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
+	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -783,3536 +783,5250 @@ type PatchUsersMeStatusJSONRequestBody PatchUsersMeStatusJSONBody
 type ServerInterface interface {
 	// Google authentication
 	// (GET /api/v1/auth/google)
-	GetAuthGoogle(ctx echo.Context, params GetAuthGoogleParams) error
+	GetAuthGoogle(w http.ResponseWriter, r *http.Request, params GetAuthGoogleParams)
 	// Google Authorization Code Callback
 	// (GET /api/v1/auth/google/callback)
-	GetAuthGoogleCallback(ctx echo.Context, params GetAuthGoogleCallbackParams) error
+	GetAuthGoogleCallback(w http.ResponseWriter, r *http.Request, params GetAuthGoogleCallbackParams)
 	// Logout
 	// (POST /api/v1/auth/logout)
-	PostAuthLogout(ctx echo.Context, params PostAuthLogoutParams) error
+	PostAuthLogout(w http.ResponseWriter, r *http.Request, params PostAuthLogoutParams)
 	// Refresh access token
 	// (POST /api/v1/auth/refresh)
-	PostAuthRefresh(ctx echo.Context, params PostAuthRefreshParams) error
+	PostAuthRefresh(w http.ResponseWriter, r *http.Request, params PostAuthRefreshParams)
 	// Get latest channel uploads
 	// (GET /api/v1/channels/{channel_id}/videos)
-	GetChannelsChannelIdVideos(ctx echo.Context, channelId openapi_types.UUID, params GetChannelsChannelIdVideosParams) error
+	GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request, channelId openapi_types.UUID, params GetChannelsChannelIdVideosParams)
 	// Get latest videos
 	// (GET /api/v1/feed)
-	GetFeed(ctx echo.Context, params GetFeedParams) error
+	GetFeed(w http.ResponseWriter, r *http.Request, params GetFeedParams)
 	// Get channels
 	// (GET /api/v1/feed/channels)
-	GetFeedChannels(ctx echo.Context, params GetFeedChannelsParams) error
+	GetFeedChannels(w http.ResponseWriter, r *http.Request, params GetFeedChannelsParams)
 	// Get video history
 	// (GET /api/v1/history)
-	GetHistory(ctx echo.Context, params GetHistoryParams) error
+	GetHistory(w http.ResponseWriter, r *http.Request, params GetHistoryParams)
 	// Get playlists
 	// (GET /api/v1/playlists)
-	GetPlaylists(ctx echo.Context, params GetPlaylistsParams) error
+	GetPlaylists(w http.ResponseWriter, r *http.Request, params GetPlaylistsParams)
 	// Create new playlist
 	// (POST /api/v1/playlists)
-	PostPlaylists(ctx echo.Context, params PostPlaylistsParams) error
+	PostPlaylists(w http.ResponseWriter, r *http.Request, params PostPlaylistsParams)
 	// Delete playlist
 	// (DELETE /api/v1/playlists/{playlist_id})
-	DeletePlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdParams) error
+	DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdParams)
 	// Get playlist
 	// (GET /api/v1/playlists/{playlist_id})
-	GetPlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID, params GetPlaylistsPlaylistIdParams) error
+	GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params GetPlaylistsPlaylistIdParams)
 	// Patch playlist
 	// (PATCH /api/v1/playlists/{playlist_id})
-	PatchPlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID, params PatchPlaylistsPlaylistIdParams) error
+	PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params PatchPlaylistsPlaylistIdParams)
 	// Remove a video from playlist
 	// (DELETE /api/v1/playlists/{playlist_id}/videos)
-	DeletePlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdVideosParams) error
+	DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdVideosParams)
 	// Insert a new video into playlist
 	// (POST /api/v1/playlists/{playlist_id}/videos)
-	PostPlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapi_types.UUID, params PostPlaylistsPlaylistIdVideosParams) error
+	PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params PostPlaylistsPlaylistIdVideosParams)
 	// Get search result
 	// (GET /api/v1/search)
-	GetSearch(ctx echo.Context, params GetSearchParams) error
+	GetSearch(w http.ResponseWriter, r *http.Request, params GetSearchParams)
 	// Get User Statics by day
 	// (GET /api/v1/statistics/daily)
-	GetStatisticsDaily(ctx echo.Context, params GetStatisticsDailyParams) error
+	GetStatisticsDaily(w http.ResponseWriter, r *http.Request, params GetStatisticsDailyParams)
 	// Get User Statistics by month
 	// (GET /api/v1/statistics/monthly)
-	GetStatisticsMonthly(ctx echo.Context, params GetStatisticsMonthlyParams) error
+	GetStatisticsMonthly(w http.ResponseWriter, r *http.Request, params GetStatisticsMonthlyParams)
 	// Get subscriptions
 	// (GET /api/v1/subscriptions)
-	GetSubscriptions(ctx echo.Context, params GetSubscriptionsParams) error
+	GetSubscriptions(w http.ResponseWriter, r *http.Request, params GetSubscriptionsParams)
 	// Subscribe new channel
 	// (POST /api/v1/subscriptions)
-	PostSubscriptions(ctx echo.Context, params PostSubscriptionsParams) error
+	PostSubscriptions(w http.ResponseWriter, r *http.Request, params PostSubscriptionsParams)
 	// Delete subscription
 	// (DELETE /api/v1/subscriptions/{channel_id})
-	DeleteSubscriptionsChannelId(ctx echo.Context, channelId openapi_types.UUID, params DeleteSubscriptionsChannelIdParams) error
+	DeleteSubscriptionsChannelId(w http.ResponseWriter, r *http.Request, channelId openapi_types.UUID, params DeleteSubscriptionsChannelIdParams)
 	// Create a new account
 	// (POST /api/v1/users)
-	PostUsersMe(ctx echo.Context, params PostUsersMeParams) error
+	PostUsersMe(w http.ResponseWriter, r *http.Request, params PostUsersMeParams)
 	// Delete User's Account
 	// (DELETE /api/v1/users/me)
-	DeleteUsersMe(ctx echo.Context, params DeleteUsersMeParams) error
+	DeleteUsersMe(w http.ResponseWriter, r *http.Request, params DeleteUsersMeParams)
 	// Get Current User's Status
 	// (GET /api/v1/users/me)
-	GetUsersMeStatus(ctx echo.Context, params GetUsersMeStatusParams) error
+	GetUsersMeStatus(w http.ResponseWriter, r *http.Request, params GetUsersMeStatusParams)
 	// Update User Status
 	// (PATCH /api/v1/users/me)
-	PatchUsersMeStatus(ctx echo.Context, params PatchUsersMeStatusParams) error
+	PatchUsersMeStatus(w http.ResponseWriter, r *http.Request, params PatchUsersMeStatusParams)
 	// Get User Detail
 	// (GET /api/v1/users/me/limits)
-	GetUsersMeLimits(ctx echo.Context, params GetUsersMeLimitsParams) error
+	GetUsersMeLimits(w http.ResponseWriter, r *http.Request, params GetUsersMeLimitsParams)
 	// User session list
 	// (GET /api/v1/users/me/sessions)
-	GetUsersMeSessions(ctx echo.Context, params GetUsersMeSessionsParams) error
+	GetUsersMeSessions(w http.ResponseWriter, r *http.Request, params GetUsersMeSessionsParams)
 	// Delete session
 	// (DELETE /api/v1/users/me/sessions/{session_id})
-	DeleteUsersMeSessionsSessionId(ctx echo.Context, sessionId openapi_types.UUID, params DeleteUsersMeSessionsSessionIdParams) error
+	DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID, params DeleteUsersMeSessionsSessionIdParams)
 	// Get video detail
 	// (GET /api/v1/videos/{external_video_id})
-	GetVideosVideoId(ctx echo.Context, externalVideoId string, params GetVideosVideoIdParams) error
+	GetVideosVideoId(w http.ResponseWriter, r *http.Request, externalVideoId string, params GetVideosVideoIdParams)
 	// Heartbeats
 	// (POST /api/v1/videos/{external_video_id}/heartbeats)
-	PostVideosVideoIdHeartbeats(ctx echo.Context, externalVideoId string, params PostVideosVideoIdHeartbeatsParams) error
+	PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, externalVideoId string, params PostVideosVideoIdHeartbeatsParams)
 	// Health check
 	// (GET /health)
-	GetHealth(ctx echo.Context, params GetHealthParams) error
+	GetHealth(w http.ResponseWriter, r *http.Request, params GetHealthParams)
 }
 
-// ServerInterfaceWrapper converts echo contexts to parameters.
+// Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
+
+type Unimplemented struct{}
+
+// Google authentication
+// (GET /api/v1/auth/google)
+func (_ Unimplemented) GetAuthGoogle(w http.ResponseWriter, r *http.Request, params GetAuthGoogleParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Google Authorization Code Callback
+// (GET /api/v1/auth/google/callback)
+func (_ Unimplemented) GetAuthGoogleCallback(w http.ResponseWriter, r *http.Request, params GetAuthGoogleCallbackParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Logout
+// (POST /api/v1/auth/logout)
+func (_ Unimplemented) PostAuthLogout(w http.ResponseWriter, r *http.Request, params PostAuthLogoutParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Refresh access token
+// (POST /api/v1/auth/refresh)
+func (_ Unimplemented) PostAuthRefresh(w http.ResponseWriter, r *http.Request, params PostAuthRefreshParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get latest channel uploads
+// (GET /api/v1/channels/{channel_id}/videos)
+func (_ Unimplemented) GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request, channelId openapi_types.UUID, params GetChannelsChannelIdVideosParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get latest videos
+// (GET /api/v1/feed)
+func (_ Unimplemented) GetFeed(w http.ResponseWriter, r *http.Request, params GetFeedParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get channels
+// (GET /api/v1/feed/channels)
+func (_ Unimplemented) GetFeedChannels(w http.ResponseWriter, r *http.Request, params GetFeedChannelsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get video history
+// (GET /api/v1/history)
+func (_ Unimplemented) GetHistory(w http.ResponseWriter, r *http.Request, params GetHistoryParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get playlists
+// (GET /api/v1/playlists)
+func (_ Unimplemented) GetPlaylists(w http.ResponseWriter, r *http.Request, params GetPlaylistsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Create new playlist
+// (POST /api/v1/playlists)
+func (_ Unimplemented) PostPlaylists(w http.ResponseWriter, r *http.Request, params PostPlaylistsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete playlist
+// (DELETE /api/v1/playlists/{playlist_id})
+func (_ Unimplemented) DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get playlist
+// (GET /api/v1/playlists/{playlist_id})
+func (_ Unimplemented) GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params GetPlaylistsPlaylistIdParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Patch playlist
+// (PATCH /api/v1/playlists/{playlist_id})
+func (_ Unimplemented) PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params PatchPlaylistsPlaylistIdParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Remove a video from playlist
+// (DELETE /api/v1/playlists/{playlist_id}/videos)
+func (_ Unimplemented) DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdVideosParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Insert a new video into playlist
+// (POST /api/v1/playlists/{playlist_id}/videos)
+func (_ Unimplemented) PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params PostPlaylistsPlaylistIdVideosParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get search result
+// (GET /api/v1/search)
+func (_ Unimplemented) GetSearch(w http.ResponseWriter, r *http.Request, params GetSearchParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get User Statics by day
+// (GET /api/v1/statistics/daily)
+func (_ Unimplemented) GetStatisticsDaily(w http.ResponseWriter, r *http.Request, params GetStatisticsDailyParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get User Statistics by month
+// (GET /api/v1/statistics/monthly)
+func (_ Unimplemented) GetStatisticsMonthly(w http.ResponseWriter, r *http.Request, params GetStatisticsMonthlyParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get subscriptions
+// (GET /api/v1/subscriptions)
+func (_ Unimplemented) GetSubscriptions(w http.ResponseWriter, r *http.Request, params GetSubscriptionsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Subscribe new channel
+// (POST /api/v1/subscriptions)
+func (_ Unimplemented) PostSubscriptions(w http.ResponseWriter, r *http.Request, params PostSubscriptionsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete subscription
+// (DELETE /api/v1/subscriptions/{channel_id})
+func (_ Unimplemented) DeleteSubscriptionsChannelId(w http.ResponseWriter, r *http.Request, channelId openapi_types.UUID, params DeleteSubscriptionsChannelIdParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Create a new account
+// (POST /api/v1/users)
+func (_ Unimplemented) PostUsersMe(w http.ResponseWriter, r *http.Request, params PostUsersMeParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete User's Account
+// (DELETE /api/v1/users/me)
+func (_ Unimplemented) DeleteUsersMe(w http.ResponseWriter, r *http.Request, params DeleteUsersMeParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get Current User's Status
+// (GET /api/v1/users/me)
+func (_ Unimplemented) GetUsersMeStatus(w http.ResponseWriter, r *http.Request, params GetUsersMeStatusParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Update User Status
+// (PATCH /api/v1/users/me)
+func (_ Unimplemented) PatchUsersMeStatus(w http.ResponseWriter, r *http.Request, params PatchUsersMeStatusParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get User Detail
+// (GET /api/v1/users/me/limits)
+func (_ Unimplemented) GetUsersMeLimits(w http.ResponseWriter, r *http.Request, params GetUsersMeLimitsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// User session list
+// (GET /api/v1/users/me/sessions)
+func (_ Unimplemented) GetUsersMeSessions(w http.ResponseWriter, r *http.Request, params GetUsersMeSessionsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete session
+// (DELETE /api/v1/users/me/sessions/{session_id})
+func (_ Unimplemented) DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID, params DeleteUsersMeSessionsSessionIdParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get video detail
+// (GET /api/v1/videos/{external_video_id})
+func (_ Unimplemented) GetVideosVideoId(w http.ResponseWriter, r *http.Request, externalVideoId string, params GetVideosVideoIdParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Heartbeats
+// (POST /api/v1/videos/{external_video_id}/heartbeats)
+func (_ Unimplemented) PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, externalVideoId string, params PostVideosVideoIdHeartbeatsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Health check
+// (GET /health)
+func (_ Unimplemented) GetHealth(w http.ResponseWriter, r *http.Request, params GetHealthParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ServerInterfaceWrapper converts contexts to parameters.
 type ServerInterfaceWrapper struct {
-	Handler ServerInterface
+	Handler            ServerInterface
+	HandlerMiddlewares []MiddlewareFunc
+	ErrorHandlerFunc   func(w http.ResponseWriter, r *http.Request, err error)
 }
 
-// GetAuthGoogle converts echo context to params.
-func (w *ServerInterfaceWrapper) GetAuthGoogle(ctx echo.Context) error {
+type MiddlewareFunc func(http.Handler) http.Handler
+
+// GetAuthGoogle operation middleware
+func (siw *ServerInterfaceWrapper) GetAuthGoogle(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetAuthGoogleParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetAuthGoogle(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAuthGoogle(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetAuthGoogleCallback converts echo context to params.
-func (w *ServerInterfaceWrapper) GetAuthGoogleCallback(ctx echo.Context) error {
+// GetAuthGoogleCallback operation middleware
+func (siw *ServerInterfaceWrapper) GetAuthGoogleCallback(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetAuthGoogleCallbackParams
+
 	// ------------- Required query parameter "code" -------------
 
-	err = runtime.BindQueryParameter("form", true, true, "code", ctx.QueryParams(), &params.Code)
+	if paramValue := r.URL.Query().Get("code"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "code"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "code", r.URL.Query(), &params.Code)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter code: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "code", Err: err})
+		return
 	}
 
 	// ------------- Required query parameter "state" -------------
 
-	err = runtime.BindQueryParameter("form", true, true, "state", ctx.QueryParams(), &params.State)
+	if paramValue := r.URL.Query().Get("state"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "state"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "state", r.URL.Query(), &params.State)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter state: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "state", Err: err})
+		return
 	}
 
 	// ------------- Optional query parameter "error" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "error", ctx.QueryParams(), &params.Error)
+	err = runtime.BindQueryParameter("form", true, false, "error", r.URL.Query(), &params.Error)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter error: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "error", Err: err})
+		return
 	}
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	if cookie, err := ctx.Cookie("csrf"); err == nil {
+	{
+		var cookie *http.Cookie
 
-		var value string
-		err = runtime.BindStyledParameterWithOptions("simple", "csrf", cookie.Value, &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationCookie, Explode: true, Required: true})
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter csrf: %s", err))
+		if cookie, err = r.Cookie("csrf"); err == nil {
+			var value string
+			err = runtime.BindStyledParameterWithOptions("simple", "csrf", cookie.Value, &value, runtime.BindStyledParameterOptions{Explode: true, Required: true})
+			if err != nil {
+				siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "csrf", Err: err})
+				return
+			}
+			params.Csrf = value
+
+		} else {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "csrf"})
+			return
 		}
-		params.Csrf = value
-
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Query argument csrf is required, but not found"))
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetAuthGoogleCallback(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAuthGoogleCallback(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// PostAuthLogout converts echo context to params.
-func (w *ServerInterfaceWrapper) PostAuthLogout(ctx echo.Context) error {
+// PostAuthLogout operation middleware
+func (siw *ServerInterfaceWrapper) PostAuthLogout(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params PostAuthLogoutParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostAuthLogout(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostAuthLogout(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// PostAuthRefresh converts echo context to params.
-func (w *ServerInterfaceWrapper) PostAuthRefresh(ctx echo.Context) error {
+// PostAuthRefresh operation middleware
+func (siw *ServerInterfaceWrapper) PostAuthRefresh(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params PostAuthRefreshParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "x-csrf-token" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("x-csrf-token")]; found {
 		var XCsrfToken HeaderCSRFToken
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for x-csrf-token, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "x-csrf-token", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "x-csrf-token", valueList[0], &XCsrfToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter x-csrf-token: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "x-csrf-token", Err: err})
+			return
 		}
 
 		params.XCsrfToken = XCsrfToken
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter x-csrf-token is required, but not found"))
+		err := fmt.Errorf("Header parameter x-csrf-token is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "x-csrf-token", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	if cookie, err := ctx.Cookie("csrf_token"); err == nil {
+	{
+		var cookie *http.Cookie
 
-		var value CookieCSRFToken
-		err = runtime.BindStyledParameterWithOptions("simple", "csrf_token", cookie.Value, &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationCookie, Explode: true, Required: true})
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter csrf_token: %s", err))
+		if cookie, err = r.Cookie("csrf_token"); err == nil {
+			var value CookieCSRFToken
+			err = runtime.BindStyledParameterWithOptions("simple", "csrf_token", cookie.Value, &value, runtime.BindStyledParameterOptions{Explode: true, Required: true})
+			if err != nil {
+				siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "csrf_token", Err: err})
+				return
+			}
+			params.CsrfToken = value
+
+		} else {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "csrf_token"})
+			return
 		}
-		params.CsrfToken = value
-
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Query argument csrf_token is required, but not found"))
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostAuthRefresh(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostAuthRefresh(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetChannelsChannelIdVideos converts echo context to params.
-func (w *ServerInterfaceWrapper) GetChannelsChannelIdVideos(ctx echo.Context) error {
+// GetChannelsChannelIdVideos operation middleware
+func (siw *ServerInterfaceWrapper) GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request) {
+
 	var err error
+
 	// ------------- Path parameter "channel_id" -------------
 	var channelId openapi_types.UUID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "channel_id", ctx.Param("channel_id"), &channelId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "channel_id", chi.URLParam(r, "channel_id"), &channelId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter channel_id: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "channel_id", Err: err})
+		return
 	}
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetChannelsChannelIdVideosParams
+
 	// ------------- Optional query parameter "cursor" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
+	err = runtime.BindQueryParameter("form", true, false, "cursor", r.URL.Query(), &params.Cursor)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		return
 	}
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetChannelsChannelIdVideos(ctx, channelId, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetChannelsChannelIdVideos(w, r, channelId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetFeed converts echo context to params.
-func (w *ServerInterfaceWrapper) GetFeed(ctx echo.Context) error {
+// GetFeed operation middleware
+func (siw *ServerInterfaceWrapper) GetFeed(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetFeedParams
+
 	// ------------- Optional query parameter "limit" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
 	}
 
 	// ------------- Optional query parameter "cursor" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
+	err = runtime.BindQueryParameter("form", true, false, "cursor", r.URL.Query(), &params.Cursor)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		return
 	}
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetFeed(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetFeed(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetFeedChannels converts echo context to params.
-func (w *ServerInterfaceWrapper) GetFeedChannels(ctx echo.Context) error {
+// GetFeedChannels operation middleware
+func (siw *ServerInterfaceWrapper) GetFeedChannels(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetFeedChannelsParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetFeedChannels(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetFeedChannels(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetHistory converts echo context to params.
-func (w *ServerInterfaceWrapper) GetHistory(ctx echo.Context) error {
+// GetHistory operation middleware
+func (siw *ServerInterfaceWrapper) GetHistory(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetHistoryParams
+
 	// ------------- Optional query parameter "limit" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
 	}
 
 	// ------------- Optional query parameter "cursor" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
+	err = runtime.BindQueryParameter("form", true, false, "cursor", r.URL.Query(), &params.Cursor)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		return
 	}
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetHistory(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetHistory(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetPlaylists converts echo context to params.
-func (w *ServerInterfaceWrapper) GetPlaylists(ctx echo.Context) error {
+// GetPlaylists operation middleware
+func (siw *ServerInterfaceWrapper) GetPlaylists(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetPlaylistsParams
+
 	// ------------- Optional query parameter "limit" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
 	}
 
 	// ------------- Optional query parameter "cursor" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
+	err = runtime.BindQueryParameter("form", true, false, "cursor", r.URL.Query(), &params.Cursor)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		return
 	}
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetPlaylists(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPlaylists(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// PostPlaylists converts echo context to params.
-func (w *ServerInterfaceWrapper) PostPlaylists(ctx echo.Context) error {
+// PostPlaylists operation middleware
+func (siw *ServerInterfaceWrapper) PostPlaylists(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params PostPlaylistsParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostPlaylists(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostPlaylists(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// DeletePlaylistsPlaylistId converts echo context to params.
-func (w *ServerInterfaceWrapper) DeletePlaylistsPlaylistId(ctx echo.Context) error {
+// DeletePlaylistsPlaylistId operation middleware
+func (siw *ServerInterfaceWrapper) DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request) {
+
 	var err error
+
 	// ------------- Path parameter "playlist_id" -------------
 	var playlistId openapi_types.UUID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", ctx.Param("playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter playlist_id: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "playlist_id", Err: err})
+		return
 	}
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params DeletePlaylistsPlaylistIdParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.DeletePlaylistsPlaylistId(ctx, playlistId, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeletePlaylistsPlaylistId(w, r, playlistId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetPlaylistsPlaylistId converts echo context to params.
-func (w *ServerInterfaceWrapper) GetPlaylistsPlaylistId(ctx echo.Context) error {
+// GetPlaylistsPlaylistId operation middleware
+func (siw *ServerInterfaceWrapper) GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request) {
+
 	var err error
+
 	// ------------- Path parameter "playlist_id" -------------
 	var playlistId openapi_types.UUID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", ctx.Param("playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter playlist_id: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "playlist_id", Err: err})
+		return
 	}
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetPlaylistsPlaylistIdParams
+
 	// ------------- Optional query parameter "limit" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
 	}
 
 	// ------------- Optional query parameter "cursor" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
+	err = runtime.BindQueryParameter("form", true, false, "cursor", r.URL.Query(), &params.Cursor)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		return
 	}
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetPlaylistsPlaylistId(ctx, playlistId, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPlaylistsPlaylistId(w, r, playlistId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// PatchPlaylistsPlaylistId converts echo context to params.
-func (w *ServerInterfaceWrapper) PatchPlaylistsPlaylistId(ctx echo.Context) error {
+// PatchPlaylistsPlaylistId operation middleware
+func (siw *ServerInterfaceWrapper) PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request) {
+
 	var err error
+
 	// ------------- Path parameter "playlist_id" -------------
 	var playlistId openapi_types.UUID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", ctx.Param("playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter playlist_id: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "playlist_id", Err: err})
+		return
 	}
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params PatchPlaylistsPlaylistIdParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PatchPlaylistsPlaylistId(ctx, playlistId, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PatchPlaylistsPlaylistId(w, r, playlistId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// DeletePlaylistsPlaylistIdVideos converts echo context to params.
-func (w *ServerInterfaceWrapper) DeletePlaylistsPlaylistIdVideos(ctx echo.Context) error {
+// DeletePlaylistsPlaylistIdVideos operation middleware
+func (siw *ServerInterfaceWrapper) DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request) {
+
 	var err error
+
 	// ------------- Path parameter "playlist_id" -------------
 	var playlistId openapi_types.UUID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", ctx.Param("playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter playlist_id: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "playlist_id", Err: err})
+		return
 	}
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params DeletePlaylistsPlaylistIdVideosParams
+
 	// ------------- Required query parameter "video_id" -------------
 
-	err = runtime.BindQueryParameter("form", true, true, "video_id", ctx.QueryParams(), &params.VideoId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter video_id: %s", err))
+	if paramValue := r.URL.Query().Get("video_id"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "video_id"})
+		return
 	}
 
-	headers := ctx.Request().Header
+	err = runtime.BindQueryParameter("form", true, true, "video_id", r.URL.Query(), &params.VideoId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "video_id", Err: err})
+		return
+	}
+
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.DeletePlaylistsPlaylistIdVideos(ctx, playlistId, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeletePlaylistsPlaylistIdVideos(w, r, playlistId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// PostPlaylistsPlaylistIdVideos converts echo context to params.
-func (w *ServerInterfaceWrapper) PostPlaylistsPlaylistIdVideos(ctx echo.Context) error {
+// PostPlaylistsPlaylistIdVideos operation middleware
+func (siw *ServerInterfaceWrapper) PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request) {
+
 	var err error
+
 	// ------------- Path parameter "playlist_id" -------------
 	var playlistId openapi_types.UUID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", ctx.Param("playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter playlist_id: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "playlist_id", Err: err})
+		return
 	}
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params PostPlaylistsPlaylistIdVideosParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostPlaylistsPlaylistIdVideos(ctx, playlistId, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostPlaylistsPlaylistIdVideos(w, r, playlistId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetSearch converts echo context to params.
-func (w *ServerInterfaceWrapper) GetSearch(ctx echo.Context) error {
+// GetSearch operation middleware
+func (siw *ServerInterfaceWrapper) GetSearch(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetSearchParams
+
 	// ------------- Optional query parameter "limit" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
 	}
 
 	// ------------- Optional query parameter "cursor" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
+	err = runtime.BindQueryParameter("form", true, false, "cursor", r.URL.Query(), &params.Cursor)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		return
 	}
 
 	// ------------- Required query parameter "query" -------------
 
-	err = runtime.BindQueryParameter("form", true, true, "query", ctx.QueryParams(), &params.Query)
+	if paramValue := r.URL.Query().Get("query"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "query"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "query", r.URL.Query(), &params.Query)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter query: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "query", Err: err})
+		return
 	}
 
 	// ------------- Required query parameter "search_type" -------------
 
-	err = runtime.BindQueryParameter("form", true, true, "search_type", ctx.QueryParams(), &params.SearchType)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter search_type: %s", err))
+	if paramValue := r.URL.Query().Get("search_type"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "search_type"})
+		return
 	}
 
-	headers := ctx.Request().Header
+	err = runtime.BindQueryParameter("form", true, true, "search_type", r.URL.Query(), &params.SearchType)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "search_type", Err: err})
+		return
+	}
+
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetSearch(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSearch(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetStatisticsDaily converts echo context to params.
-func (w *ServerInterfaceWrapper) GetStatisticsDaily(ctx echo.Context) error {
+// GetStatisticsDaily operation middleware
+func (siw *ServerInterfaceWrapper) GetStatisticsDaily(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetStatisticsDailyParams
+
 	// ------------- Required query parameter "target_day" -------------
 
-	err = runtime.BindQueryParameter("form", true, true, "target_day", ctx.QueryParams(), &params.TargetDay)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter target_day: %s", err))
+	if paramValue := r.URL.Query().Get("target_day"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "target_day"})
+		return
 	}
 
-	headers := ctx.Request().Header
+	err = runtime.BindQueryParameter("form", true, true, "target_day", r.URL.Query(), &params.TargetDay)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "target_day", Err: err})
+		return
+	}
+
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetStatisticsDaily(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetStatisticsDaily(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetStatisticsMonthly converts echo context to params.
-func (w *ServerInterfaceWrapper) GetStatisticsMonthly(ctx echo.Context) error {
+// GetStatisticsMonthly operation middleware
+func (siw *ServerInterfaceWrapper) GetStatisticsMonthly(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetStatisticsMonthlyParams
+
 	// ------------- Required query parameter "target_month" -------------
 
-	err = runtime.BindQueryParameter("form", true, true, "target_month", ctx.QueryParams(), &params.TargetMonth)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter target_month: %s", err))
+	if paramValue := r.URL.Query().Get("target_month"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "target_month"})
+		return
 	}
 
-	headers := ctx.Request().Header
+	err = runtime.BindQueryParameter("form", true, true, "target_month", r.URL.Query(), &params.TargetMonth)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "target_month", Err: err})
+		return
+	}
+
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetStatisticsMonthly(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetStatisticsMonthly(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetSubscriptions converts echo context to params.
-func (w *ServerInterfaceWrapper) GetSubscriptions(ctx echo.Context) error {
+// GetSubscriptions operation middleware
+func (siw *ServerInterfaceWrapper) GetSubscriptions(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetSubscriptionsParams
+
 	// ------------- Optional query parameter "limit" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
 	}
 
 	// ------------- Optional query parameter "cursor" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "cursor", ctx.QueryParams(), &params.Cursor)
+	err = runtime.BindQueryParameter("form", true, false, "cursor", r.URL.Query(), &params.Cursor)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter cursor: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		return
 	}
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetSubscriptions(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSubscriptions(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// PostSubscriptions converts echo context to params.
-func (w *ServerInterfaceWrapper) PostSubscriptions(ctx echo.Context) error {
+// PostSubscriptions operation middleware
+func (siw *ServerInterfaceWrapper) PostSubscriptions(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params PostSubscriptionsParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostSubscriptions(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostSubscriptions(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// DeleteSubscriptionsChannelId converts echo context to params.
-func (w *ServerInterfaceWrapper) DeleteSubscriptionsChannelId(ctx echo.Context) error {
+// DeleteSubscriptionsChannelId operation middleware
+func (siw *ServerInterfaceWrapper) DeleteSubscriptionsChannelId(w http.ResponseWriter, r *http.Request) {
+
 	var err error
+
 	// ------------- Path parameter "channel_id" -------------
 	var channelId openapi_types.UUID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "channel_id", ctx.Param("channel_id"), &channelId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "channel_id", chi.URLParam(r, "channel_id"), &channelId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter channel_id: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "channel_id", Err: err})
+		return
 	}
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params DeleteSubscriptionsChannelIdParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.DeleteSubscriptionsChannelId(ctx, channelId, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteSubscriptionsChannelId(w, r, channelId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// PostUsersMe converts echo context to params.
-func (w *ServerInterfaceWrapper) PostUsersMe(ctx echo.Context) error {
+// PostUsersMe operation middleware
+func (siw *ServerInterfaceWrapper) PostUsersMe(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params PostUsersMeParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostUsersMe(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostUsersMe(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// DeleteUsersMe converts echo context to params.
-func (w *ServerInterfaceWrapper) DeleteUsersMe(ctx echo.Context) error {
+// DeleteUsersMe operation middleware
+func (siw *ServerInterfaceWrapper) DeleteUsersMe(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params DeleteUsersMeParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.DeleteUsersMe(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteUsersMe(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetUsersMeStatus converts echo context to params.
-func (w *ServerInterfaceWrapper) GetUsersMeStatus(ctx echo.Context) error {
+// GetUsersMeStatus operation middleware
+func (siw *ServerInterfaceWrapper) GetUsersMeStatus(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetUsersMeStatusParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetUsersMeStatus(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUsersMeStatus(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// PatchUsersMeStatus converts echo context to params.
-func (w *ServerInterfaceWrapper) PatchUsersMeStatus(ctx echo.Context) error {
+// PatchUsersMeStatus operation middleware
+func (siw *ServerInterfaceWrapper) PatchUsersMeStatus(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params PatchUsersMeStatusParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PatchUsersMeStatus(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PatchUsersMeStatus(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetUsersMeLimits converts echo context to params.
-func (w *ServerInterfaceWrapper) GetUsersMeLimits(ctx echo.Context) error {
+// GetUsersMeLimits operation middleware
+func (siw *ServerInterfaceWrapper) GetUsersMeLimits(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetUsersMeLimitsParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetUsersMeLimits(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUsersMeLimits(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetUsersMeSessions converts echo context to params.
-func (w *ServerInterfaceWrapper) GetUsersMeSessions(ctx echo.Context) error {
+// GetUsersMeSessions operation middleware
+func (siw *ServerInterfaceWrapper) GetUsersMeSessions(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetUsersMeSessionsParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetUsersMeSessions(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUsersMeSessions(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// DeleteUsersMeSessionsSessionId converts echo context to params.
-func (w *ServerInterfaceWrapper) DeleteUsersMeSessionsSessionId(ctx echo.Context) error {
+// DeleteUsersMeSessionsSessionId operation middleware
+func (siw *ServerInterfaceWrapper) DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request) {
+
 	var err error
+
 	// ------------- Path parameter "session_id" -------------
 	var sessionId openapi_types.UUID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "session_id", ctx.Param("session_id"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "session_id", chi.URLParam(r, "session_id"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter session_id: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "session_id", Err: err})
+		return
 	}
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params DeleteUsersMeSessionsSessionIdParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.DeleteUsersMeSessionsSessionId(ctx, sessionId, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteUsersMeSessionsSessionId(w, r, sessionId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetVideosVideoId converts echo context to params.
-func (w *ServerInterfaceWrapper) GetVideosVideoId(ctx echo.Context) error {
+// GetVideosVideoId operation middleware
+func (siw *ServerInterfaceWrapper) GetVideosVideoId(w http.ResponseWriter, r *http.Request) {
+
 	var err error
+
 	// ------------- Path parameter "external_video_id" -------------
 	var externalVideoId string
 
-	err = runtime.BindStyledParameterWithOptions("simple", "external_video_id", ctx.Param("external_video_id"), &externalVideoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "external_video_id", chi.URLParam(r, "external_video_id"), &externalVideoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter external_video_id: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "external_video_id", Err: err})
+		return
 	}
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetVideosVideoIdParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetVideosVideoId(ctx, externalVideoId, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetVideosVideoId(w, r, externalVideoId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// PostVideosVideoIdHeartbeats converts echo context to params.
-func (w *ServerInterfaceWrapper) PostVideosVideoIdHeartbeats(ctx echo.Context) error {
+// PostVideosVideoIdHeartbeats operation middleware
+func (siw *ServerInterfaceWrapper) PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request) {
+
 	var err error
+
 	// ------------- Path parameter "external_video_id" -------------
 	var externalVideoId string
 
-	err = runtime.BindStyledParameterWithOptions("simple", "external_video_id", ctx.Param("external_video_id"), &externalVideoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "external_video_id", chi.URLParam(r, "external_video_id"), &externalVideoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter external_video_id: %s", err))
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "external_video_id", Err: err})
+		return
 	}
 
-	ctx.Set(CookieJwtAuthScopes, []string{})
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params PostVideosVideoIdHeartbeatsParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostVideosVideoIdHeartbeats(ctx, externalVideoId, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostVideosVideoIdHeartbeats(w, r, externalVideoId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// GetHealth converts echo context to params.
-func (w *ServerInterfaceWrapper) GetHealth(ctx echo.Context) error {
+// GetHealth operation middleware
+func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetHealthParams
 
-	headers := ctx.Request().Header
+	headers := r.Header
+
 	// ------------- Required header parameter "X-Real-IP" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
 		var XRealIP HeaderXRealIP
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Real-IP, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Real-IP: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
 		}
 
 		params.XRealIP = XRealIP
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Real-IP is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ipcountry" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
 		var CfIpcountry HeaderCfIpCountry
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ipcountry, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ipcountry: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
 		}
 
 		params.CfIpcountry = CfIpcountry
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ipcountry is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "Cf-Ray" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
 		var CfRay HeaderCfRay
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for Cf-Ray, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter Cf-Ray: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
 		}
 
 		params.CfRay = CfRay
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter Cf-Ray is required, but not found"))
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "User-Agent" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
 		var UserAgent HeaderUserAgent
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for User-Agent, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter User-Agent: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
 		}
 
 		params.UserAgent = UserAgent
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter User-Agent is required, but not found"))
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
 	}
+
 	// ------------- Required header parameter "X-Device-Fingerprint" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
 		var XDeviceFingerprint HeaderDeviceFingerprint
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-Fingerprint, got %d", n))
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
 		}
 
 		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true})
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-Fingerprint: %s", err))
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
 		}
 
 		params.XDeviceFingerprint = XDeviceFingerprint
+
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-Fingerprint is required, but not found"))
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetHealth(ctx, params)
-	return err
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetHealth(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
 }
 
-// This is a simple interface which specifies echo.Route addition functions which
-// are present on both echo.Echo and echo.Group, since we want to allow using
-// either of them for path registration
-type EchoRouter interface {
-	CONNECT(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	DELETE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	GET(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	HEAD(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	OPTIONS(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	PATCH(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	POST(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	PUT(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	TRACE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+type UnescapedCookieParamError struct {
+	ParamName string
+	Err       error
 }
 
-// RegisterHandlers adds each server route to the EchoRouter.
-func RegisterHandlers(router EchoRouter, si ServerInterface) {
-	RegisterHandlersWithBaseURL(router, si, "")
+func (e *UnescapedCookieParamError) Error() string {
+	return fmt.Sprintf("error unescaping cookie parameter '%s'", e.ParamName)
 }
 
-// Registers handlers, and prepends BaseURL to the paths, so that the paths
-// can be served under a prefix.
-func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL string) {
+func (e *UnescapedCookieParamError) Unwrap() error {
+	return e.Err
+}
 
+type UnmarshalingParamError struct {
+	ParamName string
+	Err       error
+}
+
+func (e *UnmarshalingParamError) Error() string {
+	return fmt.Sprintf("Error unmarshaling parameter %s as JSON: %s", e.ParamName, e.Err.Error())
+}
+
+func (e *UnmarshalingParamError) Unwrap() error {
+	return e.Err
+}
+
+type RequiredParamError struct {
+	ParamName string
+}
+
+func (e *RequiredParamError) Error() string {
+	return fmt.Sprintf("Query argument %s is required, but not found", e.ParamName)
+}
+
+type RequiredHeaderError struct {
+	ParamName string
+	Err       error
+}
+
+func (e *RequiredHeaderError) Error() string {
+	return fmt.Sprintf("Header parameter %s is required, but not found", e.ParamName)
+}
+
+func (e *RequiredHeaderError) Unwrap() error {
+	return e.Err
+}
+
+type InvalidParamFormatError struct {
+	ParamName string
+	Err       error
+}
+
+func (e *InvalidParamFormatError) Error() string {
+	return fmt.Sprintf("Invalid format for parameter %s: %s", e.ParamName, e.Err.Error())
+}
+
+func (e *InvalidParamFormatError) Unwrap() error {
+	return e.Err
+}
+
+type TooManyValuesForParamError struct {
+	ParamName string
+	Count     int
+}
+
+func (e *TooManyValuesForParamError) Error() string {
+	return fmt.Sprintf("Expected one value for %s, got %d", e.ParamName, e.Count)
+}
+
+// Handler creates http.Handler with routing matching OpenAPI spec.
+func Handler(si ServerInterface) http.Handler {
+	return HandlerWithOptions(si, ChiServerOptions{})
+}
+
+type ChiServerOptions struct {
+	BaseURL          string
+	BaseRouter       chi.Router
+	Middlewares      []MiddlewareFunc
+	ErrorHandlerFunc func(w http.ResponseWriter, r *http.Request, err error)
+}
+
+// HandlerFromMux creates http.Handler with routing matching OpenAPI spec based on the provided mux.
+func HandlerFromMux(si ServerInterface, r chi.Router) http.Handler {
+	return HandlerWithOptions(si, ChiServerOptions{
+		BaseRouter: r,
+	})
+}
+
+func HandlerFromMuxWithBaseURL(si ServerInterface, r chi.Router, baseURL string) http.Handler {
+	return HandlerWithOptions(si, ChiServerOptions{
+		BaseURL:    baseURL,
+		BaseRouter: r,
+	})
+}
+
+// HandlerWithOptions creates http.Handler with additional options
+func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handler {
+	r := options.BaseRouter
+
+	if r == nil {
+		r = chi.NewRouter()
+	}
+	if options.ErrorHandlerFunc == nil {
+		options.ErrorHandlerFunc = func(w http.ResponseWriter, r *http.Request, err error) {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+	}
 	wrapper := ServerInterfaceWrapper{
-		Handler: si,
+		Handler:            si,
+		HandlerMiddlewares: options.Middlewares,
+		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
-	router.GET(baseURL+"/api/v1/auth/google", wrapper.GetAuthGoogle)
-	router.GET(baseURL+"/api/v1/auth/google/callback", wrapper.GetAuthGoogleCallback)
-	router.POST(baseURL+"/api/v1/auth/logout", wrapper.PostAuthLogout)
-	router.POST(baseURL+"/api/v1/auth/refresh", wrapper.PostAuthRefresh)
-	router.GET(baseURL+"/api/v1/channels/:channel_id/videos", wrapper.GetChannelsChannelIdVideos)
-	router.GET(baseURL+"/api/v1/feed", wrapper.GetFeed)
-	router.GET(baseURL+"/api/v1/feed/channels", wrapper.GetFeedChannels)
-	router.GET(baseURL+"/api/v1/history", wrapper.GetHistory)
-	router.GET(baseURL+"/api/v1/playlists", wrapper.GetPlaylists)
-	router.POST(baseURL+"/api/v1/playlists", wrapper.PostPlaylists)
-	router.DELETE(baseURL+"/api/v1/playlists/:playlist_id", wrapper.DeletePlaylistsPlaylistId)
-	router.GET(baseURL+"/api/v1/playlists/:playlist_id", wrapper.GetPlaylistsPlaylistId)
-	router.PATCH(baseURL+"/api/v1/playlists/:playlist_id", wrapper.PatchPlaylistsPlaylistId)
-	router.DELETE(baseURL+"/api/v1/playlists/:playlist_id/videos", wrapper.DeletePlaylistsPlaylistIdVideos)
-	router.POST(baseURL+"/api/v1/playlists/:playlist_id/videos", wrapper.PostPlaylistsPlaylistIdVideos)
-	router.GET(baseURL+"/api/v1/search", wrapper.GetSearch)
-	router.GET(baseURL+"/api/v1/statistics/daily", wrapper.GetStatisticsDaily)
-	router.GET(baseURL+"/api/v1/statistics/monthly", wrapper.GetStatisticsMonthly)
-	router.GET(baseURL+"/api/v1/subscriptions", wrapper.GetSubscriptions)
-	router.POST(baseURL+"/api/v1/subscriptions", wrapper.PostSubscriptions)
-	router.DELETE(baseURL+"/api/v1/subscriptions/:channel_id", wrapper.DeleteSubscriptionsChannelId)
-	router.POST(baseURL+"/api/v1/users", wrapper.PostUsersMe)
-	router.DELETE(baseURL+"/api/v1/users/me", wrapper.DeleteUsersMe)
-	router.GET(baseURL+"/api/v1/users/me", wrapper.GetUsersMeStatus)
-	router.PATCH(baseURL+"/api/v1/users/me", wrapper.PatchUsersMeStatus)
-	router.GET(baseURL+"/api/v1/users/me/limits", wrapper.GetUsersMeLimits)
-	router.GET(baseURL+"/api/v1/users/me/sessions", wrapper.GetUsersMeSessions)
-	router.DELETE(baseURL+"/api/v1/users/me/sessions/:session_id", wrapper.DeleteUsersMeSessionsSessionId)
-	router.GET(baseURL+"/api/v1/videos/:external_video_id", wrapper.GetVideosVideoId)
-	router.POST(baseURL+"/api/v1/videos/:external_video_id/heartbeats", wrapper.PostVideosVideoIdHeartbeats)
-	router.GET(baseURL+"/health", wrapper.GetHealth)
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/auth/google", wrapper.GetAuthGoogle)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/auth/google/callback", wrapper.GetAuthGoogleCallback)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/auth/logout", wrapper.PostAuthLogout)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/auth/refresh", wrapper.PostAuthRefresh)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/channels/{channel_id}/videos", wrapper.GetChannelsChannelIdVideos)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/feed", wrapper.GetFeed)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/feed/channels", wrapper.GetFeedChannels)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/history", wrapper.GetHistory)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/playlists", wrapper.GetPlaylists)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/playlists", wrapper.PostPlaylists)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/api/v1/playlists/{playlist_id}", wrapper.DeletePlaylistsPlaylistId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/playlists/{playlist_id}", wrapper.GetPlaylistsPlaylistId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/api/v1/playlists/{playlist_id}", wrapper.PatchPlaylistsPlaylistId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/api/v1/playlists/{playlist_id}/videos", wrapper.DeletePlaylistsPlaylistIdVideos)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/playlists/{playlist_id}/videos", wrapper.PostPlaylistsPlaylistIdVideos)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/search", wrapper.GetSearch)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/statistics/daily", wrapper.GetStatisticsDaily)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/statistics/monthly", wrapper.GetStatisticsMonthly)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/subscriptions", wrapper.GetSubscriptions)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/subscriptions", wrapper.PostSubscriptions)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/api/v1/subscriptions/{channel_id}", wrapper.DeleteSubscriptionsChannelId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/users", wrapper.PostUsersMe)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/api/v1/users/me", wrapper.DeleteUsersMe)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/users/me", wrapper.GetUsersMeStatus)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/api/v1/users/me", wrapper.PatchUsersMeStatus)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/users/me/limits", wrapper.GetUsersMeLimits)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/users/me/sessions", wrapper.GetUsersMeSessions)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/api/v1/users/me/sessions/{session_id}", wrapper.DeleteUsersMeSessionsSessionId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/videos/{external_video_id}", wrapper.GetVideosVideoId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/videos/{external_video_id}/heartbeats", wrapper.PostVideosVideoIdHeartbeats)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/health", wrapper.GetHealth)
+	})
 
+	return r
 }
 
 type BadRequestJSONResponse ProblemDetailError
@@ -6984,13 +8698,7 @@ type GetVideosVideoIdResponseObject interface {
 }
 
 type GetVideosVideoId200JSONResponse struct {
-	ChannelId openapi_types.UUID `json:"channel_id"`
-	Comments  struct {
-		ItemCount int `json:"item_count"`
-		Items     []struct {
-			ExternalCommentContent string `json:"external_comment_content"`
-		} `json:"items"`
-	} `json:"comments"`
+	ChannelId                       openapi_types.UUID `json:"channel_id"`
 	ExternalChannelDisplayName      string             `json:"external_channel_display_name"`
 	ExternalChannelIconUrl          string             `json:"external_channel_icon_url"`
 	ExternalChannelId               string             `json:"external_channel_id"`
@@ -7324,837 +9032,891 @@ type StrictServerInterface interface {
 	GetHealth(ctx context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error)
 }
 
-type StrictHandlerFunc = strictecho.StrictEchoHandlerFunc
-type StrictMiddlewareFunc = strictecho.StrictEchoMiddlewareFunc
+type StrictHandlerFunc = strictnethttp.StrictHTTPHandlerFunc
+type StrictMiddlewareFunc = strictnethttp.StrictHTTPMiddlewareFunc
+
+type StrictHTTPServerOptions struct {
+	RequestErrorHandlerFunc  func(w http.ResponseWriter, r *http.Request, err error)
+	ResponseErrorHandlerFunc func(w http.ResponseWriter, r *http.Request, err error)
+}
 
 func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc) ServerInterface {
-	return &strictHandler{ssi: ssi, middlewares: middlewares}
+	return &strictHandler{ssi: ssi, middlewares: middlewares, options: StrictHTTPServerOptions{
+		RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		},
+		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		},
+	}}
+}
+
+func NewStrictHandlerWithOptions(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc, options StrictHTTPServerOptions) ServerInterface {
+	return &strictHandler{ssi: ssi, middlewares: middlewares, options: options}
 }
 
 type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
+	options     StrictHTTPServerOptions
 }
 
 // GetAuthGoogle operation middleware
-func (sh *strictHandler) GetAuthGoogle(ctx echo.Context, params GetAuthGoogleParams) error {
+func (sh *strictHandler) GetAuthGoogle(w http.ResponseWriter, r *http.Request, params GetAuthGoogleParams) {
 	var request GetAuthGoogleRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetAuthGoogle(ctx.Request().Context(), request.(GetAuthGoogleRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAuthGoogle(ctx, request.(GetAuthGoogleRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetAuthGoogle")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetAuthGoogleResponseObject); ok {
-		return validResponse.VisitGetAuthGoogleResponse(ctx.Response())
+		if err := validResponse.VisitGetAuthGoogleResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetAuthGoogleCallback operation middleware
-func (sh *strictHandler) GetAuthGoogleCallback(ctx echo.Context, params GetAuthGoogleCallbackParams) error {
+func (sh *strictHandler) GetAuthGoogleCallback(w http.ResponseWriter, r *http.Request, params GetAuthGoogleCallbackParams) {
 	var request GetAuthGoogleCallbackRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetAuthGoogleCallback(ctx.Request().Context(), request.(GetAuthGoogleCallbackRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAuthGoogleCallback(ctx, request.(GetAuthGoogleCallbackRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetAuthGoogleCallback")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetAuthGoogleCallbackResponseObject); ok {
-		return validResponse.VisitGetAuthGoogleCallbackResponse(ctx.Response())
+		if err := validResponse.VisitGetAuthGoogleCallbackResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // PostAuthLogout operation middleware
-func (sh *strictHandler) PostAuthLogout(ctx echo.Context, params PostAuthLogoutParams) error {
+func (sh *strictHandler) PostAuthLogout(w http.ResponseWriter, r *http.Request, params PostAuthLogoutParams) {
 	var request PostAuthLogoutRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostAuthLogout(ctx.Request().Context(), request.(PostAuthLogoutRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostAuthLogout(ctx, request.(PostAuthLogoutRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "PostAuthLogout")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(PostAuthLogoutResponseObject); ok {
-		return validResponse.VisitPostAuthLogoutResponse(ctx.Response())
+		if err := validResponse.VisitPostAuthLogoutResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // PostAuthRefresh operation middleware
-func (sh *strictHandler) PostAuthRefresh(ctx echo.Context, params PostAuthRefreshParams) error {
+func (sh *strictHandler) PostAuthRefresh(w http.ResponseWriter, r *http.Request, params PostAuthRefreshParams) {
 	var request PostAuthRefreshRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostAuthRefresh(ctx.Request().Context(), request.(PostAuthRefreshRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostAuthRefresh(ctx, request.(PostAuthRefreshRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "PostAuthRefresh")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(PostAuthRefreshResponseObject); ok {
-		return validResponse.VisitPostAuthRefreshResponse(ctx.Response())
+		if err := validResponse.VisitPostAuthRefreshResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetChannelsChannelIdVideos operation middleware
-func (sh *strictHandler) GetChannelsChannelIdVideos(ctx echo.Context, channelId openapi_types.UUID, params GetChannelsChannelIdVideosParams) error {
+func (sh *strictHandler) GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request, channelId openapi_types.UUID, params GetChannelsChannelIdVideosParams) {
 	var request GetChannelsChannelIdVideosRequestObject
 
 	request.ChannelId = channelId
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetChannelsChannelIdVideos(ctx.Request().Context(), request.(GetChannelsChannelIdVideosRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetChannelsChannelIdVideos(ctx, request.(GetChannelsChannelIdVideosRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetChannelsChannelIdVideos")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetChannelsChannelIdVideosResponseObject); ok {
-		return validResponse.VisitGetChannelsChannelIdVideosResponse(ctx.Response())
+		if err := validResponse.VisitGetChannelsChannelIdVideosResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetFeed operation middleware
-func (sh *strictHandler) GetFeed(ctx echo.Context, params GetFeedParams) error {
+func (sh *strictHandler) GetFeed(w http.ResponseWriter, r *http.Request, params GetFeedParams) {
 	var request GetFeedRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetFeed(ctx.Request().Context(), request.(GetFeedRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetFeed(ctx, request.(GetFeedRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetFeed")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetFeedResponseObject); ok {
-		return validResponse.VisitGetFeedResponse(ctx.Response())
+		if err := validResponse.VisitGetFeedResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetFeedChannels operation middleware
-func (sh *strictHandler) GetFeedChannels(ctx echo.Context, params GetFeedChannelsParams) error {
+func (sh *strictHandler) GetFeedChannels(w http.ResponseWriter, r *http.Request, params GetFeedChannelsParams) {
 	var request GetFeedChannelsRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetFeedChannels(ctx.Request().Context(), request.(GetFeedChannelsRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetFeedChannels(ctx, request.(GetFeedChannelsRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetFeedChannels")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetFeedChannelsResponseObject); ok {
-		return validResponse.VisitGetFeedChannelsResponse(ctx.Response())
+		if err := validResponse.VisitGetFeedChannelsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetHistory operation middleware
-func (sh *strictHandler) GetHistory(ctx echo.Context, params GetHistoryParams) error {
+func (sh *strictHandler) GetHistory(w http.ResponseWriter, r *http.Request, params GetHistoryParams) {
 	var request GetHistoryRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetHistory(ctx.Request().Context(), request.(GetHistoryRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetHistory(ctx, request.(GetHistoryRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetHistory")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetHistoryResponseObject); ok {
-		return validResponse.VisitGetHistoryResponse(ctx.Response())
+		if err := validResponse.VisitGetHistoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetPlaylists operation middleware
-func (sh *strictHandler) GetPlaylists(ctx echo.Context, params GetPlaylistsParams) error {
+func (sh *strictHandler) GetPlaylists(w http.ResponseWriter, r *http.Request, params GetPlaylistsParams) {
 	var request GetPlaylistsRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetPlaylists(ctx.Request().Context(), request.(GetPlaylistsRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetPlaylists(ctx, request.(GetPlaylistsRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetPlaylists")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetPlaylistsResponseObject); ok {
-		return validResponse.VisitGetPlaylistsResponse(ctx.Response())
+		if err := validResponse.VisitGetPlaylistsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // PostPlaylists operation middleware
-func (sh *strictHandler) PostPlaylists(ctx echo.Context, params PostPlaylistsParams) error {
+func (sh *strictHandler) PostPlaylists(w http.ResponseWriter, r *http.Request, params PostPlaylistsParams) {
 	var request PostPlaylistsRequestObject
 
 	request.Params = params
 
 	var body PostPlaylistsJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
 	}
 	request.Body = &body
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostPlaylists(ctx.Request().Context(), request.(PostPlaylistsRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostPlaylists(ctx, request.(PostPlaylistsRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "PostPlaylists")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(PostPlaylistsResponseObject); ok {
-		return validResponse.VisitPostPlaylistsResponse(ctx.Response())
+		if err := validResponse.VisitPostPlaylistsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // DeletePlaylistsPlaylistId operation middleware
-func (sh *strictHandler) DeletePlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdParams) error {
+func (sh *strictHandler) DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdParams) {
 	var request DeletePlaylistsPlaylistIdRequestObject
 
 	request.PlaylistId = playlistId
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.DeletePlaylistsPlaylistId(ctx.Request().Context(), request.(DeletePlaylistsPlaylistIdRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeletePlaylistsPlaylistId(ctx, request.(DeletePlaylistsPlaylistIdRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "DeletePlaylistsPlaylistId")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(DeletePlaylistsPlaylistIdResponseObject); ok {
-		return validResponse.VisitDeletePlaylistsPlaylistIdResponse(ctx.Response())
+		if err := validResponse.VisitDeletePlaylistsPlaylistIdResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetPlaylistsPlaylistId operation middleware
-func (sh *strictHandler) GetPlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID, params GetPlaylistsPlaylistIdParams) error {
+func (sh *strictHandler) GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params GetPlaylistsPlaylistIdParams) {
 	var request GetPlaylistsPlaylistIdRequestObject
 
 	request.PlaylistId = playlistId
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetPlaylistsPlaylistId(ctx.Request().Context(), request.(GetPlaylistsPlaylistIdRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetPlaylistsPlaylistId(ctx, request.(GetPlaylistsPlaylistIdRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetPlaylistsPlaylistId")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetPlaylistsPlaylistIdResponseObject); ok {
-		return validResponse.VisitGetPlaylistsPlaylistIdResponse(ctx.Response())
+		if err := validResponse.VisitGetPlaylistsPlaylistIdResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // PatchPlaylistsPlaylistId operation middleware
-func (sh *strictHandler) PatchPlaylistsPlaylistId(ctx echo.Context, playlistId openapi_types.UUID, params PatchPlaylistsPlaylistIdParams) error {
+func (sh *strictHandler) PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params PatchPlaylistsPlaylistIdParams) {
 	var request PatchPlaylistsPlaylistIdRequestObject
 
 	request.PlaylistId = playlistId
 	request.Params = params
 
 	var body PatchPlaylistsPlaylistIdJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
 	}
 	request.Body = &body
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PatchPlaylistsPlaylistId(ctx.Request().Context(), request.(PatchPlaylistsPlaylistIdRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PatchPlaylistsPlaylistId(ctx, request.(PatchPlaylistsPlaylistIdRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "PatchPlaylistsPlaylistId")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(PatchPlaylistsPlaylistIdResponseObject); ok {
-		return validResponse.VisitPatchPlaylistsPlaylistIdResponse(ctx.Response())
+		if err := validResponse.VisitPatchPlaylistsPlaylistIdResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // DeletePlaylistsPlaylistIdVideos operation middleware
-func (sh *strictHandler) DeletePlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdVideosParams) error {
+func (sh *strictHandler) DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdVideosParams) {
 	var request DeletePlaylistsPlaylistIdVideosRequestObject
 
 	request.PlaylistId = playlistId
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.DeletePlaylistsPlaylistIdVideos(ctx.Request().Context(), request.(DeletePlaylistsPlaylistIdVideosRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeletePlaylistsPlaylistIdVideos(ctx, request.(DeletePlaylistsPlaylistIdVideosRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "DeletePlaylistsPlaylistIdVideos")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(DeletePlaylistsPlaylistIdVideosResponseObject); ok {
-		return validResponse.VisitDeletePlaylistsPlaylistIdVideosResponse(ctx.Response())
+		if err := validResponse.VisitDeletePlaylistsPlaylistIdVideosResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // PostPlaylistsPlaylistIdVideos operation middleware
-func (sh *strictHandler) PostPlaylistsPlaylistIdVideos(ctx echo.Context, playlistId openapi_types.UUID, params PostPlaylistsPlaylistIdVideosParams) error {
+func (sh *strictHandler) PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params PostPlaylistsPlaylistIdVideosParams) {
 	var request PostPlaylistsPlaylistIdVideosRequestObject
 
 	request.PlaylistId = playlistId
 	request.Params = params
 
 	var body PostPlaylistsPlaylistIdVideosJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
 	}
 	request.Body = &body
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostPlaylistsPlaylistIdVideos(ctx.Request().Context(), request.(PostPlaylistsPlaylistIdVideosRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostPlaylistsPlaylistIdVideos(ctx, request.(PostPlaylistsPlaylistIdVideosRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "PostPlaylistsPlaylistIdVideos")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(PostPlaylistsPlaylistIdVideosResponseObject); ok {
-		return validResponse.VisitPostPlaylistsPlaylistIdVideosResponse(ctx.Response())
+		if err := validResponse.VisitPostPlaylistsPlaylistIdVideosResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetSearch operation middleware
-func (sh *strictHandler) GetSearch(ctx echo.Context, params GetSearchParams) error {
+func (sh *strictHandler) GetSearch(w http.ResponseWriter, r *http.Request, params GetSearchParams) {
 	var request GetSearchRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetSearch(ctx.Request().Context(), request.(GetSearchRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetSearch(ctx, request.(GetSearchRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetSearch")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetSearchResponseObject); ok {
-		return validResponse.VisitGetSearchResponse(ctx.Response())
+		if err := validResponse.VisitGetSearchResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetStatisticsDaily operation middleware
-func (sh *strictHandler) GetStatisticsDaily(ctx echo.Context, params GetStatisticsDailyParams) error {
+func (sh *strictHandler) GetStatisticsDaily(w http.ResponseWriter, r *http.Request, params GetStatisticsDailyParams) {
 	var request GetStatisticsDailyRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetStatisticsDaily(ctx.Request().Context(), request.(GetStatisticsDailyRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetStatisticsDaily(ctx, request.(GetStatisticsDailyRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetStatisticsDaily")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetStatisticsDailyResponseObject); ok {
-		return validResponse.VisitGetStatisticsDailyResponse(ctx.Response())
+		if err := validResponse.VisitGetStatisticsDailyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetStatisticsMonthly operation middleware
-func (sh *strictHandler) GetStatisticsMonthly(ctx echo.Context, params GetStatisticsMonthlyParams) error {
+func (sh *strictHandler) GetStatisticsMonthly(w http.ResponseWriter, r *http.Request, params GetStatisticsMonthlyParams) {
 	var request GetStatisticsMonthlyRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetStatisticsMonthly(ctx.Request().Context(), request.(GetStatisticsMonthlyRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetStatisticsMonthly(ctx, request.(GetStatisticsMonthlyRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetStatisticsMonthly")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetStatisticsMonthlyResponseObject); ok {
-		return validResponse.VisitGetStatisticsMonthlyResponse(ctx.Response())
+		if err := validResponse.VisitGetStatisticsMonthlyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetSubscriptions operation middleware
-func (sh *strictHandler) GetSubscriptions(ctx echo.Context, params GetSubscriptionsParams) error {
+func (sh *strictHandler) GetSubscriptions(w http.ResponseWriter, r *http.Request, params GetSubscriptionsParams) {
 	var request GetSubscriptionsRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetSubscriptions(ctx.Request().Context(), request.(GetSubscriptionsRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetSubscriptions(ctx, request.(GetSubscriptionsRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetSubscriptions")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetSubscriptionsResponseObject); ok {
-		return validResponse.VisitGetSubscriptionsResponse(ctx.Response())
+		if err := validResponse.VisitGetSubscriptionsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // PostSubscriptions operation middleware
-func (sh *strictHandler) PostSubscriptions(ctx echo.Context, params PostSubscriptionsParams) error {
+func (sh *strictHandler) PostSubscriptions(w http.ResponseWriter, r *http.Request, params PostSubscriptionsParams) {
 	var request PostSubscriptionsRequestObject
 
 	request.Params = params
 
 	var body PostSubscriptionsJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
 	}
 	request.Body = &body
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostSubscriptions(ctx.Request().Context(), request.(PostSubscriptionsRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostSubscriptions(ctx, request.(PostSubscriptionsRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "PostSubscriptions")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(PostSubscriptionsResponseObject); ok {
-		return validResponse.VisitPostSubscriptionsResponse(ctx.Response())
+		if err := validResponse.VisitPostSubscriptionsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // DeleteSubscriptionsChannelId operation middleware
-func (sh *strictHandler) DeleteSubscriptionsChannelId(ctx echo.Context, channelId openapi_types.UUID, params DeleteSubscriptionsChannelIdParams) error {
+func (sh *strictHandler) DeleteSubscriptionsChannelId(w http.ResponseWriter, r *http.Request, channelId openapi_types.UUID, params DeleteSubscriptionsChannelIdParams) {
 	var request DeleteSubscriptionsChannelIdRequestObject
 
 	request.ChannelId = channelId
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.DeleteSubscriptionsChannelId(ctx.Request().Context(), request.(DeleteSubscriptionsChannelIdRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteSubscriptionsChannelId(ctx, request.(DeleteSubscriptionsChannelIdRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "DeleteSubscriptionsChannelId")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(DeleteSubscriptionsChannelIdResponseObject); ok {
-		return validResponse.VisitDeleteSubscriptionsChannelIdResponse(ctx.Response())
+		if err := validResponse.VisitDeleteSubscriptionsChannelIdResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // PostUsersMe operation middleware
-func (sh *strictHandler) PostUsersMe(ctx echo.Context, params PostUsersMeParams) error {
+func (sh *strictHandler) PostUsersMe(w http.ResponseWriter, r *http.Request, params PostUsersMeParams) {
 	var request PostUsersMeRequestObject
 
 	request.Params = params
 
 	var body PostUsersMeJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
 	}
 	request.Body = &body
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostUsersMe(ctx.Request().Context(), request.(PostUsersMeRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostUsersMe(ctx, request.(PostUsersMeRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "PostUsersMe")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(PostUsersMeResponseObject); ok {
-		return validResponse.VisitPostUsersMeResponse(ctx.Response())
+		if err := validResponse.VisitPostUsersMeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // DeleteUsersMe operation middleware
-func (sh *strictHandler) DeleteUsersMe(ctx echo.Context, params DeleteUsersMeParams) error {
+func (sh *strictHandler) DeleteUsersMe(w http.ResponseWriter, r *http.Request, params DeleteUsersMeParams) {
 	var request DeleteUsersMeRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.DeleteUsersMe(ctx.Request().Context(), request.(DeleteUsersMeRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteUsersMe(ctx, request.(DeleteUsersMeRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "DeleteUsersMe")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(DeleteUsersMeResponseObject); ok {
-		return validResponse.VisitDeleteUsersMeResponse(ctx.Response())
+		if err := validResponse.VisitDeleteUsersMeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetUsersMeStatus operation middleware
-func (sh *strictHandler) GetUsersMeStatus(ctx echo.Context, params GetUsersMeStatusParams) error {
+func (sh *strictHandler) GetUsersMeStatus(w http.ResponseWriter, r *http.Request, params GetUsersMeStatusParams) {
 	var request GetUsersMeStatusRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetUsersMeStatus(ctx.Request().Context(), request.(GetUsersMeStatusRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUsersMeStatus(ctx, request.(GetUsersMeStatusRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetUsersMeStatus")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetUsersMeStatusResponseObject); ok {
-		return validResponse.VisitGetUsersMeStatusResponse(ctx.Response())
+		if err := validResponse.VisitGetUsersMeStatusResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // PatchUsersMeStatus operation middleware
-func (sh *strictHandler) PatchUsersMeStatus(ctx echo.Context, params PatchUsersMeStatusParams) error {
+func (sh *strictHandler) PatchUsersMeStatus(w http.ResponseWriter, r *http.Request, params PatchUsersMeStatusParams) {
 	var request PatchUsersMeStatusRequestObject
 
 	request.Params = params
 
 	var body PatchUsersMeStatusJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
 	}
 	request.Body = &body
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PatchUsersMeStatus(ctx.Request().Context(), request.(PatchUsersMeStatusRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PatchUsersMeStatus(ctx, request.(PatchUsersMeStatusRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "PatchUsersMeStatus")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(PatchUsersMeStatusResponseObject); ok {
-		return validResponse.VisitPatchUsersMeStatusResponse(ctx.Response())
+		if err := validResponse.VisitPatchUsersMeStatusResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetUsersMeLimits operation middleware
-func (sh *strictHandler) GetUsersMeLimits(ctx echo.Context, params GetUsersMeLimitsParams) error {
+func (sh *strictHandler) GetUsersMeLimits(w http.ResponseWriter, r *http.Request, params GetUsersMeLimitsParams) {
 	var request GetUsersMeLimitsRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetUsersMeLimits(ctx.Request().Context(), request.(GetUsersMeLimitsRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUsersMeLimits(ctx, request.(GetUsersMeLimitsRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetUsersMeLimits")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetUsersMeLimitsResponseObject); ok {
-		return validResponse.VisitGetUsersMeLimitsResponse(ctx.Response())
+		if err := validResponse.VisitGetUsersMeLimitsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetUsersMeSessions operation middleware
-func (sh *strictHandler) GetUsersMeSessions(ctx echo.Context, params GetUsersMeSessionsParams) error {
+func (sh *strictHandler) GetUsersMeSessions(w http.ResponseWriter, r *http.Request, params GetUsersMeSessionsParams) {
 	var request GetUsersMeSessionsRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetUsersMeSessions(ctx.Request().Context(), request.(GetUsersMeSessionsRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUsersMeSessions(ctx, request.(GetUsersMeSessionsRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetUsersMeSessions")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetUsersMeSessionsResponseObject); ok {
-		return validResponse.VisitGetUsersMeSessionsResponse(ctx.Response())
+		if err := validResponse.VisitGetUsersMeSessionsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // DeleteUsersMeSessionsSessionId operation middleware
-func (sh *strictHandler) DeleteUsersMeSessionsSessionId(ctx echo.Context, sessionId openapi_types.UUID, params DeleteUsersMeSessionsSessionIdParams) error {
+func (sh *strictHandler) DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID, params DeleteUsersMeSessionsSessionIdParams) {
 	var request DeleteUsersMeSessionsSessionIdRequestObject
 
 	request.SessionId = sessionId
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.DeleteUsersMeSessionsSessionId(ctx.Request().Context(), request.(DeleteUsersMeSessionsSessionIdRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteUsersMeSessionsSessionId(ctx, request.(DeleteUsersMeSessionsSessionIdRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "DeleteUsersMeSessionsSessionId")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(DeleteUsersMeSessionsSessionIdResponseObject); ok {
-		return validResponse.VisitDeleteUsersMeSessionsSessionIdResponse(ctx.Response())
+		if err := validResponse.VisitDeleteUsersMeSessionsSessionIdResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetVideosVideoId operation middleware
-func (sh *strictHandler) GetVideosVideoId(ctx echo.Context, externalVideoId string, params GetVideosVideoIdParams) error {
+func (sh *strictHandler) GetVideosVideoId(w http.ResponseWriter, r *http.Request, externalVideoId string, params GetVideosVideoIdParams) {
 	var request GetVideosVideoIdRequestObject
 
 	request.ExternalVideoId = externalVideoId
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetVideosVideoId(ctx.Request().Context(), request.(GetVideosVideoIdRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetVideosVideoId(ctx, request.(GetVideosVideoIdRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetVideosVideoId")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetVideosVideoIdResponseObject); ok {
-		return validResponse.VisitGetVideosVideoIdResponse(ctx.Response())
+		if err := validResponse.VisitGetVideosVideoIdResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // PostVideosVideoIdHeartbeats operation middleware
-func (sh *strictHandler) PostVideosVideoIdHeartbeats(ctx echo.Context, externalVideoId string, params PostVideosVideoIdHeartbeatsParams) error {
+func (sh *strictHandler) PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, externalVideoId string, params PostVideosVideoIdHeartbeatsParams) {
 	var request PostVideosVideoIdHeartbeatsRequestObject
 
 	request.ExternalVideoId = externalVideoId
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostVideosVideoIdHeartbeats(ctx.Request().Context(), request.(PostVideosVideoIdHeartbeatsRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostVideosVideoIdHeartbeats(ctx, request.(PostVideosVideoIdHeartbeatsRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "PostVideosVideoIdHeartbeats")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(PostVideosVideoIdHeartbeatsResponseObject); ok {
-		return validResponse.VisitPostVideosVideoIdHeartbeatsResponse(ctx.Response())
+		if err := validResponse.VisitPostVideosVideoIdHeartbeatsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // GetHealth operation middleware
-func (sh *strictHandler) GetHealth(ctx echo.Context, params GetHealthParams) error {
+func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request, params GetHealthParams) {
 	var request GetHealthRequestObject
 
 	request.Params = params
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetHealth(ctx.Request().Context(), request.(GetHealthRequestObject))
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetHealth(ctx, request.(GetHealthRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
 		handler = middleware(handler, "GetHealth")
 	}
 
-	response, err := handler(ctx, request)
+	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
-		return err
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetHealthResponseObject); ok {
-		return validResponse.VisitGetHealthResponse(ctx.Response())
+		if err := validResponse.VisitGetHealthResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
 	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	return nil
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
@@ -8247,15 +10009,15 @@ var swaggerSpec = []string{
 	"P5WBFAjnFqD+CKEu7Qeo1o0b141pqvc7zyuBkNA9mzh4Y64xPUVthjBZAAY07vzcMdwLDy9Zh9oTnKvm",
 	"WVsvzKZYmtc93mu6OClHSRwfB4UcL1DpaixNNV9oHVPnDQH0edz9JDgXMuXmDc/idD11dHLF5khCV6Sd",
 	"TPnKeBJ/oTlMdFSbOipz2fwrKmzAK1ath2DCbcqWqjL/p8UOUOIBWiQl8QB/5HgAwgbJFm9ri5N8ypnL",
-	"vpQSk8GX6KzU7ubdXbW+8+hZ8/mTGKd4kgUV/0t75CnbtZjk6KhRsVxGExaFbLuUT8XsLucYXDgeCqx5",
-	"YNDm8CfrC438bSvHzP5k6+Mvgg7p2b9MfV1Jfhcn/0xbGejoOWtixOjGzmEXFlnbRtY9x5o6ZEhyLjh6",
-	"liuSFrjgNV0FJphzr+bfxer56igw1OdQreMjNQWY0rZJMD5tM81Wksg9LpDJFAEnKaOAU2gBj8m6HqEg",
-	"TJIkxnazQL0G9Uf4oLlh3jhT70JNxeEpc9gUV4P6P8kfzZsrOOc0uVPyDTFZoQJT2vbLKaN21coxtLY7",
-	"pUJtGmqzqEHspfEHdrqQ7KkWgx0Kz5Ttlmpe+d7peDqRzUJ1dufXm/bA2siVE0RMovyOlvJzMatX7SGB",
-	"WgRcSQlOfn/y7BDUXuA9dcP0SOhf4euor6CuQm3Z3I9WdnzaDnoXKKdIL13dLzJxT0cersxyB8C5rzVL",
-	"gXxVwg+yXxjxMFhJKTL5IshfdLBYmZfziTWGBmLcc3mZHRDFizx471PlZBXtwwsjSCHKePZpmOW0mOdK",
-	"RVFWGFKGTbH41MgWFaXSn8mUrN/7/5L9SxZrV3NNfOp19frOylYL6GADGuWlCJy/bXtzoVUSLy7tTQnX",
-	"3S7fHS5KFWJU8rylRW265RVtlcaeZ0qjTx801p+3illJtWjNeh/88T/BhNbs/wMAAP//zoWCfS3XAAA=",
+	"vpQSk8GX6KzU7ubdXbW+8+hZ8/mTGKd4kgUV/0t75CnbtZjkI5+ILjSqta38KfuTiY6/CDqkZ/+y0HUl",
+	"sVuc3CptZVej52OJEX8aOz9bWNRoGxnlHGuaAN2jZ4oheW4LXltMYMY092r+Xayer44CQ30O1To+I1KQ",
+	"Fm1vBAOuNvNGJZnJ42rmTBFwkjIKOIUWwZes6xGKKiRZT2y/AdRrUH+ET04b5hUq9S7UVBxvMYdtSzWo",
+	"/5P80by5gpMok0sS3xAbDCowpW2/nDJqV62kOWu7UyrUpqE2ixrEbgd/pKILmp1qMdihcLXYfpbmle+d",
+	"npQT2SxUZ3d+vWkPrI3kL0HEJMrvaCk/F7N61R4SqEXAlZTgbO4nzw5B7QXeUzdME7v+Fb5f+QrqKtSW",
+	"zf1opXun7aB3gXKK9NLV/SITf2tkNlyz3AFw7mvNUiBflfAL4xdGPAxWUopMvgjyFx0sVublfGJeoIEY",
+	"91xeZgdE8SIP3vtUOVlF+/DCCFKIMp59GmY5Lea5UlGUFYaUYVMsPiqyRUWp9GcyJev3/r9k/5LF2tVc",
+	"E596Xb2+s7LVAjrYIkR5+gAnJNveXGiVxItLeyTBdVnJdymJUoVYSTyPQ1Gbbrn5WqWxK5XS6NMHjfXn",
+	"rWJWlihas94XbPxvCqE1+/8AAAD//79/wfj+1QAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
