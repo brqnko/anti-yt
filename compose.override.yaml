@@ -19,6 +19,7 @@ services:
       target: dev
     volumes:
       - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules 
       - ./shared:/usr/src/app/shared:ro
     environment:
       NODE_ENV: development
