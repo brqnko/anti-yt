@@ -25,57 +25,71 @@ type UserClaims struct {
 }
 
 type JWTService interface {
-	SignUserAccessToken(userID, jti uuid.UUID, serverURL string, duration time.Duration) (string, error)
-	SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string, duration time.Duration) (string, error)
+	SignUserAccessToken(userID, jti uuid.UUID, serverURL string) (token string, expiresAt time.Time, err error)
+	SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string) (token string, expiresAt time.Time, err error)
+	TokenExpiries() (accessTokenExpiresAt, refreshTokenExpiresAt time.Time)
 	VerifyUserAccessToken(token string) (userID uuid.UUID, err error)
 	VerifyRegisterToken(token string) (authorizationID uuid.UUID, err error)
 	VerifyUserAccessTokenWithExpiry(token string) (userID, jti uuid.UUID, expiresAt time.Time, err error)
 }
 
 type jwtService struct {
-	publicKey  ed25519.PublicKey
-	privateKey ed25519.PrivateKey
+	publicKey            ed25519.PublicKey
+	privateKey           ed25519.PrivateKey
+	accessTokenDuration  time.Duration
+	refreshTokenDuration time.Duration
 }
 
-func NewJWTService(privateKey ed25519.PrivateKey, publicKey ed25519.PublicKey) JWTService {
+func NewJWTService(privateKey ed25519.PrivateKey, publicKey ed25519.PublicKey, accessTokenDuration, refreshTokenDuration time.Duration) JWTService {
 	return &jwtService{
-		publicKey:  publicKey,
-		privateKey: privateKey,
+		publicKey:            publicKey,
+		privateKey:           privateKey,
+		accessTokenDuration:  accessTokenDuration,
+		refreshTokenDuration: refreshTokenDuration,
 	}
 }
 
-func (s *jwtService) SignUserAccessToken(userID, jti uuid.UUID, serverURL string, duration time.Duration) (string, error) {
+func (s *jwtService) TokenExpiries() (time.Time, time.Time) {
+	now := time.Now()
+	return now.Add(s.accessTokenDuration), now.Add(s.refreshTokenDuration)
+}
+
+func (s *jwtService) SignUserAccessToken(userID, jti uuid.UUID, serverURL string) (string, time.Time, error) {
 	now := time.Now().UTC()
+	expiresAt := now.Add(s.accessTokenDuration)
 	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, UserClaims{
-		UserID: base64.RawURLEncoding.EncodeToString(userID[:]),
+		UserID: base64.URLEncoding.EncodeToString(userID[:]),
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    serverURL,
 			Subject:   "user_access_token",
 			Audience:  []string{serverURL},
-			ExpiresAt: &jwt.NumericDate{Time: now.Add(duration)},
+			ExpiresAt: &jwt.NumericDate{Time: expiresAt},
 			NotBefore: &jwt.NumericDate{Time: now},
 			IssuedAt:  &jwt.NumericDate{Time: now},
-			ID:        base64.RawURLEncoding.EncodeToString(jti[:]),
+			ID:        base64.URLEncoding.EncodeToString(jti[:]),
 		},
 	})
-	return token.SignedString(s.privateKey)
+	signed, err := token.SignedString(s.privateKey)
+	return signed, expiresAt, err
 }
 
-func (s *jwtService) SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string, duration time.Duration) (string, error) {
+func (s *jwtService) SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string) (string, time.Time, error) {
 	now := time.Now().UTC()
+	expiresAt := now.Add(s.accessTokenDuration)
 	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, RegisterClaims{
-		AuthorizationId: base64.RawURLEncoding.EncodeToString(authorizationID[:]),
+		AuthorizationId: base64.URLEncoding.EncodeToString(authorizationID[:]),
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    serverURL,
 			Subject:   "authorization_token",
 			Audience:  []string{serverURL},
-			ExpiresAt: &jwt.NumericDate{Time: now.Add(duration)},
+			ExpiresAt: &jwt.NumericDate{Time: expiresAt},
 			NotBefore: &jwt.NumericDate{Time: now},
 			IssuedAt:  &jwt.NumericDate{Time: now},
-			ID:        base64.RawURLEncoding.EncodeToString(jti[:]),
+			ID:        base64.URLEncoding.EncodeToString(jti[:]),
 		},
 	})
-	return token.SignedString(s.privateKey)
+	signed, err := token.SignedString(s.privateKey)
+	return signed, expiresAt, err
 }
 
 func (s *jwtService) VerifyUserAccessToken(token string) (uuid.UUID, error) {
@@ -99,7 +113,7 @@ func (s *jwtService) VerifyUserAccessToken(token string) (uuid.UUID, error) {
 		return uuid.Nil, ErrInvalidToken
 	}
 
-	decoded, err := base64.RawURLEncoding.DecodeString(claims.UserID)
+	decoded, err := base64.URLEncoding.DecodeString(claims.UserID)
 	if err != nil || len(decoded) != 16 {
 		return uuid.Nil, ErrInvalidToken
 	}
@@ -132,7 +146,7 @@ func (s *jwtService) VerifyRegisterToken(token string) (uuid.UUID, error) {
 		return uuid.Nil, ErrInvalidToken
 	}
 
-	decoded, err := base64.RawURLEncoding.DecodeString(claims.AuthorizationId)
+	decoded, err := base64.URLEncoding.DecodeString(claims.AuthorizationId)
 	if err != nil || len(decoded) != 16 {
 		return uuid.Nil, ErrInvalidToken
 	}
@@ -162,7 +176,7 @@ func (s *jwtService) VerifyUserAccessTokenWithExpiry(token string) (uuid.UUID, u
 		return uuid.Nil, uuid.Nil, time.Time{}, ErrInvalidToken
 	}
 
-	decoded, err := base64.RawURLEncoding.DecodeString(claims.UserID)
+	decoded, err := base64.URLEncoding.DecodeString(claims.UserID)
 	if err != nil || len(decoded) != 16 {
 		return uuid.Nil, uuid.Nil, time.Time{}, ErrInvalidToken
 	}
@@ -171,7 +185,7 @@ func (s *jwtService) VerifyUserAccessTokenWithExpiry(token string) (uuid.UUID, u
 		return uuid.Nil, uuid.Nil, time.Time{}, ErrInvalidToken
 	}
 
-	jtiDecoded, err := base64.RawURLEncoding.DecodeString(claims.ID)
+	jtiDecoded, err := base64.URLEncoding.DecodeString(claims.ID)
 	if err != nil || len(jtiDecoded) != 16 {
 		return uuid.Nil, uuid.Nil, time.Time{}, ErrInvalidToken
 	}

@@ -99,7 +99,7 @@ func (h *APIHandler) GetAuthGoogleCallback(c context.Context, request GetAuthGoo
 					Name:     "access_token",
 					Value:    result.AccessToken,
 					Path:     "/",
-					Expires:  time.Now().Add(h.authService.AccessTokenDuration),
+					Expires:  result.AccessTokenExpiresAt,
 					HttpOnly: true,
 					Secure:   true,
 					SameSite: http.SameSiteStrictMode,
@@ -108,7 +108,7 @@ func (h *APIHandler) GetAuthGoogleCallback(c context.Context, request GetAuthGoo
 					Name:     "refresh_token",
 					Value:    result.RefreshToken,
 					Path:     "/",
-					Expires:  time.Now().Add(h.authService.RefreshTokenDuration),
+					Expires:  result.RefreshTokenExpiresAt,
 					HttpOnly: true,
 					Secure:   true,
 					SameSite: http.SameSiteStrictMode,
@@ -202,7 +202,7 @@ func (h *APIHandler) PostAuthRefresh(c context.Context, request PostAuthRefreshR
 		}, nil
 	}
 
-	newRefreshToken, newAccessToken, err := h.authService.RefreshToken(c, refreshToken, request.Params.XRealIP, request.Params.CfIpcountry, request.Params.XDeviceFingerprint, request.Params.UserAgent)
+	newRefreshToken, newAccessToken, accessTokenExpiresAt, refreshTokenExpiresAt, err := h.authService.RefreshToken(c, refreshToken, request.Params.XRealIP, request.Params.CfIpcountry, request.Params.XDeviceFingerprint, request.Params.UserAgent)
 	if err != nil {
 		return PostAuthRefresh500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
@@ -219,7 +219,7 @@ func (h *APIHandler) PostAuthRefresh(c context.Context, request PostAuthRefreshR
 					Name:     "access_token",
 					Value:    newAccessToken,
 					Path:     "/",
-					Expires:  time.Now().Add(h.authService.AccessTokenDuration),
+					Expires:  accessTokenExpiresAt,
 					HttpOnly: true,
 					Secure:   true,
 					SameSite: http.SameSiteStrictMode,
@@ -228,7 +228,7 @@ func (h *APIHandler) PostAuthRefresh(c context.Context, request PostAuthRefreshR
 					Name:     "refresh_token",
 					Value:    newRefreshToken,
 					Path:     "/",
-					Expires:  time.Now().Add(h.authService.RefreshTokenDuration),
+					Expires:  refreshTokenExpiresAt,
 					HttpOnly: true,
 					Secure:   true,
 					SameSite: http.SameSiteStrictMode,

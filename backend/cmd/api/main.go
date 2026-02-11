@@ -62,7 +62,7 @@ func run(ctx context.Context) int {
 		fmt.Printf("failed to load jwt-public: %v\n", err)
 		return 1
 	}
-	jwtService := jwt_d.NewJWTService(jwtPrivate, jwtPublic)
+	jwtService := jwt_d.NewJWTService(jwtPrivate, jwtPublic, 30*time.Minute, 30*24*time.Hour)
 	cfg := config{
 		env:                    os.Getenv("ENV"),
 		oidcGoogleRedirectURL:  os.Getenv("OIDC_GOOGLE_REDIRECT_URL"),
@@ -111,13 +111,13 @@ func run(ctx context.Context) int {
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
-	oauth2Config, _, verifier, err := oidc.NewGoogleProvider(initCtx, cfg.oidcGoogleClientId, cfg.oidcGoogleClientSecret, cfg.oidcGoogleRedirectURL)
+	oidcService, err := oidc.NewGoogleOIDCService(initCtx, cfg.oidcGoogleClientId, cfg.oidcGoogleClientSecret, cfg.oidcGoogleRedirectURL)
 	if err != nil {
-		slog.Error("failed to create oidc provider", "error", err)
+		slog.Error("failed to create oidc service", "error", err)
 		return 1
 	}
 
-	h, err := v1.NewAPIHandler(db, oauth2Config, verifier, cfg.serverURL, cfg.frontendURL, jwtService)
+	h, err := v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService)
 	if err != nil {
 		slog.Error("failed to create handler", "error", err)
 		return 1

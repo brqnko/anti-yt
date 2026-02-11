@@ -14,18 +14,17 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
-	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mssola/user_agent"
-	"golang.org/x/oauth2"
 )
 
 var (
 	ErrCSRFOrStateIsEmpty = errors.New("csrf or state is empty")
 	ErrCSRFIsWrong        = errors.New("csrf != state")
-	ErrIDTokenNotFound    = errors.New("id token not found")
+	ErrIDTokenNotFound    = oidc.ErrIDTokenNotFound
 
 	ErrNoSuchRefreshToken = errors.New("no such refresh token")
 )
@@ -41,35 +40,30 @@ type GoogleOIDCCallbackParams struct {
 }
 
 type GoogleOIDCCallbackResult struct {
-	AccessToken  string
-	RefreshToken string
-	CSRFToken    string
-	IsCreated    bool
+	AccessToken           string
+	RefreshToken          string
+	CSRFToken             string
+	IsCreated             bool
+	AccessTokenExpiresAt  time.Time
+	RefreshTokenExpiresAt time.Time
 }
 
 type Service struct {
 	db *pgxpool.Pool
 
-	oauth2Config *oauth2.Config
-	verifier     *oidc.IDTokenVerifier
+	oidcService oidc.GoogleOIDCService
 
 	jwtService jwt_d.JWTService
-
-	AccessTokenDuration  time.Duration
-	RefreshTokenDuration time.Duration
 
 	serverURL string
 }
 
-func NewService(db *pgxpool.Pool, oauth2Config *oauth2.Config, verifier *oidc.IDTokenVerifier, accessTokenDuration, refreshTokenDuration time.Duration, serverURL string, jwtService jwt_d.JWTService) (*Service, error) {
+func NewService(db *pgxpool.Pool, oidcService oidc.GoogleOIDCService, serverURL string, jwtService jwt_d.JWTService) (*Service, error) {
 	return &Service{
-		db:                   db,
-		oauth2Config:         oauth2Config,
-		verifier:             verifier,
-		jwtService:           jwtService,
-		AccessTokenDuration:  accessTokenDuration,
-		RefreshTokenDuration: refreshTokenDuration,
-		serverURL:            serverURL,
+		db:          db,
+		oidcService: oidcService,
+		jwtService:  jwtService,
+		serverURL:   serverURL,
 	}, nil
 }
 
@@ -80,7 +74,7 @@ func (s *Service) CreateAuthCode(ctx context.Context) (redirectURL, csrf string,
 	}
 	csrf = base64.URLEncoding.EncodeToString(b)
 
-	return s.oauth2Config.AuthCodeURL(csrf), csrf, nil
+	return s.oidcService.AuthCodeURL(csrf), csrf, nil
 }
 
 func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallbackParams) (*GoogleOIDCCallbackResult, error) {
@@ -91,22 +85,8 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 		return nil, ErrCSRFIsWrong
 	}
 
-	oauth2Token, err := s.oauth2Config.Exchange(ctx, params.Code)
+	sub, err := s.oidcService.ExchangeAndVerify(ctx, params.Code)
 	if err != nil {
-		return nil, err
-	}
-	rawIDToken, ok := oauth2Token.Extra("id_token").(string)
-	if !ok {
-		return nil, ErrIDTokenNotFound
-	}
-	idToken, err := s.verifier.Verify(ctx, rawIDToken)
-	if err != nil {
-		return nil, err
-	}
-	var oidcClaims struct {
-		Sub string `json:"sub"`
-	}
-	if err := idToken.Claims(&oidcClaims); err != nil {
 		return nil, err
 	}
 
@@ -123,7 +103,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 
 	authorization, err := q.CreateAuthorization(ctx, sqlc.CreateAuthorizationParams{
 		Issuer: "https://accounts.google.com",
-		Sub:    oidcClaims.Sub,
+		Sub:    sub,
 	})
 	if err != nil {
 		return nil, err
@@ -133,9 +113,11 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 	if _, err := rand.Read(token); err != nil {
 		return nil, err
 	}
-	tokenString := base64.RawURLEncoding.EncodeToString(token)
+	tokenString := base64.URLEncoding.EncodeToString(token)
 	tokenHash := sha256.Sum256([]byte(tokenString))
 	tokenHashString := hex.EncodeToString(tokenHash[:])
+
+	_, refreshTokenExpiresAt := s.jwtService.TokenExpiries()
 
 	ua := user_agent.New(params.UserAgent)
 	browserName, browserVersion := ua.Browser()
@@ -149,7 +131,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 		CityName:             "", // TODO: 今はなし
 		BrowserName:          fmt.Sprintf("%s%s", browserName, browserVersion),
 		DeviceType:           ua.OSInfo().FullName,
-		ExpiresAt:            time.Now().UTC().Add(s.RefreshTokenDuration),
+		ExpiresAt:            refreshTokenExpiresAt.UTC(),
 	}); err != nil {
 		return nil, err
 	}
@@ -159,6 +141,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 		return nil, err
 	}
 	var accessTokenString string
+	var accessTokenExpiresAt time.Time
 	if !authorization.IsCreated {
 		userId, err := q.GetUserIDByAuthorization(ctx, authorization.MUserAuthorizationID)
 		if err != nil {
@@ -167,14 +150,14 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 			}
 		} else {
 			// すでに認証テーブルに情報があり、かつ、ユーザーテーブルに存在する
-			accessTokenString, err = s.jwtService.SignUserAccessToken(userId, jti, s.serverURL, s.AccessTokenDuration)
+			accessTokenString, accessTokenExpiresAt, err = s.jwtService.SignUserAccessToken(userId, jti, s.serverURL)
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
 	if accessTokenString == "" {
-		accessTokenString, err = s.jwtService.SignRegisterToken(authorization.PublicID, jti, s.serverURL, s.AccessTokenDuration)
+		accessTokenString, accessTokenExpiresAt, err = s.jwtService.SignRegisterToken(authorization.PublicID, jti, s.serverURL)
 		if err != nil {
 			return nil, err
 		}
@@ -191,10 +174,12 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 	}
 
 	return &GoogleOIDCCallbackResult{
-		AccessToken:  accessTokenString,
-		RefreshToken: tokenString,
-		CSRFToken:    csrfToken,
-		IsCreated:    authorization.IsCreated,
+		AccessToken:           accessTokenString,
+		RefreshToken:          tokenString,
+		CSRFToken:             csrfToken,
+		IsCreated:             authorization.IsCreated,
+		AccessTokenExpiresAt:  accessTokenExpiresAt,
+		RefreshTokenExpiresAt: refreshTokenExpiresAt,
 	}, nil
 }
 
@@ -237,21 +222,25 @@ func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) 
 	return nil
 }
 
-func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, countryCode, deviceFingerprint, userAgent string) (newRefreshToken, accessToken string, err error) {
+func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, countryCode, deviceFingerprint, userAgent string) (newRefreshToken, accessToken string, accessTokenExpiresAt, refreshTokenExpiresAt time.Time, err error) {
 	refreshTokenHash := sha256.Sum256([]byte(refreshToken))
 	refreshTokenHashString := hex.EncodeToString(refreshTokenHash[:])
 
 	token := make([]byte, 32)
 	if _, err := rand.Read(token); err != nil {
-		return "", "", err
+		return "", "", time.Time{}, time.Time{}, err
 	}
-	tokenString := base64.RawURLEncoding.EncodeToString(token)
+	tokenString := base64.URLEncoding.EncodeToString(token)
 	tokenHash := sha256.Sum256([]byte(tokenString))
 	tokenHashString := hex.EncodeToString(tokenHash[:])
 
+	atExp, rtExp := s.jwtService.TokenExpiries()
+	now := time.Now().UTC()
+	atDuration := atExp.Sub(now)
+
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return "", "", err
+		return "", "", time.Time{}, time.Time{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, sql.ErrTxDone) {
@@ -264,7 +253,7 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 	browserName, browserVersion := ua.Browser()
 	authorizationID, err := q.SaveRefreshToken(ctx, sqlc.SaveRefreshTokenParams{
 		TokenHash:         tokenHashString,
-		ExpiresAt:         time.Now().UTC().Add(s.RefreshTokenDuration),
+		ExpiresAt:         rtExp.UTC(),
 		IpAddress:         ipAddress,
 		DeviceFingerprint: deviceFingerprint,
 		UserAgent:         userAgent,
@@ -272,32 +261,32 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 		CityName:          "", // TODO
 		BrowserName:       fmt.Sprintf("%s%s", browserName, browserVersion),
 		DeviceType:        ua.OSInfo().FullName,
-		TokenHash_2:       refreshTokenHashString,                       // 昔のRefreshToken
-		ExpiresAt_2:       time.Now().UTC(),                             // RefreshTokenの有効期限
-		UpdatedAt:         time.Now().UTC().Add(-s.AccessTokenDuration), // RefreshTokenをたくさん発行されるのを防ぐため、updatedAt + accessTokenDuration < now => updatedAt < now - accessTokenDuration
+		TokenHash_2:       refreshTokenHashString, // 昔のRefreshToken
+		ExpiresAt_2:       now,                    // RefreshTokenの有効期限
+		UpdatedAt:         now.Add(-atDuration),   // RefreshTokenをたくさん発行されるのを防ぐため、updatedAt + accessTokenDuration < now => updatedAt < now - accessTokenDuration
 	})
 	if err != nil {
-		return "", "", err
+		return "", "", time.Time{}, time.Time{}, err
 	}
 
 	jti, err := uuid.NewV7()
 	if err != nil {
-		return "", "", err
+		return "", "", time.Time{}, time.Time{}, err
 	}
 	userID, err := q.GetUserIDByAuthorization(ctx, authorizationID)
 	if err != nil {
-		return "", "", err
+		return "", "", time.Time{}, time.Time{}, err
 	}
-	accessTokenString, err := s.jwtService.SignUserAccessToken(userID, jti, s.serverURL, s.AccessTokenDuration)
+	accessTokenString, signedAtExp, err := s.jwtService.SignUserAccessToken(userID, jti, s.serverURL)
 	if err != nil {
-		return "", "", err
+		return "", "", time.Time{}, time.Time{}, err
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return "", "", err
+		return "", "", time.Time{}, time.Time{}, err
 	}
 
-	return tokenString, accessTokenString, nil
+	return tokenString, accessTokenString, signedAtExp, rtExp, nil
 }
 
 func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID) ([]Session, error) {

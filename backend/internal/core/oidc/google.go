@@ -2,15 +2,28 @@ package oidc
 
 import (
 	"context"
+	"errors"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 )
 
-func NewGoogleProvider(ctx context.Context, clientID string, clientSecret string, redirectURL string) (*oauth2.Config, *oidc.Provider, *oidc.IDTokenVerifier, error) {
+var ErrIDTokenNotFound = errors.New("id token not found")
+
+type GoogleOIDCService interface {
+	AuthCodeURL(state string) string
+	ExchangeAndVerify(ctx context.Context, code string) (sub string, err error)
+}
+
+type googleOIDCService struct {
+	oauth2Config *oauth2.Config
+	verifier     *oidc.IDTokenVerifier
+}
+
+func NewGoogleOIDCService(ctx context.Context, clientID, clientSecret, redirectURL string) (GoogleOIDCService, error) {
 	provider, err := oidc.NewProvider(ctx, "https://accounts.google.com")
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	oauth2Config := &oauth2.Config{
@@ -21,10 +34,42 @@ func NewGoogleProvider(ctx context.Context, clientID string, clientSecret string
 		Endpoint:     provider.Endpoint(),
 	}
 
-	oidcConfig := &oidc.Config{
+	verifier := provider.Verifier(&oidc.Config{
 		ClientID: clientID,
-	}
-	verifier := provider.Verifier(oidcConfig)
+	})
 
-	return oauth2Config, provider, verifier, nil
+	return &googleOIDCService{
+		oauth2Config: oauth2Config,
+		verifier:     verifier,
+	}, nil
+}
+
+func (s *googleOIDCService) AuthCodeURL(state string) string {
+	return s.oauth2Config.AuthCodeURL(state)
+}
+
+func (s *googleOIDCService) ExchangeAndVerify(ctx context.Context, code string) (string, error) {
+	oauth2Token, err := s.oauth2Config.Exchange(ctx, code)
+	if err != nil {
+		return "", err
+	}
+
+	rawIDToken, ok := oauth2Token.Extra("id_token").(string)
+	if !ok {
+		return "", ErrIDTokenNotFound
+	}
+
+	idToken, err := s.verifier.Verify(ctx, rawIDToken)
+	if err != nil {
+		return "", err
+	}
+
+	var claims struct {
+		Sub string `json:"sub"`
+	}
+	if err := idToken.Claims(&claims); err != nil {
+		return "", err
+	}
+
+	return claims.Sub, nil
 }
