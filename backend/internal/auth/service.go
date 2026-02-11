@@ -13,7 +13,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/claims"
+	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database/sqlc"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/golang-jwt/jwt/v5"
@@ -171,7 +171,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 			}
 		} else {
 			// すでに認証テーブルに情報があり、かつ、ユーザーテーブルに存在する
-			access = jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims.UserClaims{
+			access = jwt.NewWithClaims(jwt.SigningMethodEdDSA, jwt_d.UserClaims{
 				UserID: base64.RawURLEncoding.EncodeToString(userId[:]),
 				RegisteredClaims: jwt.RegisteredClaims{
 					Issuer:    s.serverURL,
@@ -186,7 +186,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 		}
 	}
 	if access == nil {
-		access = jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims.RegisterClaims{
+		access = jwt.NewWithClaims(jwt.SigningMethodEdDSA, jwt_d.RegisterClaims{
 			AuthorizationId: base64.RawURLEncoding.EncodeToString(authorization.PublicID[:]),
 			RegisteredClaims: jwt.RegisteredClaims{
 				Issuer:    s.serverURL,
@@ -223,7 +223,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 }
 
 func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) error {
-	_, jti, expiresAt, err := claims.VerifyUserAccessTokenWithExpiry(s.jwtPublic, accessToken)
+	_, jti, expiresAt, err := jwt_d.VerifyUserAccessTokenWithExpiry(s.jwtPublic, accessToken)
 	if err != nil {
 		return err
 	}
@@ -312,7 +312,7 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 	if err != nil {
 		return "", "", err
 	}
-	access := jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims.UserClaims{
+	access := jwt.NewWithClaims(jwt.SigningMethodEdDSA, jwt_d.UserClaims{
 		UserID: base64.RawURLEncoding.EncodeToString(userID[:]),
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    s.serverURL,

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/claims"
+	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database/sqlc"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -38,7 +38,7 @@ func AccessTokenMiddleware(jwtPublic ed25519.PublicKey, db *pgxpool.Pool) func(v
 			if err != nil {
 				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 			}
-			userID, jti, _, err := claims.VerifyUserAccessTokenWithExpiry(jwtPublic, cookie.Value)
+			userID, jti, _, err := jwt_d.VerifyUserAccessTokenWithExpiry(jwtPublic, cookie.Value)
 			if err != nil {
 				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 			}

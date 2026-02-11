@@ -1,4 +1,4 @@
-package claims
+package jwt_d
 
 import (
 	"crypto/ed25519"
