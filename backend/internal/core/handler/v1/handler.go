@@ -1,10 +1,10 @@
 package v1
 
 import (
-	"crypto/ed25519"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/auth"
+	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/oauth2"
@@ -25,8 +25,8 @@ type APIHandler struct {
 	frontendURL string
 }
 
-func NewAPIHandler(db *pgxpool.Pool, oauth2Config *oauth2.Config, verifier *oidc.IDTokenVerifier, serverURL, frontendURL string, jwtPrivate ed25519.PrivateKey, jwtPublic ed25519.PublicKey) (*APIHandler, error) {
-	authService, err := auth.NewService(db, oauth2Config, verifier, 30*time.Minute, 30*24*time.Hour, serverURL, jwtPrivate, jwtPublic)
+func NewAPIHandler(db *pgxpool.Pool, oauth2Config *oauth2.Config, verifier *oidc.IDTokenVerifier, serverURL, frontendURL string, jwtService jwt_d.JWTService) (*APIHandler, error) {
+	authService, err := auth.NewService(db, oauth2Config, verifier, 30*time.Minute, 30*24*time.Hour, serverURL, jwtService)
 	if err != nil {
 		return nil, err
 	}

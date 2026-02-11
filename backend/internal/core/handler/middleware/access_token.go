@@ -2,15 +2,14 @@ package middleware
 
 import (
 	"context"
-	"crypto/ed25519"
 	"errors"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database/sqlc"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
+	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -23,7 +22,7 @@ var (
 	}
 )
 
-func AccessTokenMiddleware(jwtPublic ed25519.PublicKey, db *pgxpool.Pool) func(v1.StrictHandlerFunc, string) v1.StrictHandlerFunc {
+func AccessTokenMiddleware(jwtService jwt_d.JWTService, db *pgxpool.Pool) func(v1.StrictHandlerFunc, string) v1.StrictHandlerFunc {
 	q := sqlc.New(db)
 
 	return func(f v1.StrictHandlerFunc, operationID string) v1.StrictHandlerFunc {
@@ -38,7 +37,7 @@ func AccessTokenMiddleware(jwtPublic ed25519.PublicKey, db *pgxpool.Pool) func(v
 			if err != nil {
 				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 			}
-			userID, jti, _, err := jwt_d.VerifyUserAccessTokenWithExpiry(jwtPublic, cookie.Value)
+			userID, jti, _, err := jwtService.VerifyUserAccessTokenWithExpiry(cookie.Value)
 			if err != nil {
 				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 			}

@@ -24,14 +24,68 @@ type UserClaims struct {
 	jwt.RegisteredClaims
 }
 
-func VerifyUserAccessToken(public ed25519.PublicKey, token string) (userID uuid.UUID, err error) {
+type JWTService interface {
+	SignUserAccessToken(userID, jti uuid.UUID, serverURL string, duration time.Duration) (string, error)
+	SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string, duration time.Duration) (string, error)
+	VerifyUserAccessToken(token string) (userID uuid.UUID, err error)
+	VerifyRegisterToken(token string) (authorizationID uuid.UUID, err error)
+	VerifyUserAccessTokenWithExpiry(token string) (userID, jti uuid.UUID, expiresAt time.Time, err error)
+}
+
+type jwtService struct {
+	publicKey  ed25519.PublicKey
+	privateKey ed25519.PrivateKey
+}
+
+func NewJWTService(privateKey ed25519.PrivateKey, publicKey ed25519.PublicKey) JWTService {
+	return &jwtService{
+		publicKey:  publicKey,
+		privateKey: privateKey,
+	}
+}
+
+func (s *jwtService) SignUserAccessToken(userID, jti uuid.UUID, serverURL string, duration time.Duration) (string, error) {
+	now := time.Now().UTC()
+	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, UserClaims{
+		UserID: base64.RawURLEncoding.EncodeToString(userID[:]),
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    serverURL,
+			Subject:   "user_access_token",
+			Audience:  []string{serverURL},
+			ExpiresAt: &jwt.NumericDate{Time: now.Add(duration)},
+			NotBefore: &jwt.NumericDate{Time: now},
+			IssuedAt:  &jwt.NumericDate{Time: now},
+			ID:        base64.RawURLEncoding.EncodeToString(jti[:]),
+		},
+	})
+	return token.SignedString(s.privateKey)
+}
+
+func (s *jwtService) SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string, duration time.Duration) (string, error) {
+	now := time.Now().UTC()
+	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, RegisterClaims{
+		AuthorizationId: base64.RawURLEncoding.EncodeToString(authorizationID[:]),
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    serverURL,
+			Subject:   "authorization_token",
+			Audience:  []string{serverURL},
+			ExpiresAt: &jwt.NumericDate{Time: now.Add(duration)},
+			NotBefore: &jwt.NumericDate{Time: now},
+			IssuedAt:  &jwt.NumericDate{Time: now},
+			ID:        base64.RawURLEncoding.EncodeToString(jti[:]),
+		},
+	})
+	return token.SignedString(s.privateKey)
+}
+
+func (s *jwtService) VerifyUserAccessToken(token string) (uuid.UUID, error) {
 	claims := &UserClaims{}
 
 	parsedToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodEd25519); !ok {
 			return nil, ErrInvalidToken
 		}
-		return public, nil
+		return s.publicKey, nil
 	})
 	if err != nil {
 		return uuid.Nil, ErrInvalidToken
@@ -49,7 +103,7 @@ func VerifyUserAccessToken(public ed25519.PublicKey, token string) (userID uuid.
 	if err != nil || len(decoded) != 16 {
 		return uuid.Nil, ErrInvalidToken
 	}
-	userID, err = uuid.FromBytes(decoded)
+	userID, err := uuid.FromBytes(decoded)
 	if err != nil {
 		return uuid.Nil, ErrInvalidToken
 	}
@@ -57,14 +111,14 @@ func VerifyUserAccessToken(public ed25519.PublicKey, token string) (userID uuid.
 	return userID, nil
 }
 
-func VerifyRegisterToken(public ed25519.PublicKey, token string) (authorizationID uuid.UUID, err error) {
+func (s *jwtService) VerifyRegisterToken(token string) (uuid.UUID, error) {
 	claims := &RegisterClaims{}
 
 	parsedToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodEd25519); !ok {
 			return nil, ErrInvalidToken
 		}
-		return public, nil
+		return s.publicKey, nil
 	})
 	if err != nil {
 		return uuid.Nil, ErrInvalidToken
@@ -82,19 +136,19 @@ func VerifyRegisterToken(public ed25519.PublicKey, token string) (authorizationI
 	if err != nil || len(decoded) != 16 {
 		return uuid.Nil, ErrInvalidToken
 	}
-	authorizationID = uuid.UUID(decoded)
+	authorizationID := uuid.UUID(decoded)
 
 	return authorizationID, nil
 }
 
-func VerifyUserAccessTokenWithExpiry(public ed25519.PublicKey, token string) (userID, jti uuid.UUID, expiresAt time.Time, err error) {
+func (s *jwtService) VerifyUserAccessTokenWithExpiry(token string) (uuid.UUID, uuid.UUID, time.Time, error) {
 	claims := &UserClaims{}
 
 	parsedToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodEd25519); !ok {
 			return nil, ErrInvalidToken
 		}
-		return public, nil
+		return s.publicKey, nil
 	})
 	if err != nil {
 		return uuid.Nil, uuid.Nil, time.Time{}, ErrInvalidToken
@@ -112,7 +166,7 @@ func VerifyUserAccessTokenWithExpiry(public ed25519.PublicKey, token string) (us
 	if err != nil || len(decoded) != 16 {
 		return uuid.Nil, uuid.Nil, time.Time{}, ErrInvalidToken
 	}
-	userID, err = uuid.FromBytes(decoded)
+	userID, err := uuid.FromBytes(decoded)
 	if err != nil {
 		return uuid.Nil, uuid.Nil, time.Time{}, ErrInvalidToken
 	}
@@ -121,11 +175,12 @@ func VerifyUserAccessTokenWithExpiry(public ed25519.PublicKey, token string) (us
 	if err != nil || len(jtiDecoded) != 16 {
 		return uuid.Nil, uuid.Nil, time.Time{}, ErrInvalidToken
 	}
-	jti, err = uuid.FromBytes(jtiDecoded)
+	jti, err := uuid.FromBytes(jtiDecoded)
 	if err != nil {
 		return uuid.Nil, uuid.Nil, time.Time{}, ErrInvalidToken
 	}
 
+	var expiresAt time.Time
 	if claims.ExpiresAt != nil {
 		expiresAt = claims.ExpiresAt.Time
 	}

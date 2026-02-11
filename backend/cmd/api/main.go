@@ -19,6 +19,7 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core/database/sqlc"
 	middleware2 "github.com/brqnko/anti-yt/backend/internal/core/handler/middleware"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
+	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -61,6 +62,7 @@ func run(ctx context.Context) int {
 		fmt.Printf("failed to load jwt-public: %v\n", err)
 		return 1
 	}
+	jwtService := jwt_d.NewJWTService(jwtPrivate, jwtPublic)
 	cfg := config{
 		env:                    os.Getenv("ENV"),
 		oidcGoogleRedirectURL:  os.Getenv("OIDC_GOOGLE_REDIRECT_URL"),
@@ -115,7 +117,7 @@ func run(ctx context.Context) int {
 		return 1
 	}
 
-	h, err := v1.NewAPIHandler(db, oauth2Config, verifier, cfg.serverURL, cfg.frontendURL, jwtPrivate, jwtPublic)
+	h, err := v1.NewAPIHandler(db, oauth2Config, verifier, cfg.serverURL, cfg.frontendURL, jwtService)
 	if err != nil {
 		slog.Error("failed to create handler", "error", err)
 		return 1
@@ -126,7 +128,7 @@ func run(ctx context.Context) int {
 	r.Use(middleware.Recoverer)
 	r.Use(secureHeaders)
 	v1.HandlerFromMux(v1.NewStrictHandler(h, []v1.StrictMiddlewareFunc{
-		middleware2.AccessTokenMiddleware(jwtPublic, db),
+		middleware2.AccessTokenMiddleware(jwtService, db),
 		middleware2.CsrfMiddleware,
 		middleware2.AuthTokensMiddleware,
 		middleware2.RequestIDMiddleware,

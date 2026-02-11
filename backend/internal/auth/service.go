@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/sha256"
 	"database/sql"
@@ -13,10 +12,9 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -55,8 +53,7 @@ type Service struct {
 	oauth2Config *oauth2.Config
 	verifier     *oidc.IDTokenVerifier
 
-	jwtPublic  ed25519.PublicKey
-	jwtPrivate ed25519.PrivateKey
+	jwtService jwt_d.JWTService
 
 	AccessTokenDuration  time.Duration
 	RefreshTokenDuration time.Duration
@@ -64,13 +61,12 @@ type Service struct {
 	serverURL string
 }
 
-func NewService(db *pgxpool.Pool, oauth2Config *oauth2.Config, verifier *oidc.IDTokenVerifier, accessTokenDuration, refreshTokenDuration time.Duration, serverURL string, jwtPrivate ed25519.PrivateKey, jwtPublic ed25519.PublicKey) (*Service, error) {
+func NewService(db *pgxpool.Pool, oauth2Config *oauth2.Config, verifier *oidc.IDTokenVerifier, accessTokenDuration, refreshTokenDuration time.Duration, serverURL string, jwtService jwt_d.JWTService) (*Service, error) {
 	return &Service{
 		db:                   db,
 		oauth2Config:         oauth2Config,
 		verifier:             verifier,
-		jwtPublic:            jwtPublic,
-		jwtPrivate:           jwtPrivate,
+		jwtService:           jwtService,
 		AccessTokenDuration:  accessTokenDuration,
 		RefreshTokenDuration: refreshTokenDuration,
 		serverURL:            serverURL,
@@ -162,7 +158,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 	if err != nil {
 		return nil, err
 	}
-	var access *jwt.Token
+	var accessTokenString string
 	if !authorization.IsCreated {
 		userId, err := q.GetUserIDByAuthorization(ctx, authorization.MUserAuthorizationID)
 		if err != nil {
@@ -171,37 +167,17 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 			}
 		} else {
 			// すでに認証テーブルに情報があり、かつ、ユーザーテーブルに存在する
-			access = jwt.NewWithClaims(jwt.SigningMethodEdDSA, jwt_d.UserClaims{
-				UserID: base64.RawURLEncoding.EncodeToString(userId[:]),
-				RegisteredClaims: jwt.RegisteredClaims{
-					Issuer:    s.serverURL,
-					Subject:   "user_access_token",
-					Audience:  []string{s.serverURL},
-					ExpiresAt: &jwt.NumericDate{Time: time.Now().UTC().Add(s.AccessTokenDuration)},
-					NotBefore: &jwt.NumericDate{Time: time.Now().UTC()},
-					IssuedAt:  &jwt.NumericDate{Time: time.Now().UTC()},
-					ID:        base64.RawURLEncoding.EncodeToString(jti[:]),
-				},
-			})
+			accessTokenString, err = s.jwtService.SignUserAccessToken(userId, jti, s.serverURL, s.AccessTokenDuration)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
-	if access == nil {
-		access = jwt.NewWithClaims(jwt.SigningMethodEdDSA, jwt_d.RegisterClaims{
-			AuthorizationId: base64.RawURLEncoding.EncodeToString(authorization.PublicID[:]),
-			RegisteredClaims: jwt.RegisteredClaims{
-				Issuer:    s.serverURL,
-				Subject:   "authorization_token",
-				Audience:  []string{s.serverURL},
-				ExpiresAt: &jwt.NumericDate{Time: time.Now().UTC().Add(s.AccessTokenDuration)},
-				NotBefore: &jwt.NumericDate{Time: time.Now().UTC()},
-				IssuedAt:  &jwt.NumericDate{Time: time.Now().UTC()},
-				ID:        base64.RawURLEncoding.EncodeToString(jti[:]),
-			},
-		})
-	}
-	accessTokenString, err := access.SignedString(s.jwtPrivate)
-	if err != nil {
-		return nil, err
+	if accessTokenString == "" {
+		accessTokenString, err = s.jwtService.SignRegisterToken(authorization.PublicID, jti, s.serverURL, s.AccessTokenDuration)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	b := make([]byte, 32)
@@ -223,7 +199,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 }
 
 func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) error {
-	_, jti, expiresAt, err := jwt_d.VerifyUserAccessTokenWithExpiry(s.jwtPublic, accessToken)
+	_, jti, expiresAt, err := s.jwtService.VerifyUserAccessTokenWithExpiry(accessToken)
 	if err != nil {
 		return err
 	}
@@ -312,19 +288,7 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 	if err != nil {
 		return "", "", err
 	}
-	access := jwt.NewWithClaims(jwt.SigningMethodEdDSA, jwt_d.UserClaims{
-		UserID: base64.RawURLEncoding.EncodeToString(userID[:]),
-		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    s.serverURL,
-			Subject:   "user_access_token",
-			Audience:  []string{s.serverURL},
-			ExpiresAt: &jwt.NumericDate{Time: time.Now().UTC().Add(s.AccessTokenDuration)},
-			NotBefore: &jwt.NumericDate{Time: time.Now().UTC()},
-			IssuedAt:  &jwt.NumericDate{Time: time.Now().UTC()},
-			ID:        base64.RawURLEncoding.EncodeToString(jti[:]),
-		},
-	})
-	accessTokenString, err := access.SignedString(s.jwtPrivate)
+	accessTokenString, err := s.jwtService.SignUserAccessToken(userID, jti, s.serverURL, s.AccessTokenDuration)
 	if err != nil {
 		return "", "", err
 	}
