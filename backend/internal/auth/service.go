@@ -55,15 +55,17 @@ type Service struct {
 
 	jwtService jwt_d.JWTService
 
-	serverURL string
+	serverURL            string
+	refreshTokenDuration time.Duration
 }
 
-func NewService(db *pgxpool.Pool, oidcService oidc.GoogleOIDCService, serverURL string, jwtService jwt_d.JWTService) (*Service, error) {
+func NewService(db *pgxpool.Pool, oidcService oidc.GoogleOIDCService, serverURL string, jwtService jwt_d.JWTService, refreshTokenDuration time.Duration) (*Service, error) {
 	return &Service{
-		db:          db,
-		oidcService: oidcService,
-		jwtService:  jwtService,
-		serverURL:   serverURL,
+		db:                   db,
+		oidcService:          oidcService,
+		jwtService:           jwtService,
+		serverURL:            serverURL,
+		refreshTokenDuration: refreshTokenDuration,
 	}, nil
 }
 
@@ -117,7 +119,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 	tokenHash := sha256.Sum256([]byte(tokenString))
 	tokenHashString := hex.EncodeToString(tokenHash[:])
 
-	_, refreshTokenExpiresAt := s.jwtService.TokenExpiries()
+	refreshTokenExpiresAt := time.Now().UTC().Add(s.refreshTokenDuration)
 
 	ua := user_agent.New(params.UserAgent)
 	browserName, browserVersion := ua.Browser()
@@ -184,7 +186,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 }
 
 func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) error {
-	_, jti, expiresAt, err := s.jwtService.VerifyUserAccessTokenWithExpiry(accessToken)
+	_, jti, expiresAt, err := s.jwtService.VerifyUserAccessToken(accessToken)
 	if err != nil {
 		return err
 	}
@@ -234,9 +236,8 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 	tokenHash := sha256.Sum256([]byte(tokenString))
 	tokenHashString := hex.EncodeToString(tokenHash[:])
 
-	atExp, rtExp := s.jwtService.TokenExpiries()
 	now := time.Now().UTC()
-	atDuration := atExp.Sub(now)
+	rtExp := now.Add(s.refreshTokenDuration)
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -261,9 +262,9 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 		CityName:          "", // TODO
 		BrowserName:       fmt.Sprintf("%s%s", browserName, browserVersion),
 		DeviceType:        ua.OSInfo().FullName,
-		TokenHash_2:       refreshTokenHashString, // 昔のRefreshToken
-		ExpiresAt_2:       now,                    // RefreshTokenの有効期限
-		UpdatedAt:         now.Add(-atDuration),   // RefreshTokenをたくさん発行されるのを防ぐため、updatedAt + accessTokenDuration < now => updatedAt < now - accessTokenDuration
+		TokenHash_2:       refreshTokenHashString,                 // 昔のRefreshToken
+		ExpiresAt_2:       now,                                    // RefreshTokenの有効期限
+		UpdatedAt:         now.Add(-s.jwtService.TokenDuration()), // RefreshTokenをたくさん発行されるのを防ぐため、updatedAt + accessTokenDuration < now => updatedAt < now - accessTokenDuration
 	})
 	if err != nil {
 		return "", "", time.Time{}, time.Time{}, err

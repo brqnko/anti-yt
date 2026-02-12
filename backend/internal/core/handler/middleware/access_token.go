@@ -37,7 +37,7 @@ func AccessTokenMiddleware(jwtService jwt_d.JWTService, db *pgxpool.Pool) func(v
 			if err != nil {
 				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 			}
-			userID, jti, _, err := jwtService.VerifyUserAccessTokenWithExpiry(cookie.Value)
+			userID, jti, _, err := jwtService.VerifyUserAccessToken(cookie.Value)
 			if err != nil {
 				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 			}

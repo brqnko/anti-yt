@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"time"
+
 	"github.com/brqnko/anti-yt/backend/internal/auth"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
@@ -22,8 +24,8 @@ type APIHandler struct {
 	frontendURL string
 }
 
-func NewAPIHandler(db *pgxpool.Pool, oidcService oidc.GoogleOIDCService, serverURL, frontendURL string, jwtService jwt_d.JWTService) (*APIHandler, error) {
-	authService, err := auth.NewService(db, oidcService, serverURL, jwtService)
+func NewAPIHandler(db *pgxpool.Pool, oidcService oidc.GoogleOIDCService, serverURL, frontendURL string, jwtService jwt_d.JWTService, refreshTokenDuration time.Duration) (*APIHandler, error) {
+	authService, err := auth.NewService(db, oidcService, serverURL, jwtService, refreshTokenDuration)
 	if err != nil {
 		return nil, err
 	}

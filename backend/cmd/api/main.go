@@ -62,7 +62,7 @@ func run(ctx context.Context) int {
 		fmt.Printf("failed to load jwt-public: %v\n", err)
 		return 1
 	}
-	jwtService := jwt_d.NewJWTService(jwtPrivate, jwtPublic, 30*time.Minute, 30*24*time.Hour)
+	jwtService := jwt_d.NewJWTService(jwtPrivate, jwtPublic, 30*time.Minute)
 	cfg := config{
 		env:                    os.Getenv("ENV"),
 		oidcGoogleRedirectURL:  os.Getenv("OIDC_GOOGLE_REDIRECT_URL"),
@@ -117,7 +117,7 @@ func run(ctx context.Context) int {
 		return 1
 	}
 
-	h, err := v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService)
+	h, err := v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour)
 	if err != nil {
 		slog.Error("failed to create handler", "error", err)
 		return 1
