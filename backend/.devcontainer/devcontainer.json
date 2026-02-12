@@ -8,7 +8,8 @@
     "vscode": {
       "extensions": [
         "golang.go",
-        "rajasunrise.sqlc-snippets"
+        "rajasunrise.sqlc-snippets",
+        "ckolkman.vscode-postgres"
       ]
     }
   },
@@ -24,5 +25,5 @@
   "remoteEnv": {
     "PATH": "/root/.local/bin:${containerEnv:PATH}"
   },
-  "postCreateCommand": "apk add --no-cache bash libgcc libstdc++ ripgrep curl git && export PATH=/root/.local/bin:$PATH && which claude || curl -fsSL https://claude.ai/install.sh | bash"
+  "postCreateCommand": "export PATH=/root/.local/bin:$PATH && which claude || curl -fsSL https://claude.ai/install.sh | bash"
 }
