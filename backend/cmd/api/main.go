@@ -62,7 +62,6 @@ func run(ctx context.Context) int {
 		fmt.Printf("failed to load jwt-public: %v\n", err)
 		return 1
 	}
-	jwtService := jwt_d.NewJWTService(jwtPrivate, jwtPublic, 30*time.Minute)
 	cfg := config{
 		env:                    os.Getenv("ENV"),
 		oidcGoogleRedirectURL:  os.Getenv("OIDC_GOOGLE_REDIRECT_URL"),
@@ -89,7 +88,7 @@ func run(ctx context.Context) int {
 
 	initCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
-	if err = database.InitDB(initCtx, cfg.dbPassword, cfg.dbName); err != nil {
+	if err = database.RunMigration(initCtx, cfg.dbPassword, cfg.dbName); err != nil {
 		slog.Error("failed to run migration", "error", err)
 		return 1
 	}
@@ -117,6 +116,8 @@ func run(ctx context.Context) int {
 		return 1
 	}
 
+	jwtService := jwt_d.NewJWTService(jwtPrivate, jwtPublic, 30*time.Minute)
+
 	h, err := v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour)
 	if err != nil {
 		slog.Error("failed to create handler", "error", err)
@@ -126,7 +127,7 @@ func run(ctx context.Context) int {
 	r := chi.NewRouter()
 	// NOTE: RateLimit, gzip, loggerはLB(pingora, nginx等)で行う。各リクエストへのレートリミットはHandlerが行う
 	r.Use(middleware.Recoverer)
-	r.Use(secureHeaders)
+	r.Use(middleware2.SecureHeaders)
 	v1.HandlerFromMux(v1.NewStrictHandler(h, []v1.StrictMiddlewareFunc{
 		middleware2.AccessTokenMiddleware(jwtService, db),
 		middleware2.CsrfMiddleware,
@@ -156,15 +157,6 @@ func run(ctx context.Context) int {
 	}
 
 	return 0
-}
-
-func secureHeaders(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
-		w.Header().Set("X-XSS-Protection", "1; mode=block")
-		next.ServeHTTP(w, r)
-	})
 }
 
 func loadPrivateKey(path string) (ed25519.PrivateKey, error) {

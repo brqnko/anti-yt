@@ -15,7 +15,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-func InitDB(ctx context.Context, dbPassword, dbName string) error {
+func RunMigration(ctx context.Context, dbPassword, dbName string) error {
 	db, err := sql.Open("pgx", fmt.Sprintf("postgres://postgres:%s@db:5432/%s?sslmode=disable", dbPassword, dbName))
 	if err != nil {
 		return err

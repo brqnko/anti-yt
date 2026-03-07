@@ -86,7 +86,7 @@ func (h *APIHandler) GetAuthGoogleCallback(c context.Context, request GetAuthGoo
 	}
 
 	var location string
-	if result.IsCreated {
+	if result.AlreadyUserExists {
 		location = fmt.Sprintf("%s/home", h.frontendURL)
 	} else {
 		location = fmt.Sprintf("%s/register", h.frontendURL)
@@ -261,7 +261,7 @@ func (h *APIHandler) GetUsersMeSessions(c context.Context, request GetUsersMeSes
 
 	resp := GetUsersMeSessions200JSONResponse{
 		ItemCount: len(sessions),
-		Items:     make([]struct {
+		Items: make([]struct {
 			BrowserName    string             `json:"browser_name"`
 			CityName       string             `json:"city_name"`
 			CountryCode    string             `json:"country_code"`

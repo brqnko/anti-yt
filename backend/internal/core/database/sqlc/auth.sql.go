@@ -16,78 +16,28 @@ const cleanupExpiredJTIBlacklist = `-- name: CleanupExpiredJTIBlacklist :exec
 DELETE FROM t_jti_blacklist WHERE expires_at < $1
 `
 
+// expires_atが過ぎたjtiのブラックリストを削除します。
 func (q *Queries) CleanupExpiredJTIBlacklist(ctx context.Context, expiresAt time.Time) error {
 	_, err := q.db.Exec(ctx, cleanupExpiredJTIBlacklist, expiresAt)
 	return err
 }
 
-const createAuthorization = `-- name: CreateAuthorization :one
-INSERT INTO m_user_authorization (issuer, sub)
-VALUES ($1, $2)
-ON CONFLICT (issuer, sub) DO UPDATE
-    SET issuer = EXCLUDED.issuer
-RETURNING m_user_authorization_id, public_id, (xmax = 0) AS is_created
+const getRefreshTokens = `-- name: GetRefreshTokens :many
+SELECT m_refresh_token.public_id, m_refresh_token.created_at, m_refresh_token.updated_at, m_refresh_token.country_code, m_refresh_token.city_name, m_refresh_token.browser_name
+FROM m_refresh_token
+INNER JOIN m_user ON m_user.m_user_authorization_id = m_refresh_token.m_user_authorization_id
+WHERE m_user.public_id = $1
+ORDER BY m_refresh_token.created_at DESC
+LIMIT $2 OFFSET $3
 `
 
-type CreateAuthorizationParams struct {
-	Issuer string
-	Sub    string
+type GetRefreshTokensParams struct {
+	PublicID uuid.UUID
+	Limit    int32
+	Offset   int32
 }
 
-type CreateAuthorizationRow struct {
-	MUserAuthorizationID int64
-	PublicID             uuid.UUID
-	IsCreated            bool
-}
-
-func (q *Queries) CreateAuthorization(ctx context.Context, arg CreateAuthorizationParams) (CreateAuthorizationRow, error) {
-	row := q.db.QueryRow(ctx, createAuthorization, arg.Issuer, arg.Sub)
-	var i CreateAuthorizationRow
-	err := row.Scan(&i.MUserAuthorizationID, &i.PublicID, &i.IsCreated)
-	return i, err
-}
-
-const createRefreshToken = `-- name: CreateRefreshToken :exec
-INSERT INTO m_refresh_token (m_user_authorization_id, token_hash, ip_address, device_fingerprint, user_agent,
-                             country_code, city_name, browser_name, device_type, expires_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-ON CONFLICT DO NOTHING
-`
-
-type CreateRefreshTokenParams struct {
-	MUserAuthorizationID int64
-	TokenHash            string
-	IpAddress            string
-	DeviceFingerprint    string
-	UserAgent            string
-	CountryCode          string
-	CityName             string
-	BrowserName          string
-	DeviceType           string
-	ExpiresAt            time.Time
-}
-
-func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) error {
-	_, err := q.db.Exec(ctx, createRefreshToken,
-		arg.MUserAuthorizationID,
-		arg.TokenHash,
-		arg.IpAddress,
-		arg.DeviceFingerprint,
-		arg.UserAgent,
-		arg.CountryCode,
-		arg.CityName,
-		arg.BrowserName,
-		arg.DeviceType,
-		arg.ExpiresAt,
-	)
-	return err
-}
-
-const getUserAllRefreshTokens = `-- name: GetUserAllRefreshTokens :many
-SELECT public_id, created_at, updated_at, country_code, city_name, browser_name FROM m_refresh_token WHERE m_user_authorization_id = $1
-`
-
-type GetUserAllRefreshTokensRow struct {
+type GetRefreshTokensRow struct {
 	PublicID    uuid.UUID
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -96,15 +46,16 @@ type GetUserAllRefreshTokensRow struct {
 	BrowserName string
 }
 
-func (q *Queries) GetUserAllRefreshTokens(ctx context.Context, mUserAuthorizationID int64) ([]GetUserAllRefreshTokensRow, error) {
-	rows, err := q.db.Query(ctx, getUserAllRefreshTokens, mUserAuthorizationID)
+// userテーブルのpublic_idから、そのリフレッシュトークンの一覧を返します。
+func (q *Queries) GetRefreshTokens(ctx context.Context, arg GetRefreshTokensParams) ([]GetRefreshTokensRow, error) {
+	rows, err := q.db.Query(ctx, getRefreshTokens, arg.PublicID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetUserAllRefreshTokensRow
+	var items []GetRefreshTokensRow
 	for rows.Next() {
-		var i GetUserAllRefreshTokensRow
+		var i GetRefreshTokensRow
 		if err := rows.Scan(
 			&i.PublicID,
 			&i.CreatedAt,
@@ -123,23 +74,15 @@ func (q *Queries) GetUserAllRefreshTokens(ctx context.Context, mUserAuthorizatio
 	return items, nil
 }
 
-const getUserAuthorizationID = `-- name: GetUserAuthorizationID :one
-SELECT m_user_authorization_id FROM m_user WHERE public_id = $1
-`
-
-func (q *Queries) GetUserAuthorizationID(ctx context.Context, publicID uuid.UUID) (int64, error) {
-	row := q.db.QueryRow(ctx, getUserAuthorizationID, publicID)
-	var m_user_authorization_id int64
-	err := row.Scan(&m_user_authorization_id)
-	return m_user_authorization_id, err
-}
-
 const getUserIDByAuthorization = `-- name: GetUserIDByAuthorization :one
 SELECT public_id
 FROM m_user
 WHERE m_user_authorization_id = $1
+LIMIT 1
 `
 
+// authorization_idから、そのユーザーのpublic_idを取得する。
+// authorization_idが存在しない場合はsql.ErrNoRowsが返される。
 func (q *Queries) GetUserIDByAuthorization(ctx context.Context, mUserAuthorizationID int64) (uuid.UUID, error) {
 	row := q.db.QueryRow(ctx, getUserIDByAuthorization, mUserAuthorizationID)
 	var public_id uuid.UUID
@@ -148,9 +91,12 @@ func (q *Queries) GetUserIDByAuthorization(ctx context.Context, mUserAuthorizati
 }
 
 const isJTIBlacklisted = `-- name: IsJTIBlacklisted :one
-SELECT expires_at FROM t_jti_blacklist WHERE jti = $1
+SELECT expires_at FROM t_jti_blacklist WHERE jti = $1 LIMIT 1
 `
 
+// jtiがブラックリストに存在するか確認する。
+// jtiが存在しない場合はsql.ErrNoRowsが返される。
+// jtiが存在する場合は、そのexpires_atが返される。
 func (q *Queries) IsJTIBlacklisted(ctx context.Context, jti uuid.UUID) (time.Time, error) {
 	row := q.db.QueryRow(ctx, isJTIBlacklisted, jti)
 	var expires_at time.Time
@@ -162,25 +108,79 @@ const removeRefreshToken = `-- name: RemoveRefreshToken :one
 DELETE
 FROM m_refresh_token
 WHERE token_hash = $1
-RETURNING token_hash
+RETURNING access_token_jti
 `
 
-func (q *Queries) RemoveRefreshToken(ctx context.Context, tokenHash string) (string, error) {
+// リフレッシュトークンを削除します。
+// 同じtoken_hashを持つレコードがない場合、sql.ErrNoRowsが返されます。
+// 削除されたレコードのaccess_token_jtiが返されます。
+func (q *Queries) RemoveRefreshToken(ctx context.Context, tokenHash string) (uuid.UUID, error) {
 	row := q.db.QueryRow(ctx, removeRefreshToken, tokenHash)
-	var token_hash string
-	err := row.Scan(&token_hash)
-	return token_hash, err
+	var access_token_jti uuid.UUID
+	err := row.Scan(&access_token_jti)
+	return access_token_jti, err
 }
 
-const removeRefreshTokenByID = `-- name: RemoveRefreshTokenByID :one
-DELETE FROM m_refresh_token WHERE public_id = $1 RETURNING public_id
+const removeRefreshTokenByIDAndSaveJtiBlacklist = `-- name: RemoveRefreshTokenByIDAndSaveJtiBlacklist :one
+WITH deleted AS (
+    DELETE FROM m_refresh_token
+        USING m_user
+        WHERE m_user.public_id = $1
+        AND m_user.m_user_authorization_id = m_refresh_token.m_user_authorization_id
+        AND m_refresh_token.public_id = $2
+    RETURNING public_id, access_token_jti
+),
+inserted AS (
+    INSERT INTO t_jti_blacklist (jti, expires_at) SELECT access_token_jti, $3 FROM deleted ON CONFLICT DO NOTHING RETURNING jti
+)
+SELECT public_id FROM deleted LIMIT 1
 `
 
-func (q *Queries) RemoveRefreshTokenByID(ctx context.Context, publicID uuid.UUID) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, removeRefreshTokenByID, publicID)
+type RemoveRefreshTokenByIDAndSaveJtiBlacklistParams struct {
+	UserPublicID         uuid.UUID
+	RefreshTokenPublicID uuid.UUID
+	ExpiresAt            time.Time
+}
+
+// m_refresh_tokenのpublic_idから、そのレコードを削除します。
+// 削除されたレコードに紐づくjtiをブラックリストに保存します。
+// 削除されたレコードのpublic_idが返されます。
+func (q *Queries) RemoveRefreshTokenByIDAndSaveJtiBlacklist(ctx context.Context, arg RemoveRefreshTokenByIDAndSaveJtiBlacklistParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, removeRefreshTokenByIDAndSaveJtiBlacklist, arg.UserPublicID, arg.RefreshTokenPublicID, arg.ExpiresAt)
 	var public_id uuid.UUID
 	err := row.Scan(&public_id)
 	return public_id, err
+}
+
+const saveAuthorization = `-- name: SaveAuthorization :one
+INSERT INTO m_user_authorization (issuer, sub)
+VALUES ($1, $2)
+ON CONFLICT (issuer, sub) DO UPDATE
+    SET issuer = EXCLUDED.issuer,
+        last_logged_in_at = current_timestamp
+RETURNING m_user_authorization_id, public_id, (xmax = 0) AS is_created
+`
+
+type SaveAuthorizationParams struct {
+	Issuer string
+	Sub    string
+}
+
+type SaveAuthorizationRow struct {
+	MUserAuthorizationID int64
+	PublicID             uuid.UUID
+	IsCreated            bool
+}
+
+// 認証テーブルにIssuerとSubを保存する
+// IssuerとSubの組み合わせで一意制約があり、既に存在する場合は、何もしない。
+// 重複した場合でも特にエラーは発生せず、既存のレコードが返される。
+// 返り値は、m_user_authorization_idとpublic_id、そして新規作成されたかどうかを示すis_createdフラグ。
+func (q *Queries) SaveAuthorization(ctx context.Context, arg SaveAuthorizationParams) (SaveAuthorizationRow, error) {
+	row := q.db.QueryRow(ctx, saveAuthorization, arg.Issuer, arg.Sub)
+	var i SaveAuthorizationRow
+	err := row.Scan(&i.MUserAuthorizationID, &i.PublicID, &i.IsCreated)
+	return i, err
 }
 
 const saveJTIBlacklist = `-- name: SaveJTIBlacklist :exec
@@ -194,50 +194,41 @@ type SaveJTIBlacklistParams struct {
 	ExpiresAt time.Time
 }
 
+// jtiのブラックリストに追加する。
+// jtiに一意制約があり、重複する場合は何もしない。
 func (q *Queries) SaveJTIBlacklist(ctx context.Context, arg SaveJTIBlacklistParams) error {
 	_, err := q.db.Exec(ctx, saveJTIBlacklist, arg.Jti, arg.ExpiresAt)
 	return err
 }
 
 const saveRefreshToken = `-- name: SaveRefreshToken :one
-UPDATE m_refresh_token
-SET token_hash         = $1,
-    expires_at         = $2,
-    ip_address         = $3,
-    device_fingerprint = $4,
-    user_agent         = $5,
-    country_code       = $6,
-    city_name          = $7,
-    browser_name       = $8,
-    device_type        = $9,
-    updated_at         = current_timestamp,
-    generation         = generation + 1
-WHERE token_hash = $10
-  AND $11 < expires_at
-  AND updated_at < $12
-  AND device_fingerprint = $4
-RETURNING m_user_authorization_id
+INSERT INTO m_refresh_token (m_user_authorization_id, token_hash, ip_address, device_fingerprint, user_agent,
+                             country_code, city_name, browser_name, device_type, expires_at, access_token_jti)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+ON CONFLICT DO NOTHING RETURNING m_refresh_token_id
 `
 
 type SaveRefreshTokenParams struct {
-	TokenHash         string
-	ExpiresAt         time.Time
-	IpAddress         string
-	DeviceFingerprint string
-	UserAgent         string
-	CountryCode       string
-	CityName          string
-	BrowserName       string
-	DeviceType        string
-	TokenHash_2       string
-	ExpiresAt_2       time.Time
-	UpdatedAt         time.Time
+	MUserAuthorizationID int64
+	TokenHash            string
+	IpAddress            string
+	DeviceFingerprint    string
+	UserAgent            string
+	CountryCode          string
+	CityName             string
+	BrowserName          string
+	DeviceType           string
+	ExpiresAt            time.Time
+	AccessTokenJti       uuid.UUID
 }
 
+// リフレッシュトークンをテーブルに保存する。
+// token_hashに一意制約があり、重複する場合はsql.ErrNoRowsが返される。
+// m_refresh_token_idが返される。
 func (q *Queries) SaveRefreshToken(ctx context.Context, arg SaveRefreshTokenParams) (int64, error) {
 	row := q.db.QueryRow(ctx, saveRefreshToken,
+		arg.MUserAuthorizationID,
 		arg.TokenHash,
-		arg.ExpiresAt,
 		arg.IpAddress,
 		arg.DeviceFingerprint,
 		arg.UserAgent,
@@ -245,11 +236,75 @@ func (q *Queries) SaveRefreshToken(ctx context.Context, arg SaveRefreshTokenPara
 		arg.CityName,
 		arg.BrowserName,
 		arg.DeviceType,
-		arg.TokenHash_2,
-		arg.ExpiresAt_2,
-		arg.UpdatedAt,
+		arg.ExpiresAt,
+		arg.AccessTokenJti,
 	)
-	var m_user_authorization_id int64
-	err := row.Scan(&m_user_authorization_id)
-	return m_user_authorization_id, err
+	var m_refresh_token_id int64
+	err := row.Scan(&m_refresh_token_id)
+	return m_refresh_token_id, err
+}
+
+const updateRefreshToken = `-- name: UpdateRefreshToken :one
+WITH updated AS (
+    UPDATE m_refresh_token
+    SET token_hash         = $1,
+        expires_at         = $2,
+        ip_address         = $3,
+        device_fingerprint = $4,
+        user_agent         = $5,
+        country_code       = $6,
+        city_name          = $7,
+        browser_name       = $8,
+        device_type        = $9,
+        updated_at         = current_timestamp,
+        generation         = generation + 1,
+        access_token_jti   = $10
+    WHERE token_hash = $11 -- NOTE: token_hashにunique indexがあるため、updated_at, expires_atにインデックスは張らなくてもよい
+    AND m_refresh_token.updated_at < $12
+    AND expires_at > current_timestamp
+    RETURNING m_user_authorization_id
+)
+SELECT public_id FROM m_user INNER JOIN updated ON m_user.m_user_authorization_id = updated.m_user_authorization_id
+LIMIT 1
+`
+
+type UpdateRefreshTokenParams struct {
+	NewTokenHash         string
+	NewExpiresAt         time.Time
+	NewIpAddress         string
+	NewDeviceFingerprint string
+	NewUserAgent         string
+	NewCountryCode       string
+	NewCityName          string
+	NewBrowserName       string
+	NewDeviceType        string
+	NewAccessTokenJti    uuid.UUID
+	TokenHashForCheck    string
+	UpdatedAtForCheck    time.Time
+}
+
+// リフレッシュトークンを更新します。
+// token_hash = token_hash_for_check
+// updated_at < updated_at_for_check
+// expires_at > current_timestamp
+// の条件をすべて満たす場合にのみ更新されます。条件を満たさない場合は、sql.ErrNoRowsが返されます。
+// リフレッシュトークンに紐づくuser_authorization_idから、それに紐づくuserのpublic_idを返します。
+func (q *Queries) UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, updateRefreshToken,
+		arg.NewTokenHash,
+		arg.NewExpiresAt,
+		arg.NewIpAddress,
+		arg.NewDeviceFingerprint,
+		arg.NewUserAgent,
+		arg.NewCountryCode,
+		arg.NewCityName,
+		arg.NewBrowserName,
+		arg.NewDeviceType,
+		arg.NewAccessTokenJti,
+		arg.TokenHashForCheck,
+		arg.UpdatedAtForCheck,
+	)
+	var public_id uuid.UUID
+	err := row.Scan(&public_id)
+	return public_id, err
 }

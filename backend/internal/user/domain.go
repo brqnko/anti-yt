@@ -58,39 +58,22 @@ func NewDailyScreenTimeLimitRange(startTimeSeconds, endTimeSeconds int) (DailySc
 	}, nil
 }
 
-type DailyScreenTimeLimitRangeSet struct {
-	ranges []DailyScreenTimeLimitRange
-}
-
-func NewDailyScreenTimeLimitRangeSet(ranges []DailyScreenTimeLimitRange) (DailyScreenTimeLimitRangeSet, error) {
-	return DailyScreenTimeLimitRangeSet{
-		ranges: ranges,
-	}, nil
-}
-
 type User struct {
 	PublicID                     uuid.UUID
 	JoinedAt                     time.Time
 	DailyScreenTimeLimit         DailyScreenTimeLimit
 	LanguageCode                 string
 	DisplayName                  DisplayName
-	DailyScreenTimeLimitRangeSet DailyScreenTimeLimitRangeSet
+	DailyScreenTimeLimitRangeSet []DailyScreenTimeLimitRange
 }
 
 type CreateUserInput struct {
 	DailyScreenTimeLimit         DailyScreenTimeLimit
 	LanguageCode                 string
 	DisplayName                  DisplayName
-	DailyScreenTimeLimitRangeSet DailyScreenTimeLimitRangeSet
+	DailyScreenTimeLimitRangeSet []DailyScreenTimeLimitRange
 }
 
 func NewCreateUserInput(displayName *string, languageCode string, dailyScreenLimit *time.Duration, dailyScreenTimeLimitRangeSet []struct{ start, end int }) (*CreateUserInput, error) {
-	return nil, nil
-}
-
-type UserLimitation struct {
-}
-
-func NewUserLimitation() (*UserLimitation, error) {
 	return nil, nil
 }

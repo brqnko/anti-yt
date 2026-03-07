@@ -49,34 +49,16 @@ type MChannel struct {
 	PublicID                 uuid.UUID
 }
 
-type MComment struct {
-	MCommentID              int64
-	MVideoID                int64
-	ExternalID              string
-	ExternalContent         string
-	ExternalLikeCount       int64
-	ExternalUserID          string
-	ExternalUserDisplayName string
-	ExternalUserCustomID    string
-	ExternalEditedFlg       bool
-	ExternalCreatedAt       time.Time
-	FetchedAt               time.Time
-	CreatedAt               time.Time
-	UpdatedAt               time.Time
-	PublicID                uuid.UUID
-}
-
 type MPlaylist struct {
-	MPlaylistID                     int64
-	MUserID                         int64
-	VisibilityCode                  int32
-	PlaylistTitle                   string
-	PlaylistCode                    int32
-	VideoCount                      int32
-	PlaylistTotalVideoLengthSeconds int32
-	CreatedAt                       time.Time
-	UpdatedAt                       time.Time
-	PublicID                        uuid.UUID
+	MPlaylistID    int64
+	MUserID        int64
+	VisibilityCode int32
+	PlaylistTitle  string
+	PlaylistCode   int32
+	VideoCount     int32
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	PublicID       uuid.UUID
 }
 
 type MPlaylistVideo struct {
@@ -104,6 +86,7 @@ type MRefreshToken struct {
 	CreatedAt            time.Time
 	UpdatedAt            time.Time
 	PublicID             uuid.UUID
+	AccessTokenJti       uuid.UUID
 }
 
 type MUser struct {
@@ -154,13 +137,11 @@ type MVideo struct {
 	ExternalID          string
 	ExternalTitle       string
 	ExternalDescription string
-	ExternalLikeCount   int64
-	ExternalWatchCount  int64
-	LengthSeconds       int64
 	FetchedAt           time.Time
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 	PublicID            uuid.UUID
+	ExternalCreatedAt   time.Time
 }
 
 type SMonthlyVideoWatch struct {
@@ -203,4 +184,6 @@ type WMonthlyVideoWatch struct {
 	FinishedAt           time.Time
 	CreatedAt            time.Time
 	UpdatedAt            time.Time
+	TargetMonth          pgtype.Date
+	FailReason           string
 }
