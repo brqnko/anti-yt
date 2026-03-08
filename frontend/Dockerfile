@@ -15,7 +15,8 @@ ENV NODE_ENV development
 RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
     --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm install --dev --frozen-lockfile
+    pnpm install --frozen-lockfile
 
 EXPOSE 3000
 
+CMD ["sleep", "infinity" ]

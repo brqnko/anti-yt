@@ -1,4 +1,6 @@
 /tmp
 /shared
-password.txt
+.env
+*.txt
 .idea
+*.pem
