@@ -85,15 +85,9 @@ func (h *APIHandler) GetAuthGoogleCallback(c context.Context, request GetAuthGoo
 		}, nil
 	}
 
-	var location string
-	if result.AlreadyUserExists {
-		location = fmt.Sprintf("%s/home", h.frontendURL)
-	} else {
-		location = fmt.Sprintf("%s/register", h.frontendURL)
-	}
 	return GetAuthGoogleCallback302Response{
 		Headers: GetAuthGoogleCallback302ResponseHeaders{
-			Location: location,
+			Location: fmt.Sprintf("%s/%s", h.frontendURL, result.RedirectPath),
 			SetCookie: []string{
 				(&http.Cookie{
 					Name:     "access_token",

@@ -161,6 +161,14 @@
           "columns": [
             "public_id"
           ]
+        },
+        {
+          "name": "idx_1_m_user",
+          "def": "CREATE INDEX idx_1_m_user ON public.m_user USING btree (m_user_authorization_id)",
+          "table": "public.m_user",
+          "columns": [
+            "m_user_authorization_id"
+          ]
         }
       ],
       "constraints": [
@@ -504,8 +512,8 @@
           "default": "uuidv7()"
         },
         {
-          "name": "access_token_hash",
-          "type": "varchar(256)",
+          "name": "access_token_jti",
+          "type": "uuid",
           "nullable": false
         }
       ],
@@ -541,17 +549,26 @@
           "columns": [
             "public_id"
           ]
+        },
+        {
+          "name": "idx_2_m_refresh_token",
+          "def": "CREATE INDEX idx_2_m_refresh_token ON public.m_refresh_token USING btree (m_user_authorization_id, updated_at)",
+          "table": "public.m_refresh_token",
+          "columns": [
+            "m_user_authorization_id",
+            "updated_at"
+          ]
         }
       ],
       "constraints": [
         {
-          "name": "m_refresh_token_access_token_hash_not_null",
+          "name": "m_refresh_token_access_token_jti_not_null",
           "type": "n",
-          "def": "NOT NULL access_token_hash",
+          "def": "NOT NULL access_token_jti",
           "table": "public.m_refresh_token",
           "referenced_table": "",
           "columns": [
-            "access_token_hash"
+            "access_token_jti"
           ]
         },
         {
@@ -1514,21 +1531,6 @@
           "nullable": false
         },
         {
-          "name": "external_like_count",
-          "type": "bigint",
-          "nullable": false
-        },
-        {
-          "name": "external_watch_count",
-          "type": "bigint",
-          "nullable": false
-        },
-        {
-          "name": "external_length_seconds",
-          "type": "integer",
-          "nullable": false
-        },
-        {
           "name": "fetched_at",
           "type": "timestamp with time zone",
           "nullable": false,
@@ -1635,16 +1637,6 @@
           ]
         },
         {
-          "name": "m_video_external_like_count_not_null",
-          "type": "n",
-          "def": "NOT NULL external_like_count",
-          "table": "public.m_video",
-          "referenced_table": "",
-          "columns": [
-            "external_like_count"
-          ]
-        },
-        {
           "name": "m_video_external_title_not_null",
           "type": "n",
           "def": "NOT NULL external_title",
@@ -1655,16 +1647,6 @@
           ]
         },
         {
-          "name": "m_video_external_watch_count_not_null",
-          "type": "n",
-          "def": "NOT NULL external_watch_count",
-          "table": "public.m_video",
-          "referenced_table": "",
-          "columns": [
-            "external_watch_count"
-          ]
-        },
-        {
           "name": "m_video_fetched_at_not_null",
           "type": "n",
           "def": "NOT NULL fetched_at",
@@ -1672,16 +1654,6 @@
           "referenced_table": "",
           "columns": [
             "fetched_at"
-          ]
-        },
-        {
-          "name": "m_video_length_seconds_not_null",
-          "type": "n",
-          "def": "NOT NULL external_length_seconds",
-          "table": "public.m_video",
-          "referenced_table": "",
-          "columns": [
-            "external_length_seconds"
           ]
         },
         {
@@ -1802,16 +1774,6 @@
           ]
         },
         {
-          "name": "excl_1_t_video_watch",
-          "def": "CREATE INDEX excl_1_t_video_watch ON public.t_video_watch USING gist (m_user_id, m_video_id, tstzrange(watch_start_at, watch_end_at))",
-          "table": "public.t_video_watch",
-          "columns": [
-            "m_user_id",
-            "m_video_id",
-            "tstzrange"
-          ]
-        },
-        {
           "name": "uk_1_t_video_watch",
           "def": "CREATE UNIQUE INDEX uk_1_t_video_watch ON public.t_video_watch USING btree (public_id)",
           "table": "public.t_video_watch",
@@ -1825,6 +1787,15 @@
           "table": "public.t_video_watch",
           "columns": [
             "m_user_id"
+          ]
+        },
+        {
+          "name": "idx_2_t_video_watch",
+          "def": "CREATE INDEX idx_2_t_video_watch ON public.t_video_watch USING btree (m_user_id, watch_start_at)",
+          "table": "public.t_video_watch",
+          "columns": [
+            "m_user_id",
+            "watch_start_at"
           ]
         }
       ],
@@ -1927,17 +1898,6 @@
           "referenced_table": "",
           "columns": [
             "t_video_watch_id"
-          ]
-        },
-        {
-          "name": "excl_1_t_video_watch",
-          "type": "x",
-          "def": "EXCLUDE USING gist (m_user_id WITH =, m_video_id WITH =, tstzrange(watch_start_at, watch_end_at) WITH \u0026\u0026)",
-          "table": "public.t_video_watch",
-          "referenced_table": "",
-          "columns": [
-            "m_user_id",
-            "m_video_id"
           ]
         }
       ]
@@ -2508,12 +2468,6 @@
           "default": "0"
         },
         {
-          "name": "playlist_total_video_length_seconds",
-          "type": "integer",
-          "nullable": false,
-          "default": "0"
-        },
-        {
           "name": "created_at",
           "type": "timestamp with time zone",
           "nullable": false,
@@ -2530,6 +2484,12 @@
           "type": "uuid",
           "nullable": false,
           "default": "uuidv7()"
+        },
+        {
+          "name": "playlist_description",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": "''::character varying"
         }
       ],
       "indexes": [
@@ -2603,6 +2563,16 @@
           ]
         },
         {
+          "name": "m_playlist_playlist_description_not_null",
+          "type": "n",
+          "def": "NOT NULL playlist_description",
+          "table": "public.m_playlist",
+          "referenced_table": "",
+          "columns": [
+            "playlist_description"
+          ]
+        },
+        {
           "name": "m_playlist_playlist_title_not_null",
           "type": "n",
           "def": "NOT NULL playlist_title",
@@ -2610,16 +2580,6 @@
           "referenced_table": "",
           "columns": [
             "playlist_title"
-          ]
-        },
-        {
-          "name": "m_playlist_playlist_total_video_length_seconds_not_null",
-          "type": "n",
-          "def": "NOT NULL playlist_total_video_length_seconds",
-          "table": "public.m_playlist",
-          "referenced_table": "",
-          "columns": [
-            "playlist_total_video_length_seconds"
           ]
         },
         {

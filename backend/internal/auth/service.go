@@ -41,7 +41,7 @@ type GoogleOIDCCallbackResult struct {
 	AccessToken           string
 	RefreshToken          string
 	CSRFToken             string
-	AlreadyUserExists     bool
+	RedirectPath          string
 	AccessTokenExpiresAt  time.Time
 	RefreshTokenExpiresAt time.Time
 }
@@ -100,7 +100,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 	}()
 	q := sqlc.New(tx)
 
-	createAuthorization, err := q.SaveAuthorization(ctx, sqlc.SaveAuthorizationParams{
+	saveAuthorization, err := q.SaveAuthorization(ctx, sqlc.SaveAuthorizationParams{
 		Issuer: "https://accounts.google.com", // TODO: DI
 		Sub:    sub,
 	})
@@ -109,9 +109,9 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 	}
 
 	// もし、userテーブルに存在するなら、ログイン用リフレッシュトークンを作成してダッシュボードにリダイレクトさせる。
-	// そうでないなら、登録用リフレッシュトークンを作成して、ユーザー登録完了後にダッシュボードにリダイレクトさせる。
+	// そうでないなら、登録用リフレッシュトークンを作成して、ユーザー登録にリダイレクトさせる。
 	// リフレッシュトークンは、user_authorizationに紐づくものである。
-	// どちらにせよ、リフレッシュトークンは発行する。アクセストークンはユーザーテーブルに存在する場合のみ発行する。
+	// どちらにせよ、リフレッシュトークンは発行する。
 	refreshTokenRaw, err := util.RandomStringUrlSafe(32)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 	ua := user_agent.New(params.UserAgent)
 	browserName, browserVersion := ua.Browser()
 	_, err = q.SaveRefreshToken(ctx, sqlc.SaveRefreshTokenParams{
-		MUserAuthorizationID: createAuthorization.MUserAuthorizationID,
+		MUserAuthorizationID: saveAuthorization.MUserAuthorizationID,
 		TokenHash:            refreshTokenHash,
 		IpAddress:            params.IPAddress,
 		DeviceFingerprint:    params.DeviceFingerprint,
@@ -144,21 +144,19 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 	if err != nil {
 		return nil, err
 	}
+	csrf, err := util.RandomStringUrlSafe(32)
+	if err != nil {
+		return nil, err
+	}
 
-	// userテーブルに存在する場合、リフレッシュトークンを保存して、アクセストークンも発行する。
+	// userテーブルに存在する場合、リフレッシュトークンを保存して、アクセストークンを発行する。
 	// userテーブルに存在しない場合、登録用アクセストークンを発行する。
-	// 登録用アクセストークンには、user_authorizationのpublic_idが組み込みまれており、登録時に1Googleアカウントで複数のユーザー登録を防止するために使用される。
 
 	// userテーブルに存在するかどうか
-	userPublicId, err := q.GetUserIDByAuthorization(ctx, createAuthorization.MUserAuthorizationID)
+	getUserByAuthorization, err := q.GetUserIDByAuthorization(ctx, saveAuthorization.MUserAuthorizationID)
 
-	if err == nil { // 存在する場合
-		csrf, err := util.RandomStringUrlSafe(32)
-		if err != nil {
-			return nil, err
-		}
-
-		accessToken, accessTokenExpiresAt, err := s.jwtService.SignUserAccessToken(userPublicId, accessTokenJti, s.serverURL)
+	if err == nil && !getUserByAuthorization.IsH { // 現役で存在する場合
+		accessToken, accessTokenExpiresAt, err := s.jwtService.SignUserAccessToken(getUserByAuthorization.PublicID, accessTokenJti, s.serverURL)
 		if err != nil {
 			return nil, err
 		}
@@ -171,17 +169,12 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 			AccessToken:           accessToken,
 			RefreshToken:          refreshTokenRaw,
 			CSRFToken:             csrf,
-			AlreadyUserExists:     true,
+			RedirectPath:          "home",
 			AccessTokenExpiresAt:  accessTokenExpiresAt,
 			RefreshTokenExpiresAt: refreshTokenExpiresAt,
 		}, nil
-	} else if errors.Is(err, pgx.ErrNoRows) { // 存在しない場合
-		csrf, err := util.RandomStringUrlSafe(32)
-		if err != nil {
-			return nil, err
-		}
-
-		accessToken, accessTokenJtiExpiresAt, err := s.jwtService.SignRegisterToken(createAuthorization.PublicID, accessTokenJti, s.serverURL)
+	} else if err == nil && getUserByAuthorization.IsH { // 退会済みだが、レコードが残っている場合
+		accessToken, accessTokenJtiExpiresAt, err := s.jwtService.SignRegisterToken(saveAuthorization.PublicID, accessTokenJti, s.serverURL)
 		if err != nil {
 			return nil, err
 		}
@@ -194,7 +187,25 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 			AccessToken:           accessToken,
 			RefreshToken:          refreshTokenRaw,
 			CSRFToken:             csrf,
-			AlreadyUserExists:     false,
+			RedirectPath:          "reactivation",
+			AccessTokenExpiresAt:  accessTokenJtiExpiresAt,
+			RefreshTokenExpiresAt: refreshTokenExpiresAt,
+		}, nil
+	} else if errors.Is(err, pgx.ErrNoRows) { // 存在しない場合
+		accessToken, accessTokenJtiExpiresAt, err := s.jwtService.SignRegisterToken(saveAuthorization.PublicID, accessTokenJti, s.serverURL)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := tx.Commit(ctx); err != nil {
+			return nil, err
+		}
+
+		return &GoogleOIDCCallbackResult{
+			AccessToken:           accessToken,
+			RefreshToken:          refreshTokenRaw,
+			CSRFToken:             csrf,
+			RedirectPath:          "register",
 			AccessTokenExpiresAt:  accessTokenJtiExpiresAt,
 			RefreshTokenExpiresAt: refreshTokenExpiresAt,
 		}, nil
@@ -204,36 +215,16 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 }
 
 func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) error {
-	tx, err := s.db.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			slog.Error("failed to rollback", "error", err)
-		}
-	}()
-	q := sqlc.New(tx)
+	q := sqlc.New(s.db)
+	userId, _, _, _ := s.jwtService.VerifyUserAccessToken(accessToken)
 
-	// リフレッシュトークンの削除
 	refreshTokenHashRaw := sha256.Sum256([]byte(refreshToken))
 	refreshTokenHash := hex.EncodeToString(refreshTokenHashRaw[:])
-	if _, err := q.RemoveRefreshToken(ctx, refreshTokenHash); err != nil {
-		return err
-	}
-
-	_, jti, expiresAt, err := s.jwtService.VerifyUserAccessToken(accessToken)
-	if err == nil {
-		// アクセストークンのjtiをブラックリストに保存
-		if err := q.SaveJTIBlacklist(ctx, sqlc.SaveJTIBlacklistParams{
-			Jti:       jti,
-			ExpiresAt: expiresAt,
-		}); err != nil {
-			// NOTE: ユーザーはlogoutを望んでいるのでブラックリストの更新の失敗で、rollbackすべきではない
-			slog.Error("failed to save jti into blacklist", "error", err)
-		}
-	}
-	if err := tx.Commit(ctx); err != nil {
+	if _, err := q.RemoveRefreshTokenByTokenHashAndSaveJtiBlacklist(ctx, sqlc.RemoveRefreshTokenByTokenHashAndSaveJtiBlacklistParams{
+		UserPublicID: userId,
+		TokenHash:    refreshTokenHash,
+		ExpiresAt:    time.Now().UTC().Add(s.refreshTokenDuration),
+	}); err != nil {
 		return err
 	}
 
@@ -259,7 +250,16 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 	now := time.Now().UTC()
 	newTokenExpiresAt := now.Add(s.refreshTokenDuration).UTC()
 
-	q := sqlc.New(s.db)
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return "", "", time.Time{}, time.Time{}, err
+	}
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			slog.Error("failed to rollback", "error", err)
+		}
+	}()
+	q := sqlc.New(tx)
 
 	ua := user_agent.New(userAgent)
 	browserName, browserVersion := ua.Browser()
@@ -274,9 +274,9 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 		NewBrowserName:       fmt.Sprintf("%s:%s", browserName, browserVersion),
 		NewDeviceType:        ua.OSInfo().FullName,
 		TokenHashForCheck:    tokenHash, // token_hash = token_hash_for_check
-		// updated_at > @updated_at_for_checkがsqlcの引数
-		// updated_at + token_duration > now にしたい。
-		// updated_at > now - token_duration 変形するとこうなる。
+		// updated_at < @updated_at_for_checkがsqlcの引数
+		// updated_at + token_duration < now にしたい。
+		// updated_at < now - token_duration 変形するとこうなる。
 		// すなわち、@updated_at_for_check = now - token_duration
 		UpdatedAtForCheck: now.Add(-s.jwtService.TokenDuration()).UTC(),
 		NewAccessTokenJti: newAccessTokenJti,
@@ -287,6 +287,10 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 
 	accessTokenString, signedAtExpiresAtD, err := s.jwtService.SignUserAccessToken(userPublicId, newAccessTokenJti, s.serverURL)
 	if err != nil {
+		return "", "", time.Time{}, time.Time{}, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
 		return "", "", time.Time{}, time.Time{}, err
 	}
 
@@ -307,14 +311,14 @@ func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID) ([]Session,
 
 	domainSessions := make([]Session, len(sessions))
 	for i, session := range sessions {
-		domainSessions[i] = Session{
-			ID:             session.PublicID,
-			CreatedAt:      session.CreatedAt,
-			LastLoggedInAt: session.UpdatedAt,
-			CountryCode:    session.CountryCode,
-			CityName:       session.CityName,
-			BrowserName:    session.BrowserName,
-		}
+		domainSessions[i] = NewSession(
+			session.PublicID,
+			session.CreatedAt,
+			session.UpdatedAt,
+			session.CountryCode,
+			session.CityName,
+			session.BrowserName,
+		)
 	}
 
 	return domainSessions, nil

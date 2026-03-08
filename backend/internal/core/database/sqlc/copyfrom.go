@@ -9,13 +9,13 @@ import (
 	"context"
 )
 
-// iteratorForCreateUserScreenTimeRanges implements pgx.CopyFromSource.
-type iteratorForCreateUserScreenTimeRanges struct {
-	rows                 []CreateUserScreenTimeRangesParams
+// iteratorForSaveUserScreenTimeRanges implements pgx.CopyFromSource.
+type iteratorForSaveUserScreenTimeRanges struct {
+	rows                 []SaveUserScreenTimeRangesParams
 	skippedFirstNextCall bool
 }
 
-func (r *iteratorForCreateUserScreenTimeRanges) Next() bool {
+func (r *iteratorForSaveUserScreenTimeRanges) Next() bool {
 	if len(r.rows) == 0 {
 		return false
 	}
@@ -27,7 +27,7 @@ func (r *iteratorForCreateUserScreenTimeRanges) Next() bool {
 	return len(r.rows) > 0
 }
 
-func (r iteratorForCreateUserScreenTimeRanges) Values() ([]interface{}, error) {
+func (r iteratorForSaveUserScreenTimeRanges) Values() ([]interface{}, error) {
 	return []interface{}{
 		r.rows[0].MUserID,
 		r.rows[0].ScreenTimeRangeStart,
@@ -35,10 +35,11 @@ func (r iteratorForCreateUserScreenTimeRanges) Values() ([]interface{}, error) {
 	}, nil
 }
 
-func (r iteratorForCreateUserScreenTimeRanges) Err() error {
+func (r iteratorForSaveUserScreenTimeRanges) Err() error {
 	return nil
 }
 
-func (q *Queries) CreateUserScreenTimeRanges(ctx context.Context, arg []CreateUserScreenTimeRangesParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"m_user_screen_time_range"}, []string{"m_user_id", "screen_time_range_start", "screen_time_range_end"}, &iteratorForCreateUserScreenTimeRanges{rows: arg})
+// NOTE: err == nilの場合はlen(param)
+func (q *Queries) SaveUserScreenTimeRanges(ctx context.Context, arg []SaveUserScreenTimeRangesParams) (int64, error) {
+	return q.db.CopyFrom(ctx, []string{"m_user_screen_time_range"}, []string{"m_user_id", "screen_time_range_start", "screen_time_range_end"}, &iteratorForSaveUserScreenTimeRanges{rows: arg})
 }

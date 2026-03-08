@@ -1266,55 +1266,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/users/me/limits:
-    parameters:
-      - $ref: '#/components/parameters/HeaderXRealIP'
-      - $ref: '#/components/parameters/HeaderCfIpCountry'
-      - $ref: '#/components/parameters/HeaderCfRay'
-      - $ref: '#/components/parameters/HeaderUserAgent'
-      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-    get:
-      tags: [ user ]
-      summary: Get User Detail
-      description: 制限情報を取得する
-      operationId: getUsersMeLimits
-      responses:
-        "200":
-          description: 200 OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  screen_time:
-                    type: array
-                    uniqueItems: true
-                    items:
-                      $ref: "#/components/schemas/ScreenTimeSlot"
-                  daily_remaining_seconds:
-                    type: integer
-                    description: 今日の残りの時間。残り時間を設定していない場合はなし。
-                    minimum: 0
-                  daily_screen_seconds:
-                    type: integer
-                    description: 毎日のスクリーン時間制限
-                    minimum: 0
-                required: [ screen_time ]
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "413":
-          $ref: "#/components/responses/PayloadTooLarge"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
   # ========================================
   # history - 履歴
   # ========================================

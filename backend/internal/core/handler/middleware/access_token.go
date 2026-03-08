@@ -32,6 +32,9 @@ func AccessTokenMiddleware(jwtService jwt_d.JWTService, db *pgxpool.Pool) func(v
 					return f(ctx, w, r, request)
 				}
 			}
+			if r.URL.Path == "/api/v1/users/me" && r.Method == http.MethodPost {
+				return f(ctx, w, r, request)
+			}
 
 			cookie, err := r.Cookie("access_token")
 			if err != nil {

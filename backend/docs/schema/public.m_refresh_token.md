@@ -21,13 +21,13 @@
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | public_id | uuid | uuidv7() | false |  |  |  |
-| access_token_hash | varchar(256) |  | false |  |  |  |
+| access_token_jti | uuid |  | false |  |  |  |
 
 ## Constraints
 
 | Name | Type | Definition |
 | ---- | ---- | ---------- |
-| m_refresh_token_access_token_hash_not_null | n | NOT NULL access_token_hash |
+| m_refresh_token_access_token_jti_not_null | n | NOT NULL access_token_jti |
 | m_refresh_token_browser_name_not_null | n | NOT NULL browser_name |
 | m_refresh_token_city_name_not_null | n | NOT NULL city_name |
 | m_refresh_token_country_code_not_null | n | NOT NULL country_code |
@@ -54,6 +54,7 @@
 | uk_1_m_refresh_token | CREATE UNIQUE INDEX uk_1_m_refresh_token ON public.m_refresh_token USING btree (token_hash) |
 | idx_1_m_refresh_token | CREATE INDEX idx_1_m_refresh_token ON public.m_refresh_token USING btree (expires_at) |
 | uk_2_m_refresh_token | CREATE UNIQUE INDEX uk_2_m_refresh_token ON public.m_refresh_token USING btree (public_id) |
+| idx_2_m_refresh_token | CREATE INDEX idx_2_m_refresh_token ON public.m_refresh_token USING btree (m_user_authorization_id, updated_at) |
 
 ## Relations
 

@@ -94,8 +94,8 @@
 <text text-anchor="start" x="70.7" y="-465.8" font-family="Arial" font-size="14.00">public_id </text>
 <text text-anchor="start" x="129.85" y="-465.8" font-family="Arial" font-size="14.00" fill="#666666">[uuid]</text>
 <polygon fill="none" stroke="black" points="63.7,-422.8 63.7,-453.6 373.64,-453.6 373.64,-422.8 63.7,-422.8"/>
-<text text-anchor="start" x="70.7" y="-435" font-family="Arial" font-size="14.00">access_token_hash </text>
-<text text-anchor="start" x="198.34" y="-435" font-family="Arial" font-size="14.00" fill="#666666">[varchar(256)]</text>
+<text text-anchor="start" x="70.7" y="-435" font-family="Arial" font-size="14.00">access_token_jti </text>
+<text text-anchor="start" x="178.09" y="-435" font-family="Arial" font-size="14.00" fill="#666666">[uuid]</text>
 </g>
 <!-- public.m_refresh_token&#45;&gt;public.m_user_authorization -->
 <g id="edge1" class="edge">

@@ -30,16 +30,15 @@
 | t_video_watch_watch_position_seconds_not_null | n | NOT NULL watch_position_seconds |
 | t_video_watch_watch_start_at_not_null | n | NOT NULL watch_start_at |
 | t_video_watch_pkey | PRIMARY KEY | PRIMARY KEY (t_video_watch_id) |
-| excl_1_t_video_watch | x | EXCLUDE USING gist (m_user_id WITH =, m_video_id WITH =, tstzrange(watch_start_at, watch_end_at) WITH &&) |
 
 ## Indexes
 
 | Name | Definition |
 | ---- | ---------- |
 | t_video_watch_pkey | CREATE UNIQUE INDEX t_video_watch_pkey ON public.t_video_watch USING btree (t_video_watch_id) |
-| excl_1_t_video_watch | CREATE INDEX excl_1_t_video_watch ON public.t_video_watch USING gist (m_user_id, m_video_id, tstzrange(watch_start_at, watch_end_at)) |
 | uk_1_t_video_watch | CREATE UNIQUE INDEX uk_1_t_video_watch ON public.t_video_watch USING btree (public_id) |
 | idx_1_t_video_watch | CREATE INDEX idx_1_t_video_watch ON public.t_video_watch USING btree (m_user_id) |
+| idx_2_t_video_watch | CREATE INDEX idx_2_t_video_watch ON public.t_video_watch USING btree (m_user_id, watch_start_at) |
 
 ## Relations
 

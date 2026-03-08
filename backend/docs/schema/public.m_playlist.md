@@ -12,10 +12,10 @@
 | playlist_title | varchar(128) |  | false |  |  |  |
 | playlist_code | integer | 0 | false |  |  |  |
 | video_count | integer | 0 | false |  |  |  |
-| playlist_total_video_length_seconds | integer | 0 | false |  |  |  |
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | public_id | uuid | uuidv7() | false |  |  |  |
+| playlist_description | varchar(255) | ''::character varying | false |  |  |  |
 
 ## Constraints
 
@@ -25,8 +25,8 @@
 | m_playlist_m_playlist_id_not_null | n | NOT NULL m_playlist_id |
 | m_playlist_m_user_id_not_null | n | NOT NULL m_user_id |
 | m_playlist_playlist_code_not_null | n | NOT NULL playlist_code |
+| m_playlist_playlist_description_not_null | n | NOT NULL playlist_description |
 | m_playlist_playlist_title_not_null | n | NOT NULL playlist_title |
-| m_playlist_playlist_total_video_length_seconds_not_null | n | NOT NULL playlist_total_video_length_seconds |
 | m_playlist_public_id_not_null | n | NOT NULL public_id |
 | m_playlist_updated_at_not_null | n | NOT NULL updated_at |
 | m_playlist_video_count_not_null | n | NOT NULL video_count |

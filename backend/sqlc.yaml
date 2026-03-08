@@ -18,6 +18,34 @@ sql:
             go_type: "time.Time"
           - db_type: "uuid"
             go_type: "github.com/google/uuid.UUID"
+          - db_type: "pg_catalog.time"
+            go_type:
+              import: "github.com/brqnko/anti-yt/backend/internal/core/database"
+              type: "Seconds"
+          - db_type: "pg_catalog.time"
+            nullable: true
+            go_type:
+              import: "github.com/brqnko/anti-yt/backend/internal/core/database"
+              type: "Seconds"
+              pointer: true
+          - db_type: "pg_catalog.varchar"
+            nullable: true
+            go_type:
+              type: "string"
+              pointer: true
+          - db_type: "pg_catalog.int4"
+            nullable: true
+            go_type:
+              type: "int"
+              pointer: true
+          - db_type: "pg_catalog.int4"
+            go_type:
+              type: "int"
+          - db_type: "pg_catalog.int4"
+            nullable: true
+            go_type:
+              type: "int"
+              pointer: true
 overrides:
   go: null
 plugins: [ ]

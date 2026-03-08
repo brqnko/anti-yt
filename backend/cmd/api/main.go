@@ -146,7 +146,11 @@ func run(ctx context.Context) int {
 		}
 	}()
 
+	slog.Info("listening")
+
 	<-ctx.Done()
+
+	slog.Info("gracefull shutdown")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

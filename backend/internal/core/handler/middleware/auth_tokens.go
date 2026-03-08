@@ -25,6 +25,7 @@ func AuthTokensMiddleware(f v1.StrictHandlerFunc, operationID string) v1.StrictH
 				break
 			}
 		}
+		required = required || (r.URL.Path == "/api/v1/users/me" && r.Method == http.MethodPost)
 		if !required {
 			return f(ctx, w, r, request)
 		}

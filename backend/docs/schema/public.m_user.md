@@ -37,6 +37,7 @@
 | ---- | ---------- |
 | m_user_pkey | CREATE UNIQUE INDEX m_user_pkey ON public.m_user USING btree (m_user_id) |
 | uk_1_m_user | CREATE UNIQUE INDEX uk_1_m_user ON public.m_user USING btree (public_id) |
+| idx_1_m_user | CREATE INDEX idx_1_m_user ON public.m_user USING btree (m_user_authorization_id) |
 
 ## Relations
 

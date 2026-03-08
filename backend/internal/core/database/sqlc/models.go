@@ -7,6 +7,7 @@ package sqlc
 import (
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core/database"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -25,10 +26,10 @@ type HUser struct {
 	MUserAuthorizationID   int64
 	DisplayName            string
 	LanguageCode           string
-	DailyScreenTimeSeconds int32
+	DailyScreenTimeSeconds int
 	JoinedAt               time.Time
 	LeftAt                 time.Time
-	LeaveReasonCode        int32
+	LeaveReasonCode        int
 	CreatedAt              time.Time
 	UpdatedAt              time.Time
 	PublicID               uuid.UUID
@@ -52,10 +53,10 @@ type MChannel struct {
 type MPlaylist struct {
 	MPlaylistID    int64
 	MUserID        int64
-	VisibilityCode int32
+	VisibilityCode int
 	PlaylistTitle  string
-	PlaylistCode   int32
-	VideoCount     int32
+	PlaylistCode   int
+	VideoCount     int
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	PublicID       uuid.UUID
@@ -74,7 +75,7 @@ type MRefreshToken struct {
 	MRefreshTokenID      int64
 	MUserAuthorizationID int64
 	TokenHash            string
-	Generation           int32
+	Generation           int
 	IpAddress            string
 	DeviceFingerprint    string
 	UserAgent            string
@@ -94,7 +95,7 @@ type MUser struct {
 	MUserAuthorizationID   int64
 	DisplayName            string
 	LanguageCode           string
-	DailyScreenTimeSeconds int32
+	DailyScreenTimeSeconds int
 	JoinedAt               time.Time
 	CreatedAt              time.Time
 	UpdatedAt              time.Time
@@ -114,8 +115,8 @@ type MUserAuthorization struct {
 type MUserScreenTimeRange struct {
 	MUserScreenTimeRangeID int64
 	MUserID                int64
-	ScreenTimeRangeStart   pgtype.Time
-	ScreenTimeRangeEnd     pgtype.Time
+	ScreenTimeRangeStart   database.Seconds
+	ScreenTimeRangeEnd     database.Seconds
 	CreatedAt              time.Time
 	UpdatedAt              time.Time
 	PublicID               uuid.UUID
@@ -169,7 +170,7 @@ type TVideoWatch struct {
 	MVideoID             int64
 	WatchStartAt         time.Time
 	WatchEndAt           time.Time
-	WatchPositionSeconds int32
+	WatchPositionSeconds int
 	CreatedAt            time.Time
 	UpdatedAt            time.Time
 	PublicID             uuid.UUID
@@ -178,7 +179,7 @@ type TVideoWatch struct {
 type WMonthlyVideoWatch struct {
 	WMonthlyVideoWatchID int64
 	MUserID              int64
-	BatchStatusCode      int32
+	BatchStatusCode      int
 	AiModel              string
 	StartedAt            time.Time
 	FinishedAt           time.Time

@@ -11,9 +11,6 @@
 | external_id | varchar(16) |  | false |  |  |  |
 | external_title | varchar(128) |  | false |  |  |  |
 | external_description | varchar(8192) |  | false |  |  |  |
-| external_like_count | bigint |  | false |  |  |  |
-| external_watch_count | bigint |  | false |  |  |  |
-| external_length_seconds | integer |  | false |  |  |  |
 | fetched_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
@@ -28,11 +25,8 @@
 | m_video_external_created_at_not_null | n | NOT NULL external_created_at |
 | m_video_external_description_not_null | n | NOT NULL external_description |
 | m_video_external_id_not_null | n | NOT NULL external_id |
-| m_video_external_like_count_not_null | n | NOT NULL external_like_count |
 | m_video_external_title_not_null | n | NOT NULL external_title |
-| m_video_external_watch_count_not_null | n | NOT NULL external_watch_count |
 | m_video_fetched_at_not_null | n | NOT NULL fetched_at |
-| m_video_length_seconds_not_null | n | NOT NULL external_length_seconds |
 | m_video_m_channel_id_not_null | n | NOT NULL m_channel_id |
 | m_video_m_video_id_not_null | n | NOT NULL m_video_id |
 | m_video_public_id_not_null | n | NOT NULL public_id |
