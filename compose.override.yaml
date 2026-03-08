@@ -9,11 +9,17 @@ services:
       - "8080:8080"
     secrets:
       - db-password
+      - oidc-google-client-secret
+      - jwt-private
+      - jwt-public
+    env_file:
+      - backend/.env
   frontend:
     build:
       target: dev
     volumes:
       - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules 
       - ./shared:/usr/src/app/shared:ro
     environment:
       NODE_ENV: development
@@ -38,3 +44,9 @@ volumes:
 secrets:
  db-password:
    file: backend/password.txt
+ oidc-google-client-secret:
+   file: backend/oidc_secret.txt
+ jwt-private:
+   file: backend/jwt_private.pem
+ jwt-public:
+   file: backend/jwt_public.pem
