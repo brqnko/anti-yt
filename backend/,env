@@ -1,6 +1,0 @@
-ENV=development
-OIDC_GOOGLE_CLIENT_ID=your-client-id
-OIDC_GOOGLE_REDIRECT_URL=http://localhost:8080/callback
-DATABASE_NAME=example
-SERVER_URL=http://localhost/api
-FRONTEND_URL=http://localhost
