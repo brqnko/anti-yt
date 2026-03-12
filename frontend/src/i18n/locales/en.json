@@ -1,0 +1,90 @@
+{
+  "common": {
+    "home": "Home",
+    "notFound": "404: Not Found",
+    "notFoundMessage": "It's gone :(",
+    "colorMode": {
+      "light": "Light mode",
+      "dark": "Dark mode",
+      "system": "System preference"
+    }
+  },
+  "legal": {
+    "navTerms": "Terms of Service",
+    "navPrivacy": "Privacy Policy",
+    "languageSelect": "Select language"
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "version": "v1.0 — Mar 2025",
+    "endOfAgreement": "You have reached the end of the legal agreement.",
+    "sections": {
+      "acceptance": {
+        "title": "Acceptance of Terms",
+        "body": "By accessing and using anti-yt, you agree to be bound by these Terms of Service. If you do not agree to all of these terms, do not use our services. anti-yt provides tools to help you manage your digital consumption through browser-level controls and session management designed to reduce platform addiction."
+      },
+      "serviceDescription": {
+        "title": "Service Description",
+        "body": "anti-yt operates as a digital intermediary that assists users in setting intentional boundaries. Our service includes site blocking, time limits, and content filtering. You acknowledge that these restrictions are self-imposed but enforced by our software to aid in habit formation and long-term behavioral change."
+      },
+      "userObligations": {
+        "title": "User Obligations",
+        "body": "You agree to use anti-yt solely for personal, non-commercial purposes. You shall not attempt to circumvent the technical limitations of the software through unauthorized modification or use of third-party tools designed to bypass anti-yt restrictions, as this undermines the therapeutic intent of the service."
+      },
+      "privacy": {
+        "title": "Privacy and Data Collection",
+        "body": "Your privacy is fundamental. We collect only the data necessary to provide our services. This includes usage statistics required for reporting and technical logs for troubleshooting. We do not sell your personal data or browsing history to third parties. Our commitment is to your recovery, not your data monetization."
+      },
+      "subscription": {
+        "title": "Subscription and Billing",
+        "body": "anti-yt offers premium features via subscription. Fees are billed at the start of each period and are non-refundable except where required by law. You may cancel your subscription at any time through your account settings, and you will continue to have access to premium features until the end of the current billing cycle."
+      }
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "version": "v1.0 — Mar 2025",
+    "endOfPolicy": "You have reached the end of the privacy policy.",
+    "sections": {
+      "dataCollection": {
+        "title": "Information We Collect",
+        "body": "anti-yt collects only the minimum data necessary to provide and improve our services. This includes the email address provided during account creation, anonymized usage statistics, and technical logs for troubleshooting. We do not collect your browsing history or details of blocked content."
+      },
+      "dataUsage": {
+        "title": "How We Use Your Information",
+        "body": "The data we collect is used solely to provide, maintain, and improve our services, generate usage reports, diagnose and resolve technical issues, and send important service-related notifications. We do not use your data for marketing purposes."
+      },
+      "dataSharing": {
+        "title": "Third-Party Sharing",
+        "body": "anti-yt does not sell, rent, or trade your personal data to third parties. We may share minimal data with trusted partners essential to service operations (such as hosting providers) only when required, or when we are legally obligated to do so."
+      },
+      "cookies": {
+        "title": "Cookies and Tracking",
+        "body": "anti-yt uses only cookies necessary for authentication and session management. We do not use third-party tracking cookies or advertising cookies. You can manage cookies through your browser settings, though some features may be limited as a result."
+      },
+      "security": {
+        "title": "Data Protection",
+        "body": "We implement industry-standard encryption and security measures to protect your data. Data is transmitted using encrypted connections and protected from unauthorized access through access controls. However, no method of transmission over the Internet is 100% secure."
+      },
+      "userRights": {
+        "title": "Your Rights",
+        "body": "You have the right to request access to, correction of, and deletion of your personal data. You can export your data or delete your account through your account settings. Upon account deletion, all associated data will be permanently erased within 30 days."
+      },
+      "changes": {
+        "title": "Policy Changes",
+        "body": "This privacy policy may be updated as needed. We will notify you of significant changes through in-service notifications or email. By continuing to use the service after changes are made, you agree to the updated policy."
+      }
+    }
+  },
+  "home": {
+    "heroTitle1": "Break the",
+    "heroTitle2": "YouTube Cycle",
+    "heroDescription": "Reclaim your time from the algorithm. Strict time controls, intelligent filtering, and distraction-free focus zones designed for a clearer mind.",
+    "signInWithGoogle": "Sign in with Google",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "dailyAllowance": "Daily Allowance",
+    "watchTime": "Watch Time",
+    "whitelist": "Whitelist"
+  }
+}

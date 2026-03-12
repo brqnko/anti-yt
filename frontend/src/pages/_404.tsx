@@ -1,8 +1,12 @@
-export function NotFound() {
-	return (
-		<section>
-			<h1>404: Not Found</h1>
-			<p>It's gone :(</p>
-		</section>
-	);
+import { useTranslation } from "react-i18next";
+
+export default function NotFound() {
+  const { t } = useTranslation();
+
+  return (
+    <section>
+      <h1>{t("common.notFound")}</h1>
+      <p>{t("common.notFoundMessage")}</p>
+    </section>
+  );
 }
