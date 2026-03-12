@@ -15,9 +15,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/database"
-	"github.com/brqnko/anti-yt/backend/internal/core/database/sqlc"
-	middleware2 "github.com/brqnko/anti-yt/backend/internal/core/handler/middleware"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	middleware2 "github.com/brqnko/anti-yt/backend/internal/core/handler/middleware_d"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
@@ -88,14 +88,14 @@ func run(ctx context.Context) int {
 
 	initCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
-	if err = database.RunMigration(initCtx, cfg.dbPassword, cfg.dbName); err != nil {
+	if err = database_d.RunMigration(initCtx, cfg.dbPassword, cfg.dbName); err != nil {
 		slog.Error("failed to run migration", "error", err)
 		return 1
 	}
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	db, err := database.ConnectDB(initCtx, cfg.dbPassword, cfg.dbName)
+	db, err := database_d.ConnectDB(initCtx, cfg.dbPassword, cfg.dbName)
 	if err != nil {
 		slog.Error("failed to connect db", "error", err)
 		return 1
