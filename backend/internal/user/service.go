@@ -7,8 +7,8 @@ import (
 	"errors"
 	"log/slog"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/database"
-	"github.com/brqnko/anti-yt/backend/internal/core/database/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
@@ -111,8 +111,8 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 	for i, domainRange := range *domainDailyScreenTimeLimitRangeSet {
 		saveUserScreenTimeRangesParams[i] = sqlc.SaveUserScreenTimeRangesParams{
 			MUserID:              saveUser.MUserID,
-			ScreenTimeRangeStart: database.Seconds(domainRange.StartTimeSeconds),
-			ScreenTimeRangeEnd:   database.Seconds(domainRange.EndTimeSeconds),
+			ScreenTimeRangeStart: database_d.Seconds(domainRange.StartTimeSeconds),
+			ScreenTimeRangeEnd:   database_d.Seconds(domainRange.EndTimeSeconds),
 		}
 	}
 	if _, err := q.SaveUserScreenTimeRanges(ctx, saveUserScreenTimeRangesParams); err != nil {
@@ -232,8 +232,8 @@ func (s *Service) EditUser(ctx context.Context, newDisplayName, newLanguageCode 
 		for i, domainRange := range *domainDailyScreenTimeLimitRangeSet {
 			saveUserScreenTimeRangesParams[i] = sqlc.SaveUserScreenTimeRangesParams{
 				MUserID:              updateUserProfile.MUserID,
-				ScreenTimeRangeStart: database.Seconds(domainRange.StartTimeSeconds),
-				ScreenTimeRangeEnd:   database.Seconds(domainRange.EndTimeSeconds),
+				ScreenTimeRangeStart: database_d.Seconds(domainRange.StartTimeSeconds),
+				ScreenTimeRangeEnd:   database_d.Seconds(domainRange.EndTimeSeconds),
 			}
 		}
 

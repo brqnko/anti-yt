@@ -11,7 +11,7 @@ sql:
     gen:
       go:
         package: "sqlc"
-        out: "internal/core/database/sqlc"
+        out: "internal/core/database_d/sqlc"
         sql_package: "pgx/v5"
         overrides:
           - db_type: "timestamptz"
@@ -20,12 +20,12 @@ sql:
             go_type: "github.com/google/uuid.UUID"
           - db_type: "pg_catalog.time"
             go_type:
-              import: "github.com/brqnko/anti-yt/backend/internal/core/database"
+              import: "github.com/brqnko/anti-yt/backend/internal/core/database_d"
               type: "Seconds"
           - db_type: "pg_catalog.time"
             nullable: true
             go_type:
-              import: "github.com/brqnko/anti-yt/backend/internal/core/database"
+              import: "github.com/brqnko/anti-yt/backend/internal/core/database_d"
               type: "Seconds"
               pointer: true
           - db_type: "pg_catalog.varchar"

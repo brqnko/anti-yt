@@ -9,7 +9,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/database/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
 	"github.com/brqnko/anti-yt/backend/internal/util"
