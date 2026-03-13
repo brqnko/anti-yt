@@ -16,4 +16,4 @@ RUN --mount=type=bind,source=package.json,target=package.json \
 
 EXPOSE 3000
 
-CMD ["sleep", "infinity" ]
+CMD ["npm", "run", "dev"]

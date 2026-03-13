@@ -1,1 +1,4 @@
 .idea
+.DS_Store
+nginx/server.crt
+nginx/server.key

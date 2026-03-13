@@ -13,17 +13,16 @@
       ]
     }
   },
+  "overrideCommand": true,
   "features": {
   },
   "mounts": [
     "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,readonly",
     "source=${localEnv:HOME}/.aws,target=/root/.aws,type=bind,readonly",
-    "source=${localEnv:HOME}/.claude,target=/root/.claude,type=bind",
-    "source=${localEnv:HOME}/.claude.json,target=/root/.claude.json,type=bind",
     "source=claude-code-local-${devcontainerId},target=/root/.local,type=volume"
   ],
   "remoteEnv": {
     "PATH": "/root/.local/bin:${containerEnv:PATH}"
   },
-  "postCreateCommand": "export PATH=/root/.local/bin:$PATH && which claude || curl -fsSL https://claude.ai/install.sh | bash"
+  "postCreateCommand": ""
 }
