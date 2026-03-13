@@ -6,694 +6,127 @@
  * OpenAPI spec version: 1.0.0
  */
 import type {
-  BadRequestResponse,
   DeletePlaylistsPlaylistIdVideosParams,
-  ForbiddenResponse,
   GetPlaylists200,
   GetPlaylistsParams,
   GetPlaylistsPlaylistId200,
   GetPlaylistsPlaylistIdParams,
-  InternalServerErrorResponse,
-  NotFoundResponse,
   PatchPlaylistsPlaylistId200,
   PatchPlaylistsPlaylistIdBody,
-  PayloadTooLargeResponse,
   PostPlaylists201,
   PostPlaylistsBody,
   PostPlaylistsPlaylistIdVideos201,
-  PostPlaylistsPlaylistIdVideosBody,
-  TooManyRequestsResponse,
-  UnauthorizedResponse,
-} from "./antiYtApi.schemas";
+  PostPlaylistsPlaylistIdVideosBody
+} from './antiYtApi.schemas';
 
+import { customInstance } from '../mutator';
+
+
+
+
+  export const getPlaylist = () => {
 /**
  * ユーザーのプレイリスト一覧を取得する
  * @summary Get playlists
  */
-export type getPlaylistsResponse200 = {
-  data: GetPlaylists200;
-  status: 200;
-};
-
-export type getPlaylistsResponse400 = {
-  data: BadRequestResponse;
-  status: 400;
-};
-
-export type getPlaylistsResponse401 = {
-  data: UnauthorizedResponse;
-  status: 401;
-};
-
-export type getPlaylistsResponse403 = {
-  data: ForbiddenResponse;
-  status: 403;
-};
-
-export type getPlaylistsResponse404 = {
-  data: NotFoundResponse;
-  status: 404;
-};
-
-export type getPlaylistsResponse413 = {
-  data: PayloadTooLargeResponse;
-  status: 413;
-};
-
-export type getPlaylistsResponse429 = {
-  data: TooManyRequestsResponse;
-  status: 429;
-};
-
-export type getPlaylistsResponse500 = {
-  data: InternalServerErrorResponse;
-  status: 500;
-};
-
-export type getPlaylistsResponseSuccess = getPlaylistsResponse200 & {
-  headers: Headers;
-};
-export type getPlaylistsResponseError = (
-  | getPlaylistsResponse400
-  | getPlaylistsResponse401
-  | getPlaylistsResponse403
-  | getPlaylistsResponse404
-  | getPlaylistsResponse413
-  | getPlaylistsResponse429
-  | getPlaylistsResponse500
-) & {
-  headers: Headers;
-};
-
-export type getPlaylistsResponse =
-  | getPlaylistsResponseSuccess
-  | getPlaylistsResponseError;
-
-export const getGetPlaylistsUrl = (params?: GetPlaylistsParams) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+const getPlaylists = (
+    params?: GetPlaylistsParams,
+ ) => {
+      return customInstance<GetPlaylists200>(
+      {url: `/api/v1/playlists`, method: 'GET',
+        params
+    },
+      );
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/v1/playlists?${stringifiedParams}`
-    : `/api/v1/playlists`;
-};
-
-export const getPlaylists = async (
-  params?: GetPlaylistsParams,
-  options?: RequestInit,
-): Promise<getPlaylistsResponse> => {
-  const res = await fetch(getGetPlaylistsUrl(params), {
-    ...options,
-    method: "GET",
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getPlaylistsResponse["data"] = body ? JSON.parse(body) : {};
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as getPlaylistsResponse;
-};
-
-/**
+  /**
  * 新しいプレイリストを作成する
  * @summary Create new playlist
  */
-export type postPlaylistsResponse201 = {
-  data: PostPlaylists201;
-  status: 201;
-};
-
-export type postPlaylistsResponse400 = {
-  data: BadRequestResponse;
-  status: 400;
-};
-
-export type postPlaylistsResponse401 = {
-  data: UnauthorizedResponse;
-  status: 401;
-};
-
-export type postPlaylistsResponse403 = {
-  data: ForbiddenResponse;
-  status: 403;
-};
-
-export type postPlaylistsResponse404 = {
-  data: NotFoundResponse;
-  status: 404;
-};
-
-export type postPlaylistsResponse413 = {
-  data: PayloadTooLargeResponse;
-  status: 413;
-};
-
-export type postPlaylistsResponse429 = {
-  data: TooManyRequestsResponse;
-  status: 429;
-};
-
-export type postPlaylistsResponse500 = {
-  data: InternalServerErrorResponse;
-  status: 500;
-};
-
-export type postPlaylistsResponseSuccess = postPlaylistsResponse201 & {
-  headers: Headers;
-};
-export type postPlaylistsResponseError = (
-  | postPlaylistsResponse400
-  | postPlaylistsResponse401
-  | postPlaylistsResponse403
-  | postPlaylistsResponse404
-  | postPlaylistsResponse413
-  | postPlaylistsResponse429
-  | postPlaylistsResponse500
-) & {
-  headers: Headers;
-};
-
-export type postPlaylistsResponse =
-  | postPlaylistsResponseSuccess
-  | postPlaylistsResponseError;
-
-export const getPostPlaylistsUrl = () => {
-  return `/api/v1/playlists`;
-};
-
-export const postPlaylists = async (
-  postPlaylistsBody: PostPlaylistsBody,
-  options?: RequestInit,
-): Promise<postPlaylistsResponse> => {
-  const res = await fetch(getPostPlaylistsUrl(), {
-    ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(postPlaylistsBody),
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: postPlaylistsResponse["data"] = body ? JSON.parse(body) : {};
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as postPlaylistsResponse;
-};
-
-/**
+const postPlaylists = (
+    postPlaylistsBody: PostPlaylistsBody,
+ ) => {
+      return customInstance<PostPlaylists201>(
+      {url: `/api/v1/playlists`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postPlaylistsBody
+    },
+      );
+    }
+  /**
  * 特定のプレイリストにある動画一覧を取得する
  * @summary Get playlist
  */
-export type getPlaylistsPlaylistIdResponse200 = {
-  data: GetPlaylistsPlaylistId200;
-  status: 200;
-};
-
-export type getPlaylistsPlaylistIdResponse400 = {
-  data: BadRequestResponse;
-  status: 400;
-};
-
-export type getPlaylistsPlaylistIdResponse401 = {
-  data: UnauthorizedResponse;
-  status: 401;
-};
-
-export type getPlaylistsPlaylistIdResponse403 = {
-  data: ForbiddenResponse;
-  status: 403;
-};
-
-export type getPlaylistsPlaylistIdResponse404 = {
-  data: NotFoundResponse;
-  status: 404;
-};
-
-export type getPlaylistsPlaylistIdResponse413 = {
-  data: PayloadTooLargeResponse;
-  status: 413;
-};
-
-export type getPlaylistsPlaylistIdResponse429 = {
-  data: TooManyRequestsResponse;
-  status: 429;
-};
-
-export type getPlaylistsPlaylistIdResponse500 = {
-  data: InternalServerErrorResponse;
-  status: 500;
-};
-
-export type getPlaylistsPlaylistIdResponseSuccess =
-  getPlaylistsPlaylistIdResponse200 & {
-    headers: Headers;
-  };
-export type getPlaylistsPlaylistIdResponseError = (
-  | getPlaylistsPlaylistIdResponse400
-  | getPlaylistsPlaylistIdResponse401
-  | getPlaylistsPlaylistIdResponse403
-  | getPlaylistsPlaylistIdResponse404
-  | getPlaylistsPlaylistIdResponse413
-  | getPlaylistsPlaylistIdResponse429
-  | getPlaylistsPlaylistIdResponse500
-) & {
-  headers: Headers;
-};
-
-export type getPlaylistsPlaylistIdResponse =
-  | getPlaylistsPlaylistIdResponseSuccess
-  | getPlaylistsPlaylistIdResponseError;
-
-export const getGetPlaylistsPlaylistIdUrl = (
-  playlistId: string,
-  params?: GetPlaylistsPlaylistIdParams,
-) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+const getPlaylistsPlaylistId = (
+    playlistId: string,
+    params?: GetPlaylistsPlaylistIdParams,
+ ) => {
+      return customInstance<GetPlaylistsPlaylistId200>(
+      {url: `/api/v1/playlists/${playlistId}`, method: 'GET',
+        params
+    },
+      );
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/v1/playlists/${playlistId}?${stringifiedParams}`
-    : `/api/v1/playlists/${playlistId}`;
-};
-
-export const getPlaylistsPlaylistId = async (
-  playlistId: string,
-  params?: GetPlaylistsPlaylistIdParams,
-  options?: RequestInit,
-): Promise<getPlaylistsPlaylistIdResponse> => {
-  const res = await fetch(getGetPlaylistsPlaylistIdUrl(playlistId, params), {
-    ...options,
-    method: "GET",
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getPlaylistsPlaylistIdResponse["data"] = body
-    ? JSON.parse(body)
-    : {};
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as getPlaylistsPlaylistIdResponse;
-};
-
-/**
+  /**
  * 特定のプレイリストの情報を編集する
  * @summary Patch playlist
  */
-export type patchPlaylistsPlaylistIdResponse200 = {
-  data: PatchPlaylistsPlaylistId200;
-  status: 200;
-};
-
-export type patchPlaylistsPlaylistIdResponse400 = {
-  data: BadRequestResponse;
-  status: 400;
-};
-
-export type patchPlaylistsPlaylistIdResponse401 = {
-  data: UnauthorizedResponse;
-  status: 401;
-};
-
-export type patchPlaylistsPlaylistIdResponse403 = {
-  data: ForbiddenResponse;
-  status: 403;
-};
-
-export type patchPlaylistsPlaylistIdResponse404 = {
-  data: NotFoundResponse;
-  status: 404;
-};
-
-export type patchPlaylistsPlaylistIdResponse413 = {
-  data: PayloadTooLargeResponse;
-  status: 413;
-};
-
-export type patchPlaylistsPlaylistIdResponse429 = {
-  data: TooManyRequestsResponse;
-  status: 429;
-};
-
-export type patchPlaylistsPlaylistIdResponse500 = {
-  data: InternalServerErrorResponse;
-  status: 500;
-};
-
-export type patchPlaylistsPlaylistIdResponseSuccess =
-  patchPlaylistsPlaylistIdResponse200 & {
-    headers: Headers;
-  };
-export type patchPlaylistsPlaylistIdResponseError = (
-  | patchPlaylistsPlaylistIdResponse400
-  | patchPlaylistsPlaylistIdResponse401
-  | patchPlaylistsPlaylistIdResponse403
-  | patchPlaylistsPlaylistIdResponse404
-  | patchPlaylistsPlaylistIdResponse413
-  | patchPlaylistsPlaylistIdResponse429
-  | patchPlaylistsPlaylistIdResponse500
-) & {
-  headers: Headers;
-};
-
-export type patchPlaylistsPlaylistIdResponse =
-  | patchPlaylistsPlaylistIdResponseSuccess
-  | patchPlaylistsPlaylistIdResponseError;
-
-export const getPatchPlaylistsPlaylistIdUrl = (playlistId: string) => {
-  return `/api/v1/playlists/${playlistId}`;
-};
-
-export const patchPlaylistsPlaylistId = async (
-  playlistId: string,
-  patchPlaylistsPlaylistIdBody: PatchPlaylistsPlaylistIdBody,
-  options?: RequestInit,
-): Promise<patchPlaylistsPlaylistIdResponse> => {
-  const res = await fetch(getPatchPlaylistsPlaylistIdUrl(playlistId), {
-    ...options,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(patchPlaylistsPlaylistIdBody),
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: patchPlaylistsPlaylistIdResponse["data"] = body
-    ? JSON.parse(body)
-    : {};
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as patchPlaylistsPlaylistIdResponse;
-};
-
-/**
+const patchPlaylistsPlaylistId = (
+    playlistId: string,
+    patchPlaylistsPlaylistIdBody: PatchPlaylistsPlaylistIdBody,
+ ) => {
+      return customInstance<PatchPlaylistsPlaylistId200>(
+      {url: `/api/v1/playlists/${playlistId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: patchPlaylistsPlaylistIdBody
+    },
+      );
+    }
+  /**
  * 特定のプレイリストを削除する
  * @summary Delete playlist
  */
-export type deletePlaylistsPlaylistIdResponse204 = {
-  data: void;
-  status: 204;
-};
-
-export type deletePlaylistsPlaylistIdResponse400 = {
-  data: BadRequestResponse;
-  status: 400;
-};
-
-export type deletePlaylistsPlaylistIdResponse401 = {
-  data: UnauthorizedResponse;
-  status: 401;
-};
-
-export type deletePlaylistsPlaylistIdResponse403 = {
-  data: ForbiddenResponse;
-  status: 403;
-};
-
-export type deletePlaylistsPlaylistIdResponse404 = {
-  data: NotFoundResponse;
-  status: 404;
-};
-
-export type deletePlaylistsPlaylistIdResponse413 = {
-  data: PayloadTooLargeResponse;
-  status: 413;
-};
-
-export type deletePlaylistsPlaylistIdResponse429 = {
-  data: TooManyRequestsResponse;
-  status: 429;
-};
-
-export type deletePlaylistsPlaylistIdResponse500 = {
-  data: InternalServerErrorResponse;
-  status: 500;
-};
-
-export type deletePlaylistsPlaylistIdResponseSuccess =
-  deletePlaylistsPlaylistIdResponse204 & {
-    headers: Headers;
-  };
-export type deletePlaylistsPlaylistIdResponseError = (
-  | deletePlaylistsPlaylistIdResponse400
-  | deletePlaylistsPlaylistIdResponse401
-  | deletePlaylistsPlaylistIdResponse403
-  | deletePlaylistsPlaylistIdResponse404
-  | deletePlaylistsPlaylistIdResponse413
-  | deletePlaylistsPlaylistIdResponse429
-  | deletePlaylistsPlaylistIdResponse500
-) & {
-  headers: Headers;
-};
-
-export type deletePlaylistsPlaylistIdResponse =
-  | deletePlaylistsPlaylistIdResponseSuccess
-  | deletePlaylistsPlaylistIdResponseError;
-
-export const getDeletePlaylistsPlaylistIdUrl = (playlistId: string) => {
-  return `/api/v1/playlists/${playlistId}`;
-};
-
-export const deletePlaylistsPlaylistId = async (
-  playlistId: string,
-  options?: RequestInit,
-): Promise<deletePlaylistsPlaylistIdResponse> => {
-  const res = await fetch(getDeletePlaylistsPlaylistIdUrl(playlistId), {
-    ...options,
-    method: "DELETE",
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deletePlaylistsPlaylistIdResponse["data"] = body
-    ? JSON.parse(body)
-    : {};
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as deletePlaylistsPlaylistIdResponse;
-};
-
-/**
+const deletePlaylistsPlaylistId = (
+    playlistId: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/api/v1/playlists/${playlistId}`, method: 'DELETE'
+    },
+      );
+    }
+  /**
  * 新しい動画をプレイリストに挿入する
  * @summary Insert a new video into playlist
  */
-export type postPlaylistsPlaylistIdVideosResponse201 = {
-  data: PostPlaylistsPlaylistIdVideos201;
-  status: 201;
-};
-
-export type postPlaylistsPlaylistIdVideosResponse400 = {
-  data: BadRequestResponse;
-  status: 400;
-};
-
-export type postPlaylistsPlaylistIdVideosResponse401 = {
-  data: UnauthorizedResponse;
-  status: 401;
-};
-
-export type postPlaylistsPlaylistIdVideosResponse403 = {
-  data: ForbiddenResponse;
-  status: 403;
-};
-
-export type postPlaylistsPlaylistIdVideosResponse404 = {
-  data: NotFoundResponse;
-  status: 404;
-};
-
-export type postPlaylistsPlaylistIdVideosResponse413 = {
-  data: PayloadTooLargeResponse;
-  status: 413;
-};
-
-export type postPlaylistsPlaylistIdVideosResponse429 = {
-  data: TooManyRequestsResponse;
-  status: 429;
-};
-
-export type postPlaylistsPlaylistIdVideosResponse500 = {
-  data: InternalServerErrorResponse;
-  status: 500;
-};
-
-export type postPlaylistsPlaylistIdVideosResponseSuccess =
-  postPlaylistsPlaylistIdVideosResponse201 & {
-    headers: Headers;
-  };
-export type postPlaylistsPlaylistIdVideosResponseError = (
-  | postPlaylistsPlaylistIdVideosResponse400
-  | postPlaylistsPlaylistIdVideosResponse401
-  | postPlaylistsPlaylistIdVideosResponse403
-  | postPlaylistsPlaylistIdVideosResponse404
-  | postPlaylistsPlaylistIdVideosResponse413
-  | postPlaylistsPlaylistIdVideosResponse429
-  | postPlaylistsPlaylistIdVideosResponse500
-) & {
-  headers: Headers;
-};
-
-export type postPlaylistsPlaylistIdVideosResponse =
-  | postPlaylistsPlaylistIdVideosResponseSuccess
-  | postPlaylistsPlaylistIdVideosResponseError;
-
-export const getPostPlaylistsPlaylistIdVideosUrl = (playlistId: string) => {
-  return `/api/v1/playlists/${playlistId}/videos`;
-};
-
-export const postPlaylistsPlaylistIdVideos = async (
-  playlistId: string,
-  postPlaylistsPlaylistIdVideosBody: PostPlaylistsPlaylistIdVideosBody,
-  options?: RequestInit,
-): Promise<postPlaylistsPlaylistIdVideosResponse> => {
-  const res = await fetch(getPostPlaylistsPlaylistIdVideosUrl(playlistId), {
-    ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(postPlaylistsPlaylistIdVideosBody),
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: postPlaylistsPlaylistIdVideosResponse["data"] = body
-    ? JSON.parse(body)
-    : {};
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as postPlaylistsPlaylistIdVideosResponse;
-};
-
-/**
+const postPlaylistsPlaylistIdVideos = (
+    playlistId: string,
+    postPlaylistsPlaylistIdVideosBody: PostPlaylistsPlaylistIdVideosBody,
+ ) => {
+      return customInstance<PostPlaylistsPlaylistIdVideos201>(
+      {url: `/api/v1/playlists/${playlistId}/videos`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postPlaylistsPlaylistIdVideosBody
+    },
+      );
+    }
+  /**
  * プレイリストから動画を取り除く
  * @summary Remove a video from playlist
  */
-export type deletePlaylistsPlaylistIdVideosResponse204 = {
-  data: void;
-  status: 204;
-};
-
-export type deletePlaylistsPlaylistIdVideosResponse400 = {
-  data: BadRequestResponse;
-  status: 400;
-};
-
-export type deletePlaylistsPlaylistIdVideosResponse401 = {
-  data: UnauthorizedResponse;
-  status: 401;
-};
-
-export type deletePlaylistsPlaylistIdVideosResponse403 = {
-  data: ForbiddenResponse;
-  status: 403;
-};
-
-export type deletePlaylistsPlaylistIdVideosResponse404 = {
-  data: NotFoundResponse;
-  status: 404;
-};
-
-export type deletePlaylistsPlaylistIdVideosResponse413 = {
-  data: PayloadTooLargeResponse;
-  status: 413;
-};
-
-export type deletePlaylistsPlaylistIdVideosResponse429 = {
-  data: TooManyRequestsResponse;
-  status: 429;
-};
-
-export type deletePlaylistsPlaylistIdVideosResponse500 = {
-  data: InternalServerErrorResponse;
-  status: 500;
-};
-
-export type deletePlaylistsPlaylistIdVideosResponseSuccess =
-  deletePlaylistsPlaylistIdVideosResponse204 & {
-    headers: Headers;
-  };
-export type deletePlaylistsPlaylistIdVideosResponseError = (
-  | deletePlaylistsPlaylistIdVideosResponse400
-  | deletePlaylistsPlaylistIdVideosResponse401
-  | deletePlaylistsPlaylistIdVideosResponse403
-  | deletePlaylistsPlaylistIdVideosResponse404
-  | deletePlaylistsPlaylistIdVideosResponse413
-  | deletePlaylistsPlaylistIdVideosResponse429
-  | deletePlaylistsPlaylistIdVideosResponse500
-) & {
-  headers: Headers;
-};
-
-export type deletePlaylistsPlaylistIdVideosResponse =
-  | deletePlaylistsPlaylistIdVideosResponseSuccess
-  | deletePlaylistsPlaylistIdVideosResponseError;
-
-export const getDeletePlaylistsPlaylistIdVideosUrl = (
-  playlistId: string,
-  params: DeletePlaylistsPlaylistIdVideosParams,
-) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/v1/playlists/${playlistId}/videos?${stringifiedParams}`
-    : `/api/v1/playlists/${playlistId}/videos`;
-};
-
-export const deletePlaylistsPlaylistIdVideos = async (
-  playlistId: string,
-  params: DeletePlaylistsPlaylistIdVideosParams,
-  options?: RequestInit,
-): Promise<deletePlaylistsPlaylistIdVideosResponse> => {
-  const res = await fetch(
-    getDeletePlaylistsPlaylistIdVideosUrl(playlistId, params),
-    {
-      ...options,
-      method: "DELETE",
+const deletePlaylistsPlaylistIdVideos = (
+    playlistId: string,
+    params: DeletePlaylistsPlaylistIdVideosParams,
+ ) => {
+      return customInstance<void>(
+      {url: `/api/v1/playlists/${playlistId}/videos`, method: 'DELETE',
+        params
     },
-  );
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deletePlaylistsPlaylistIdVideosResponse["data"] = body
-    ? JSON.parse(body)
-    : {};
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as deletePlaylistsPlaylistIdVideosResponse;
-};
+      );
+    }
+  return {getPlaylists,postPlaylists,getPlaylistsPlaylistId,patchPlaylistsPlaylistId,deletePlaylistsPlaylistId,postPlaylistsPlaylistIdVideos,deletePlaylistsPlaylistIdVideos}};
+export type GetPlaylistsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['getPlaylists']>>>
+export type PostPlaylistsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['postPlaylists']>>>
+export type GetPlaylistsPlaylistIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['getPlaylistsPlaylistId']>>>
+export type PatchPlaylistsPlaylistIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['patchPlaylistsPlaylistId']>>>
+export type DeletePlaylistsPlaylistIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['deletePlaylistsPlaylistId']>>>
+export type PostPlaylistsPlaylistIdVideosResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['postPlaylistsPlaylistIdVideos']>>>
+export type DeletePlaylistsPlaylistIdVideosResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['deletePlaylistsPlaylistIdVideos']>>>

@@ -1,1 +1,3 @@
 .idea
+nginx/server.crt
+nginx/server.key

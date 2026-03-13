@@ -9,12 +9,12 @@
       "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
     }
   },
+  "overrideCommand": true,
   "remoteUser": "root",
   "updateRemoteUserUID": true,
   "mounts": [
     "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,readonly",
-    "source=${localEnv:HOME}/.aws,target=/root/.aws,type=bind,readonly",
-    "source=claude-code-local-${devcontainerId},target=/root/.local,type=volume"
+    "source=${localEnv:HOME}/.aws,target=/root/.aws,type=bind,readonly"
   ],
   "remoteEnv": {
     "PATH": "/root/.local/bin:${containerEnv:PATH}"

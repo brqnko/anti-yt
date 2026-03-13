@@ -7,9 +7,15 @@ export default defineConfig({
     },
     output: {
       target: "./src/api/generated",
-      client: "fetch",
+      client: "axios",
       mode: "tags",
       clean: true,
+      override: {
+        mutator: {
+          path: "./src/api/mutator.ts",
+          name: "customInstance",
+        },
+      },
     },
   },
 });

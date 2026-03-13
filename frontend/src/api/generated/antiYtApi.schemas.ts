@@ -60,44 +60,47 @@ export interface User {
 /**
  * 検索のタイプ
  */
-export type SearchType = (typeof SearchType)[keyof typeof SearchType];
+export type SearchType = typeof SearchType[keyof typeof SearchType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SearchType = {
-  video: "video",
-  channel: "channel",
+  video: 'video',
+  channel: 'channel',
 } as const;
 
 /**
  * リソースのタイプ
  */
-export type ResourceType = (typeof ResourceType)[keyof typeof ResourceType];
+export type ResourceType = typeof ResourceType[keyof typeof ResourceType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ResourceType = {
-  video: "video",
-  channel: "channel",
+  video: 'video',
+  channel: 'channel',
 } as const;
 
 /**
  * プレイリストのタイプ
  */
-export type PlaylistType = (typeof PlaylistType)[keyof typeof PlaylistType];
+export type PlaylistType = typeof PlaylistType[keyof typeof PlaylistType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PlaylistType = {
-  normal: "normal",
+  normal: 'normal',
 } as const;
 
 /**
  * プレイリストの公開範囲
  */
-export type PlaylistVisibility =
-  (typeof PlaylistVisibility)[keyof typeof PlaylistVisibility];
+export type PlaylistVisibility = typeof PlaylistVisibility[keyof typeof PlaylistVisibility];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PlaylistVisibility = {
-  private: "private",
+  private: 'private',
 } as const;
 
 /**
@@ -160,18 +163,18 @@ export type HeaderCSRFTokenParameter = string;
 export type HeaderDeviceFingerprintParameter = string;
 
 export type GetAuthGoogleCallbackParams = {
-  /**
-   * Googleから発行された認可コード
-   */
-  code: string;
-  /**
-   * CSRF対策用
-   */
-  state: string;
-  /**
-   * エラー
-   */
-  error?: string;
+/**
+ * Googleから発行された認可コード
+ */
+code: string;
+/**
+ * CSRF対策用
+ */
+state: string;
+/**
+ * エラー
+ */
+error?: string;
 };
 
 export type GetUsersMeSessions200ItemsItem = {
@@ -237,7 +240,7 @@ export type GetFeedChannels200 = {
 };
 
 export type GetChannelsChannelIdVideosParams = {
-  cursor?: string;
+cursor?: string;
 };
 
 export type GetChannelsChannelIdVideos200ItemsItem = {
@@ -263,16 +266,16 @@ export type GetChannelsChannelIdVideos200 = {
 };
 
 export type GetSubscriptionsParams = {
-  /**
-   * 取得する最大の数
-   * @minimum 1
-   * @maximum 50
-   */
-  limit?: number;
-  /**
-   * 最後に取得したチャンネルID(ページネーション)
-   */
-  cursor?: string;
+/**
+ * 取得する最大の数
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+/**
+ * 最後に取得したチャンネルID(ページネーション)
+ */
+cursor?: string;
 };
 
 export type GetSubscriptions200ItemsItem = {
@@ -352,25 +355,25 @@ export type PostSubscriptions201 = {
 };
 
 export type GetSearchParams = {
-  /**
-   * 検索の結果の制限数
-   * @minimum 1
-   * @maximum 50
-   */
-  limit?: number;
-  /**
-   * ページネーション
-   */
-  cursor?: string;
-  /**
-   * 検索のクエリ文字列
-   * @minLength 1
-   */
-  query: string;
-  /**
-   * 検索のタイプ
-   */
-  search_type?: SearchType;
+/**
+ * 検索の結果の制限数
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+/**
+ * ページネーション
+ */
+cursor?: string;
+/**
+ * 検索のクエリ文字列
+ * @minLength 1
+ */
+query: string;
+/**
+ * 検索のタイプ
+ */
+search_type?: SearchType;
 };
 
 export type GetSearch200ItemsItem = {
@@ -402,16 +405,16 @@ export type GetSearch200 = {
 };
 
 export type GetFeedParams = {
-  /**
-   * 取得する最大の数
-   * @minimum 1
-   * @maximum 50
-   */
-  limit?: number;
-  /**
-   * 最後に取得した動画ID(ページネーション)
-   */
-  cursor?: string;
+/**
+ * 取得する最大の数
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+/**
+ * 最後に取得した動画ID(ページネーション)
+ */
+cursor?: string;
 };
 
 export type GetFeed200ItemsItem = {
@@ -507,16 +510,16 @@ export type PatchUsersMeStatusBody = {
 };
 
 export type GetHistoryParams = {
-  /**
-   * 取得する最大の数
-   * @minimum 1
-   * @maximum 50
-   */
-  limit?: number;
-  /**
-   * 最後に取得した動画内部ID(ページネーション)
-   */
-  cursor?: string;
+/**
+ * 取得する最大の数
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+/**
+ * 最後に取得した動画内部ID(ページネーション)
+ */
+cursor?: string;
 };
 
 export type GetHistory200ItemsItem = {
@@ -575,7 +578,7 @@ export type GetHistory200 = {
 };
 
 export type GetStatisticsMonthlyParams = {
-  target_month: string;
+target_month: string;
 };
 
 export type GetStatisticsMonthly200ItemsItem = {
@@ -600,7 +603,7 @@ export type GetStatisticsMonthly200 = {
 };
 
 export type GetStatisticsDailyParams = {
-  target_day: string;
+target_day: string;
 };
 
 export type GetStatisticsDaily200ItemsItem = {
@@ -635,16 +638,16 @@ export type GetStatisticsDaily200 = {
 };
 
 export type GetPlaylistsParams = {
-  /**
-   * 取得する最大の数
-   * @minimum 1
-   * @maximum 50
-   */
-  limit?: number;
-  /**
-   * ページネーション
-   */
-  cursor?: string;
+/**
+ * 取得する最大の数
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+/**
+ * ページネーション
+ */
+cursor?: string;
 };
 
 export type GetPlaylists200ItemsItem = {
@@ -699,16 +702,16 @@ export type PostPlaylists201 = {
 };
 
 export type GetPlaylistsPlaylistIdParams = {
-  /**
-   * 取得する最大の数
-   * @minimum 1
-   * @maximum 50
-   */
-  limit?: number;
-  /**
-   * 最後に取得した動画ID(ページネーション)
-   */
-  cursor?: string;
+/**
+ * 取得する最大の数
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+/**
+ * 最後に取得した動画ID(ページネーション)
+ */
+cursor?: string;
 };
 
 export type GetPlaylistsPlaylistId200ItemsItem = {
@@ -760,5 +763,6 @@ export type PostPlaylistsPlaylistIdVideos201 = {
 };
 
 export type DeletePlaylistsPlaylistIdVideosParams = {
-  video_id: string;
+video_id: string;
 };
+

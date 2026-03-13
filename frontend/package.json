@@ -10,7 +10,9 @@
     "generate": "orval"
   },
   "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^5.1.0",
     "@tailwindcss/vite": "^4.2.1",
+    "axios": "^1.13.6",
     "i18next": "^25.8.18",
     "preact": "^10.26.9",
     "preact-iso": "^2.11.1",

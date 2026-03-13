@@ -6,83 +6,26 @@
  * OpenAPI spec version: 1.0.0
  */
 import type {
-  BadRequestResponse,
-  GetHealth200,
-  InternalServerErrorResponse,
-  NotFoundResponse,
-  PayloadTooLargeResponse,
-  TooManyRequestsResponse,
-} from "./antiYtApi.schemas";
+  GetHealth200
+} from './antiYtApi.schemas';
 
+import { customInstance } from '../mutator';
+
+
+
+
+  export const getMisc = () => {
 /**
  * APIサーバーのヘルスチェックを行う。
  * @summary Health check
  */
-export type getHealthResponse200 = {
-  data: GetHealth200;
-  status: 200;
-};
-
-export type getHealthResponse400 = {
-  data: BadRequestResponse;
-  status: 400;
-};
-
-export type getHealthResponse404 = {
-  data: NotFoundResponse;
-  status: 404;
-};
-
-export type getHealthResponse413 = {
-  data: PayloadTooLargeResponse;
-  status: 413;
-};
-
-export type getHealthResponse429 = {
-  data: TooManyRequestsResponse;
-  status: 429;
-};
-
-export type getHealthResponse500 = {
-  data: InternalServerErrorResponse;
-  status: 500;
-};
-
-export type getHealthResponseSuccess = getHealthResponse200 & {
-  headers: Headers;
-};
-export type getHealthResponseError = (
-  | getHealthResponse400
-  | getHealthResponse404
-  | getHealthResponse413
-  | getHealthResponse429
-  | getHealthResponse500
-) & {
-  headers: Headers;
-};
-
-export type getHealthResponse =
-  | getHealthResponseSuccess
-  | getHealthResponseError;
-
-export const getGetHealthUrl = () => {
-  return `/health`;
-};
-
-export const getHealth = async (
-  options?: RequestInit,
-): Promise<getHealthResponse> => {
-  const res = await fetch(getGetHealthUrl(), {
-    ...options,
-    method: "GET",
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getHealthResponse["data"] = body ? JSON.parse(body) : {};
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as getHealthResponse;
-};
+const getHealth = (
+    
+ ) => {
+      return customInstance<GetHealth200>(
+      {url: `/health`, method: 'GET'
+    },
+      );
+    }
+  return {getHealth}};
+export type GetHealthResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getMisc>['getHealth']>>>

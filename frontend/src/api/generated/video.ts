@@ -6,382 +6,72 @@
  * OpenAPI spec version: 1.0.0
  */
 import type {
-  BadRequestResponse,
-  ForbiddenResponse,
   GetFeed200,
   GetFeedParams,
   GetSearch200,
   GetSearchParams,
   GetVideosVideoId200,
-  InternalServerErrorResponse,
-  NotFoundResponse,
-  PayloadTooLargeResponse,
-  PostVideosVideoIdHeartbeats200,
-  TooManyRequestsResponse,
-  UnauthorizedResponse,
-} from "./antiYtApi.schemas";
+  PostVideosVideoIdHeartbeats200
+} from './antiYtApi.schemas';
 
+import { customInstance } from '../mutator';
+
+
+
+
+  export const getVideo = () => {
 /**
  * 検索を行う
  * @summary Get search result
  */
-export type getSearchResponse200 = {
-  data: GetSearch200;
-  status: 200;
-};
-
-export type getSearchResponse400 = {
-  data: BadRequestResponse;
-  status: 400;
-};
-
-export type getSearchResponse401 = {
-  data: UnauthorizedResponse;
-  status: 401;
-};
-
-export type getSearchResponse403 = {
-  data: ForbiddenResponse;
-  status: 403;
-};
-
-export type getSearchResponse404 = {
-  data: NotFoundResponse;
-  status: 404;
-};
-
-export type getSearchResponse413 = {
-  data: PayloadTooLargeResponse;
-  status: 413;
-};
-
-export type getSearchResponse429 = {
-  data: TooManyRequestsResponse;
-  status: 429;
-};
-
-export type getSearchResponse500 = {
-  data: InternalServerErrorResponse;
-  status: 500;
-};
-
-export type getSearchResponseSuccess = getSearchResponse200 & {
-  headers: Headers;
-};
-export type getSearchResponseError = (
-  | getSearchResponse400
-  | getSearchResponse401
-  | getSearchResponse403
-  | getSearchResponse404
-  | getSearchResponse413
-  | getSearchResponse429
-  | getSearchResponse500
-) & {
-  headers: Headers;
-};
-
-export type getSearchResponse =
-  | getSearchResponseSuccess
-  | getSearchResponseError;
-
-export const getGetSearchUrl = (params: GetSearchParams) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+const getSearch = (
+    params: GetSearchParams,
+ ) => {
+      return customInstance<GetSearch200>(
+      {url: `/api/v1/search`, method: 'GET',
+        params
+    },
+      );
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/v1/search?${stringifiedParams}`
-    : `/api/v1/search`;
-};
-
-export const getSearch = async (
-  params: GetSearchParams,
-  options?: RequestInit,
-): Promise<getSearchResponse> => {
-  const res = await fetch(getGetSearchUrl(params), {
-    ...options,
-    method: "GET",
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getSearchResponse["data"] = body ? JSON.parse(body) : {};
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as getSearchResponse;
-};
-
-/**
+  /**
  * チャンネル登録しているチャンネルの最新の一覧を取得
  * @summary Get latest videos
  */
-export type getFeedResponse200 = {
-  data: GetFeed200;
-  status: 200;
-};
-
-export type getFeedResponse400 = {
-  data: BadRequestResponse;
-  status: 400;
-};
-
-export type getFeedResponse401 = {
-  data: UnauthorizedResponse;
-  status: 401;
-};
-
-export type getFeedResponse403 = {
-  data: ForbiddenResponse;
-  status: 403;
-};
-
-export type getFeedResponse404 = {
-  data: NotFoundResponse;
-  status: 404;
-};
-
-export type getFeedResponse413 = {
-  data: PayloadTooLargeResponse;
-  status: 413;
-};
-
-export type getFeedResponse429 = {
-  data: TooManyRequestsResponse;
-  status: 429;
-};
-
-export type getFeedResponse500 = {
-  data: InternalServerErrorResponse;
-  status: 500;
-};
-
-export type getFeedResponseSuccess = getFeedResponse200 & {
-  headers: Headers;
-};
-export type getFeedResponseError = (
-  | getFeedResponse400
-  | getFeedResponse401
-  | getFeedResponse403
-  | getFeedResponse404
-  | getFeedResponse413
-  | getFeedResponse429
-  | getFeedResponse500
-) & {
-  headers: Headers;
-};
-
-export type getFeedResponse = getFeedResponseSuccess | getFeedResponseError;
-
-export const getGetFeedUrl = (params?: GetFeedParams) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+const getFeed = (
+    params?: GetFeedParams,
+ ) => {
+      return customInstance<GetFeed200>(
+      {url: `/api/v1/feed`, method: 'GET',
+        params
+    },
+      );
     }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/v1/feed?${stringifiedParams}`
-    : `/api/v1/feed`;
-};
-
-export const getFeed = async (
-  params?: GetFeedParams,
-  options?: RequestInit,
-): Promise<getFeedResponse> => {
-  const res = await fetch(getGetFeedUrl(params), {
-    ...options,
-    method: "GET",
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getFeedResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as getFeedResponse;
-};
-
-/**
+  /**
  * 特定の動画の詳細を取得する
  * @summary Get video detail
  */
-export type getVideosVideoIdResponse200 = {
-  data: GetVideosVideoId200;
-  status: 200;
-};
-
-export type getVideosVideoIdResponse400 = {
-  data: BadRequestResponse;
-  status: 400;
-};
-
-export type getVideosVideoIdResponse401 = {
-  data: UnauthorizedResponse;
-  status: 401;
-};
-
-export type getVideosVideoIdResponse403 = {
-  data: ForbiddenResponse;
-  status: 403;
-};
-
-export type getVideosVideoIdResponse404 = {
-  data: NotFoundResponse;
-  status: 404;
-};
-
-export type getVideosVideoIdResponse413 = {
-  data: PayloadTooLargeResponse;
-  status: 413;
-};
-
-export type getVideosVideoIdResponse429 = {
-  data: TooManyRequestsResponse;
-  status: 429;
-};
-
-export type getVideosVideoIdResponse500 = {
-  data: InternalServerErrorResponse;
-  status: 500;
-};
-
-export type getVideosVideoIdResponseSuccess = getVideosVideoIdResponse200 & {
-  headers: Headers;
-};
-export type getVideosVideoIdResponseError = (
-  | getVideosVideoIdResponse400
-  | getVideosVideoIdResponse401
-  | getVideosVideoIdResponse403
-  | getVideosVideoIdResponse404
-  | getVideosVideoIdResponse413
-  | getVideosVideoIdResponse429
-  | getVideosVideoIdResponse500
-) & {
-  headers: Headers;
-};
-
-export type getVideosVideoIdResponse =
-  | getVideosVideoIdResponseSuccess
-  | getVideosVideoIdResponseError;
-
-export const getGetVideosVideoIdUrl = (externalVideoId: string) => {
-  return `/api/v1/videos/${externalVideoId}`;
-};
-
-export const getVideosVideoId = async (
-  externalVideoId: string,
-  options?: RequestInit,
-): Promise<getVideosVideoIdResponse> => {
-  const res = await fetch(getGetVideosVideoIdUrl(externalVideoId), {
-    ...options,
-    method: "GET",
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getVideosVideoIdResponse["data"] = body ? JSON.parse(body) : {};
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as getVideosVideoIdResponse;
-};
-
-/**
+const getVideosVideoId = (
+    externalVideoId: string,
+ ) => {
+      return customInstance<GetVideosVideoId200>(
+      {url: `/api/v1/videos/${externalVideoId}`, method: 'GET'
+    },
+      );
+    }
+  /**
  * 視聴時間をトラックするためのハートビート用エンドポイント。一分ごとに送られる。
  * @summary Heartbeats
  */
-export type postVideosVideoIdHeartbeatsResponse200 = {
-  data: PostVideosVideoIdHeartbeats200;
-  status: 200;
-};
-
-export type postVideosVideoIdHeartbeatsResponse400 = {
-  data: BadRequestResponse;
-  status: 400;
-};
-
-export type postVideosVideoIdHeartbeatsResponse401 = {
-  data: UnauthorizedResponse;
-  status: 401;
-};
-
-export type postVideosVideoIdHeartbeatsResponse403 = {
-  data: ForbiddenResponse;
-  status: 403;
-};
-
-export type postVideosVideoIdHeartbeatsResponse404 = {
-  data: NotFoundResponse;
-  status: 404;
-};
-
-export type postVideosVideoIdHeartbeatsResponse413 = {
-  data: PayloadTooLargeResponse;
-  status: 413;
-};
-
-export type postVideosVideoIdHeartbeatsResponse429 = {
-  data: TooManyRequestsResponse;
-  status: 429;
-};
-
-export type postVideosVideoIdHeartbeatsResponse500 = {
-  data: InternalServerErrorResponse;
-  status: 500;
-};
-
-export type postVideosVideoIdHeartbeatsResponseSuccess =
-  postVideosVideoIdHeartbeatsResponse200 & {
-    headers: Headers;
-  };
-export type postVideosVideoIdHeartbeatsResponseError = (
-  | postVideosVideoIdHeartbeatsResponse400
-  | postVideosVideoIdHeartbeatsResponse401
-  | postVideosVideoIdHeartbeatsResponse403
-  | postVideosVideoIdHeartbeatsResponse404
-  | postVideosVideoIdHeartbeatsResponse413
-  | postVideosVideoIdHeartbeatsResponse429
-  | postVideosVideoIdHeartbeatsResponse500
-) & {
-  headers: Headers;
-};
-
-export type postVideosVideoIdHeartbeatsResponse =
-  | postVideosVideoIdHeartbeatsResponseSuccess
-  | postVideosVideoIdHeartbeatsResponseError;
-
-export const getPostVideosVideoIdHeartbeatsUrl = (externalVideoId: string) => {
-  return `/api/v1/videos/${externalVideoId}/heartbeats`;
-};
-
-export const postVideosVideoIdHeartbeats = async (
-  externalVideoId: string,
-  options?: RequestInit,
-): Promise<postVideosVideoIdHeartbeatsResponse> => {
-  const res = await fetch(getPostVideosVideoIdHeartbeatsUrl(externalVideoId), {
-    ...options,
-    method: "POST",
-  });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: postVideosVideoIdHeartbeatsResponse["data"] = body
-    ? JSON.parse(body)
-    : {};
-  return {
-    data,
-    status: res.status,
-    headers: res.headers,
-  } as postVideosVideoIdHeartbeatsResponse;
-};
+const postVideosVideoIdHeartbeats = (
+    externalVideoId: string,
+ ) => {
+      return customInstance<PostVideosVideoIdHeartbeats200>(
+      {url: `/api/v1/videos/${externalVideoId}/heartbeats`, method: 'POST'
+    },
+      );
+    }
+  return {getSearch,getFeed,getVideosVideoId,postVideosVideoIdHeartbeats}};
+export type GetSearchResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getVideo>['getSearch']>>>
+export type GetFeedResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getVideo>['getFeed']>>>
+export type GetVideosVideoIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getVideo>['getVideosVideoId']>>>
+export type PostVideosVideoIdHeartbeatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getVideo>['postVideosVideoIdHeartbeats']>>>
