@@ -15,6 +15,7 @@ import (
 func (h *APIHandler) GetAuthGoogle(c context.Context, request GetAuthGoogleRequestObject) (GetAuthGoogleResponseObject, error) {
 	url, csrf, err := h.authService.CreateAuthCode(c)
 	if err != nil {
+		util.LogError(c, err)
 		return GetAuthGoogle500JSONResponse{
 			InternalServerErrorJSONResponse{
 				Detail: internalErrorDetail,
@@ -43,13 +44,12 @@ func (h *APIHandler) GetAuthGoogle(c context.Context, request GetAuthGoogleReque
 
 func (h *APIHandler) GetAuthGoogleCallback(c context.Context, request GetAuthGoogleCallbackRequestObject) (GetAuthGoogleCallbackResponseObject, error) {
 	result, err := h.authService.GoogleOIDCCallback(c, auth.GoogleOIDCCallbackParams{
-		CSRF:              request.Params.Csrf,
-		State:             request.Params.State,
-		Code:              request.Params.Code,
-		IPAddress:         request.Params.XRealIP,
-		CountryCode:       request.Params.CfIpcountry,
-		DeviceFingerprint: request.Params.XDeviceFingerprint,
-		UserAgent:         request.Params.UserAgent,
+		CSRF:        request.Params.Csrf,
+		State:       request.Params.State,
+		Code:        request.Params.Code,
+		IPAddress:   request.Params.XRealIP,
+		CountryCode: request.Params.CfIpcountry,
+		UserAgent:   request.Params.UserAgent,
 	})
 	if err != nil {
 		if errors.Is(err, auth.ErrCSRFOrStateIsEmpty) {
@@ -77,6 +77,7 @@ func (h *APIHandler) GetAuthGoogleCallback(c context.Context, request GetAuthGoo
 			}, nil
 		}
 
+		util.LogError(c, err)
 		return GetAuthGoogleCallback500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Detail: internalErrorDetail,
@@ -142,6 +143,7 @@ func (h *APIHandler) PostAuthLogout(c context.Context, request PostAuthLogoutReq
 	}
 
 	if err := h.authService.Logout(c, accessToken, refreshToken); err != nil {
+		util.LogError(c, err)
 		return PostAuthLogout500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Detail: internalErrorDetail,
@@ -198,6 +200,7 @@ func (h *APIHandler) PostAuthRefresh(c context.Context, request PostAuthRefreshR
 
 	newRefreshToken, newAccessToken, accessTokenExpiresAt, refreshTokenExpiresAt, err := h.authService.RefreshToken(c, refreshToken, request.Params.XRealIP, request.Params.CfIpcountry, request.Params.XDeviceFingerprint, request.Params.UserAgent)
 	if err != nil {
+		util.LogError(c, err)
 		return PostAuthRefresh500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Detail: internalErrorDetail,
@@ -245,6 +248,7 @@ func (h *APIHandler) GetUsersMeSessions(c context.Context, request GetUsersMeSes
 
 	sessions, err := h.authService.GetSessions(c, userID)
 	if err != nil {
+		util.LogError(c, err)
 		return GetUsersMeSessions500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Detail: internalErrorDetail,
@@ -287,6 +291,7 @@ func (h *APIHandler) DeleteUsersMeSessionsSessionId(c context.Context, request D
 				},
 			}, nil
 		}
+		util.LogError(c, err)
 		return DeleteUsersMeSessionsSessionId500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Detail: internalErrorDetail,

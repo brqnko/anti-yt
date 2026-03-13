@@ -1,17 +1,13 @@
-import { useState, useRef, useEffect } from "preact/hooks";
+import { useState, useRef, useEffect, useMemo } from "preact/hooks";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "preact-iso";
 import { useTitle } from "../../hooks/useTitle";
-import { useColorMode, type ColorMode } from "../../hooks/useColorMode";
+import { useColorMode } from "../../hooks/useColorMode";
+import { useAuth } from "../../contexts/AuthContext";
+import { modeIcons, modeOrder, languages } from "../../constants";
+import { Logo } from "../../components/Logo";
 import { GoogleIcon } from "./GoogleIcon";
 import { GithubIcon } from "./GithubIcon";
-
-const modeIcons: Record<ColorMode, string> = {
-  light: "light_mode",
-  dark: "dark_mode",
-  system: "computer",
-};
-
-const modeOrder: ColorMode[] = ["light", "dark", "system"];
 
 function DashboardPreview({ t }: { t: (key: string) => string }) {
   return (
@@ -181,14 +177,17 @@ function WhitelistItem({
   );
 }
 
-const languages = [
-  { code: "ja", label: "日本語" },
-  { code: "en", label: "English" },
-];
-
 export default function Home() {
   const { t, i18n } = useTranslation();
   const { mode, setMode } = useColorMode();
+  const { isAuthenticated, user, logout } = useAuth();
+  const { query } = useLocation();
+  const showExpiredBanner = useMemo(() => {
+    if (typeof query === "string") {
+      return new URLSearchParams(query).get("expired") === "1";
+    }
+    return (query as Record<string, string>)?.expired === "1";
+  }, [query]);
   useTitle("");
 
   const nextMode = modeOrder[(modeOrder.indexOf(mode) + 1) % modeOrder.length];
@@ -217,17 +216,16 @@ export default function Home() {
 
   return (
     <div class="flex flex-col h-screen w-full overflow-hidden font-display antialiased">
+      {/* Session expired banner */}
+      {showExpiredBanner && (
+        <div class="flex items-center justify-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-sm font-medium">
+          <span class="material-symbols-outlined text-base">warning</span>
+          {t("home.sessionExpired")}
+        </div>
+      )}
       {/* Header */}
       <header class="flex items-center justify-between py-4 px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 z-30 bg-slate-100 dark:bg-[#0c0c0c] border-b border-slate-200 dark:border-white/5">
-        <a
-          href="/"
-          class="flex items-center gap-2 no-underline text-slate-900 dark:text-white cursor-pointer"
-        >
-          <span class="material-symbols-outlined text-3xl text-primary">
-            timelapse
-          </span>
-          <span class="text-xl font-bold tracking-tight">anti-yt</span>
-        </a>
+        <Logo />
         <div class="flex items-center gap-2">
           <button
             class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-200/60 dark:bg-white/10 hover:bg-slate-300/60 dark:hover:bg-white/20 transition-colors cursor-pointer text-slate-600 dark:text-slate-300"
@@ -302,15 +300,24 @@ export default function Home() {
             </p>
 
             <div class="flex flex-col gap-4 pt-8">
-              <button
-                onClick={() => {
-                  window.location.href = "/api/v1/auth/google";
-                }}
-                class="flex w-full sm:w-auto items-center justify-center gap-3 rounded-xl bg-white dark:bg-[#242424] px-8 py-4 text-base font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-primary/50 dark:hover:border-primary/50 transition-all shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
-              >
-                <GoogleIcon />
-                <span>{t("home.signInWithGoogle")}</span>
-              </button>
+              {isAuthenticated ? (
+                <a
+                  href="/dashboard"
+                  class="flex w-full sm:w-auto items-center justify-center rounded-xl bg-primary px-8 py-4 text-base font-bold text-charcoal hover:bg-[#b8a37e] transition-all shadow-lg hover:shadow-xl no-underline cursor-pointer"
+                >
+                  {t("home.dashboard")}
+                </a>
+              ) : (
+                <button
+                  onClick={() => {
+                    window.location.href = "/api/v1/auth/google";
+                  }}
+                  class="flex w-full sm:w-auto items-center justify-center gap-3 rounded-xl bg-white dark:bg-[#242424] px-8 py-4 text-base font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-primary/50 dark:hover:border-primary/50 transition-all shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
+                >
+                  <GoogleIcon />
+                  <span>{t("home.signInWithGoogle")}</span>
+                </button>
+              )}
             </div>
           </div>
 

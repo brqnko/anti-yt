@@ -6,41 +6,28 @@ import {
   hydrate,
   prerender as ssr,
 } from "preact-iso";
-import type { ComponentChildren } from "preact";
+import { AuthProvider } from "./contexts/AuthContext";
 import "./i18n";
 
-import { Header } from "./components/Header.jsx";
 const Home = lazy(() => import("./pages/Home/index.jsx"));
+const Register = lazy(() => import("./pages/Register/index.jsx"));
 const Terms = lazy(() => import("./pages/Terms/index.jsx"));
 const Privacy = lazy(() => import("./pages/Privacy/index.jsx"));
+const Dashboard = lazy(() => import("./pages/Dashboard/index.jsx"));
+const Profile = lazy(() => import("./pages/Profile/index.jsx"));
 const NotFound = lazy(() => import("./pages/_404.jsx"));
 import "./style.css";
-
-/** Wraps non-standalone pages with the shared Header + main layout. */
-function WithHeader(props: { children?: ComponentChildren }) {
-  return (
-    <>
-      <Header />
-      <main>{props.children}</main>
-    </>
-  );
-}
-
-function WrappedNotFound() {
-  return (
-    <WithHeader>
-      <NotFound />
-    </WithHeader>
-  );
-}
 
 function AppContent() {
   return (
     <Router>
       <Route path="/" component={Home} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/profile" component={Profile} />
+      <Route path="/register" component={Register} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
-      <Route default component={WrappedNotFound} />
+      <Route default component={NotFound} />
     </Router>
   );
 }
@@ -48,7 +35,9 @@ function AppContent() {
 export function App() {
   return (
     <LocationProvider>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </LocationProvider>
   );
 }

@@ -24,6 +24,7 @@ services:
       - oidc-google-client-secret
       - jwt-private
       - jwt-public
+      - google-oidc-secret
     env_file:
       - backend/.env
   frontend:
@@ -60,3 +61,5 @@ secrets:
    file: backend/jwt_private.pem
  jwt-public:
    file: backend/jwt_public.pem
+ google-oidc-secret:
+   file: backend/google_oidc_secret.txt

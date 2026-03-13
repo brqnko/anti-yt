@@ -12,6 +12,7 @@ import (
 
 func (h *APIHandler) DeleteUsersMe(c context.Context, request DeleteUsersMeRequestObject) (DeleteUsersMeResponseObject, error) {
 	if err := h.userService.RemoveUser(c); err != nil {
+		util.LogError(c, err)
 		return DeleteUsersMe500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Detail: internalErrorDetail,
@@ -26,6 +27,7 @@ func (h *APIHandler) DeleteUsersMe(c context.Context, request DeleteUsersMeReque
 func (h *APIHandler) GetUsersMeStatus(c context.Context, request GetUsersMeStatusRequestObject) (GetUsersMeStatusResponseObject, error) {
 	user, err := h.userService.GetUserStatus(c)
 	if err != nil {
+		util.LogError(c, err)
 		return GetUsersMeStatus500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Detail: internalErrorDetail,
@@ -36,6 +38,7 @@ func (h *APIHandler) GetUsersMeStatus(c context.Context, request GetUsersMeStatu
 
 	screenTime, err := dtoToScreenTimeSlots(user.ScreenTimeLimitRange)
 	if err != nil {
+		util.LogError(c, err)
 		return GetUsersMeStatus500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Detail: internalErrorDetail,
@@ -60,6 +63,7 @@ func (h *APIHandler) PatchUsersMeStatus(c context.Context, request PatchUsersMeS
 	if request.Body.ScreenTime != nil {
 		converted, err := screenTimeSlotsToDto(*request.Body.ScreenTime)
 		if err != nil {
+			util.LogError(c, err)
 			return PatchUsersMeStatus500JSONResponse{
 				InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 					Detail: internalErrorDetail,
@@ -74,6 +78,7 @@ func (h *APIHandler) PatchUsersMeStatus(c context.Context, request PatchUsersMeS
 		if br := userDomainErrToBadRequest(err); br != nil {
 			return PatchUsersMeStatus400JSONResponse{BadRequestJSONResponse: *br}, nil
 		}
+		util.LogError(c, err)
 		return PatchUsersMeStatus500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Detail: internalErrorDetail,
@@ -84,6 +89,7 @@ func (h *APIHandler) PatchUsersMeStatus(c context.Context, request PatchUsersMeS
 
 	screenTime, err := dtoToScreenTimeSlots(u.ScreenTimeLimitRange)
 	if err != nil {
+		util.LogError(c, err)
 		return PatchUsersMeStatus500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Title:  internalErrorTitle,
@@ -106,6 +112,7 @@ func (h *APIHandler) PatchUsersMeStatus(c context.Context, request PatchUsersMeS
 func (h *APIHandler) PostUsersMe(c context.Context, request PostUsersMeRequestObject) (PostUsersMeResponseObject, error) {
 	screenTimeDto, err := screenTimeSlotsToDto(request.Body.ScreenTime)
 	if err != nil {
+		util.LogError(c, err)
 		return PostUsersMe500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Title:  internalErrorTitle,
@@ -118,6 +125,7 @@ func (h *APIHandler) PostUsersMe(c context.Context, request PostUsersMeRequestOb
 		if br := userDomainErrToBadRequest(err); br != nil {
 			return PostUsersMe400JSONResponse{BadRequestJSONResponse: *br}, nil
 		}
+		util.LogError(c, err)
 		return PostUsersMe500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Title:  internalErrorTitle,
@@ -128,6 +136,7 @@ func (h *APIHandler) PostUsersMe(c context.Context, request PostUsersMeRequestOb
 
 	screenTime, err := dtoToScreenTimeSlots(u.ScreenTimeLimitRange)
 	if err != nil {
+		util.LogError(c, err)
 		return PostUsersMe500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Title:  internalErrorTitle,

@@ -120,7 +120,6 @@ paths:
       - $ref: '#/components/parameters/HeaderCfIpCountry'
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
-      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ auth ]
       summary: Google Authorization Code Callback

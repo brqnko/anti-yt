@@ -6,15 +6,21 @@
   --font-display: "Manrope", system-ui, sans-serif;
   --color-primary: #d0bb95;
   --color-surface-dark: #1a1a1a;
+  --color-charcoal: #171511;
+  --color-taupe: #847862;
+  --color-background-light: #fbfaf9;
+  --color-background-dark: #1d1a15;
+  --color-text-muted-light: #847862;
+  --color-text-muted-dark: #9CA3AF;
+  --color-card-light: #ffffff;
+  --color-card-dark: #25221d;
+  --color-border-light: #e1ddd6;
+  --color-border-dark: #333333;
 }
 
 :root {
   --color-text: #222;
   --color-bg: #ffffff;
-  --color-header-bg: #673ab8;
-  --color-header-text: #fff;
-  --color-header-active: #0005;
-  --color-header-hover: #0008;
 }
 
 [data-theme="dark"] {
@@ -36,45 +42,6 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-}
-
-#app > header {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  background-color: var(--color-header-bg);
-}
-
-#app > header nav {
-  display: flex;
-}
-
-#app > header a {
-  color: var(--color-header-text);
-  padding: 0.75rem;
-  text-decoration: none;
-}
-
-#app > header a.active {
-  background-color: var(--color-header-active);
-}
-
-#app > header a:hover {
-  background-color: var(--color-header-hover);
-}
-
-.color-mode-btn {
-  background: none;
-  border: none;
-  color: var(--color-header-text);
-  padding: 0.75rem;
-  cursor: pointer;
-  font-size: 1.2rem;
-  line-height: 1;
-}
-
-.color-mode-btn:hover {
-  background-color: var(--color-header-hover);
 }
 
 #app > main {

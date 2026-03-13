@@ -1,11 +1,7 @@
 import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
 import type { ComponentChildren } from "preact";
-
-const languages = [
-  { code: "ja", label: "日本語" },
-  { code: "en", label: "English" },
-];
+import { languages } from "../constants";
 
 const navLinks = [
   { href: "/terms", labelKey: "legal.navTerms" },
