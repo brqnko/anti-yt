@@ -1,17 +1,30 @@
 services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/server.crt:/etc/nginx/certs/server.crt:ro
+      - ./nginx/server.key:/etc/nginx/certs/server.key:ro
+    depends_on:
+      server:
+        condition: service_started
+      frontend:
+        condition: service_started
   server:
     build:
       target: dev
     volumes:
     - ./backend:/src
     - ./shared:/src/shared:ro
-    ports:
-      - "8080:8080"
     secrets:
       - db-password
       - oidc-google-client-secret
       - jwt-private
       - jwt-public
+      - google-oidc-secret
     env_file:
       - backend/.env
   frontend:
@@ -23,11 +36,9 @@ services:
       - ./shared:/usr/src/app/shared:ro
     environment:
       NODE_ENV: development
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
   db:
-   ports:
-     - "5432:5432"
    restart: always
    user: postgres
    secrets:
@@ -50,3 +61,5 @@ secrets:
    file: backend/jwt_private.pem
  jwt-public:
    file: backend/jwt_public.pem
+ google-oidc-secret:
+   file: backend/google_oidc_secret.txt

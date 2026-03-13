@@ -1,0 +1,250 @@
+{
+  "common": {
+    "home": "Home",
+    "notFoundMessage": "The page you requested doesn't exist. Let's get you back on track.",
+    "returnHome": "Return to Home",
+    "colorMode": {
+      "light": "Light mode",
+      "dark": "Dark mode",
+      "system": "System preference"
+    }
+  },
+  "legal": {
+    "navTerms": "Terms of Service",
+    "navPrivacy": "Privacy Policy",
+    "languageSelect": "Select language"
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "version": "v1.0 — Mar 2025",
+    "endOfAgreement": "You have reached the end of the legal agreement.",
+    "sections": {
+      "acceptance": {
+        "title": "Acceptance of Terms",
+        "body": "By accessing and using anti-yt, you agree to be bound by these Terms of Service. If you do not agree to all of these terms, do not use our services. anti-yt provides tools to help you manage your digital consumption through browser-level controls and session management designed to reduce platform addiction."
+      },
+      "serviceDescription": {
+        "title": "Service Description",
+        "body": "anti-yt operates as a digital intermediary that assists users in setting intentional boundaries. Our service includes site blocking, time limits, and content filtering. You acknowledge that these restrictions are self-imposed but enforced by our software to aid in habit formation and long-term behavioral change."
+      },
+      "userObligations": {
+        "title": "User Obligations",
+        "body": "You agree to use anti-yt solely for personal, non-commercial purposes. You shall not attempt to circumvent the technical limitations of the software through unauthorized modification or use of third-party tools designed to bypass anti-yt restrictions, as this undermines the therapeutic intent of the service."
+      },
+      "privacy": {
+        "title": "Privacy and Data Collection",
+        "body": "Your privacy is fundamental. We collect only the data necessary to provide our services. This includes usage statistics required for reporting and technical logs for troubleshooting. We do not sell your personal data or browsing history to third parties. Our commitment is to your recovery, not your data monetization."
+      },
+      "subscription": {
+        "title": "Subscription and Billing",
+        "body": "anti-yt offers premium features via subscription. Fees are billed at the start of each period and are non-refundable except where required by law. You may cancel your subscription at any time through your account settings, and you will continue to have access to premium features until the end of the current billing cycle."
+      }
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "version": "v1.0 — Mar 2025",
+    "endOfPolicy": "You have reached the end of the privacy policy.",
+    "sections": {
+      "dataCollection": {
+        "title": "Information We Collect",
+        "body": "anti-yt collects only the minimum data necessary to provide and improve our services. This includes the email address provided during account creation, anonymized usage statistics, and technical logs for troubleshooting. We do not collect your browsing history or details of blocked content."
+      },
+      "dataUsage": {
+        "title": "How We Use Your Information",
+        "body": "The data we collect is used solely to provide, maintain, and improve our services, generate usage reports, diagnose and resolve technical issues, and send important service-related notifications. We do not use your data for marketing purposes."
+      },
+      "dataSharing": {
+        "title": "Third-Party Sharing",
+        "body": "anti-yt does not sell, rent, or trade your personal data to third parties. We may share minimal data with trusted partners essential to service operations (such as hosting providers) only when required, or when we are legally obligated to do so."
+      },
+      "cookies": {
+        "title": "Cookies and Tracking",
+        "body": "anti-yt uses only cookies necessary for authentication and session management. We do not use third-party tracking cookies or advertising cookies. You can manage cookies through your browser settings, though some features may be limited as a result."
+      },
+      "security": {
+        "title": "Data Protection",
+        "body": "We implement industry-standard encryption and security measures to protect your data. Data is transmitted using encrypted connections and protected from unauthorized access through access controls. However, no method of transmission over the Internet is 100% secure."
+      },
+      "userRights": {
+        "title": "Your Rights",
+        "body": "You have the right to request access to, correction of, and deletion of your personal data. You can export your data or delete your account through your account settings. Upon account deletion, all associated data will be permanently erased within 30 days."
+      },
+      "changes": {
+        "title": "Policy Changes",
+        "body": "This privacy policy may be updated as needed. We will notify you of significant changes through in-service notifications or email. By continuing to use the service after changes are made, you agree to the updated policy."
+      }
+    }
+  },
+  "register": {
+    "pageTitle": "Register",
+    "step": "Step {{current}} of {{total}}",
+    "continue": "Continue",
+    "submit": "Register",
+    "agreementPrefix": "By registering, you agree to our ",
+    "termsLink": "Terms of Service",
+    "agreementAnd": " and ",
+    "privacyLink": "Privacy Policy",
+    "agreementSuffix": ".",
+    "error": {
+      "title": "Registration Failed",
+      "description": "Something went wrong during registration. You can edit your details and try again.",
+      "close": "OK"
+    },
+    "profileDetails": {
+      "title": "Profile Details",
+      "subtitle": "Personalize your experience to get started.",
+      "displayName": "Display Name",
+      "displayNamePlaceholder": "e.g. Alex Student",
+      "displayNameHint": "This is how we'll address you in your daily reports.",
+      "contentLanguage": "Content Language",
+      "contentLanguageHint": "We will prioritize educational content in this language."
+    },
+    "restrictions": {
+      "title": "Initial Restrictions",
+      "subtitle": "Define strict boundaries to reclaim your time. You can adjust these later.",
+      "dailyWatchLimit": "Daily Watch Limit",
+      "dailyWatchLimitDesc": "Total viewing time allowed per 24 hours",
+      "unlimited": "Unlimited",
+      "limited": "Limited",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "scheduledAccess": "Scheduled Access",
+      "scheduledAccessDesc": "Permitted viewing windows",
+      "addTimeRange": "Add Time Range",
+      "removeRange": "Remove range",
+      "back": "Back",
+      "zeroTimeError": "Daily watch limit must be greater than 0 minutes.",
+      "overlapError": "Time ranges must not overlap."
+    }
+  },
+  "dashboard": {
+    "pageTitle": "Dashboard",
+    "safeModeActive": "Safe Mode Active",
+    "remaining": "Remaining",
+    "timeLeft": "Time Left",
+    "logout": "Log out",
+    "nav": {
+      "mainFeed": "Main Feed",
+      "analytics": "Analytics",
+      "settings": "Settings"
+    },
+    "whitelistedChannels": "Whitelisted Channels",
+    "requestChannel": "Request Channel",
+    "noChannels": "No channels subscribed yet.",
+    "myPlaylists": "My Playlists",
+    "noPlaylists": "No playlists yet.",
+    "curatedFeed": "Curated Feed",
+    "curatedFeedDesc": "Distraction-free content from your whitelisted sources.",
+    "views": "views",
+    "noVideos": "No videos yet",
+    "noVideosDesc": "Subscribe to channels to see their latest videos here.",
+    "dailyProgress": "Daily Progress",
+    "used": "used",
+    "onTrack": "You're on track to stay under your limit.",
+    "almostLimit": "You're approaching your daily limit.",
+    "focusTip": "Focus Tip",
+    "focusQuote": "\"The most valuable currency in the modern world is not money, but attention.\"",
+    "todaysInterventions": "Today's Interventions",
+    "shortsBlocked": "Shorts Blocked",
+    "blockedAttempts": "Blocked automatically",
+    "timeAgo": {
+      "justNow": "just now",
+      "minutes": "{{count}}m ago",
+      "hours": "{{count}}h ago",
+      "days": "{{count}}d ago",
+      "weeks": "{{count}}w ago",
+      "months": "{{count}}mo ago",
+      "years": "{{count}}y ago"
+    }
+  },
+  "restrictions": {
+    "title": "Restriction Settings",
+    "subtitle": "Manage your usage controls and content filters.",
+    "timeUsedToday": "Time Used Today",
+    "remaining": "remaining",
+    "dailyAllowance": "Daily Allowance",
+    "strictMode": "Strict Mode",
+    "timeConstraints": "Time Constraints",
+    "permittedHours": "Permitted Hours",
+    "permittedHoursDesc": "Define windows when viewing is allowed",
+    "addTimeRange": "Add another time range",
+    "removeRange": "Remove time range",
+    "dailyCapLimit": "Daily Cap Limit",
+    "hr": "HR",
+    "min": "MIN",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Saved!",
+    "overlapError": "Time ranges must not overlap.",
+    "zeroTimeError": "Daily cap limit must be greater than 0 minutes.",
+    "whitelist": "Whitelist",
+    "whitelistDesc": "Only content from these channels is allowed.",
+    "searchChannels": "Search channels...",
+    "noChannels": "No channels subscribed yet."
+  },
+  "profile": {
+    "pageTitle": "Profile",
+    "title": "Profile Settings",
+    "subtitle": "Manage your identity and account security.",
+    "nav": {
+      "restrictions": "Restrictions",
+      "profileSettings": "Profile Settings",
+      "security": "Security",
+      "signOut": "Sign Out"
+    },
+    "accountDetails": "Account Details",
+    "displayName": "Display Name",
+    "displayNamePlaceholder": "Your name",
+    "language": "Language",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "saved": "Saved!",
+    "dangerZone": "Danger Zone",
+    "deleteAccount": "Delete Account",
+    "deleteAccountDesc": "Once you delete your account, there is no going back. All your data, restriction history, and preferences will be permanently erased.",
+    "deleteConfirmTitle": "Delete Account?",
+    "deleteConfirmDesc": "This action cannot be undone. All your data will be permanently deleted.",
+    "deleteConfirm": "Delete Forever",
+    "logoutConfirmTitle": "Sign Out?",
+    "logoutConfirmDesc": "Are you sure you want to sign out of your account?",
+    "cancel": "Cancel"
+  },
+  "security": {
+    "title": "Security & Sessions",
+    "subtitle": "Manage your active sessions to keep your account safe.",
+    "currentSession": "Current Session",
+    "activeNow": "Active Now",
+    "loggedInAt": "Logged In",
+    "lastActivity": "Last Activity",
+    "otherSessions": "Other Active Sessions",
+    "revoke": "Revoke",
+    "revokeConfirmTitle": "Revoke Session?",
+    "revokeConfirmDesc": "The session on \"{{name}}\" will be logged out immediately. This action cannot be undone.",
+    "revokeConfirm": "Revoke Session",
+    "cancel": "Cancel",
+    "noSessions": "No active sessions found.",
+    "loadError": "Failed to load sessions.",
+    "revokeError": "Failed to revoke session. Please try again.",
+    "retry": "Retry",
+    "justNow": "Just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago",
+    "monthsAgo": "{{count}}mo ago"
+  },
+  "home": {
+    "heroTitle1": "Break the",
+    "heroTitle2": "YouTube Cycle",
+    "heroDescription": "Reclaim your time from the algorithm. Strict time controls, intelligent filtering, and distraction-free focus zones designed for a clearer mind.",
+    "signInWithGoogle": "Sign in with Google",
+    "dashboard": "Go to Dashboard",
+    "logout": "Log out",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "dailyAllowance": "Daily Allowance",
+    "watchTime": "Watch Time",
+    "whitelist": "Whitelist",
+    "sessionExpired": "Your session has expired. Please sign in again."
+  }
+}

@@ -1,70 +1,75 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  --font-display: "Manrope", system-ui, sans-serif;
+  --color-primary: #d0bb95;
+  --color-surface-dark: #1a1a1a;
+  --color-charcoal: #171511;
+  --color-taupe: #847862;
+  --color-background-light: #fbfaf9;
+  --color-background-dark: #1d1a15;
+  --color-text-muted-light: #847862;
+  --color-text-muted-dark: #9CA3AF;
+  --color-card-light: #ffffff;
+  --color-card-dark: #25221d;
+  --color-border-light: #e1ddd6;
+  --color-border-dark: #333333;
+}
+
 :root {
-	font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-	line-height: 1.5;
-	font-weight: 400;
+  --color-text: #222;
+  --color-bg: #ffffff;
+}
 
-	color: #222;
-	background-color: #ffffff;
-
-	font-synthesis: none;
-	text-rendering: optimizeLegibility;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	-webkit-text-size-adjust: 100%;
+[data-theme="dark"] {
+  --color-text: #ccc;
+  --color-bg: #1a1a1a;
 }
 
 body {
-	margin: 0;
+  margin: 0;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #app {
-	display: flex;
-	flex-direction: column;
-	min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-header {
-	display: flex;
-	justify-content: flex-end;
-	background-color: #673ab8;
-}
-
-header nav {
-	display: flex;
-}
-
-header a {
-	color: #fff;
-	padding: 0.75rem;
-	text-decoration: none;
-}
-
-header a.active {
-	background-color: #0005;
-}
-
-header a:hover {
-	background-color: #0008;
-}
-
-main {
-	flex: auto;
-	display: flex;
-	align-items: center;
-	max-width: 1280px;
-	margin: 0 auto;
-	text-align: center;
+#app > main {
+  flex: auto;
+  display: flex;
+  align-items: center;
+  max-width: 1280px;
+  margin: 0 auto;
+  text-align: center;
 }
 
 @media (max-width: 639px) {
-	main {
-		margin: 2rem;
-	}
+  #app > main {
+    margin: 2rem;
+  }
 }
 
-@media (prefers-color-scheme: dark) {
-	:root {
-		color: #ccc;
-		background-color: #1a1a1a;
-	}
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out both;
 }

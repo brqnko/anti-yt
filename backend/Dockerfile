@@ -25,6 +25,6 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
 
 EXPOSE 8080
 
-CMD ["sleep", "infinity" ]
+CMD ["air", "-c", ".air.toml"]
 
 FROM base AS build

@@ -21,6 +21,10 @@ type googleOIDCService struct {
 }
 
 func NewGoogleOIDCService(ctx context.Context, clientID, clientSecret, redirectURL string) (GoogleOIDCService, error) {
+	if clientSecret == "" {
+		return nil, errors.New("oidc: google client secret is empty")
+	}
+
 	provider, err := oidc.NewProvider(ctx, "https://accounts.google.com")
 	if err != nil {
 		return nil, err

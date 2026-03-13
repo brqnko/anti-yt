@@ -1,0 +1,250 @@
+{
+  "common": {
+    "home": "ホーム",
+    "notFoundMessage": "お探しのページは存在しません。正しいページに戻りましょう。",
+    "returnHome": "ホームに戻る",
+    "colorMode": {
+      "light": "ライトモード",
+      "dark": "ダークモード",
+      "system": "システム設定に従う"
+    }
+  },
+  "legal": {
+    "navTerms": "利用規約",
+    "navPrivacy": "プライバシーポリシー",
+    "languageSelect": "言語を選択"
+  },
+  "terms": {
+    "title": "利用規約",
+    "version": "v1.0 — 2025年3月",
+    "endOfAgreement": "利用規約は以上です。",
+    "sections": {
+      "acceptance": {
+        "title": "規約への同意",
+        "body": "anti-ytにアクセスし利用することにより、あなたはこの利用規約に同意したものとみなされます。すべての条項に同意しない場合は、当サービスを利用しないでください。anti-ytは、プラットフォーム依存を軽減するために設計されたブラウザレベルの制御とセッション管理を通じて、デジタル消費を管理するためのツールを提供します。"
+      },
+      "serviceDescription": {
+        "title": "サービスの説明",
+        "body": "anti-ytは、ユーザーが意図的な制限を設定することを支援するデジタル仲介サービスとして運営されます。当サービスには、サイトブロック、時間制限、コンテンツフィルタリングが含まれます。これらの制限は自主的に設定されますが、習慣形成と長期的な行動変容を支援するために当ソフトウェアにより実施されることをご了承ください。"
+      },
+      "userObligations": {
+        "title": "ユーザーの義務",
+        "body": "anti-ytは個人的かつ非商業的な目的でのみ使用することに同意するものとします。anti-ytの制限を回避するために設計された不正な改変やサードパーティツールの使用を通じて、ソフトウェアの技術的制限を回避しようとしてはなりません。これはサービスの治療的意図を損なうものです。"
+      },
+      "privacy": {
+        "title": "プライバシーとデータ収集",
+        "body": "あなたのプライバシーは最も重要です。当社はサービス提供に必要なデータのみを収集します。これには、レポートに必要な使用統計とトラブルシューティングのための技術ログが含まれます。個人データや閲覧履歴を第三者に販売することはありません。当社の使命はあなたの回復であり、データの収益化ではありません。"
+      },
+      "subscription": {
+        "title": "サブスクリプションと請求",
+        "body": "anti-ytはサブスクリプションを通じてプレミアム機能を提供します。料金は各期間の開始時に請求され、法律で義務付けられている場合を除き、返金不可です。アカウント設定からいつでもサブスクリプションをキャンセルでき、現在の請求期間の終了まではプレミアム機能を引き続きご利用いただけます。"
+      }
+    }
+  },
+  "privacy": {
+    "title": "プライバシーポリシー",
+    "version": "v1.0 — 2025年3月",
+    "endOfPolicy": "プライバシーポリシーは以上です。",
+    "sections": {
+      "dataCollection": {
+        "title": "収集する情報",
+        "body": "anti-ytは、サービスの提供と改善に必要な最小限のデータのみを収集します。これには、アカウント作成時に提供されるメールアドレス、サービス利用に関する匿名化された統計データ、およびトラブルシューティングのための技術ログが含まれます。閲覧履歴やブロックされたコンテンツの詳細は収集しません。"
+      },
+      "dataUsage": {
+        "title": "情報の利用目的",
+        "body": "収集したデータは、サービスの提供・維持・改善、利用状況レポートの生成、技術的な問題の診断と解決、およびサービスに関する重要な通知の送信にのみ使用されます。マーケティング目的でのデータ利用は行いません。"
+      },
+      "dataSharing": {
+        "title": "第三者への情報提供",
+        "body": "anti-ytは、お客様の個人データを第三者に販売、貸与、または取引することはありません。法律上の義務がある場合、またはサービスの運営に不可欠な信頼できるパートナー（ホスティングプロバイダーなど）との間でのみ、必要最小限のデータを共有する場合があります。"
+      },
+      "cookies": {
+        "title": "Cookieとトラッキング",
+        "body": "anti-ytは、認証とセッション管理に必要なCookieのみを使用します。サードパーティのトラッキングCookieや広告目的のCookieは使用しません。ブラウザの設定からCookieを管理できますが、一部の機能が制限される場合があります。"
+      },
+      "security": {
+        "title": "データの保護",
+        "body": "お客様のデータを保護するため、業界標準の暗号化技術およびセキュリティ対策を実施しています。データは暗号化された通信で送受信され、アクセス制御により不正なアクセスから保護されています。ただし、インターネットを介したデータ送信に100%の安全性を保証することはできません。"
+      },
+      "userRights": {
+        "title": "お客様の権利",
+        "body": "お客様は、自身の個人データへのアクセス、訂正、削除を要求する権利を有します。アカウント設定からデータのエクスポートやアカウントの削除が可能です。アカウントを削除した場合、関連するすべてのデータは30日以内に完全に消去されます。"
+      },
+      "changes": {
+        "title": "ポリシーの変更",
+        "body": "本プライバシーポリシーは、必要に応じて更新される場合があります。重要な変更がある場合は、サービス内での通知またはメールでお知らせします。変更後もサービスを継続して利用することにより、更新されたポリシーに同意したものとみなされます。"
+      }
+    }
+  },
+  "register": {
+    "pageTitle": "登録",
+    "step": "ステップ {{current}} / {{total}}",
+    "continue": "続ける",
+    "submit": "登録する",
+    "agreementPrefix": "登録することで、",
+    "termsLink": "利用規約",
+    "agreementAnd": "および",
+    "privacyLink": "プライバシーポリシー",
+    "agreementSuffix": "に同意したものとみなされます。",
+    "error": {
+      "title": "登録に失敗しました",
+      "description": "登録中にエラーが発生しました。内容を修正して再度お試しください。",
+      "close": "OK"
+    },
+    "profileDetails": {
+      "title": "プロフィール情報",
+      "subtitle": "まずは基本情報を設定しましょう。",
+      "displayName": "表示名",
+      "displayNamePlaceholder": "例: 田中太郎",
+      "displayNameHint": "デイリーレポートでこの名前が使われます。",
+      "contentLanguage": "コンテンツの言語",
+      "contentLanguageHint": "この言語の教育コンテンツが優先的に表示されます。"
+    },
+    "restrictions": {
+      "title": "初期制限",
+      "subtitle": "時間を取り戻すための厳格な制限を設定しましょう。後から変更できます。",
+      "dailyWatchLimit": "1日の視聴時間制限",
+      "dailyWatchLimitDesc": "24時間あたりの許可される視聴時間",
+      "unlimited": "無制限",
+      "limited": "制限あり",
+      "hours": "時間",
+      "minutes": "分",
+      "scheduledAccess": "アクセス時間帯",
+      "scheduledAccessDesc": "視聴が許可される時間帯",
+      "addTimeRange": "時間帯を追加",
+      "removeRange": "時間帯を削除",
+      "back": "戻る",
+      "zeroTimeError": "1日の視聴時間制限は0分より大きくしてください。",
+      "overlapError": "時間帯が重複しています。"
+    }
+  },
+  "dashboard": {
+    "pageTitle": "ダッシュボード",
+    "safeModeActive": "セーフモード有効",
+    "remaining": "残り",
+    "timeLeft": "残り時間",
+    "logout": "ログアウト",
+    "nav": {
+      "mainFeed": "メインフィード",
+      "analytics": "アナリティクス",
+      "settings": "設定"
+    },
+    "whitelistedChannels": "登録チャンネル",
+    "requestChannel": "チャンネルを追加",
+    "noChannels": "チャンネルが登録されていません。",
+    "myPlaylists": "マイプレイリスト",
+    "noPlaylists": "プレイリストがありません。",
+    "curatedFeed": "キュレーションフィード",
+    "curatedFeedDesc": "登録チャンネルからのコンテンツのみ表示されます。",
+    "views": "回視聴",
+    "noVideos": "動画がありません",
+    "noVideosDesc": "チャンネルを登録すると、最新の動画がここに表示されます。",
+    "dailyProgress": "今日の進捗",
+    "used": "使用済み",
+    "onTrack": "制限内に収まるペースです。",
+    "almostLimit": "1日の制限に近づいています。",
+    "focusTip": "集中のヒント",
+    "focusQuote": "「現代社会で最も価値ある通貨はお金ではなく、注意力である。」",
+    "todaysInterventions": "今日のブロック",
+    "shortsBlocked": "ショート動画ブロック",
+    "blockedAttempts": "自動的にブロックされました",
+    "timeAgo": {
+      "justNow": "たった今",
+      "minutes": "{{count}}分前",
+      "hours": "{{count}}時間前",
+      "days": "{{count}}日前",
+      "weeks": "{{count}}週間前",
+      "months": "{{count}}ヶ月前",
+      "years": "{{count}}年前"
+    }
+  },
+  "restrictions": {
+    "title": "制限設定",
+    "subtitle": "使用制限とコンテンツフィルターを管理します。",
+    "timeUsedToday": "今日の使用時間",
+    "remaining": "残り",
+    "dailyAllowance": "1日の許容時間",
+    "strictMode": "厳格モード",
+    "timeConstraints": "時間制約",
+    "permittedHours": "許可時間帯",
+    "permittedHoursDesc": "視聴が許可される時間帯を設定",
+    "addTimeRange": "時間帯を追加",
+    "removeRange": "時間帯を削除",
+    "dailyCapLimit": "1日の上限時間",
+    "hr": "時間",
+    "min": "分",
+    "save": "保存",
+    "saving": "保存中...",
+    "saved": "保存しました！",
+    "overlapError": "時間帯が重複しています。",
+    "zeroTimeError": "1日の上限時間は0分より大きくしてください。",
+    "whitelist": "ホワイトリスト",
+    "whitelistDesc": "これらのチャンネルのコンテンツのみ許可されます。",
+    "searchChannels": "チャンネルを検索...",
+    "noChannels": "チャンネルが登録されていません。"
+  },
+  "profile": {
+    "pageTitle": "プロフィール",
+    "title": "プロフィール設定",
+    "subtitle": "アカウント情報とセキュリティを管理します。",
+    "nav": {
+      "restrictions": "制限設定",
+      "profileSettings": "プロフィール設定",
+      "security": "セキュリティ",
+      "signOut": "ログアウト"
+    },
+    "accountDetails": "アカウント情報",
+    "displayName": "表示名",
+    "displayNamePlaceholder": "あなたの名前",
+    "language": "言語",
+    "saveChanges": "変更を保存",
+    "saving": "保存中...",
+    "saved": "保存しました！",
+    "dangerZone": "危険な操作",
+    "deleteAccount": "アカウントを削除",
+    "deleteAccountDesc": "アカウントを削除すると元に戻すことはできません。すべてのデータ、制限履歴、設定が完全に消去されます。",
+    "deleteConfirmTitle": "アカウントを削除しますか？",
+    "deleteConfirmDesc": "この操作は取り消せません。すべてのデータが完全に削除されます。",
+    "deleteConfirm": "完全に削除",
+    "logoutConfirmTitle": "ログアウトしますか？",
+    "logoutConfirmDesc": "アカウントからログアウトしてもよろしいですか？",
+    "cancel": "キャンセル"
+  },
+  "security": {
+    "title": "セキュリティとセッション",
+    "subtitle": "アクティブなセッションを管理して、アカウントを安全に保ちましょう。",
+    "currentSession": "現在のセッション",
+    "activeNow": "アクティブ",
+    "loggedInAt": "ログイン日時",
+    "lastActivity": "最終アクティビティ",
+    "otherSessions": "他のアクティブなセッション",
+    "revoke": "取り消す",
+    "revokeConfirmTitle": "セッションを取り消しますか？",
+    "revokeConfirmDesc": "「{{name}}」のセッションは即座にログアウトされます。この操作は取り消せません。",
+    "revokeConfirm": "取り消す",
+    "cancel": "キャンセル",
+    "noSessions": "アクティブなセッションが見つかりません。",
+    "loadError": "セッション情報の読み込みに失敗しました。",
+    "revokeError": "セッションの取り消しに失敗しました。もう一度お試しください。",
+    "retry": "再試行",
+    "justNow": "たった今",
+    "minutesAgo": "{{count}}分前",
+    "hoursAgo": "{{count}}時間前",
+    "daysAgo": "{{count}}日前",
+    "monthsAgo": "{{count}}ヶ月前"
+  },
+  "home": {
+    "heroTitle1": "断ち切ろう",
+    "heroTitle2": "YouTube依存",
+    "heroDescription": "アルゴリズムから時間を取り戻そう。厳格な時間制限、インテリジェントなフィルタリング、集中のためのディストラクションフリーゾーン。",
+    "signInWithGoogle": "Googleでサインイン",
+    "dashboard": "ダッシュボードに行く",
+    "logout": "ログアウト",
+    "privacy": "プライバシー",
+    "terms": "利用規約",
+    "dailyAllowance": "1日の許容時間",
+    "watchTime": "視聴時間",
+    "whitelist": "ホワイトリスト",
+    "sessionExpired": "セッションの有効期限が切れました。再度ログインしてください。"
+  }
+}
