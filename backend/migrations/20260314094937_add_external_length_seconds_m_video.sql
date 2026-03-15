@@ -11,7 +11,7 @@ CREATE INDEX idx_3_m_user_subscribing_channel ON m_user_subscribing_channel(m_ch
 CREATE INDEX idx_3_m_video ON m_video(m_channel_id, external_created_at DESC, public_id DESC);
 
 -- +goose Down
-DROP INDEX idx_3_m_video
+DROP INDEX idx_3_m_video;
 
 DROP INDEX idx_3_m_user_subscribing_channel;
 
@@ -19,4 +19,4 @@ DROP INDEX idx_3_t_video_watch;
 
 DROP INDEX idx_2_m_video;
 
-ALTER TABLE m_video DROP COLUMN external_video_length_seconds;
+ALTER TABLE m_video DROP COLUMN external_length_seconds;
