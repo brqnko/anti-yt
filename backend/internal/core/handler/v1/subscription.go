@@ -52,7 +52,7 @@ func (h *APIHandler) GetSubscriptions(c context.Context, request GetSubscription
 		items[i].ChannelDescription = ch.Description
 		items[i].ExternalChannelIconUrl = ch.IconUrl
 		items[i].ChannelSubscribersCount = ch.SubscribersCount
-		items[i].ChannelCreatedAt = ch.CreatedAt
+		items[i].ChannelCreatedAt = ch.ExternalChannelInfo.CreatedAt
 	}
 
 	return GetSubscriptions200JSONResponse{
@@ -97,14 +97,14 @@ func (h *APIHandler) PostSubscriptions(c context.Context, request PostSubscripti
 			SubscriptionId             openapi_types.UUID `json:"subscription_id"`
 		}{
 			ChannelCreatedAt:           subscribed.ExternalChannelInfo.CreatedAt,
-			ChannelCustomId:            string(*subscribed.ExternalChannelInfo.CustomId),
-			ChannelDescription:         subscribed.ExternalChannelInfo.Description,
+			ChannelCustomId:            string(*subscribed.CustomId),
+			ChannelDescription:         subscribed.Description,
 			ChannelId:                  subscribed.ChannelId,
-			ChannelSubscribersCount:    subscribed.ExternalChannelInfo.SubscribersCount,
+			ChannelSubscribersCount:    subscribed.SubscribersCount,
 			CreatedAt:                  subscribed.CreatedAt,
-			ExternalChannelDisplayName: subscribed.ExternalChannelInfo.DisplayName,
-			ExternalChannelIconUrl:     subscribed.ExternalChannelInfo.IconUrl,
-			ExternalChannelId:          string(*subscribed.ExternalChannelInfo.Id),
+			ExternalChannelDisplayName: subscribed.DisplayName,
+			ExternalChannelIconUrl:     subscribed.IconUrl,
+			ExternalChannelId:          string(*subscribed.Id),
 			SubscriptionId:             subscribed.SubscriptionId,
 		},
 		Headers: PostSubscriptions201ResponseHeaders{
