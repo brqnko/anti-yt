@@ -180,7 +180,7 @@ function WhitelistItem({
 export default function Home() {
   const { t, i18n } = useTranslation();
   const { mode, setMode } = useColorMode();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { query } = useLocation();
   const showExpiredBanner = useMemo(() => {
     if (typeof query === "string") {

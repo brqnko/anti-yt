@@ -30,7 +30,7 @@ import { customInstance } from '../mutator';
  * @summary Get playlists
  */
 const getPlaylists = (
-    params?: GetPlaylistsParams,
+    params: GetPlaylistsParams,
  ) => {
       return customInstance<GetPlaylists200>(
       {url: `/api/v1/playlists`, method: 'GET',
@@ -58,7 +58,7 @@ const postPlaylists = (
  */
 const getPlaylistsPlaylistId = (
     playlistId: string,
-    params?: GetPlaylistsPlaylistIdParams,
+    params: GetPlaylistsPlaylistIdParams,
  ) => {
       return customInstance<GetPlaylistsPlaylistId200>(
       {url: `/api/v1/playlists/${playlistId}`, method: 'GET',

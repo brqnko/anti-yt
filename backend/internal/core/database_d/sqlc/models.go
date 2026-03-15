@@ -48,18 +48,20 @@ type MChannel struct {
 	CreatedAt                time.Time
 	UpdatedAt                time.Time
 	PublicID                 uuid.UUID
+	RssFetchedAt             time.Time
 }
 
 type MPlaylist struct {
-	MPlaylistID    int64
-	MUserID        int64
-	VisibilityCode int
-	PlaylistTitle  string
-	PlaylistCode   int
-	VideoCount     int
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	PublicID       uuid.UUID
+	MPlaylistID         int64
+	MUserID             int64
+	VisibilityCode      int
+	PlaylistTitle       string
+	PlaylistCode        int
+	VideoCount          int
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	PublicID            uuid.UUID
+	PlaylistDescription string
 }
 
 type MPlaylistVideo struct {
@@ -133,16 +135,18 @@ type MUserSubscribingChannel struct {
 }
 
 type MVideo struct {
-	MVideoID            int64
-	MChannelID          int64
-	ExternalID          string
-	ExternalTitle       string
-	ExternalDescription string
-	FetchedAt           time.Time
-	CreatedAt           time.Time
-	UpdatedAt           time.Time
-	PublicID            uuid.UUID
-	ExternalCreatedAt   time.Time
+	MVideoID              int64
+	MChannelID            int64
+	ExternalID            string
+	ExternalTitle         string
+	ExternalDescription   string
+	FetchedAt             time.Time
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
+	PublicID              uuid.UUID
+	ExternalCreatedAt     time.Time
+	ExternalThumbnailUrl  string
+	ExternalLengthSeconds int
 }
 
 type SMonthlyVideoWatch struct {

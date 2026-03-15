@@ -1,8 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../hooks/useTitle";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function NotFound() {
   const { t } = useTranslation();
+  const { isAuthenticated } = useAuth();
   useTitle("404 Not Found");
 
   return (
@@ -17,7 +19,7 @@ export default function NotFound() {
       </div>
       <div class="flex justify-center w-full">
         <a
-          href="/"
+          href={isAuthenticated ? "/dashboard" : "/"}
           class="flex items-center justify-center rounded-xl h-14 px-10 bg-primary text-charcoal text-base font-bold transition-transform hover:scale-[1.02] active:scale-[0.98] min-w-[240px]"
         >
           {t("common.returnHome")}

@@ -16,6 +16,8 @@
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | public_id | uuid | uuidv7() | false |  |  |  |
 | external_created_at | timestamp with time zone | '1970-01-01 00:00:00+00'::timestamp with time zone | false |  |  |  |
+| external_thumbnail_url | varchar(128) | ''::character varying | false |  |  |  |
+| external_length_seconds | integer |  | false |  |  |  |
 
 ## Constraints
 
@@ -25,6 +27,8 @@
 | m_video_external_created_at_not_null | n | NOT NULL external_created_at |
 | m_video_external_description_not_null | n | NOT NULL external_description |
 | m_video_external_id_not_null | n | NOT NULL external_id |
+| m_video_external_length_seconds_not_null | n | NOT NULL external_length_seconds |
+| m_video_external_thumbnail_url_not_null | n | NOT NULL external_thumbnail_url |
 | m_video_external_title_not_null | n | NOT NULL external_title |
 | m_video_fetched_at_not_null | n | NOT NULL fetched_at |
 | m_video_m_channel_id_not_null | n | NOT NULL m_channel_id |
@@ -41,6 +45,8 @@
 | idx_1_m_video | CREATE INDEX idx_1_m_video ON public.m_video USING btree (m_channel_id) |
 | uk_1_m_video | CREATE UNIQUE INDEX uk_1_m_video ON public.m_video USING btree (public_id) |
 | uk_2_m_video | CREATE UNIQUE INDEX uk_2_m_video ON public.m_video USING btree (external_id) |
+| idx_2_m_video | CREATE INDEX idx_2_m_video ON public.m_video USING btree (m_channel_id, public_id) |
+| idx_3_m_video | CREATE INDEX idx_3_m_video ON public.m_video USING btree (m_channel_id, external_created_at DESC, public_id DESC) |
 
 ## Relations
 

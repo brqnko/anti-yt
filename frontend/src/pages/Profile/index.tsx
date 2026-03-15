@@ -1,4 +1,4 @@
-import { useState } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
@@ -6,6 +6,8 @@ import { DashboardHeader } from "../../components/DashboardHeader";
 import { useAuth } from "../../contexts/AuthContext";
 import { getUser } from "../../api/generated/user";
 import { languages } from "../../constants";
+import { useColorMode, type ColorMode } from "../../hooks/useColorMode";
+import { modeIcons } from "../../constants";
 import { RestrictionsTab } from "./RestrictionsTab";
 import { SecurityTab } from "./SecurityTab";
 
@@ -13,23 +15,43 @@ type Tab = "restrictions" | "profile" | "security";
 
 function ProfileContent() {
   const { t, i18n } = useTranslation();
-  const { user, logout, refreshUser } = useAuth();
+  const { logout } = useAuth();
+  const { mode, setMode } = useColorMode();
+
+  const colorModes: { value: ColorMode; icon: string }[] = [
+    { value: "light", icon: modeIcons.light },
+    { value: "dark", icon: modeIcons.dark },
+    { value: "system", icon: modeIcons.system },
+  ];
   useTitle(t("profile.pageTitle"));
 
   const [activeTab, setActiveTab] = useState<Tab>("profile");
 
-  const [displayName, setDisplayName] = useState(user?.display_name ?? "");
+  const [displayName, setDisplayName] = useState("");
   const [languageCode, setLanguageCode] = useState(
-    user?.language_code ?? (i18n.language.startsWith("ja") ? "ja" : "en"),
+    i18n.language.startsWith("ja") ? "ja" : "en",
   );
+
+  useEffect(() => {
+    const { getUsersMeStatus } = getUser();
+    getUsersMeStatus().then((user) => {
+      setDisplayName(user.display_name ?? "");
+      if (user.language_code) setLanguageCode(user.language_code);
+    }).catch(() => {});
+  }, []);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveFading, setSaveFading] = useState(false);
+
+  const trimmedName = displayName.trim();
+  const nameLength = [...trimmedName].length;
+  const isNameValid = nameLength >= 3 && nameLength <= 29;
 
   const handleSave = async () => {
-    if (!displayName.trim() || displayName.trim().length < 3) return;
+    if (!isNameValid) return;
     setIsSaving(true);
     setSaveSuccess(false);
     try {
@@ -38,11 +60,12 @@ function ProfileContent() {
         display_name: displayName.trim(),
         language_code: languageCode,
       });
-      await refreshUser();
       i18n.changeLanguage(languageCode);
       localStorage.setItem("lang", languageCode);
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
+      setSaveFading(false);
+      setTimeout(() => setSaveFading(true), 2500);
+      setTimeout(() => { setSaveSuccess(false); setSaveFading(false); }, 3000);
     } catch {
       // Error handling could be improved
     } finally {
@@ -63,12 +86,12 @@ function ProfileContent() {
   };
 
   return (
-    <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
+    <div class="relative flex h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
       <DashboardHeader />
 
-      <div class="flex flex-1 w-full">
+      <div class="flex flex-1 w-full overflow-hidden">
         {/* Sidebar */}
-        <aside class="w-64 border-r border-border-light dark:border-border-dark hidden lg:flex flex-col p-6 gap-2">
+        <aside class="w-64 border-r border-border-light dark:border-border-dark hidden lg:flex flex-col p-6 gap-2 overflow-y-auto shrink-0">
           <button
             onClick={() => setActiveTab("profile")}
             class={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all font-bold border-none bg-transparent w-full text-left ${
@@ -114,7 +137,7 @@ function ProfileContent() {
         </aside>
 
         {/* Main Content */}
-        <main class="flex-1 flex flex-col max-w-6xl w-full px-4 sm:px-6 lg:px-10 py-8 gap-8">
+        <main class="flex-1 flex flex-col max-w-6xl w-full px-4 sm:px-6 lg:px-10 py-8 gap-6 overflow-y-auto">
           {/* Mobile tab navigation */}
           <nav class="flex lg:hidden items-center gap-1 bg-background-light dark:bg-background-dark p-1 rounded-full border border-border-light dark:border-border-dark self-start">
             <button
@@ -155,7 +178,7 @@ function ProfileContent() {
 
           {activeTab === "profile" && (
             <>
-              <div class="flex flex-col gap-2 mb-2">
+              <div class="flex flex-col">
                 <h1 class="text-3xl lg:text-4xl font-black leading-tight tracking-[-0.033em]">
                   {t("profile.title")}
                 </h1>
@@ -163,11 +186,8 @@ function ProfileContent() {
 
               {/* Account Details */}
               <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
-                <div class="p-6 border-b border-border-light dark:border-border-dark">
-                  <h2 class="text-xl font-bold flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">
-                      person_outline
-                    </span>
+                <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
+                  <h2 class="text-xl font-bold">
                     {t("profile.accountDetails")}
                   </h2>
                 </div>
@@ -191,6 +211,14 @@ function ProfileContent() {
                         placeholder={t("profile.displayNamePlaceholder")}
                         class="w-full pl-10 pr-4 py-2.5 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all font-medium"
                       />
+                    </div>
+                    <div class="mt-1 flex items-center justify-between">
+                      <p class="text-xs text-text-muted-light dark:text-text-muted-dark">
+                        {t("register.profileDetails.displayNameHint")}
+                      </p>
+                      <span class={`text-xs tabular-nums ${nameLength > 29 ? "text-red-500" : "text-text-muted-light dark:text-text-muted-dark"}`}>
+                        {nameLength}/29
+                      </span>
                     </div>
                   </div>
                   <div class="flex flex-col gap-2">
@@ -228,24 +256,56 @@ function ProfileContent() {
                 </div>
                 <div class="px-6 py-4 bg-background-light/50 dark:bg-background-dark/50 border-t border-border-light dark:border-border-dark flex items-center justify-end gap-3">
                   {saveSuccess && (
-                    <span class="text-sm text-green-600 dark:text-green-400 font-medium flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[18px]">
-                        check_circle
-                      </span>
+                    <span class={`text-sm text-green-600 dark:text-green-400 font-medium transition-opacity duration-500 ${saveFading ? "opacity-0" : "opacity-100"}`}>
                       {t("profile.saved")}
                     </span>
                   )}
                   <button
                     onClick={handleSave}
-                    disabled={
-                      isSaving ||
-                      !displayName.trim() ||
-                      displayName.trim().length < 3
-                    }
+                    disabled={isSaving || !isNameValid}
                     class="px-8 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors shadow-lg shadow-primary/20 cursor-pointer border-none"
                   >
                     {isSaving ? t("profile.saving") : t("profile.saveChanges")}
                   </button>
+                </div>
+              </div>
+
+              {/* Appearance */}
+              <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
+                <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
+                  <h2 class="text-xl font-bold">
+                    {t("appearance.title")}
+                  </h2>
+                </div>
+                <div class="p-6">
+                  <div class="flex flex-col gap-2 max-w-xs">
+                    <label class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
+                      {t("appearance.colorMode")}
+                    </label>
+                    <div class="relative">
+                      <span class="absolute inset-y-0 left-3 flex items-center text-text-muted-light dark:text-text-muted-dark pointer-events-none">
+                        <span class="material-symbols-outlined text-[20px]">
+                          {colorModes.find((m) => m.value === mode)?.icon}
+                        </span>
+                      </span>
+                      <select
+                        value={mode}
+                        onChange={(e) => setMode((e.target as HTMLSelectElement).value as ColorMode)}
+                        class="w-full pl-10 pr-8 py-2.5 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none font-medium"
+                      >
+                        {colorModes.map((m) => (
+                          <option key={m.value} value={m.value}>
+                            {t(`common.colorMode.${m.value}`)}
+                          </option>
+                        ))}
+                      </select>
+                      <span class="absolute inset-y-0 right-3 flex items-center text-text-muted-light dark:text-text-muted-dark pointer-events-none">
+                        <span class="material-symbols-outlined text-[20px]">
+                          expand_more
+                        </span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -262,11 +322,8 @@ function ProfileContent() {
                   </div>
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
-                    class="shrink-0 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-red-600/20 flex items-center justify-center gap-2 cursor-pointer border-none"
+                    class="shrink-0 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-red-600/20 flex items-center justify-center cursor-pointer border-none"
                   >
-                    <span class="material-symbols-outlined text-[20px]">
-                      delete_forever
-                    </span>
                     {t("profile.deleteAccount")}
                   </button>
                 </div>
@@ -278,16 +335,11 @@ function ProfileContent() {
 
       {/* Logout Confirmation Dialog */}
       {showLogoutConfirm && (
-        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-2xl border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4">
-            <div class="flex items-center gap-2 text-text-muted-light dark:text-text-muted-dark">
-              <span class="material-symbols-outlined text-[28px]">
-                logout
-              </span>
-              <h3 class="text-lg font-bold text-charcoal dark:text-white">
-                {t("profile.logoutConfirmTitle")}
-              </h3>
-            </div>
+        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowLogoutConfirm(false)}>
+          <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-2xl border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
+            <h3 class="text-lg font-bold text-charcoal dark:text-white">
+              {t("profile.logoutConfirmTitle")}
+            </h3>
             <p class="text-sm text-text-muted-light dark:text-text-muted-dark leading-relaxed">
               {t("profile.logoutConfirmDesc")}
             </p>
@@ -300,11 +352,8 @@ function ProfileContent() {
               </button>
               <button
                 onClick={() => logout()}
-                class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors cursor-pointer border-none flex items-center gap-2"
+                class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors cursor-pointer border-none"
               >
-                <span class="material-symbols-outlined text-[20px]">
-                  logout
-                </span>
                 {t("profile.nav.signOut")}
               </button>
             </div>
@@ -314,16 +363,11 @@ function ProfileContent() {
 
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
-        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-2xl border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4">
-            <div class="flex items-center gap-2 text-red-600 dark:text-red-400">
-              <span class="material-symbols-outlined text-[28px]">
-                warning
-              </span>
-              <h3 class="text-lg font-bold">
-                {t("profile.deleteConfirmTitle")}
-              </h3>
-            </div>
+        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => { if (!isDeleting) setShowDeleteConfirm(false); }}>
+          <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-2xl border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
+            <h3 class="text-lg font-bold text-red-600 dark:text-red-400">
+              {t("profile.deleteConfirmTitle")}
+            </h3>
             <p class="text-sm text-text-muted-light dark:text-text-muted-dark leading-relaxed">
               {t("profile.deleteConfirmDesc")}
             </p>

@@ -2,11 +2,53 @@ package v1
 
 import (
 	"context"
+	"time"
+
+	"github.com/brqnko/anti-yt/backend/internal/util"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 func (h *APIHandler) GetFeed(c context.Context, request GetFeedRequestObject) (GetFeedResponseObject, error) {
-	//TODO implement me
-	panic("implement me")
+	videos, hasNext, err := h.channelService.GetFeed(c, request.Params.Cursor, request.Params.Limit)
+	if err != nil {
+		util.LogError(c, err)
+		return GetFeed500JSONResponse{
+			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
+				Detail: internalErrorDetail,
+				Title:  internalErrorTitle,
+			},
+		}, nil
+	}
+
+	items := make([]struct {
+		ChannelId                  openapi_types.UUID `json:"channel_id"`
+		ExternalChannelDisplayName string             `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string             `json:"external_channel_icon_url"`
+		ExternalVideoCreatedAt     time.Time          `json:"external_video_created_at"`
+		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string             `json:"external_video_title"`
+		LastWatchSeconds           *int               `json:"last_watch_seconds,omitempty"`
+		VideoId                    openapi_types.UUID `json:"video_id"`
+	}, len(videos))
+
+	for i, v := range videos {
+		items[i].VideoId = v.Id
+		items[i].ChannelId = v.ChannelID
+		items[i].ExternalChannelIconUrl = v.ExternalChannelIconUrl
+		items[i].ExternalChannelDisplayName = v.ExternalChannelDisplayname
+		items[i].ExternalVideoThumbnailUrl = v.ExternalVideoThumbnailUrl
+		items[i].ExternalVideoTitle = v.ExternalVideoTitle
+		items[i].ExternalVideoCreatedAt = v.ExternalVideoCreatedAt
+		items[i].ExternalVideoLengthSeconds = v.ExternalVideoLengthSeconds
+		items[i].LastWatchSeconds = v.LastWatchSeconds
+	}
+
+	return GetFeed200JSONResponse{
+		HasNext:   hasNext,
+		ItemCount: len(items),
+		Items:     items,
+	}, nil
 }
 
 func (h *APIHandler) GetSearch(c context.Context, request GetSearchRequestObject) (GetSearchResponseObject, error) {

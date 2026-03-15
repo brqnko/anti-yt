@@ -18,6 +18,7 @@
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | public_id | uuid | uuidv7() | false |  |  |  |
+| rss_fetched_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 
 ## Constraints
 
@@ -34,6 +35,7 @@
 | m_channel_fetched_at_not_null | n | NOT NULL fetched_at |
 | m_channel_m_channel_id_not_null | n | NOT NULL m_channel_id |
 | m_channel_public_id_not_null | n | NOT NULL public_id |
+| m_channel_rss_fetched_at_not_null | n | NOT NULL rss_fetched_at |
 | m_channel_updated_at_not_null | n | NOT NULL updated_at |
 | m_channel_pkey | PRIMARY KEY | PRIMARY KEY (m_channel_id) |
 

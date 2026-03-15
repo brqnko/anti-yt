@@ -1,37 +1,34 @@
 import { createContext } from "preact";
 import { useState, useEffect, useCallback, useContext } from "preact/hooks";
 import type { ComponentChildren } from "preact";
-import type { User } from "../api/generated/antiYtApi.schemas";
 import { getUser } from "../api/generated/user";
 import { getAuth } from "../api/generated/auth";
 
 interface AuthState {
-  user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   error: Error | null;
   sessionExpired: boolean;
   logout: () => Promise<void>;
-  refreshUser: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState>({
-  user: null,
   isLoading: true,
   isAuthenticated: false,
   error: null,
   sessionExpired: false,
   logout: async () => {},
-  refreshUser: async () => {},
+  refreshAuth: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ComponentChildren }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
 
-  const fetchUser = useCallback(async () => {
+  const checkAuth = useCallback(async () => {
     if (typeof window === "undefined") {
       setIsLoading(false);
       return;
@@ -41,14 +38,14 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
       setIsLoading(true);
       setError(null);
       const { getUsersMeStatus } = getUser();
-      const userData = await getUsersMeStatus();
-      setUser(userData);
+      await getUsersMeStatus();
+      setIsAuthenticated(true);
     } catch (err: unknown) {
-      setUser(null);
+      setIsAuthenticated(false);
       const axiosErr = err as { response?: { status?: number } };
       if (axiosErr.response?.status !== 401) {
         setError(
-          err instanceof Error ? err : new Error("Failed to fetch user"),
+          err instanceof Error ? err : new Error("Failed to check auth"),
         );
       }
     } finally {
@@ -63,14 +60,14 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
     } catch {
       // Clear state regardless
     }
-    setUser(null);
+    setIsAuthenticated(false);
     window.location.href = "/";
   }, []);
 
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail;
-      setUser(null);
+      setIsAuthenticated(false);
       setIsLoading(false);
       if (detail?.reason === "session_expired") {
         setSessionExpired(true);
@@ -81,19 +78,18 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
   }, []);
 
   useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
+    checkAuth();
+  }, [checkAuth]);
 
   return (
     <AuthContext.Provider
       value={{
-        user,
         isLoading,
-        isAuthenticated: user !== null,
+        isAuthenticated,
         error,
         sessionExpired,
         logout,
-        refreshUser: fetchUser,
+        refreshAuth: checkAuth,
       }}
     >
       {children}

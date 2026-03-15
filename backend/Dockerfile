@@ -2,16 +2,9 @@ ARG GO_VERSION=1.25
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine AS base
 WORKDIR /src
 
-RUN --mount=type=cache,target=/go/pkg/mod/ \
-    --mount=type=bind,source=go.mod,target=go.mod \
-    go mod download -x
-
 FROM base AS dev
 
 RUN apk add --no-cache bash libgcc libstdc++ ripgrep curl
-
-RUN curl -sL https://github.com/sqldef/sqldef/releases/latest/download/psqldef_linux_amd64.tar.gz \
-    | tar xz -C /usr/local/bin/
 
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=cache,target=/root/.cache/go-build \
@@ -28,3 +21,7 @@ EXPOSE 8080
 CMD ["air", "-c", ".air.toml"]
 
 FROM base AS build
+
+RUN --mount=type=cache,target=/go/pkg/mod/ \
+    --mount=type=bind,source=go.mod,target=go.mod \
+    go mod download -x
