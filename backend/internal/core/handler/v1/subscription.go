@@ -46,13 +46,13 @@ func (h *APIHandler) GetSubscriptions(c context.Context, request GetSubscription
 		items[i].SubscriptionId = ch.SubscriptionId
 		items[i].ChannelId = ch.ChannelId
 		items[i].CreatedAt = ch.CreatedAt
-		items[i].ExternalChannelId = string(*ch.ExternalChannelInfo.Id)
-		items[i].ExternalChannelDisplayName = ch.ExternalChannelInfo.DisplayName
-		items[i].ChannelCustomId = string(*ch.ExternalChannelInfo.CustomId)
-		items[i].ChannelDescription = ch.ExternalChannelInfo.Description
-		items[i].ExternalChannelIconUrl = ch.ExternalChannelInfo.IconUrl
-		items[i].ChannelSubscribersCount = ch.ExternalChannelInfo.SubscribersCount
-		items[i].ChannelCreatedAt = ch.ExternalChannelInfo.CreatedAt
+		items[i].ExternalChannelId = string(*ch.Id)
+		items[i].ExternalChannelDisplayName = ch.DisplayName
+		items[i].ChannelCustomId = string(*ch.CustomId)
+		items[i].ChannelDescription = ch.Description
+		items[i].ExternalChannelIconUrl = ch.IconUrl
+		items[i].ChannelSubscribersCount = ch.SubscribersCount
+		items[i].ChannelCreatedAt = ch.CreatedAt
 	}
 
 	return GetSubscriptions200JSONResponse{
