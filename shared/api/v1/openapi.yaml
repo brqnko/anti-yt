@@ -51,13 +51,6 @@ paths:
       responses:
         "200":
           description: 200 OK
-          headers:
-            Set-Cookie:
-              schema:
-                type: array
-                items:
-                  type: string
-                description: access_tokenとrefresh_tokenを指定
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -93,12 +86,6 @@ paths:
               schema:
                 type: string
                 description: Googleの認証画面へリダイレクト
-            Set-Cookie:
-              schema:
-                type: array
-                items:
-                  type: string
-                description: stateとcode_verifierを指定
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -159,12 +146,6 @@ paths:
               schema:
                 type: string
                 description: 登録画面かダッシュボード
-            Set-Cookie:
-              schema:
-                type: array
-                items:
-                  type: string
-                description: アクセストークンとリフレッシュトークンとCSRF Tokenを設定。
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -195,13 +176,6 @@ paths:
       responses:
         "200":
           description: 200 OK
-          headers:
-            Set-Cookie:
-              schema:
-                type: array
-                items:
-                  type: string
-                description: アクセストークン、リフレッシュトークン、CSRFトークン削除。
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -402,6 +376,8 @@ paths:
                           format: uri
                         external_channel_id:
                           type: string
+                        external_channel_display_name:
+                          type: string
                         videos:
                           type: object
                           properties:
@@ -426,14 +402,15 @@ paths:
                                     type: string
                                   external_video_description:
                                     type: string
-                                  external_channel_display_name:
+                                  external_video_created_at:
                                     type: string
+                                    format: date-time
                                   external_video_length_seconds:
                                     type: integer
                                     minimum: 0
-                                required: [ video_id, external_video_id, external_video_thumbnail_url, external_video_title, external_video_description ]
+                                required: [ video_id, external_video_id, external_video_thumbnail_url, external_video_title, external_video_description, external_video_created_at, external_video_length_seconds ]
                           required: [ item_count, items ]
-                      required: [ channel_id, external_channel_icon_url, external_channel_display_name ]
+                      required: [ channel_id, external_channel_icon_url, external_channel_id, external_channel_display_name ]
                 required: [ item_count, items ]
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -497,17 +474,10 @@ paths:
                         video_id:
                           type: string
                           format: uuid
-                        external_video_id:
-                          type: string
                         external_video_thumbnail_url:
                           type: string
                           format: uri
-                        external_video_watch_count:
-                          type: integer
-                          minimum: 0
                         external_video_title:
-                          type: string
-                        external_video_description:
                           type: string
                         external_video_created_at:
                           type: string
@@ -518,7 +488,7 @@ paths:
                         last_watch_seconds:
                           type: integer
                           minimum: 0
-                      required: [ video_id, external_video_id, external_video_thumbnail_url, external_video_watch_count, external_video_title, external_video_description, external_video_created_at, external_video_length_seconds ]
+                      required: [ video_id, external_video_thumbnail_url, external_video_title, external_video_created_at, external_video_length_seconds ]
                 required: [ item_count, has_next, items ]
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -551,7 +521,7 @@ paths:
         - name: limit
           description: 取得する最大の数
           in: query
-          required: false
+          required: true
           schema:
             type: integer
             minimum: 1
@@ -585,6 +555,10 @@ paths:
                     items:
                       type: object
                       properties:
+                        subscription_id:
+                          type: string
+                          format: uuid
+                          description: 購読レコードのID
                         channel_id:
                           type: string
                           format: uuid
@@ -619,7 +593,7 @@ paths:
                           type: string
                           format: date-time
                           description: チャンネルの作成日
-                      required: [ channel_id, external_channel_id, created_at, external_channel_display_name, channel_custom_id, channel_description, external_channel_icon_url, channel_subscribers_count, channel_created_at ]
+                      required: [ subscription_id, channel_id, external_channel_id, created_at, external_channel_display_name, channel_custom_id, channel_description, external_channel_icon_url, channel_subscribers_count, channel_created_at ]
                 required: [ items, item_count, has_next ]
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -665,6 +639,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  subscription_id:
+                    type: string
+                    format: uuid
+                    description: 購読レコードのID
                   channel_id:
                     type: string
                     format: uuid
@@ -699,7 +677,7 @@ paths:
                     type: string
                     format: date-time
                     description: チャンネルの作成日
-                required: [ channel_id, external_channel_id, created_at, external_channel_display_name, channel_custom_id, channel_description, external_channel_icon_url, channel_subscribers_count, channel_created_at ]
+                required: [ subscription_id, channel_id, external_channel_id, created_at, external_channel_display_name, channel_custom_id, channel_description, external_channel_icon_url, channel_subscribers_count, channel_created_at ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -715,7 +693,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/subscriptions/{channel_id}:
+  /api/v1/subscriptions/{subscription_id}:
     parameters:
       - $ref: '#/components/parameters/HeaderXRealIP'
       - $ref: '#/components/parameters/HeaderCfIpCountry'
@@ -726,15 +704,15 @@ paths:
       tags: [ channel ]
       summary: Delete subscription
       description: 登録を解除する
-      operationId: deleteSubscriptionsChannelId
+      operationId: deleteSubscriptionsSubscriptionId
       parameters:
-        - name: channel_id
+        - name: subscription_id
           in: path
           required: true
           schema:
             type: string
             format: uuid
-          description: チャンネルID(内部ID)
+          description: 購読レコードのID
       responses:
         "204":
           description: 204 No Content
@@ -772,7 +750,7 @@ paths:
         - name: limit
           description: 検索の結果の制限数
           in: query
-          required: false
+          required: true
           schema:
             type: integer
             minimum: 1
@@ -834,9 +812,6 @@ paths:
                         external_channel_icon_url:
                           type: string
                           format: uri
-                        external_video_watch_count:
-                          type: integer
-                          minimum: 0
                         external_video_title:
                           type: string
                         external_video_description:
@@ -854,10 +829,8 @@ paths:
                           minimum: 0
                         resource_type:
                           $ref: "#/components/schemas/ResourceType"
-                      required: [ video_id, channel_id, external_video_id, external_channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_watch_count, external_video_title, external_video_description, external_channel_display_name, external_video_created_at, external_video_length_seconds ]
-                  search_key:
-                    type: string
-                required: [ item_count, has_next, items, search_key ]
+                      required: [ video_id, channel_id, external_video_id, external_channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_title, external_video_description, external_channel_display_name, external_video_created_at, external_video_length_seconds, resource_type ]
+                required: [ item_count, has_next, items ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -889,7 +862,7 @@ paths:
         - name: limit
           description: 取得する最大の数
           in: query
-          required: false
+          required: true
           schema:
             type: integer
             minimum: 1
@@ -901,6 +874,7 @@ paths:
           required: false
           schema:
             type: string
+            format: uuid
       responses:
         "200":
           description: 200 OK
@@ -926,22 +900,13 @@ paths:
                         channel_id:
                           type: string
                           format: uuid
-                        external_video_id:
-                          type: string
-                        external_channel_id:
-                          type: string
                         external_video_thumbnail_url:
                           type: string
                           format: uri
                         external_channel_icon_url:
                           type: string
                           format: uri
-                        external_video_watch_count:
-                          type: integer
-                          minimum: 0
                         external_video_title:
-                          type: string
-                        external_video_description:
                           type: string
                         external_channel_display_name:
                           type: string
@@ -954,12 +919,8 @@ paths:
                         last_watch_seconds:
                           type: integer
                           minimum: 0
-                        resource_type:
-                          $ref: "#/components/schemas/ResourceType"
-                      required: [ video_id, channel_id, external_video_id, external_channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_watch_count, external_video_title, external_video_description, external_channel_display_name, external_video_created_at, external_video_length_seconds, resource_type ]
-                  search_key:
-                    type: string
-                required: [ item_count, has_next, items, search_key ]
+                      required: [ video_id, channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_title, external_channel_display_name, external_video_created_at, external_video_length_seconds ]
+                required: [ item_count, has_next, items ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1283,7 +1244,7 @@ paths:
         - name: limit
           description: 取得する最大の数
           in: query
-          required: false
+          required: true
           schema:
             type: integer
             minimum: 1
@@ -1338,10 +1299,6 @@ paths:
                         external_video_title:
                           type: string
                           description: 動画のタイトル
-                        external_video_watch_count:
-                          type: integer
-                          description: 再生数
-                          minimum: 0
                         external_video_like_count:
                           type: integer
                           description: 高評価の数
@@ -1365,7 +1322,7 @@ paths:
                         external_channel_display_name:
                           type: string
                           description: チャンネルの表示名
-                      required: [ video_id, external_video_id, watch_position_seconds, watched_at, external_video_thumbnail_url, external_video_title, external_video_watch_count, external_video_like_count, external_video_length_seconds, channel_id, external_channel_id, external_channel_display_name, external_channel_icon_url ]
+                      required: [ video_id, external_video_id, watch_position_seconds, watched_at, external_video_thumbnail_url, external_video_title, external_video_like_count, external_video_length_seconds, channel_id, external_channel_id, external_channel_display_name, external_channel_icon_url ]
                     uniqueItems: true
                 required: [ item_count, has_next, items ]
         "400":
@@ -1559,7 +1516,7 @@ paths:
         - name: limit
           description: 取得する最大の数
           in: query
-          required: false
+          required: true
           schema:
             type: integer
             minimum: 1
@@ -1736,7 +1693,7 @@ paths:
         - name: limit
           description: 取得する最大の数
           in: query
-          required: false
+          required: true
           schema:
             type: integer
             minimum: 1
@@ -1783,9 +1740,6 @@ paths:
                         external_channel_icon_url:
                           type: string
                           format: uri
-                        external_video_watch_count:
-                          type: integer
-                          minimum: 0
                         external_video_title:
                           type: string
                         external_video_description:
@@ -1801,7 +1755,7 @@ paths:
                         last_watch_seconds:
                           type: integer
                           minimum: 0
-                      required: [ video_id, channel_id, external_video_id, external_channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_watch_count, external_video_title, external_video_description, external_channel_display_name, external_video_created_at, external_video_length_seconds ]
+                      required: [ video_id, channel_id, external_video_id, external_channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_title, external_video_description, external_channel_display_name, external_video_created_at, external_video_length_seconds ]
                 required: [ item_count, has_next, items ]
         "400":
           $ref: "#/components/responses/BadRequest"

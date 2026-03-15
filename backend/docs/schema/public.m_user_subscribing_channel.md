@@ -35,6 +35,8 @@
 | uk_1_m_user_subscribing_channel | CREATE UNIQUE INDEX uk_1_m_user_subscribing_channel ON public.m_user_subscribing_channel USING btree (m_user_id, m_channel_id) |
 | uk_2_m_user_subscribing_channel | CREATE UNIQUE INDEX uk_2_m_user_subscribing_channel ON public.m_user_subscribing_channel USING btree (public_id) |
 | idx_1_m_user_subscribing_channel | CREATE INDEX idx_1_m_user_subscribing_channel ON public.m_user_subscribing_channel USING btree (m_user_id) |
+| idx_2_m_user_subscribing_channel | CREATE INDEX idx_2_m_user_subscribing_channel ON public.m_user_subscribing_channel USING btree (m_user_id, public_id) |
+| idx_3_m_user_subscribing_channel | CREATE INDEX idx_3_m_user_subscribing_channel ON public.m_user_subscribing_channel USING btree (m_channel_id) |
 
 ## Relations
 

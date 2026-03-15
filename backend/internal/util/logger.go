@@ -16,6 +16,9 @@ func LogError(ctx context.Context, err error) {
 	if userID, ok := UserIDFromContext(ctx); ok {
 		attrs = append(attrs, slog.String("user_id", userID.String()))
 	}
+	if path, ok := RequestPathFromContext(ctx); ok {
+		attrs = append(attrs, slog.String("path", path))
+	}
 
 	args := make([]any, len(attrs))
 	for i, a := range attrs {

@@ -17,10 +17,11 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
-	middleware2 "github.com/brqnko/anti-yt/backend/internal/core/handler/middleware_d"
+	"github.com/brqnko/anti-yt/backend/internal/core/handler/middleware_d"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
+	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -36,6 +37,7 @@ type config struct {
 	oidcGoogleClientSecret string
 	serverURL              string
 	frontendURL            string
+	youtubeDataAPIKey      string
 
 	dbPassword string
 	dbName     string
@@ -71,6 +73,7 @@ func run(ctx context.Context) int {
 		dbName:                 os.Getenv("DATABASE_NAME"),
 		serverURL:              os.Getenv("SERVER_URL"),
 		frontendURL:            os.Getenv("FRONTEND_URL"),
+		youtubeDataAPIKey:      os.Getenv("YOUTUBE_DATA_API_KEY"),
 	}
 	clear(dbPassword)
 	clear(oidcGoogleClientSecret)
@@ -118,7 +121,15 @@ func run(ctx context.Context) int {
 
 	jwtService := jwt_d.NewJWTService(jwtPrivate, jwtPublic, 30*time.Minute)
 
-	h, err := v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour)
+	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	ytService, err := youtube_d.NewYouTubeAPIServiceImpl(initCtx, cfg.youtubeDataAPIKey)
+	if err != nil {
+		slog.Error("failed to create youtube service", "error", err)
+		return 1
+	}
+
+	h, err := v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour, ytService, 1*time.Hour)
 	if err != nil {
 		slog.Error("failed to create handler", "error", err)
 		return 1
@@ -127,12 +138,14 @@ func run(ctx context.Context) int {
 	r := chi.NewRouter()
 	// NOTE: RateLimit, gzip, loggerはLB(pingora, nginx等)で行う。各リクエストへのレートリミットはHandlerが行う
 	r.Use(middleware.Recoverer)
-	r.Use(middleware2.SecureHeaders)
+	r.Use(middleware_d.SecureHeaders)
 	v1.HandlerFromMux(v1.NewStrictHandler(h, []v1.StrictMiddlewareFunc{
-		middleware2.AccessTokenMiddleware(jwtService, db),
-		middleware2.CsrfMiddleware,
-		middleware2.AuthTokensMiddleware,
-		middleware2.RequestIDMiddleware,
+		middleware_d.ResponseCookieMiddleware,
+		middleware_d.RandomLagMiddleware,
+		middleware_d.AccessTokenMiddleware(jwtService, db),
+		middleware_d.CsrfMiddleware,
+		middleware_d.AuthTokensMiddleware,
+		middleware_d.RequestIDMiddleware,
 	}), r)
 
 	srv := &http.Server{

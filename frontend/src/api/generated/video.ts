@@ -38,7 +38,7 @@ const getSearch = (
  * @summary Get latest videos
  */
 const getFeed = (
-    params?: GetFeedParams,
+    params: GetFeedParams,
  ) => {
       return customInstance<GetFeed200>(
       {url: `/api/v1/feed`, method: 'GET',

@@ -52,7 +52,7 @@ const getChannelsChannelIdVideos = (
  * @summary Get subscriptions
  */
 const getSubscriptions = (
-    params?: GetSubscriptionsParams,
+    params: GetSubscriptionsParams,
  ) => {
       return customInstance<GetSubscriptions200>(
       {url: `/api/v1/subscriptions`, method: 'GET',
@@ -78,17 +78,17 @@ const postSubscriptions = (
  * 登録を解除する
  * @summary Delete subscription
  */
-const deleteSubscriptionsChannelId = (
-    channelId: string,
+const deleteSubscriptionsSubscriptionId = (
+    subscriptionId: string,
  ) => {
       return customInstance<void>(
-      {url: `/api/v1/subscriptions/${channelId}`, method: 'DELETE'
+      {url: `/api/v1/subscriptions/${subscriptionId}`, method: 'DELETE'
     },
       );
     }
-  return {getFeedChannels,getChannelsChannelIdVideos,getSubscriptions,postSubscriptions,deleteSubscriptionsChannelId}};
+  return {getFeedChannels,getChannelsChannelIdVideos,getSubscriptions,postSubscriptions,deleteSubscriptionsSubscriptionId}};
 export type GetFeedChannelsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getFeedChannels']>>>
 export type GetChannelsChannelIdVideosResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getChannelsChannelIdVideos']>>>
 export type GetSubscriptionsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getSubscriptions']>>>
 export type PostSubscriptionsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['postSubscriptions']>>>
-export type DeleteSubscriptionsChannelIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['deleteSubscriptionsChannelId']>>>
+export type DeleteSubscriptionsSubscriptionIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['deleteSubscriptionsSubscriptionId']>>>

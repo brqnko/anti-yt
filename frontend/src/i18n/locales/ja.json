@@ -127,18 +127,27 @@
     "nav": {
       "mainFeed": "メインフィード",
       "analytics": "アナリティクス",
+      "recommendedChannels": "おすすめチャンネル",
       "settings": "設定"
     },
     "whitelistedChannels": "登録チャンネル",
     "requestChannel": "チャンネルを追加",
+    "addChannelDialog": {
+      "title": "チャンネルを追加",
+      "description": "YouTubeチャンネルのURLまたはIDを入力してください。",
+      "placeholder": "https://www.youtube.com/@handle または UC...",
+      "cancel": "キャンセル",
+      "add": "追加",
+      "adding": "追加中...",
+      "error": "チャンネルの追加に失敗しました。IDを確認して再度お試しください。"
+    },
     "noChannels": "チャンネルが登録されていません。",
     "myPlaylists": "マイプレイリスト",
     "noPlaylists": "プレイリストがありません。",
-    "curatedFeed": "キュレーションフィード",
-    "curatedFeedDesc": "登録チャンネルからのコンテンツのみ表示されます。",
     "views": "回視聴",
     "noVideos": "動画がありません",
     "noVideosDesc": "チャンネルを登録すると、最新の動画がここに表示されます。",
+    "endOfFeed": "すべての動画を読み込みました",
     "dailyProgress": "今日の進捗",
     "used": "使用済み",
     "onTrack": "制限内に収まるペースです。",
@@ -171,6 +180,7 @@
     "addTimeRange": "時間帯を追加",
     "removeRange": "時間帯を削除",
     "dailyCapLimit": "1日の上限時間",
+    "unlimited": "無制限",
     "hr": "時間",
     "min": "分",
     "save": "保存",
@@ -181,7 +191,16 @@
     "whitelist": "ホワイトリスト",
     "whitelistDesc": "これらのチャンネルのコンテンツのみ許可されます。",
     "searchChannels": "チャンネルを検索...",
-    "noChannels": "チャンネルが登録されていません。"
+    "noChannels": "チャンネルが登録されていません。",
+    "saveError": "保存に失敗しました。もう一度お試しください。",
+    "unsubscribeError": "解除に失敗しました。",
+    "removeChannelDialog": {
+      "title": "チャンネルを削除",
+      "description": "「{{name}}」をホワイトリストから削除しますか？このチャンネルのコンテンツは視聴できなくなります。",
+      "cancel": "キャンセル",
+      "remove": "削除",
+      "removing": "削除中..."
+    }
   },
   "profile": {
     "pageTitle": "プロフィール",
@@ -232,6 +251,27 @@
     "hoursAgo": "{{count}}時間前",
     "daysAgo": "{{count}}日前",
     "monthsAgo": "{{count}}ヶ月前"
+  },
+  "appearance": {
+    "title": "見た目設定",
+    "colorMode": "カラーモード",
+    "colorModeDesc": "アプリケーションの表示テーマを選択します。"
+  },
+  "channelDetail": {
+    "pageTitle": "チャンネル詳細",
+    "backToDashboard": "ダッシュボード",
+    "channelDetails": "チャンネル詳細",
+    "subscribers": "登録者",
+    "whitelistChannel": "チャンネルを許可",
+    "whitelistDesc": "フィードに表示を許可する",
+    "about": "概要",
+    "latestUploads": "最新のアップロード",
+    "previewOnly": "プレビュー",
+    "noVideos": "動画がありません",
+    "notFound": "チャンネルが見つかりません",
+    "notFoundDesc": "このチャンネルは見つかりませんでした。",
+    "showMore": "もっと見る",
+    "showLess": "閉じる"
   },
   "home": {
     "heroTitle1": "断ち切ろう",

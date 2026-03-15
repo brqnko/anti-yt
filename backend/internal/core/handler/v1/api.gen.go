@@ -289,10 +289,10 @@ type GetChannelsChannelIdVideosParams struct {
 // GetFeedParams defines parameters for GetFeed.
 type GetFeedParams struct {
 	// Limit 取得する最大の数
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit int `form:"limit" json:"limit"`
 
 	// Cursor 最後に取得した動画ID(ページネーション)
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -327,7 +327,7 @@ type GetFeedChannelsParams struct {
 // GetHistoryParams defines parameters for GetHistory.
 type GetHistoryParams struct {
 	// Limit 取得する最大の数
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit int `form:"limit" json:"limit"`
 
 	// Cursor 最後に取得した動画内部ID(ページネーション)
 	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
@@ -349,7 +349,7 @@ type GetHistoryParams struct {
 // GetPlaylistsParams defines parameters for GetPlaylists.
 type GetPlaylistsParams struct {
 	// Limit 取得する最大の数
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit int `form:"limit" json:"limit"`
 
 	// Cursor ページネーション
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
@@ -415,7 +415,7 @@ type DeletePlaylistsPlaylistIdParams struct {
 // GetPlaylistsPlaylistIdParams defines parameters for GetPlaylistsPlaylistId.
 type GetPlaylistsPlaylistIdParams struct {
 	// Limit 取得する最大の数
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit int `form:"limit" json:"limit"`
 
 	// Cursor 最後に取得した動画ID(ページネーション)
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
@@ -498,7 +498,7 @@ type PostPlaylistsPlaylistIdVideosParams struct {
 // GetSearchParams defines parameters for GetSearch.
 type GetSearchParams struct {
 	// Limit 検索の結果の制限数
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit int `form:"limit" json:"limit"`
 
 	// Cursor ページネーション
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
@@ -562,7 +562,7 @@ type GetStatisticsMonthlyParams struct {
 // GetSubscriptionsParams defines parameters for GetSubscriptions.
 type GetSubscriptionsParams struct {
 	// Limit 取得する最大の数
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit int `form:"limit" json:"limit"`
 
 	// Cursor 最後に取得したチャンネルID(ページネーション)
 	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
@@ -603,8 +603,8 @@ type PostSubscriptionsParams struct {
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
-// DeleteSubscriptionsChannelIdParams defines parameters for DeleteSubscriptionsChannelId.
-type DeleteSubscriptionsChannelIdParams struct {
+// DeleteSubscriptionsSubscriptionIdParams defines parameters for DeleteSubscriptionsSubscriptionId.
+type DeleteSubscriptionsSubscriptionIdParams struct {
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
 
@@ -870,8 +870,8 @@ type ServerInterface interface {
 	// (POST /api/v1/subscriptions)
 	PostSubscriptions(w http.ResponseWriter, r *http.Request, params PostSubscriptionsParams)
 	// Delete subscription
-	// (DELETE /api/v1/subscriptions/{channel_id})
-	DeleteSubscriptionsChannelId(w http.ResponseWriter, r *http.Request, channelId openapi_types.UUID, params DeleteSubscriptionsChannelIdParams)
+	// (DELETE /api/v1/subscriptions/{subscription_id})
+	DeleteSubscriptionsSubscriptionId(w http.ResponseWriter, r *http.Request, subscriptionId openapi_types.UUID, params DeleteSubscriptionsSubscriptionIdParams)
 	// Create a new account
 	// (POST /api/v1/users)
 	PostUsersMe(w http.ResponseWriter, r *http.Request, params PostUsersMeParams)
@@ -1026,8 +1026,8 @@ func (_ Unimplemented) PostSubscriptions(w http.ResponseWriter, r *http.Request,
 }
 
 // Delete subscription
-// (DELETE /api/v1/subscriptions/{channel_id})
-func (_ Unimplemented) DeleteSubscriptionsChannelId(w http.ResponseWriter, r *http.Request, channelId openapi_types.UUID, params DeleteSubscriptionsChannelIdParams) {
+// (DELETE /api/v1/subscriptions/{subscription_id})
+func (_ Unimplemented) DeleteSubscriptionsSubscriptionId(w http.ResponseWriter, r *http.Request, subscriptionId openapi_types.UUID, params DeleteSubscriptionsSubscriptionIdParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1868,9 +1868,16 @@ func (siw *ServerInterfaceWrapper) GetFeed(w http.ResponseWriter, r *http.Reques
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetFeedParams
 
-	// ------------- Optional query parameter "limit" -------------
+	// ------------- Required query parameter "limit" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if paramValue := r.URL.Query().Get("limit"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		return
+	}
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
 		return
@@ -1878,7 +1885,7 @@ func (siw *ServerInterfaceWrapper) GetFeed(w http.ResponseWriter, r *http.Reques
 
 	// ------------- Optional query parameter "cursor" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
 		return
@@ -2168,9 +2175,16 @@ func (siw *ServerInterfaceWrapper) GetHistory(w http.ResponseWriter, r *http.Req
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetHistoryParams
 
-	// ------------- Optional query parameter "limit" -------------
+	// ------------- Required query parameter "limit" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if paramValue := r.URL.Query().Get("limit"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		return
+	}
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
 		return
@@ -2326,9 +2340,16 @@ func (siw *ServerInterfaceWrapper) GetPlaylists(w http.ResponseWriter, r *http.R
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetPlaylistsParams
 
-	// ------------- Optional query parameter "limit" -------------
+	// ------------- Required query parameter "limit" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if paramValue := r.URL.Query().Get("limit"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		return
+	}
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
 		return
@@ -2786,9 +2807,16 @@ func (siw *ServerInterfaceWrapper) GetPlaylistsPlaylistId(w http.ResponseWriter,
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetPlaylistsPlaylistIdParams
 
-	// ------------- Optional query parameter "limit" -------------
+	// ------------- Required query parameter "limit" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if paramValue := r.URL.Query().Get("limit"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		return
+	}
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
 		return
@@ -3412,9 +3440,16 @@ func (siw *ServerInterfaceWrapper) GetSearch(w http.ResponseWriter, r *http.Requ
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetSearchParams
 
-	// ------------- Optional query parameter "limit" -------------
+	// ------------- Required query parameter "limit" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if paramValue := r.URL.Query().Get("limit"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		return
+	}
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
 		return
@@ -3914,9 +3949,16 @@ func (siw *ServerInterfaceWrapper) GetSubscriptions(w http.ResponseWriter, r *ht
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetSubscriptionsParams
 
-	// ------------- Optional query parameter "limit" -------------
+	// ------------- Required query parameter "limit" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if paramValue := r.URL.Query().Get("limit"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		return
+	}
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
 		return
@@ -4200,17 +4242,17 @@ func (siw *ServerInterfaceWrapper) PostSubscriptions(w http.ResponseWriter, r *h
 	handler.ServeHTTP(w, r)
 }
 
-// DeleteSubscriptionsChannelId operation middleware
-func (siw *ServerInterfaceWrapper) DeleteSubscriptionsChannelId(w http.ResponseWriter, r *http.Request) {
+// DeleteSubscriptionsSubscriptionId operation middleware
+func (siw *ServerInterfaceWrapper) DeleteSubscriptionsSubscriptionId(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
-	// ------------- Path parameter "channel_id" -------------
-	var channelId openapi_types.UUID
+	// ------------- Path parameter "subscription_id" -------------
+	var subscriptionId openapi_types.UUID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "channel_id", chi.URLParam(r, "channel_id"), &channelId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	err = runtime.BindStyledParameterWithOptions("simple", "subscription_id", chi.URLParam(r, "subscription_id"), &subscriptionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "channel_id", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscription_id", Err: err})
 		return
 	}
 
@@ -4221,7 +4263,7 @@ func (siw *ServerInterfaceWrapper) DeleteSubscriptionsChannelId(w http.ResponseW
 	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params DeleteSubscriptionsChannelIdParams
+	var params DeleteSubscriptionsSubscriptionIdParams
 
 	headers := r.Header
 
@@ -4341,7 +4383,7 @@ func (siw *ServerInterfaceWrapper) DeleteSubscriptionsChannelId(w http.ResponseW
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DeleteSubscriptionsChannelId(w, r, channelId, params)
+		siw.Handler.DeleteSubscriptionsSubscriptionId(w, r, subscriptionId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -5824,7 +5866,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/api/v1/subscriptions", wrapper.PostSubscriptions)
 	})
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/api/v1/subscriptions/{channel_id}", wrapper.DeleteSubscriptionsChannelId)
+		r.Delete(options.BaseURL+"/api/v1/subscriptions/{subscription_id}", wrapper.DeleteSubscriptionsSubscriptionId)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/api/v1/users", wrapper.PostUsersMe)
@@ -5880,8 +5922,7 @@ type GetAuthGoogleResponseObject interface {
 }
 
 type GetAuthGoogle302ResponseHeaders struct {
-	Location  string
-	SetCookie []string
+	Location string
 }
 
 type GetAuthGoogle302Response struct {
@@ -5890,9 +5931,6 @@ type GetAuthGoogle302Response struct {
 
 func (response GetAuthGoogle302Response) VisitGetAuthGoogleResponse(w http.ResponseWriter) error {
 	w.Header().Set("Location", fmt.Sprint(response.Headers.Location))
-	for _, cookie := range response.Headers.SetCookie {
-		w.Header().Add("Set-Cookie", cookie)
-	}
 	w.WriteHeader(302)
 	return nil
 }
@@ -5971,8 +6009,7 @@ type GetAuthGoogleCallbackResponseObject interface {
 }
 
 type GetAuthGoogleCallback302ResponseHeaders struct {
-	Location  string
-	SetCookie []string
+	Location string
 }
 
 type GetAuthGoogleCallback302Response struct {
@@ -5981,9 +6018,6 @@ type GetAuthGoogleCallback302Response struct {
 
 func (response GetAuthGoogleCallback302Response) VisitGetAuthGoogleCallbackResponse(w http.ResponseWriter) error {
 	w.Header().Set("Location", fmt.Sprint(response.Headers.Location))
-	for _, cookie := range response.Headers.SetCookie {
-		w.Header().Add("Set-Cookie", cookie)
-	}
 	w.WriteHeader(302)
 	return nil
 }
@@ -6061,18 +6095,10 @@ type PostAuthLogoutResponseObject interface {
 	VisitPostAuthLogoutResponse(w http.ResponseWriter) error
 }
 
-type PostAuthLogout200ResponseHeaders struct {
-	SetCookie []string
-}
-
 type PostAuthLogout200Response struct {
-	Headers PostAuthLogout200ResponseHeaders
 }
 
 func (response PostAuthLogout200Response) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
-	for _, cookie := range response.Headers.SetCookie {
-		w.Header().Add("Set-Cookie", cookie)
-	}
 	w.WriteHeader(200)
 	return nil
 }
@@ -6150,18 +6176,10 @@ type PostAuthRefreshResponseObject interface {
 	VisitPostAuthRefreshResponse(w http.ResponseWriter) error
 }
 
-type PostAuthRefresh200ResponseHeaders struct {
-	SetCookie []string
-}
-
 type PostAuthRefresh200Response struct {
-	Headers PostAuthRefresh200ResponseHeaders
 }
 
 func (response PostAuthRefresh200Response) VisitPostAuthRefreshResponse(w http.ResponseWriter) error {
-	for _, cookie := range response.Headers.SetCookie {
-		w.Header().Add("Set-Cookie", cookie)
-	}
 	w.WriteHeader(200)
 	return nil
 }
@@ -6245,12 +6263,9 @@ type GetChannelsChannelIdVideos200JSONResponse struct {
 	ItemCount int  `json:"item_count"`
 	Items     []struct {
 		ExternalVideoCreatedAt     time.Time          `json:"external_video_created_at"`
-		ExternalVideoDescription   string             `json:"external_video_description"`
-		ExternalVideoId            string             `json:"external_video_id"`
 		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
 		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
 		ExternalVideoTitle         string             `json:"external_video_title"`
-		ExternalVideoWatchCount    int                `json:"external_video_watch_count"`
 		LastWatchSeconds           *int               `json:"last_watch_seconds,omitempty"`
 		VideoId                    openapi_types.UUID `json:"video_id"`
 	} `json:"items"`
@@ -6343,21 +6358,13 @@ type GetFeed200JSONResponse struct {
 		ChannelId                  openapi_types.UUID `json:"channel_id"`
 		ExternalChannelDisplayName string             `json:"external_channel_display_name"`
 		ExternalChannelIconUrl     string             `json:"external_channel_icon_url"`
-		ExternalChannelId          string             `json:"external_channel_id"`
 		ExternalVideoCreatedAt     time.Time          `json:"external_video_created_at"`
-		ExternalVideoDescription   string             `json:"external_video_description"`
-		ExternalVideoId            string             `json:"external_video_id"`
 		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
 		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
 		ExternalVideoTitle         string             `json:"external_video_title"`
-		ExternalVideoWatchCount    int                `json:"external_video_watch_count"`
 		LastWatchSeconds           *int               `json:"last_watch_seconds,omitempty"`
-
-		// ResourceType リソースのタイプ
-		ResourceType ResourceType       `json:"resource_type"`
-		VideoId      openapi_types.UUID `json:"video_id"`
+		VideoId                    openapi_types.UUID `json:"video_id"`
 	} `json:"items"`
-	SearchKey string `json:"search_key"`
 }
 
 func (response GetFeed200JSONResponse) VisitGetFeedResponse(w http.ResponseWriter) error {
@@ -6443,16 +6450,17 @@ type GetFeedChannelsResponseObject interface {
 type GetFeedChannels200JSONResponse struct {
 	ItemCount int `json:"item_count"`
 	Items     []struct {
-		ChannelId              openapi_types.UUID `json:"channel_id"`
-		ExternalChannelIconUrl string             `json:"external_channel_icon_url"`
-		ExternalChannelId      *string            `json:"external_channel_id,omitempty"`
-		Videos                 *struct {
+		ChannelId                  openapi_types.UUID `json:"channel_id"`
+		ExternalChannelDisplayName string             `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string             `json:"external_channel_icon_url"`
+		ExternalChannelId          string             `json:"external_channel_id"`
+		Videos                     *struct {
 			ItemCount int `json:"item_count"`
 			Items     []struct {
-				ExternalChannelDisplayName *string            `json:"external_channel_display_name,omitempty"`
+				ExternalVideoCreatedAt     time.Time          `json:"external_video_created_at"`
 				ExternalVideoDescription   string             `json:"external_video_description"`
 				ExternalVideoId            string             `json:"external_video_id"`
-				ExternalVideoLengthSeconds *int               `json:"external_video_length_seconds,omitempty"`
+				ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
 				ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
 				ExternalVideoTitle         string             `json:"external_video_title"`
 				VideoId                    openapi_types.UUID `json:"video_id"`
@@ -6572,9 +6580,6 @@ type GetHistory200JSONResponse struct {
 
 		// ExternalVideoTitle 動画のタイトル
 		ExternalVideoTitle string `json:"external_video_title"`
-
-		// ExternalVideoWatchCount 再生数
-		ExternalVideoWatchCount int `json:"external_video_watch_count"`
 
 		// VideoId 内部ID
 		VideoId openapi_types.UUID `json:"video_id"`
@@ -6967,7 +6972,6 @@ type GetPlaylistsPlaylistId200JSONResponse struct {
 		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
 		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
 		ExternalVideoTitle         string             `json:"external_video_title"`
-		ExternalVideoWatchCount    int                `json:"external_video_watch_count"`
 		LastWatchSeconds           *int               `json:"last_watch_seconds,omitempty"`
 		VideoId                    openapi_types.UUID `json:"video_id"`
 	} `json:"items"`
@@ -7326,14 +7330,12 @@ type GetSearch200JSONResponse struct {
 		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
 		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
 		ExternalVideoTitle         string             `json:"external_video_title"`
-		ExternalVideoWatchCount    int                `json:"external_video_watch_count"`
 		LastWatchSeconds           *int               `json:"last_watch_seconds,omitempty"`
 
 		// ResourceType リソースのタイプ
-		ResourceType *ResourceType      `json:"resource_type,omitempty"`
+		ResourceType ResourceType       `json:"resource_type"`
 		VideoId      openapi_types.UUID `json:"video_id"`
 	} `json:"items"`
-	SearchKey string `json:"search_key"`
 }
 
 func (response GetSearch200JSONResponse) VisitGetSearchResponse(w http.ResponseWriter) error {
@@ -7645,6 +7647,9 @@ type GetSubscriptions200JSONResponse struct {
 
 		// ExternalChannelId 登録したチャンネルID(ハンドル名ではない)
 		ExternalChannelId string `json:"external_channel_id"`
+
+		// SubscriptionId 購読レコードのID
+		SubscriptionId openapi_types.UUID `json:"subscription_id"`
 	} `json:"items"`
 }
 
@@ -7761,6 +7766,9 @@ type PostSubscriptions201JSONResponse struct {
 
 		// ExternalChannelId 登録したチャンネルID(ハンドル名ではない)
 		ExternalChannelId string `json:"external_channel_id"`
+
+		// SubscriptionId 購読レコードのID
+		SubscriptionId openapi_types.UUID `json:"subscription_id"`
 	}
 	Headers PostSubscriptions201ResponseHeaders
 }
@@ -7838,82 +7846,82 @@ func (response PostSubscriptions500JSONResponse) VisitPostSubscriptionsResponse(
 	return json.NewEncoder(w).Encode(response)
 }
 
-type DeleteSubscriptionsChannelIdRequestObject struct {
-	ChannelId openapi_types.UUID `json:"channel_id"`
-	Params    DeleteSubscriptionsChannelIdParams
+type DeleteSubscriptionsSubscriptionIdRequestObject struct {
+	SubscriptionId openapi_types.UUID `json:"subscription_id"`
+	Params         DeleteSubscriptionsSubscriptionIdParams
 }
 
-type DeleteSubscriptionsChannelIdResponseObject interface {
-	VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error
+type DeleteSubscriptionsSubscriptionIdResponseObject interface {
+	VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error
 }
 
-type DeleteSubscriptionsChannelId204Response struct {
+type DeleteSubscriptionsSubscriptionId204Response struct {
 }
 
-func (response DeleteSubscriptionsChannelId204Response) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+func (response DeleteSubscriptionsSubscriptionId204Response) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
 	w.WriteHeader(204)
 	return nil
 }
 
-type DeleteSubscriptionsChannelId400JSONResponse struct{ BadRequestJSONResponse }
+type DeleteSubscriptionsSubscriptionId400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response DeleteSubscriptionsChannelId400JSONResponse) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+func (response DeleteSubscriptionsSubscriptionId400JSONResponse) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type DeleteSubscriptionsChannelId401JSONResponse struct{ UnauthorizedJSONResponse }
+type DeleteSubscriptionsSubscriptionId401JSONResponse struct{ UnauthorizedJSONResponse }
 
-func (response DeleteSubscriptionsChannelId401JSONResponse) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+func (response DeleteSubscriptionsSubscriptionId401JSONResponse) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type DeleteSubscriptionsChannelId403JSONResponse struct{ ForbiddenJSONResponse }
+type DeleteSubscriptionsSubscriptionId403JSONResponse struct{ ForbiddenJSONResponse }
 
-func (response DeleteSubscriptionsChannelId403JSONResponse) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+func (response DeleteSubscriptionsSubscriptionId403JSONResponse) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type DeleteSubscriptionsChannelId404JSONResponse struct{ NotFoundJSONResponse }
+type DeleteSubscriptionsSubscriptionId404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response DeleteSubscriptionsChannelId404JSONResponse) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+func (response DeleteSubscriptionsSubscriptionId404JSONResponse) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type DeleteSubscriptionsChannelId413JSONResponse struct{ PayloadTooLargeJSONResponse }
+type DeleteSubscriptionsSubscriptionId413JSONResponse struct{ PayloadTooLargeJSONResponse }
 
-func (response DeleteSubscriptionsChannelId413JSONResponse) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+func (response DeleteSubscriptionsSubscriptionId413JSONResponse) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(413)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type DeleteSubscriptionsChannelId429JSONResponse struct{ TooManyRequestsJSONResponse }
+type DeleteSubscriptionsSubscriptionId429JSONResponse struct{ TooManyRequestsJSONResponse }
 
-func (response DeleteSubscriptionsChannelId429JSONResponse) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+func (response DeleteSubscriptionsSubscriptionId429JSONResponse) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(429)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type DeleteSubscriptionsChannelId500JSONResponse struct {
+type DeleteSubscriptionsSubscriptionId500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response DeleteSubscriptionsChannelId500JSONResponse) VisitDeleteSubscriptionsChannelIdResponse(w http.ResponseWriter) error {
+func (response DeleteSubscriptionsSubscriptionId500JSONResponse) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(500)
 
@@ -8745,8 +8753,8 @@ type StrictServerInterface interface {
 	// (POST /api/v1/subscriptions)
 	PostSubscriptions(ctx context.Context, request PostSubscriptionsRequestObject) (PostSubscriptionsResponseObject, error)
 	// Delete subscription
-	// (DELETE /api/v1/subscriptions/{channel_id})
-	DeleteSubscriptionsChannelId(ctx context.Context, request DeleteSubscriptionsChannelIdRequestObject) (DeleteSubscriptionsChannelIdResponseObject, error)
+	// (DELETE /api/v1/subscriptions/{subscription_id})
+	DeleteSubscriptionsSubscriptionId(ctx context.Context, request DeleteSubscriptionsSubscriptionIdRequestObject) (DeleteSubscriptionsSubscriptionIdResponseObject, error)
 	// Create a new account
 	// (POST /api/v1/users)
 	PostUsersMe(ctx context.Context, request PostUsersMeRequestObject) (PostUsersMeResponseObject, error)
@@ -9368,26 +9376,26 @@ func (sh *strictHandler) PostSubscriptions(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-// DeleteSubscriptionsChannelId operation middleware
-func (sh *strictHandler) DeleteSubscriptionsChannelId(w http.ResponseWriter, r *http.Request, channelId openapi_types.UUID, params DeleteSubscriptionsChannelIdParams) {
-	var request DeleteSubscriptionsChannelIdRequestObject
+// DeleteSubscriptionsSubscriptionId operation middleware
+func (sh *strictHandler) DeleteSubscriptionsSubscriptionId(w http.ResponseWriter, r *http.Request, subscriptionId openapi_types.UUID, params DeleteSubscriptionsSubscriptionIdParams) {
+	var request DeleteSubscriptionsSubscriptionIdRequestObject
 
-	request.ChannelId = channelId
+	request.SubscriptionId = subscriptionId
 	request.Params = params
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.DeleteSubscriptionsChannelId(ctx, request.(DeleteSubscriptionsChannelIdRequestObject))
+		return sh.ssi.DeleteSubscriptionsSubscriptionId(ctx, request.(DeleteSubscriptionsSubscriptionIdRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "DeleteSubscriptionsChannelId")
+		handler = middleware(handler, "DeleteSubscriptionsSubscriptionId")
 	}
 
 	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(DeleteSubscriptionsChannelIdResponseObject); ok {
-		if err := validResponse.VisitDeleteSubscriptionsChannelIdResponse(w); err != nil {
+	} else if validResponse, ok := response.(DeleteSubscriptionsSubscriptionIdResponseObject); ok {
+		if err := validResponse.VisitDeleteSubscriptionsSubscriptionIdResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -9652,101 +9660,99 @@ func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request, param
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"//9M3z7UYNAAAA==",
+	"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",
+	"zAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

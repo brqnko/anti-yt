@@ -215,9 +215,9 @@ export type GetFeedChannels200ItemsItemVideosItemsItem = {
   external_video_thumbnail_url: string;
   external_video_title: string;
   external_video_description: string;
-  external_channel_display_name?: string;
+  external_video_created_at: string;
   /** @minimum 0 */
-  external_video_length_seconds?: number;
+  external_video_length_seconds: number;
 };
 
 export type GetFeedChannels200ItemsItemVideos = {
@@ -229,7 +229,8 @@ export type GetFeedChannels200ItemsItemVideos = {
 export type GetFeedChannels200ItemsItem = {
   channel_id: string;
   external_channel_icon_url: string;
-  external_channel_id?: string;
+  external_channel_id: string;
+  external_channel_display_name: string;
   videos?: GetFeedChannels200ItemsItemVideos;
 };
 
@@ -245,12 +246,8 @@ cursor?: string;
 
 export type GetChannelsChannelIdVideos200ItemsItem = {
   video_id: string;
-  external_video_id: string;
   external_video_thumbnail_url: string;
-  /** @minimum 0 */
-  external_video_watch_count: number;
   external_video_title: string;
-  external_video_description: string;
   external_video_created_at: string;
   /** @minimum 0 */
   external_video_length_seconds: number;
@@ -279,6 +276,8 @@ cursor?: string;
 };
 
 export type GetSubscriptions200ItemsItem = {
+  /** 購読レコードのID */
+  subscription_id: string;
   /** 登録したチャンネルID(内部) */
   channel_id: string;
   /**
@@ -325,6 +324,8 @@ export type PostSubscriptionsBody = {
 };
 
 export type PostSubscriptions201 = {
+  /** 購読レコードのID */
+  subscription_id: string;
   /** 登録したチャンネルID(内部) */
   channel_id: string;
   /**
@@ -383,8 +384,6 @@ export type GetSearch200ItemsItem = {
   external_channel_id: string;
   external_video_thumbnail_url: string;
   external_channel_icon_url: string;
-  /** @minimum 0 */
-  external_video_watch_count: number;
   external_video_title: string;
   external_video_description: string;
   external_channel_display_name: string;
@@ -393,7 +392,7 @@ export type GetSearch200ItemsItem = {
   external_video_length_seconds: number;
   /** @minimum 0 */
   last_watch_seconds?: number;
-  resource_type?: ResourceType;
+  resource_type: ResourceType;
 };
 
 export type GetSearch200 = {
@@ -401,7 +400,6 @@ export type GetSearch200 = {
   item_count: number;
   has_next: boolean;
   items: GetSearch200ItemsItem[];
-  search_key: string;
 };
 
 export type GetFeedParams = {
@@ -420,21 +418,15 @@ cursor?: string;
 export type GetFeed200ItemsItem = {
   video_id: string;
   channel_id: string;
-  external_video_id: string;
-  external_channel_id: string;
   external_video_thumbnail_url: string;
   external_channel_icon_url: string;
-  /** @minimum 0 */
-  external_video_watch_count: number;
   external_video_title: string;
-  external_video_description: string;
   external_channel_display_name: string;
   external_video_created_at: string;
   /** @minimum 0 */
   external_video_length_seconds: number;
   /** @minimum 0 */
   last_watch_seconds?: number;
-  resource_type: ResourceType;
 };
 
 export type GetFeed200 = {
@@ -442,7 +434,6 @@ export type GetFeed200 = {
   item_count: number;
   has_next: boolean;
   items: GetFeed200ItemsItem[];
-  search_key: string;
 };
 
 export type GetVideosVideoId200 = {
@@ -538,11 +529,6 @@ export type GetHistory200ItemsItem = {
   external_video_thumbnail_url: string;
   /** 動画のタイトル */
   external_video_title: string;
-  /**
-   * 再生数
-   * @minimum 0
-   */
-  external_video_watch_count: number;
   /**
    * 高評価の数
    * @minimum 0
@@ -721,8 +707,6 @@ export type GetPlaylistsPlaylistId200ItemsItem = {
   external_channel_id: string;
   external_video_thumbnail_url: string;
   external_channel_icon_url: string;
-  /** @minimum 0 */
-  external_video_watch_count: number;
   external_video_title: string;
   external_video_description: string;
   external_channel_display_name: string;

@@ -127,18 +127,27 @@
     "nav": {
       "mainFeed": "Main Feed",
       "analytics": "Analytics",
+      "recommendedChannels": "Recommended Channels",
       "settings": "Settings"
     },
     "whitelistedChannels": "Whitelisted Channels",
     "requestChannel": "Request Channel",
+    "addChannelDialog": {
+      "title": "Add Channel",
+      "description": "Enter a YouTube channel URL or ID.",
+      "placeholder": "https://www.youtube.com/@handle or UC...",
+      "cancel": "Cancel",
+      "add": "Add",
+      "adding": "Adding...",
+      "error": "Failed to add channel. Please check the ID and try again."
+    },
     "noChannels": "No channels subscribed yet.",
     "myPlaylists": "My Playlists",
     "noPlaylists": "No playlists yet.",
-    "curatedFeed": "Curated Feed",
-    "curatedFeedDesc": "Distraction-free content from your whitelisted sources.",
     "views": "views",
     "noVideos": "No videos yet",
     "noVideosDesc": "Subscribe to channels to see their latest videos here.",
+    "endOfFeed": "You're all caught up",
     "dailyProgress": "Daily Progress",
     "used": "used",
     "onTrack": "You're on track to stay under your limit.",
@@ -171,6 +180,7 @@
     "addTimeRange": "Add another time range",
     "removeRange": "Remove time range",
     "dailyCapLimit": "Daily Cap Limit",
+    "unlimited": "Unlimited",
     "hr": "HR",
     "min": "MIN",
     "save": "Save",
@@ -181,7 +191,16 @@
     "whitelist": "Whitelist",
     "whitelistDesc": "Only content from these channels is allowed.",
     "searchChannels": "Search channels...",
-    "noChannels": "No channels subscribed yet."
+    "noChannels": "No channels subscribed yet.",
+    "saveError": "Failed to save. Please try again.",
+    "unsubscribeError": "Failed to unsubscribe.",
+    "removeChannelDialog": {
+      "title": "Remove Channel",
+      "description": "Are you sure you want to remove \"{{name}}\" from the whitelist? Content from this channel will no longer be allowed.",
+      "cancel": "Cancel",
+      "remove": "Remove",
+      "removing": "Removing..."
+    }
   },
   "profile": {
     "pageTitle": "Profile",
@@ -232,6 +251,27 @@
     "hoursAgo": "{{count}}h ago",
     "daysAgo": "{{count}}d ago",
     "monthsAgo": "{{count}}mo ago"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "colorMode": "Color Mode",
+    "colorModeDesc": "Choose the display theme for the application."
+  },
+  "channelDetail": {
+    "pageTitle": "Channel Details",
+    "backToDashboard": "Dashboard",
+    "channelDetails": "Channel Details",
+    "subscribers": "Subscribers",
+    "whitelistChannel": "Whitelist Channel",
+    "whitelistDesc": "Allow into your feed",
+    "about": "About",
+    "latestUploads": "Latest Uploads",
+    "previewOnly": "Preview Only",
+    "noVideos": "No videos available",
+    "notFound": "Channel not found",
+    "notFoundDesc": "This channel could not be found.",
+    "showMore": "Show more",
+    "showLess": "Show less"
   },
   "home": {
     "heroTitle1": "Break the",

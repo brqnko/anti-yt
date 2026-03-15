@@ -1,6 +1,6 @@
 {
   "name": "Backend",
-  "dockerComposeFile": ["../../compose.yaml", "../../compose.override.yaml"],
+  "dockerComposeFile": ["../../compose.yaml", "../../compose.override.yaml", "docker-compose.devcontainer.yaml"],
   "service": "server",
   "workspaceFolder": "/src",
   "forwardPorts": [8080],
@@ -13,7 +13,7 @@
       ]
     }
   },
-  "overrideCommand": true,
+  "overrideCommand": false,
   "features": {
   },
   "mounts": [

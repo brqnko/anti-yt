@@ -4,9 +4,12 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/auth"
+	"github.com/brqnko/anti-yt/backend/internal/channel"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
+	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/brqnko/anti-yt/backend/internal/user"
+	"github.com/brqnko/anti-yt/backend/internal/video"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -20,14 +23,24 @@ const (
 type APIHandler struct {
 	db *pgxpool.Pool
 
-	authService *auth.Service
-	userService *user.Service
+	authService    *auth.Service
+	userService    *user.Service
+	channelService *channel.Service
+	videoService   *video.Service
 
 	serverURL   string
 	frontendURL string
 }
 
-func NewAPIHandler(db *pgxpool.Pool, oidcService oidc.GoogleOIDCService, serverURL, frontendURL string, jwtService jwt_d.JWTService, refreshTokenDuration time.Duration) (*APIHandler, error) {
+func NewAPIHandler(
+	db *pgxpool.Pool,
+	oidcService oidc.GoogleOIDCService,
+	serverURL, frontendURL string,
+	jwtService jwt_d.JWTService,
+	refreshTokenDuration time.Duration,
+	ytService youtube_d.YouTubeAPIService,
+	rssFetchDuration time.Duration,
+) (*APIHandler, error) {
 	authService, err := auth.NewService(db, oidcService, serverURL, jwtService, refreshTokenDuration)
 	if err != nil {
 		return nil, err
@@ -38,11 +51,23 @@ func NewAPIHandler(db *pgxpool.Pool, oidcService oidc.GoogleOIDCService, serverU
 		return nil, err
 	}
 
+	channelService, err := channel.NewService(db, ytService, rssFetchDuration)
+	if err != nil {
+		return nil, err
+	}
+
+	videoService, err := video.NewService(db)
+	if err != nil {
+		return nil, err
+	}
+
 	return &APIHandler{
 		db: db,
 
-		authService: authService,
-		userService: userService,
+		authService:    authService,
+		userService:    userService,
+		channelService: channelService,
+		videoService:   videoService,
 
 		serverURL:   serverURL,
 		frontendURL: frontendURL,
