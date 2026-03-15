@@ -280,13 +280,13 @@ export type GetSubscriptions200ItemsItem = {
   subscription_id: string;
   /** 登録したチャンネルID(内部) */
   channel_id: string;
+  /** 登録日時 */
+  created_at: string;
   /**
    * 登録したチャンネルID(ハンドル名ではない)
    * @pattern ^UC[a-zA-Z0-9_-]{22}$
    */
   external_channel_id: string;
-  /** 登録日時 */
-  created_at: string;
   /** 登録したチャンネルの表示名 */
   external_channel_display_name: string;
   /**
@@ -328,13 +328,13 @@ export type PostSubscriptions201 = {
   subscription_id: string;
   /** 登録したチャンネルID(内部) */
   channel_id: string;
+  /** 登録日時 */
+  created_at: string;
   /**
    * 登録したチャンネルID(ハンドル名ではない)
    * @pattern ^UC[a-zA-Z0-9_-]{22}$
    */
   external_channel_id: string;
-  /** 登録日時 */
-  created_at: string;
   /** 登録したチャンネルの表示名 */
   external_channel_display_name: string;
   /**
@@ -381,11 +381,11 @@ export type GetSearch200ItemsItem = {
   video_id: string;
   channel_id: string;
   external_video_id: string;
-  external_channel_id: string;
   external_video_thumbnail_url: string;
   external_channel_icon_url: string;
   external_video_title: string;
   external_video_description: string;
+  external_channel_id: string;
   external_channel_display_name: string;
   external_video_created_at: string;
   /** @minimum 0 */
@@ -445,11 +445,14 @@ export type GetVideosVideoId200 = {
   channel_id: string;
   external_channel_id: string;
   external_channel_display_name: string;
+  /**
+   * チャンネルのハンドル名
+   * @minLength 3
+   */
+  channel_custom_id: string;
   external_channel_icon_url: string;
   /** @minimum 0 */
   external_channel_subscribers_count: number;
-  /** @minimum 0 */
-  external_video_like_count: number;
 };
 
 export type PostVideosVideoIdHeartbeats200 = {
@@ -530,24 +533,19 @@ export type GetHistory200ItemsItem = {
   /** 動画のタイトル */
   external_video_title: string;
   /**
-   * 高評価の数
-   * @minimum 0
-   */
-  external_video_like_count: number;
-  /**
    * 動画の長さ(秒数)
    * @minimum 0
    */
   external_video_length_seconds: number;
   /** チャンネルの内部ID */
   channel_id: string;
+  /** チャンネルのアイコンURL */
+  external_channel_icon_url: string;
   /**
    * チャンネルのYouTube ID
    * @pattern ^UC[a-zA-Z0-9_-]{22}$
    */
   external_channel_id: string;
-  /** チャンネルのアイコンURL */
-  external_channel_icon_url: string;
   /** チャンネルの表示名 */
   external_channel_display_name: string;
 };
@@ -704,11 +702,11 @@ export type GetPlaylistsPlaylistId200ItemsItem = {
   video_id: string;
   channel_id: string;
   external_video_id: string;
-  external_channel_id: string;
   external_video_thumbnail_url: string;
   external_channel_icon_url: string;
   external_video_title: string;
   external_video_description: string;
+  external_channel_id: string;
   external_channel_display_name: string;
   external_video_created_at: string;
   /** @minimum 0 */

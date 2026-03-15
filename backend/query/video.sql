@@ -156,3 +156,26 @@ ORDER BY
     m_video.public_id DESC
 LIMIT
     @query_limit;
+
+-- name: GetVideoDetail :one
+SELECT
+    video.public_id AS id,
+    video.external_id,
+    video.external_title,
+    video.external_description,
+    video.external_thumbnail_url,
+    channel.public_id AS channel_id,
+    channel.external_id AS channel_external_id,
+    channel.external_display_name,
+    channel.external_custom_id AS channel_custom_id,
+    channel.external_icon_url,
+    channel.external_subscribers_count
+FROM
+    m_video video
+INNER JOIN
+    m_channel channel
+ON
+    video.m_channel_id = channel.m_channel_id
+WHERE
+    video.public_id = @video_id
+LIMIT 1;

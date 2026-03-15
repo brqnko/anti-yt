@@ -1,0 +1,603 @@
+import { useState, useEffect, useRef, useCallback } from "preact/hooks";
+import { useRoute } from "preact-iso";
+import { useTranslation } from "react-i18next";
+import { useTitle } from "../../hooks/useTitle";
+import { ProtectedRoute } from "../../components/ProtectedRoute";
+import { DashboardLayout } from "../../components/DashboardLayout";
+import { getVideo } from "../../api/generated/video";
+import { formatDuration, formatSubscriberCount } from "../../utils/format";
+import type { GetVideosVideoId200 } from "../../api/generated/antiYtApi.schemas";
+import { useYouTubePlayer, PlayerState } from "./useYouTubePlayer";
+import { Linkify } from "../../components/Linkify";
+
+const PLAYER_CONTAINER_ID = "yt-player";
+const HEARTBEAT_INTERVAL_MS = 60_000;
+const HEARTBEAT_DEBOUNCE_MS = 2_000;
+
+function VideoPlayerContent() {
+  const { t } = useTranslation();
+  const { params } = useRoute();
+  const videoId = params.videoId;
+
+  const [video, setVideo] = useState<GetVideosVideoId200 | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [noteText, setNoteText] = useState("");
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(false);
+  const [isSeeking, setIsSeeking] = useState(false);
+  const [seekProgress, setSeekProgress] = useState<number | null>(null);
+
+  const playerWrapperRef = useRef<HTMLDivElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const heartbeatDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const descRef = useRef<HTMLDivElement>(null);
+  const [descOverflows, setDescOverflows] = useState(false);
+  const lastPointerTypeRef = useRef<string>("mouse");
+
+  // Refs for values used in keyboard handler to avoid frequent re-registration
+  const currentTimeRef = useRef(0);
+  const durationRef = useRef(0);
+  const volumeRef = useRef(100);
+
+  useTitle(video?.external_video_title ?? t("videoPlayer.pageTitle"));
+
+  useEffect(() => {
+    if (!videoId) return;
+    setIsLoading(true);
+    setError(false);
+    getVideo()
+      .getVideosVideoId(videoId)
+      .then((res) => setVideo(res))
+      .catch(() => setError(true))
+      .finally(() => setIsLoading(false));
+  }, [videoId]);
+
+  const {
+    isReady,
+    loadError,
+    playerState,
+    currentTime,
+    duration,
+    volume,
+    isMuted,
+    togglePlay,
+    seekTo,
+    setVolume,
+    toggleMute,
+  } = useYouTubePlayer({
+    videoId: video?.external_video_id ?? "",
+    containerId: PLAYER_CONTAINER_ID,
+  });
+
+  // Keep refs in sync with latest values
+  currentTimeRef.current = currentTime;
+  durationRef.current = duration;
+  volumeRef.current = volume;
+
+  // Heartbeat for watch time tracking (with debounce on play start)
+  useEffect(() => {
+    if (!video || playerState !== PlayerState.PLAYING) {
+      if (heartbeatDebounceRef.current) {
+        clearTimeout(heartbeatDebounceRef.current);
+        heartbeatDebounceRef.current = null;
+      }
+      if (heartbeatRef.current) {
+        clearInterval(heartbeatRef.current);
+        heartbeatRef.current = null;
+      }
+      return;
+    }
+
+    const sendHeartbeat = () => {
+      getVideo()
+        .postVideosVideoIdHeartbeats(video.external_video_id)
+        .then((res) => setRemainingSeconds(res.daily_remaining_seconds))
+        .catch(() => {});
+    };
+
+    // Debounce: wait before sending first heartbeat to avoid bursts from rapid pause/play
+    heartbeatDebounceRef.current = setTimeout(() => {
+      sendHeartbeat();
+      heartbeatRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
+    }, HEARTBEAT_DEBOUNCE_MS);
+
+    return () => {
+      if (heartbeatDebounceRef.current) {
+        clearTimeout(heartbeatDebounceRef.current);
+        heartbeatDebounceRef.current = null;
+      }
+      if (heartbeatRef.current) {
+        clearInterval(heartbeatRef.current);
+        heartbeatRef.current = null;
+      }
+    };
+  }, [video, playerState]);
+
+  // Check if description overflows (ResizeObserver for font-load safety)
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => {
+      setDescOverflows(el.scrollHeight > el.clientHeight + 1);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [video?.external_video_description]);
+
+  // Fullscreen change listener
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    const el = playerWrapperRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      el.requestFullscreen?.();
+    }
+  }, []);
+
+  // Keyboard shortcuts (using refs to avoid re-registration every 250ms)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (!isReady) return;
+
+      switch (e.key) {
+        case " ":
+        case "k":
+          e.preventDefault();
+          togglePlay();
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          seekTo(Math.max(0, currentTimeRef.current - 5));
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          seekTo(Math.min(durationRef.current, currentTimeRef.current + 5));
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setVolume(Math.min(100, volumeRef.current + 5));
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          setVolume(Math.max(0, volumeRef.current - 5));
+          break;
+        case "m":
+          e.preventDefault();
+          toggleMute();
+          break;
+        case "f":
+          e.preventDefault();
+          toggleFullscreen();
+          break;
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [isReady, togglePlay, seekTo, setVolume, toggleMute, toggleFullscreen]);
+
+  // Show controls on touch/interaction, auto-hide after 3s
+  const showControlsTemporarily = useCallback(() => {
+    setControlsVisible(true);
+    if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
+    controlsTimerRef.current = setTimeout(() => setControlsVisible(false), 3000);
+  }, []);
+
+  // Track pointer type for touch vs mouse distinction
+  const handlePlayerAreaPointerDown = useCallback(
+    (e: PointerEvent) => {
+      lastPointerTypeRef.current = e.pointerType;
+    },
+    [],
+  );
+
+  const handlePlayerAreaClick = useCallback(() => {
+    if (lastPointerTypeRef.current === "touch") {
+      if (!controlsVisible) {
+        showControlsTemporarily();
+        return;
+      }
+    }
+    togglePlay();
+  }, [controlsVisible, showControlsTemporarily, togglePlay]);
+
+  // Progress bar: click + drag support
+  const calcSeekRatio = useCallback(
+    (clientX: number) => {
+      const bar = progressBarRef.current;
+      if (!bar) return null;
+      const rect = bar.getBoundingClientRect();
+      return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    },
+    [],
+  );
+
+  const handleProgressPointerDown = useCallback(
+    (e: PointerEvent) => {
+      if (!duration) return;
+      e.preventDefault();
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      setIsSeeking(true);
+      const ratio = calcSeekRatio(e.clientX);
+      if (ratio !== null) setSeekProgress(ratio * 100);
+    },
+    [duration, calcSeekRatio],
+  );
+
+  const handleProgressPointerMove = useCallback(
+    (e: PointerEvent) => {
+      if (!isSeeking || !duration) return;
+      const ratio = calcSeekRatio(e.clientX);
+      if (ratio !== null) setSeekProgress(ratio * 100);
+    },
+    [isSeeking, duration, calcSeekRatio],
+  );
+
+  const handleProgressPointerUp = useCallback(
+    (e: PointerEvent) => {
+      if (!isSeeking || !duration) return;
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+      setIsSeeking(false);
+      const ratio = calcSeekRatio(e.clientX);
+      if (ratio !== null) {
+        seekTo(ratio * duration);
+        setSeekProgress(null);
+      }
+    },
+    [isSeeking, duration, calcSeekRatio, seekTo],
+  );
+
+  const displayProgress = seekProgress ?? (duration > 0 ? (currentTime / duration) * 100 : 0);
+  const isPlaying = playerState === PlayerState.PLAYING;
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div class="flex items-center justify-center flex-1">
+          <span class="material-symbols-outlined text-5xl animate-spin text-primary">
+            progress_activity
+          </span>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !video) {
+    return (
+      <DashboardLayout>
+        <div class="flex flex-col items-center justify-center flex-1 text-text-muted-light dark:text-text-muted-dark">
+          <span class="material-symbols-outlined text-5xl mb-4">error</span>
+          <p class="text-lg font-medium">{t("videoPlayer.notFound")}</p>
+          <a
+            href="/dashboard"
+            class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
+          >
+            {t("channelDetail.backToDashboard")}
+          </a>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout>
+      <div class="flex-1 overflow-y-auto">
+        <div class="max-w-[1536px] mx-auto px-6 py-8 flex flex-col xl:flex-row gap-8">
+          {/* Main content */}
+          <div class="flex-1 min-w-0">
+            {/* YouTube Player */}
+            <div
+              ref={playerWrapperRef}
+              class="w-full bg-black rounded-xl overflow-hidden shadow-2xl relative aspect-video group/player"
+            >
+              {/* YouTube iframe gets injected here */}
+              <div id={PLAYER_CONTAINER_ID} class="absolute inset-0 w-full h-full" />
+
+              {/* Click/tap overlay to toggle play/pause (above iframe) */}
+              {isReady && (
+                <div
+                  class="absolute inset-0 z-10 cursor-pointer"
+                  onPointerDown={handlePlayerAreaPointerDown}
+                  onClick={handlePlayerAreaClick}
+                  onMouseMove={showControlsTemporarily}
+                />
+              )}
+
+              {/* Big play button when not started or paused */}
+              {isReady && !isPlaying && playerState !== PlayerState.BUFFERING && (
+                <div class="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+                  <button
+                    class="size-20 rounded-full bg-primary text-white flex items-center justify-center shadow-lg hover:scale-105 transition-transform border-none cursor-pointer pointer-events-auto"
+                    onClick={togglePlay}
+                  >
+                    <span class="material-symbols-outlined text-5xl">play_arrow</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Buffering spinner */}
+              {isReady && playerState === PlayerState.BUFFERING && (
+                <div class="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+                  <span class="material-symbols-outlined text-5xl animate-spin text-white drop-shadow-lg">
+                    progress_activity
+                  </span>
+                </div>
+              )}
+
+              {/* Loading overlay before player is ready */}
+              {!isReady && (
+                <div class="absolute inset-0 z-20">
+                  <img
+                    src={video.external_video_thumbnail_url}
+                    alt=""
+                    class="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+                    {loadError ? (
+                      <span class="material-symbols-outlined text-5xl text-white">error</span>
+                    ) : (
+                      <span class="material-symbols-outlined text-5xl animate-spin text-white">
+                        progress_activity
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Player controls overlay */}
+              <div
+                class={`absolute bottom-0 inset-x-0 p-4 md:p-6 bg-gradient-to-t from-black/80 to-transparent z-30 transition-opacity ${controlsVisible ? "opacity-100" : "opacity-0 group-hover/player:opacity-100"}`}
+                onMouseMove={showControlsTemporarily}
+              >
+                {/* Progress bar */}
+                <div class="flex items-center gap-4 mb-3">
+                  <div
+                    ref={progressBarRef}
+                    class={`flex-1 h-1.5 bg-white/20 rounded-full relative cursor-pointer group/progress touch-none ${isSeeking ? "h-2.5" : ""}`}
+                    onPointerDown={handleProgressPointerDown}
+                    onPointerMove={handleProgressPointerMove}
+                    onPointerUp={handleProgressPointerUp}
+                  >
+                    <div
+                      class="absolute inset-y-0 left-0 bg-primary rounded-full transition-[width] duration-100"
+                      style={{ width: `${displayProgress}%` }}
+                    />
+                    <div
+                      class={`absolute top-1/2 size-4 bg-primary border-2 border-white rounded-full transition-transform -translate-x-1/2 -translate-y-1/2 ${isSeeking ? "scale-100" : "scale-0 group-hover/progress:scale-100"}`}
+                      style={{ left: `${displayProgress}%` }}
+                    />
+                  </div>
+                </div>
+                {/* Controls row */}
+                <div class="flex items-center justify-between text-white text-sm">
+                  <div class="flex items-center gap-4 md:gap-6">
+                    <button
+                      class="bg-transparent border-none p-0 cursor-pointer text-white"
+                      onClick={togglePlay}
+                    >
+                      <span class="material-symbols-outlined">
+                        {isPlaying ? "pause" : "play_arrow"}
+                      </span>
+                    </button>
+                    <button
+                      class="bg-transparent border-none p-0 cursor-pointer text-white"
+                      onClick={toggleMute}
+                    >
+                      <span class="material-symbols-outlined">
+                        {isMuted || volume === 0
+                          ? "volume_off"
+                          : volume < 50
+                            ? "volume_down"
+                            : "volume_up"}
+                      </span>
+                    </button>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={isMuted ? 0 : volume}
+                      onInput={(e) => setVolume(Number((e.target as HTMLInputElement).value))}
+                      class="w-20 h-1 accent-primary cursor-pointer"
+                    />
+                    <span class="font-mono text-xs opacity-80">
+                      {formatDuration(currentTime)} / {formatDuration(duration)}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-4 md:gap-6">
+                    {remainingSeconds !== null && (
+                      <span class="text-xs opacity-70">
+                        {t("videoPlayer.remaining")}: {formatDuration(remainingSeconds)}
+                      </span>
+                    )}
+                    <button
+                      class="bg-transparent border-none p-0 cursor-pointer text-white"
+                      onClick={toggleFullscreen}
+                    >
+                      <span class="material-symbols-outlined">
+                        {isFullscreen ? "fullscreen_exit" : "fullscreen"}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Video info */}
+            <div class="mt-8">
+              <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-border-light dark:border-border-dark">
+                <div class="space-y-4 flex-1">
+                  <h1 class="text-3xl font-extrabold leading-tight tracking-tight">
+                    {video.external_video_title}
+                  </h1>
+                  <div class="flex items-center gap-4">
+                    <a
+                      href={`/channels/${video.channel_id}`}
+                      class="size-12 rounded-full bg-cover bg-center border-2 border-primary/20 overflow-hidden block flex-shrink-0"
+                    >
+                      <img
+                        src={video.external_channel_icon_url}
+                        alt={video.external_channel_display_name}
+                        class="w-full h-full object-cover"
+                      />
+                    </a>
+                    <div>
+                      <a
+                        href={`/channels/${video.channel_id}`}
+                        class="font-bold text-lg no-underline text-charcoal dark:text-white hover:text-primary transition-colors"
+                      >
+                        {video.external_channel_display_name}
+                      </a>
+                      <p class="text-taupe text-sm">
+                        @{video.channel_custom_id}
+                        {" · "}
+                        {formatSubscriberCount(video.external_channel_subscribers_count)}{" "}
+                        {t("channelDetail.subscribers")}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              {video.external_video_description && (
+                <div class="mt-6">
+                  <div class="bg-border-light/50 dark:bg-[#332e27]/30 p-6 rounded-xl">
+                    <div
+                      ref={descRef}
+                      class={`text-charcoal dark:text-white/80 leading-relaxed whitespace-pre-line overflow-hidden transition-[max-height] duration-300 ${isDescExpanded ? "" : "max-h-[4.875rem]"}`}
+                    >
+                        <Linkify text={video.external_video_description} />
+                    </div>
+                    {descOverflows && (
+                      <button
+                        class="mt-3 text-sm font-semibold text-primary hover:text-primary/80 transition-colors bg-transparent border-none cursor-pointer p-0"
+                        onClick={() => setIsDescExpanded((v) => !v)}
+                      >
+                        {isDescExpanded
+                          ? t("channelDetail.showLess")
+                          : t("channelDetail.showMore")}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <aside class="w-full xl:w-[420px] shrink-0 space-y-8">
+            {/* Quick Notes */}
+            <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark shadow-sm flex flex-col overflow-hidden">
+              <div class="p-4 border-b border-border-light dark:border-border-dark flex items-center justify-between">
+                <h2 class="font-bold text-lg tracking-tight flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary">edit_note</span>
+                  {t("videoPlayer.quickNotes")}
+                </h2>
+              </div>
+              <div class="px-4 py-2 flex items-center gap-1 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark/50">
+                <button
+                  class="p-1.5 rounded transition-colors bg-transparent border-none text-charcoal/30 dark:text-white/30 cursor-not-allowed"
+                  title="Bold"
+                  disabled
+                >
+                  <span class="material-symbols-outlined text-xl">format_bold</span>
+                </button>
+                <button
+                  class="p-1.5 rounded transition-colors bg-transparent border-none text-charcoal/30 dark:text-white/30 cursor-not-allowed"
+                  title="Italic"
+                  disabled
+                >
+                  <span class="material-symbols-outlined text-xl">format_italic</span>
+                </button>
+                <button
+                  class="p-1.5 rounded transition-colors bg-transparent border-none text-charcoal/30 dark:text-white/30 cursor-not-allowed"
+                  title="Bullet List"
+                  disabled
+                >
+                  <span class="material-symbols-outlined text-xl">format_list_bulleted</span>
+                </button>
+                <div class="w-px h-6 bg-border-light dark:bg-border-dark mx-1" />
+                <button
+                  class="p-1.5 rounded transition-colors bg-transparent border-none text-charcoal/30 dark:text-white/30 cursor-not-allowed"
+                  title="Timestamp"
+                  disabled
+                >
+                  <span class="material-symbols-outlined text-xl">schedule</span>
+                </button>
+              </div>
+              <div class="relative">
+                <textarea
+                  class="w-full h-48 p-4 bg-transparent border-none focus:ring-0 focus:outline-none text-sm leading-relaxed resize-none text-charcoal dark:text-white"
+                  placeholder={t("videoPlayer.notesPlaceholder")}
+                  value={noteText}
+                  onInput={(e) => setNoteText((e.target as HTMLTextAreaElement).value)}
+                />
+              </div>
+              <div class="p-4 bg-background-light dark:bg-background-dark/50 border-t border-border-light dark:border-border-dark flex items-center justify-end">
+                <button class="bg-primary text-charcoal px-5 py-2 rounded-xl font-bold text-sm tracking-wide hover:opacity-90 transition-opacity border-none cursor-pointer">
+                  {t("videoPlayer.saveNote")}
+                </button>
+              </div>
+            </div>
+
+            {/* Curated Playlist - placeholder */}
+            <div class="space-y-4">
+              <div class="flex items-center justify-between px-2">
+                <h2 class="font-bold text-md tracking-tight flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-xl">
+                    playlist_play
+                  </span>
+                  {t("videoPlayer.curatedPlaylist")}
+                </h2>
+              </div>
+              <div class="flex flex-col gap-3">
+                {/* Current video indicator */}
+                <div class="flex gap-3 p-2 bg-primary/10 dark:bg-primary/20 rounded-xl border border-primary/30">
+                  <div class="relative size-16 shrink-0 rounded-lg overflow-hidden">
+                    <img
+                      src={video.external_video_thumbnail_url}
+                      alt={video.external_video_title}
+                      class="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/40">
+                      <span class="material-symbols-outlined text-white text-lg">
+                        play_arrow
+                      </span>
+                    </div>
+                  </div>
+                  <div class="flex flex-col justify-center min-w-0">
+                    <p class="text-xs font-bold truncate">{video.external_video_title}</p>
+                    <p class="text-[10px] text-taupe dark:text-primary/70 mt-1 uppercase tracking-tight">
+                      {video.external_channel_display_name}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}
+
+export default function VideoPlayer() {
+  return (
+    <ProtectedRoute>
+      <VideoPlayerContent />
+    </ProtectedRoute>
+  );
+}

@@ -124,11 +124,14 @@
     "remaining": "残り",
     "timeLeft": "残り時間",
     "logout": "ログアウト",
+    "toggleSidebar": "サイドバーを切り替え",
     "nav": {
       "mainFeed": "メインフィード",
       "analytics": "アナリティクス",
       "recommendedChannels": "おすすめチャンネル",
-      "settings": "設定"
+      "settings": "設定",
+      "sidebar": "サイドバーナビゲーション",
+      "mainNav": "メインナビゲーション"
     },
     "whitelistedChannels": "登録チャンネル",
     "requestChannel": "チャンネルを追加",
@@ -139,7 +142,8 @@
       "cancel": "キャンセル",
       "add": "追加",
       "adding": "追加中...",
-      "error": "チャンネルの追加に失敗しました。IDを確認して再度お試しください。"
+      "error": "チャンネルの追加に失敗しました。IDを確認して再度お試しください。",
+      "paste": "クリップボードから貼り付け"
     },
     "noChannels": "チャンネルが登録されていません。",
     "myPlaylists": "マイプレイリスト",
@@ -210,7 +214,8 @@
       "restrictions": "制限設定",
       "profileSettings": "プロフィール設定",
       "security": "セキュリティ",
-      "signOut": "ログアウト"
+      "signOut": "ログアウト",
+      "reportProblem": "問題を報告"
     },
     "accountDetails": "アカウント情報",
     "displayName": "表示名",
@@ -272,6 +277,38 @@
     "notFoundDesc": "このチャンネルは見つかりませんでした。",
     "showMore": "もっと見る",
     "showLess": "閉じる"
+  },
+  "videoPlayer": {
+    "pageTitle": "動画プレーヤー",
+    "notFound": "動画が見つかりません",
+    "quickNotes": "クイックノート",
+    "notesPlaceholder": "ここにメモを入力...自動的にタイムスタンプが付きます。",
+    "saveNote": "ノートを保存",
+    "curatedPlaylist": "キュレーションプレイリスト",
+    "remaining": "残り",
+    "mindfulMode": "マインドフルモード有効",
+    "noDistractions": "邪魔なものは検出されていません",
+    "quality": "画質",
+    "qualityAuto": "自動"
+  },
+  "analytics": {
+    "pageTitle": "アナリティクス",
+    "title": "あなたのデジタルウェルネス",
+    "timeWasted": "視聴時間",
+    "dailyAverage": "1日の平均",
+    "goalProgress": "目標達成度",
+    "lessVsLastMonth": "先月比 {{percent}}% 減少",
+    "onTrackToMeetGoal": "目標達成ペースです",
+    "monthlyUsageTrends": "月間利用トレンド",
+    "actualUsage": "実際の利用",
+    "limit": "制限",
+    "dailyLimit": "1日の制限 ({{hours}}時間)",
+    "weekLabel": "第{{week}}週",
+    "weekHours": "第{{week}}週: {{hours}}時間",
+    "weekHoursCurrent": "第{{week}}週 (現在): {{hours}}時間",
+    "focusAI": "FocusAI アシスタント",
+    "newInsight": "新しい分析",
+    "insightMessage": "今月の視聴時間は<strong>{{hours}}時間</strong>です！先月より<strong>{{less}}時間少なく</strong>なりました。この調子で頑張りましょう！"
   },
   "home": {
     "heroTitle1": "断ち切ろう",

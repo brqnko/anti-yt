@@ -51,10 +51,10 @@ const getFeed = (
  * @summary Get video detail
  */
 const getVideosVideoId = (
-    externalVideoId: string,
+    videoId: string,
  ) => {
       return customInstance<GetVideosVideoId200>(
-      {url: `/api/v1/videos/${externalVideoId}`, method: 'GET'
+      {url: `/api/v1/videos/${videoId}`, method: 'GET'
     },
       );
     }
@@ -63,10 +63,10 @@ const getVideosVideoId = (
  * @summary Heartbeats
  */
 const postVideosVideoIdHeartbeats = (
-    externalVideoId: string,
+    videoId: string,
  ) => {
       return customInstance<PostVideosVideoIdHeartbeats200>(
-      {url: `/api/v1/videos/${externalVideoId}/heartbeats`, method: 'POST'
+      {url: `/api/v1/videos/${videoId}/heartbeats`, method: 'POST'
     },
       );
     }
