@@ -220,8 +220,8 @@ export function SecurityTab() {
         const session = sessions.find((s) => s.id === confirmRevokeId);
         if (!session) return null;
         return (
-          <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-2xl border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4">
+          <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => { if (revokingId === null) setConfirmRevokeId(null); }}>
+            <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-2xl border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
               <h3 class="text-lg font-bold">{t("security.revokeConfirmTitle")}</h3>
               <p class="text-sm text-text-muted-light dark:text-text-muted-dark leading-relaxed">
                 {t("security.revokeConfirmDesc", { name: session.browser_name })}

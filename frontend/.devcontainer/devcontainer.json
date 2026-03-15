@@ -1,6 +1,6 @@
 {
   "name": "Frontend",
-  "dockerComposeFile": ["../../compose.yaml", "../../compose.override.yaml"],
+  "dockerComposeFile": ["../../compose.yaml", "../../compose.override.yaml", "docker-compose.devcontainer.yaml"],
   "service": "frontend",
   "workspaceFolder": "/usr/src/app",
   "forwardPorts": [3000],
@@ -9,7 +9,7 @@
       "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
     }
   },
-  "overrideCommand": true,
+  "overrideCommand": false,
   "remoteUser": "root",
   "updateRemoteUserUID": true,
   "mounts": [

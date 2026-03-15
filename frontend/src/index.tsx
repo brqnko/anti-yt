@@ -14,6 +14,7 @@ const Register = lazy(() => import("./pages/Register/index.jsx"));
 const Terms = lazy(() => import("./pages/Terms/index.jsx"));
 const Privacy = lazy(() => import("./pages/Privacy/index.jsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard/index.jsx"));
+const ChannelDetail = lazy(() => import("./pages/ChannelDetail/index.jsx"));
 const Profile = lazy(() => import("./pages/Profile/index.jsx"));
 const NotFound = lazy(() => import("./pages/_404.jsx"));
 import "./style.css";
@@ -23,6 +24,7 @@ function AppContent() {
     <Router>
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/channels/:channelId" component={ChannelDetail} />
       <Route path="/profile" component={Profile} />
       <Route path="/register" component={Register} />
       <Route path="/terms" component={Terms} />

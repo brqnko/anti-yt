@@ -15,7 +15,7 @@
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | public_id | uuid | uuidv7() | false |  |  |  |
-| playlist_description | varchar(255) | ''::character varying | false |  |  |  |
+| playlist_description | varchar(255) |  | false |  |  |  |
 
 ## Constraints
 

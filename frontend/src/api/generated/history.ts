@@ -25,7 +25,7 @@ import { customInstance } from '../mutator';
  * @summary Get video history
  */
 const getHistory = (
-    params?: GetHistoryParams,
+    params: GetHistoryParams,
  ) => {
       return customInstance<GetHistory200>(
       {url: `/api/v1/history`, method: 'GET',

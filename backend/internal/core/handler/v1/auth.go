@@ -24,20 +24,19 @@ func (h *APIHandler) GetAuthGoogle(c context.Context, request GetAuthGoogleReque
 		}, nil
 	}
 
+	util.AddResponseCookie(c, (&http.Cookie{
+		Name:     "csrf",
+		Value:    csrf,
+		Path:     "/",
+		Expires:  time.Now().Add(10 * time.Minute),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}).String())
+
 	return GetAuthGoogle302Response{
 		Headers: GetAuthGoogle302ResponseHeaders{
 			Location: url,
-			SetCookie: []string{
-				(&http.Cookie{
-					Name:     "csrf",
-					Value:    csrf,
-					Path:     "/",
-					Expires:  time.Now().Add(10 * time.Minute),
-					HttpOnly: true,
-					Secure:   true,
-					SameSite: http.SameSiteLaxMode,
-				}).String(),
-			},
 		},
 	}, nil
 }
@@ -52,7 +51,7 @@ func (h *APIHandler) GetAuthGoogleCallback(c context.Context, request GetAuthGoo
 		UserAgent:   request.Params.UserAgent,
 	})
 	if err != nil {
-		if errors.Is(err, auth.ErrCSRFOrStateIsEmpty) {
+		if errors.Is(err, auth.ErrInvalidCSRFOrState) {
 			return GetAuthGoogleCallback400JSONResponse{
 				BadRequestJSONResponse: BadRequestJSONResponse{
 					Detail: "CSRF is missing",
@@ -68,7 +67,7 @@ func (h *APIHandler) GetAuthGoogleCallback(c context.Context, request GetAuthGoo
 				},
 			}, nil
 		}
-		if errors.Is(err, auth.ErrCSRFIsWrong) {
+		if errors.Is(err, auth.ErrInvalidCSRF) {
 			return GetAuthGoogleCallback400JSONResponse{
 				BadRequestJSONResponse: BadRequestJSONResponse{
 					Detail: "CSRF is wrong",
@@ -86,38 +85,37 @@ func (h *APIHandler) GetAuthGoogleCallback(c context.Context, request GetAuthGoo
 		}, nil
 	}
 
+	util.AddResponseCookie(c, (&http.Cookie{
+		Name:     "access_token",
+		Value:    result.AccessToken,
+		Path:     "/",
+		Expires:  result.AccessTokenExpiresAt,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	}).String())
+	util.AddResponseCookie(c, (&http.Cookie{
+		Name:     "refresh_token",
+		Value:    result.RefreshToken,
+		Path:     "/",
+		Expires:  result.RefreshTokenExpiresAt,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	}).String())
+	util.AddResponseCookie(c, (&http.Cookie{
+		Name:     "csrf_token",
+		Value:    result.CSRFToken,
+		Path:     "/",
+		Expires:  time.Now().AddDate(100, 0, 0),
+		HttpOnly: false,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	}).String())
+
 	return GetAuthGoogleCallback302Response{
 		Headers: GetAuthGoogleCallback302ResponseHeaders{
 			Location: fmt.Sprintf("%s/%s", h.frontendURL, result.RedirectPath),
-			SetCookie: []string{
-				(&http.Cookie{
-					Name:     "access_token",
-					Value:    result.AccessToken,
-					Path:     "/",
-					Expires:  result.AccessTokenExpiresAt,
-					HttpOnly: true,
-					Secure:   true,
-					SameSite: http.SameSiteStrictMode,
-				}).String(),
-				(&http.Cookie{
-					Name:     "refresh_token",
-					Value:    result.RefreshToken,
-					Path:     "/",
-					Expires:  result.RefreshTokenExpiresAt,
-					HttpOnly: true,
-					Secure:   true,
-					SameSite: http.SameSiteStrictMode,
-				}).String(),
-				(&http.Cookie{
-					Name:     "csrf_token",
-					Value:    result.CSRFToken,
-					Path:     "/",
-					Expires:  time.Now().AddDate(100, 0, 0),
-					HttpOnly: false,
-					Secure:   true,
-					SameSite: http.SameSiteStrictMode,
-				}).String(),
-			},
 		},
 	}, nil
 }
@@ -152,39 +150,35 @@ func (h *APIHandler) PostAuthLogout(c context.Context, request PostAuthLogoutReq
 		}, nil
 	}
 
-	return PostAuthLogout200Response{
-		Headers: PostAuthLogout200ResponseHeaders{
-			SetCookie: []string{
-				(&http.Cookie{
-					Name:     "refresh_token",
-					Value:    "",
-					Path:     "/",
-					Expires:  time.Unix(0, 0),
-					HttpOnly: true,
-					Secure:   true,
-					SameSite: http.SameSiteStrictMode,
-				}).String(),
-				(&http.Cookie{
-					Name:     "csrf_token",
-					Value:    "",
-					Path:     "/",
-					Expires:  time.Unix(0, 0),
-					HttpOnly: false,
-					Secure:   true,
-					SameSite: http.SameSiteStrictMode,
-				}).String(),
-				(&http.Cookie{
-					Name:     "access_token",
-					Value:    "",
-					Path:     "/",
-					Expires:  time.Unix(0, 0),
-					HttpOnly: true,
-					Secure:   true,
-					SameSite: http.SameSiteStrictMode,
-				}).String(),
-			},
-		},
-	}, nil
+	util.AddResponseCookie(c, (&http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	}).String())
+	util.AddResponseCookie(c, (&http.Cookie{
+		Name:     "csrf_token",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: false,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	}).String())
+	util.AddResponseCookie(c, (&http.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	}).String())
+
+	return PostAuthLogout200Response{}, nil
 }
 
 func (h *APIHandler) PostAuthRefresh(c context.Context, request PostAuthRefreshRequestObject) (PostAuthRefreshResponseObject, error) {
@@ -209,30 +203,26 @@ func (h *APIHandler) PostAuthRefresh(c context.Context, request PostAuthRefreshR
 		}, nil
 	}
 
-	return PostAuthRefresh200Response{
-		Headers: PostAuthRefresh200ResponseHeaders{
-			SetCookie: []string{
-				(&http.Cookie{
-					Name:     "access_token",
-					Value:    newAccessToken,
-					Path:     "/",
-					Expires:  accessTokenExpiresAt,
-					HttpOnly: true,
-					Secure:   true,
-					SameSite: http.SameSiteStrictMode,
-				}).String(),
-				(&http.Cookie{
-					Name:     "refresh_token",
-					Value:    newRefreshToken,
-					Path:     "/",
-					Expires:  refreshTokenExpiresAt,
-					HttpOnly: true,
-					Secure:   true,
-					SameSite: http.SameSiteStrictMode,
-				}).String(),
-			},
-		},
-	}, nil
+	util.AddResponseCookie(c, (&http.Cookie{
+		Name:     "access_token",
+		Value:    newAccessToken,
+		Path:     "/",
+		Expires:  accessTokenExpiresAt,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	}).String())
+	util.AddResponseCookie(c, (&http.Cookie{
+		Name:     "refresh_token",
+		Value:    newRefreshToken,
+		Path:     "/",
+		Expires:  refreshTokenExpiresAt,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	}).String())
+
+	return PostAuthRefresh200Response{}, nil
 }
 
 func (h *APIHandler) GetUsersMeSessions(c context.Context, request GetUsersMeSessionsRequestObject) (GetUsersMeSessionsResponseObject, error) {

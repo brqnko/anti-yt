@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from "preact/hooks";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../contexts/AuthContext";
 import { getUser } from "../../api/generated/user";
 import { getChannel } from "../../api/generated/channel";
-import type { GetSubscriptions200ItemsItem } from "../../api/generated/antiYtApi.schemas";
+import type { GetSubscriptions200ItemsItem, PostSubscriptions201 } from "../../api/generated/antiYtApi.schemas";
 
 interface TimeRange {
   id: string;
@@ -137,35 +136,247 @@ function TimeRangeSlider({
   );
 }
 
+function AddChannelDialog({
+  open,
+  onClose,
+  onAdded,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onAdded: (sub: PostSubscriptions201) => void;
+}) {
+  const { t } = useTranslation();
+  const [channelId, setChannelId] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setChannelId("");
+      setIsSubmitting(false);
+      setError(null);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  const handleSubmit = async () => {
+    const trimmed = channelId.trim();
+    if (!trimmed || isSubmitting) return;
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const result = await getChannel().postSubscriptions({ channel_id: trimmed });
+      onAdded(result);
+      onClose();
+    } catch {
+      setError(t("dashboard.addChannelDialog.error"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 p-8 max-w-sm w-full">
+        <button
+          class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
+          onClick={onClose}
+        >
+          <span class="material-symbols-outlined">close</span>
+        </button>
+        <h2 class="text-lg font-bold text-charcoal dark:text-white mb-2">
+          {t("dashboard.addChannelDialog.title")}
+        </h2>
+        <p class="text-sm text-text-muted-light dark:text-text-muted-dark mb-4">
+          {t("dashboard.addChannelDialog.description")}
+        </p>
+        <input
+          type="text"
+          class="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all shadow-sm"
+          placeholder={t("dashboard.addChannelDialog.placeholder")}
+          value={channelId}
+          onInput={(e) => setChannelId((e.target as HTMLInputElement).value)}
+          onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
+        />
+        {error && (
+          <p class="text-sm text-red-500 mt-2">{error}</p>
+        )}
+        <div class="flex justify-end gap-3 mt-6">
+          <button
+            class="px-4 py-2 rounded-xl text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer"
+            onClick={onClose}
+          >
+            {t("dashboard.addChannelDialog.cancel")}
+          </button>
+          <button
+            class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 transition-colors border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!channelId.trim() || isSubmitting}
+            onClick={handleSubmit}
+          >
+            {isSubmitting
+              ? t("dashboard.addChannelDialog.adding")
+              : t("dashboard.addChannelDialog.add")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RemoveChannelDialog({
+  open,
+  channel,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean;
+  channel: GetSubscriptions200ItemsItem | null;
+  onClose: () => void;
+  onConfirm: () => Promise<void>;
+}) {
+  const { t } = useTranslation();
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setIsRemoving(false);
+      setError(null);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
+
+  if (!open || !channel) return null;
+
+  const handleConfirm = async () => {
+    if (isRemoving) return;
+    setIsRemoving(true);
+    setError(null);
+    try {
+      await onConfirm();
+      onClose();
+    } catch {
+      setError(t("restrictions.unsubscribeError"));
+    } finally {
+      setIsRemoving(false);
+    }
+  };
+
+  return (
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 p-8 max-w-sm w-full">
+        <button
+          class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
+          onClick={onClose}
+        >
+          <span class="material-symbols-outlined">close</span>
+        </button>
+        <div class="flex items-center gap-3 mb-4">
+          <h2 class="text-lg font-bold text-charcoal dark:text-white">
+            {t("restrictions.removeChannelDialog.title")}
+          </h2>
+        </div>
+        <div class="flex items-center gap-3 p-3 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark mb-4">
+          <img
+            src={channel.external_channel_icon_url}
+            alt=""
+            class="rounded-full size-10 shrink-0 border border-border-light dark:border-border-dark object-cover"
+          />
+          <div class="flex flex-col min-w-0">
+            <p class="font-bold truncate text-sm">{channel.external_channel_display_name}</p>
+            <p class="text-xs text-text-muted-light dark:text-text-muted-dark">{channel.channel_custom_id}</p>
+          </div>
+        </div>
+        <p class="text-sm text-text-muted-light dark:text-text-muted-dark mb-4">
+          {t("restrictions.removeChannelDialog.description", { name: channel.external_channel_display_name })}
+        </p>
+        {error && (
+          <p class="text-sm text-red-500 mb-4">{error}</p>
+        )}
+        <div class="flex justify-end gap-3">
+          <button
+            class="px-4 py-2 rounded-xl text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer"
+            onClick={onClose}
+          >
+            {t("restrictions.removeChannelDialog.cancel")}
+          </button>
+          <button
+            class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isRemoving}
+            onClick={handleConfirm}
+          >
+            {isRemoving
+              ? t("restrictions.removeChannelDialog.removing")
+              : t("restrictions.removeChannelDialog.remove")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function RestrictionsTab() {
   const { t } = useTranslation();
-  const { user, refreshUser } = useAuth();
 
   // Time ranges from user's screen_time
-  const [timeRanges, setTimeRanges] = useState<TimeRange[]>(() =>
-    (user?.screen_time ?? []).map((slot) => ({
-      id: slot.id,
-      startMinutes: parseTimeToMinutes(slot.start_time),
-      endMinutes: parseTimeToMinutes(slot.end_time),
-    })),
-  );
+  const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
 
   // Daily cap
-  const dailySeconds = user?.daily_screen_seconds ?? 0;
-  const [hours, setHours] = useState(
-    dailySeconds > 0 ? Math.floor(dailySeconds / 3600) : 1,
-  );
-  const [minutes, setMinutes] = useState(
-    dailySeconds > 0 ? Math.floor((dailySeconds % 3600) / 60) : 0,
-  );
+  const [hours, setHours] = useState(1);
+  const [minutes, setMinutes] = useState(0);
+  const [isUnlimited, setIsUnlimited] = useState(false);
+
+  useEffect(() => {
+    const { getUsersMeStatus } = getUser();
+    getUsersMeStatus().then((user) => {
+      setTimeRanges(
+        (user.screen_time ?? []).map((slot) => ({
+          id: slot.id,
+          startMinutes: parseTimeToMinutes(slot.start_time),
+          endMinutes: parseTimeToMinutes(slot.end_time),
+        })),
+      );
+      const ds = user.daily_screen_seconds;
+      if (ds != null && ds > 0) {
+        setHours(Math.floor(ds / 3600));
+        setMinutes(Math.floor((ds % 3600) / 60));
+        setIsUnlimited(false);
+      } else if (ds == null) {
+        setIsUnlimited(true);
+      }
+    }).catch(() => {});
+  }, []);
 
   // Saving state
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveFading, setSaveFading] = useState(false);
+  const [saveError, setSaveError] = useState(false);
 
   // Whitelist (subscriptions)
   const [channels, setChannels] = useState<GetSubscriptions200ItemsItem[]>([]);
   const [channelSearch, setChannelSearch] = useState("");
+  const [showAddChannel, setShowAddChannel] = useState(false);
 
   useEffect(() => {
     const { getSubscriptions } = getChannel();
@@ -198,6 +409,7 @@ export function RestrictionsTab() {
   const handleSave = async () => {
     setIsSaving(true);
     setSaveSuccess(false);
+    setSaveError(false);
     try {
       const { patchUsersMeStatus } = getUser();
       await patchUsersMeStatus({
@@ -206,13 +418,14 @@ export function RestrictionsTab() {
           start_time: formatTime(r.startMinutes),
           end_time: formatTime(r.endMinutes),
         })),
-        daily_screen_seconds: hours * 3600 + minutes * 60,
+        daily_screen_seconds: isUnlimited ? undefined : hours * 3600 + minutes * 60,
       });
-      await refreshUser();
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
+      setSaveFading(false);
+      setTimeout(() => setSaveFading(true), 2500);
+      setTimeout(() => { setSaveSuccess(false); setSaveFading(false); }, 3000);
     } catch {
-      // Error handling
+      setSaveError(true);
     } finally {
       setIsSaving(false);
     }
@@ -223,16 +436,14 @@ export function RestrictionsTab() {
   const clampMinutes = (v: number) =>
     setMinutes(Math.max(0, Math.min(59, isNaN(v) ? 0 : v)));
 
-  const isTimeInvalid = hours === 0 && minutes === 0;
+  const isTimeInvalid = !isUnlimited && hours === 0 && minutes === 0;
 
-  const handleUnsubscribe = async (channelId: string) => {
-    try {
-      const { deleteSubscriptionsChannelId } = getChannel();
-      await deleteSubscriptionsChannelId(channelId);
-      setChannels(channels.filter((ch) => ch.channel_id !== channelId));
-    } catch {
-      // Error handling
-    }
+  const [removeTarget, setRemoveTarget] = useState<GetSubscriptions200ItemsItem | null>(null);
+
+  const handleUnsubscribe = async (subscriptionId: string) => {
+    const { deleteSubscriptionsSubscriptionId } = getChannel();
+    await deleteSubscriptionsSubscriptionId(subscriptionId);
+    setChannels(channels.filter((ch) => ch.subscription_id !== subscriptionId));
   };
 
   return (
@@ -247,10 +458,7 @@ export function RestrictionsTab() {
           {/* Time Constraints */}
           <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
             <div class="p-6 border-b border-border-light dark:border-border-dark">
-              <h2 class="text-xl font-bold flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary">
-                  schedule
-                </span>
+              <h2 class="text-xl font-bold">
                 {t("restrictions.timeConstraints")}
               </h2>
             </div>
@@ -293,86 +501,102 @@ export function RestrictionsTab() {
 
               {/* Daily Cap Limit */}
               <div class="flex flex-col gap-4">
-                <label class="text-base font-semibold">
-                  {t("restrictions.dailyCapLimit")}
-                </label>
-                <div class="flex flex-wrap gap-4 items-center">
-                  <div class="relative">
-                    <input
-                      type="number"
-                      class="w-24 pl-4 pr-8 py-3 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
-                      min={0}
-                      max={23}
-                      value={hours}
-                      onInput={(e) =>
-                        clampHours(
-                          parseInt((e.target as HTMLInputElement).value),
-                        )
-                      }
-                    />
-                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-muted-light dark:text-text-muted-dark font-medium">
-                      {t("restrictions.hr")}
-                    </span>
-                  </div>
-                  <span class="text-text-muted-light dark:text-text-muted-dark font-bold">
-                    :
-                  </span>
-                  <div class="relative">
-                    <input
-                      type="number"
-                      class="w-24 pl-4 pr-8 py-3 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
-                      min={0}
-                      max={59}
-                      value={minutes}
-                      onInput={(e) =>
-                        clampMinutes(
-                          parseInt((e.target as HTMLInputElement).value),
-                        )
-                      }
-                    />
-                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-muted-light dark:text-text-muted-dark font-medium">
-                      {t("restrictions.min")}
-                    </span>
-                  </div>
+                <div class="flex justify-between items-center flex-wrap gap-2">
+                  <label class="text-base font-semibold">
+                    {t("restrictions.dailyCapLimit")}
+                  </label>
                   <button
-                    class="ml-auto px-6 py-3 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors shadow-lg shadow-primary/20 flex items-center gap-2 cursor-pointer border-none"
-                    disabled={isSaving || isTimeInvalid}
-                    onClick={handleSave}
+                    type="button"
+                    onClick={() => setIsUnlimited(!isUnlimited)}
+                    class={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all cursor-pointer border ${
+                      isUnlimited
+                        ? "bg-primary/10 text-primary border-primary/30"
+                        : "bg-transparent text-text-muted-light dark:text-text-muted-dark border-border-light dark:border-border-dark hover:border-primary/50"
+                    }`}
                   >
-                    <span class="material-symbols-outlined text-[20px]">
-                      save
+                    <span class="material-symbols-outlined text-[18px]">
+                      {isUnlimited ? "all_inclusive" : "timer"}
                     </span>
-                    {isSaving ? t("restrictions.saving") : t("restrictions.save")}
+                    {t("restrictions.unlimited")}
                   </button>
                 </div>
-                {saveSuccess && (
-                  <span class="text-sm text-green-600 dark:text-green-400 font-medium flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[18px]">
-                      check_circle
+                {!isUnlimited && (
+                  <div class="flex flex-wrap gap-4 items-center">
+                    <div class="relative">
+                      <input
+                        type="number"
+                        class="w-24 pl-4 pr-8 py-3 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
+                        min={0}
+                        max={23}
+                        value={hours}
+                        onInput={(e) =>
+                          clampHours(
+                            parseInt((e.target as HTMLInputElement).value),
+                          )
+                        }
+                      />
+                      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-muted-light dark:text-text-muted-dark font-medium">
+                        {t("restrictions.hr")}
+                      </span>
+                    </div>
+                    <span class="text-text-muted-light dark:text-text-muted-dark font-bold">
+                      :
                     </span>
-                    {t("restrictions.saved")}
-                  </span>
+                    <div class="relative">
+                      <input
+                        type="number"
+                        class="w-24 pl-4 pr-8 py-3 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
+                        min={0}
+                        max={59}
+                        value={minutes}
+                        onInput={(e) =>
+                          clampMinutes(
+                            parseInt((e.target as HTMLInputElement).value),
+                          )
+                        }
+                      />
+                      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-muted-light dark:text-text-muted-dark font-medium">
+                        {t("restrictions.min")}
+                      </span>
+                    </div>
+                  </div>
                 )}
-                {isTimeInvalid && (
+                {!isUnlimited && isTimeInvalid && (
                   <p class="text-sm text-red-500">
                     {t("restrictions.zeroTimeError")}
                   </p>
                 )}
+                <div class="flex items-center gap-3">
+                  <button
+                    class="px-6 py-3 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors shadow-lg shadow-primary/20 flex items-center gap-2 cursor-pointer border-none"
+                    disabled={isSaving || isTimeInvalid}
+                    onClick={handleSave}
+                  >
+                    {isSaving ? t("restrictions.saving") : t("restrictions.save")}
+                  </button>
+                  {saveSuccess && (
+                    <span class={`text-sm text-green-600 dark:text-green-400 font-medium transition-opacity duration-500 ${saveFading ? "opacity-0" : "opacity-100"}`}>
+                      {t("restrictions.saved")}
+                    </span>
+                  )}
+                  {saveError && (
+                    <span class="text-sm text-red-500 font-medium flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[18px]">
+                        error
+                      </span>
+                      {t("restrictions.saveError")}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
           {/* Whitelist */}
           <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
             <div class="p-6 border-b border-border-light dark:border-border-dark">
-              <h2 class="text-xl font-bold flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary">
-                  playlist_add_check
-                </span>
+              <h2 class="text-xl font-bold">
                 {t("restrictions.whitelist")}
               </h2>
-              <p class="text-sm text-text-muted-light dark:text-text-muted-dark mt-1">
-                {t("restrictions.whitelistDesc")}
-              </p>
             </div>
             <div class="p-6 flex flex-col gap-6 grow">
               <div class="relative group">
@@ -402,23 +626,22 @@ export function RestrictionsTab() {
                     key={ch.channel_id}
                     class="flex items-center gap-4 p-3 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark group hover:border-primary/50 transition-colors"
                   >
-                    <div
-                      class="bg-center bg-no-repeat bg-cover rounded-full size-12 shrink-0 border border-border-light dark:border-border-dark"
-                      style={{
-                        backgroundImage: `url("${ch.external_channel_icon_url}")`,
-                      }}
+                    <img
+                      src={ch.external_channel_icon_url}
+                      alt=""
+                      class="rounded-full size-12 shrink-0 border border-border-light dark:border-border-dark object-cover"
                     />
                     <div class="flex flex-col grow min-w-0">
                       <p class="font-bold truncate">
                         {ch.external_channel_display_name}
                       </p>
                       <p class="text-xs text-text-muted-light dark:text-text-muted-dark">
-                        @{ch.channel_custom_id}
+                        {ch.channel_custom_id}
                       </p>
                     </div>
                     <button
                       class="size-8 flex items-center justify-center rounded-full text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all cursor-pointer bg-transparent border-none"
-                      onClick={() => handleUnsubscribe(ch.channel_id)}
+                      onClick={() => setRemoveTarget(ch)}
                     >
                       <span class="material-symbols-outlined text-[20px]">
                         close
@@ -427,10 +650,35 @@ export function RestrictionsTab() {
                   </div>
                 ))}
               </div>
+              <button
+                type="button"
+                class="flex items-center justify-center gap-2 w-full py-3 border border-dashed border-border-light dark:border-border-dark rounded-lg text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 transition-all group cursor-pointer bg-transparent"
+                onClick={() => setShowAddChannel(true)}
+              >
+                <span class="material-symbols-outlined group-hover:scale-110 transition-transform">
+                  add
+                </span>
+                <span class="text-sm font-bold">
+                  {t("dashboard.requestChannel")}
+                </span>
+              </button>
             </div>
           </div>
 
       </div>
+
+      <AddChannelDialog
+        open={showAddChannel}
+        onClose={() => setShowAddChannel(false)}
+        onAdded={(sub) => setChannels((prev) => [...prev, sub])}
+      />
+
+      <RemoveChannelDialog
+        open={removeTarget !== null}
+        channel={removeTarget}
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={() => handleUnsubscribe(removeTarget!.subscription_id)}
+      />
     </>
   );
 }

@@ -13,7 +13,10 @@ import (
 )
 
 const cleanupExpiredJTIBlacklist = `-- name: CleanupExpiredJTIBlacklist :exec
-DELETE FROM t_jti_blacklist WHERE expires_at < $1
+DELETE FROM
+    t_jti_blacklist
+WHERE
+    expires_at < $1
 `
 
 // expires_atが過ぎたjtiのブラックリストを削除します。
@@ -23,12 +26,22 @@ func (q *Queries) CleanupExpiredJTIBlacklist(ctx context.Context, expiresAt time
 }
 
 const getRefreshTokens = `-- name: GetRefreshTokens :many
-SELECT m_refresh_token.public_id, m_refresh_token.created_at, m_refresh_token.updated_at, m_refresh_token.country_code, m_refresh_token.city_name, m_refresh_token.browser_name
-FROM m_refresh_token
-INNER JOIN m_user ON m_user.m_user_authorization_id = m_refresh_token.m_user_authorization_id
-WHERE m_user.public_id = $1
-ORDER BY m_refresh_token.created_at DESC
-LIMIT $2 OFFSET $3
+SELECT
+    m_refresh_token.public_id,
+    m_refresh_token.created_at,
+    m_refresh_token.updated_at,
+    m_refresh_token.country_code,
+    m_refresh_token.city_name,
+    m_refresh_token.browser_name
+FROM
+    m_refresh_token
+    INNER JOIN m_user ON m_user.m_user_authorization_id = m_refresh_token.m_user_authorization_id
+WHERE
+    m_user.public_id = $1
+ORDER BY
+    m_refresh_token.created_at DESC
+LIMIT
+    $2 OFFSET $3
 `
 
 type GetRefreshTokensParams struct {
@@ -75,10 +88,25 @@ func (q *Queries) GetRefreshTokens(ctx context.Context, arg GetRefreshTokensPara
 }
 
 const getUserIDByAuthorization = `-- name: GetUserIDByAuthorization :one
-SELECT m_user.public_id, false AS is_h FROM m_user WHERE m_user.m_user_authorization_id = $1
+SELECT
+    m_user.public_id,
+    false AS is_h
+FROM
+    m_user
+WHERE
+    m_user.m_user_authorization_id = $1
 UNION ALL
-SELECT h_user.public_id, true AS is_h FROM h_user WHERE h_user.m_user_authorization_id = $1
-LIMIT 1
+SELECT
+    h_user.public_id,
+    true AS is_h
+FROM
+    h_user
+WHERE
+    h_user.m_user_authorization_id = $1
+ORDER BY
+    is_h
+LIMIT
+    1
 `
 
 type GetUserIDByAuthorizationRow struct {
@@ -97,7 +125,14 @@ func (q *Queries) GetUserIDByAuthorization(ctx context.Context, mUserAuthorizati
 }
 
 const isJTIBlacklisted = `-- name: IsJTIBlacklisted :one
-SELECT expires_at FROM t_jti_blacklist WHERE jti = $1 LIMIT 1
+SELECT
+    expires_at
+FROM
+    t_jti_blacklist
+WHERE
+    jti = $1
+LIMIT
+    1
 `
 
 // jtiがブラックリストに存在するか確認する。
@@ -112,17 +147,34 @@ func (q *Queries) IsJTIBlacklisted(ctx context.Context, jti uuid.UUID) (time.Tim
 
 const removeRefreshTokenByIDAndSaveJtiBlacklist = `-- name: RemoveRefreshTokenByIDAndSaveJtiBlacklist :one
 WITH deleted AS (
-    DELETE FROM m_refresh_token
-        USING m_user
-        WHERE m_user.public_id = $1
+    DELETE FROM
+        m_refresh_token USING m_user
+    WHERE
+        m_user.public_id = $1
         AND m_user.m_user_authorization_id = m_refresh_token.m_user_authorization_id
         AND m_refresh_token.public_id = $2
-    RETURNING public_id, access_token_jti
+    RETURNING
+        m_refresh_token.public_id,
+        m_refresh_token.access_token_jti
 ),
 inserted AS (
-    INSERT INTO t_jti_blacklist (jti, expires_at) SELECT access_token_jti, $3 FROM deleted ON CONFLICT DO NOTHING RETURNING jti
+    INSERT INTO
+        t_jti_blacklist (jti, expires_at)
+    SELECT
+        access_token_jti,
+        $3
+    FROM
+        deleted
+    ON CONFLICT DO NOTHING
+    RETURNING
+        jti
 )
-SELECT public_id FROM deleted LIMIT 1
+SELECT
+    deleted.public_id
+FROM
+    deleted
+LIMIT
+    1
 `
 
 type RemoveRefreshTokenByIDAndSaveJtiBlacklistParams struct {
@@ -143,17 +195,34 @@ func (q *Queries) RemoveRefreshTokenByIDAndSaveJtiBlacklist(ctx context.Context,
 
 const removeRefreshTokenByTokenHashAndSaveJtiBlacklist = `-- name: RemoveRefreshTokenByTokenHashAndSaveJtiBlacklist :one
 WITH deleted AS (
-    DELETE FROM m_refresh_token
-        USING m_user
-        WHERE m_user.public_id = $1
+    DELETE FROM
+        m_refresh_token USING m_user
+    WHERE
+        m_user.public_id = $1
         AND m_user.m_user_authorization_id = m_refresh_token.m_user_authorization_id
         AND m_refresh_token.token_hash = $2
-    RETURNING public_id, access_token_jti
+    RETURNING
+        m_refresh_token.public_id,
+        m_refresh_token.access_token_jti
 ),
 inserted AS (
-    INSERT INTO t_jti_blacklist (jti, expires_at) SELECT access_token_jti, $3 FROM deleted ON CONFLICT DO NOTHING RETURNING jti
+    INSERT INTO
+        t_jti_blacklist (jti, expires_at)
+    SELECT
+        access_token_jti,
+        $3
+    FROM
+        deleted
+    ON CONFLICT DO NOTHING
+    RETURNING
+        jti
 )
-SELECT public_id FROM deleted LIMIT 1
+SELECT
+    deleted.public_id
+FROM
+    deleted
+LIMIT
+    1
 `
 
 type RemoveRefreshTokenByTokenHashAndSaveJtiBlacklistParams struct {
@@ -173,12 +242,19 @@ func (q *Queries) RemoveRefreshTokenByTokenHashAndSaveJtiBlacklist(ctx context.C
 }
 
 const saveAuthorization = `-- name: SaveAuthorization :one
-INSERT INTO m_user_authorization (issuer, sub)
-VALUES ($1, $2)
-ON CONFLICT (issuer, sub) DO UPDATE
-    SET issuer = EXCLUDED.issuer,
-        last_logged_in_at = current_timestamp
-RETURNING m_user_authorization_id, public_id, (xmax = 0) AS is_created
+INSERT INTO
+    m_user_authorization (issuer, sub)
+VALUES
+    ($1, $2)
+ON CONFLICT (issuer, sub) DO
+UPDATE
+SET
+    issuer = EXCLUDED.issuer,
+    last_logged_in_at = current_timestamp
+RETURNING
+    m_user_authorization_id,
+    public_id,
+    (xmax = 0) AS is_created
 `
 
 type SaveAuthorizationParams struct {
@@ -204,8 +280,10 @@ func (q *Queries) SaveAuthorization(ctx context.Context, arg SaveAuthorizationPa
 }
 
 const saveJTIBlacklist = `-- name: SaveJTIBlacklist :exec
-INSERT INTO t_jti_blacklist (jti, expires_at)
-VALUES ($1, $2)
+INSERT INTO
+    t_jti_blacklist (jti, expires_at)
+VALUES
+    ($1, $2)
 ON CONFLICT DO NOTHING
 `
 
@@ -222,10 +300,24 @@ func (q *Queries) SaveJTIBlacklist(ctx context.Context, arg SaveJTIBlacklistPara
 }
 
 const saveRefreshToken = `-- name: SaveRefreshToken :one
-INSERT INTO m_refresh_token (m_user_authorization_id, token_hash, ip_address, device_fingerprint, user_agent,
-                             country_code, city_name, browser_name, device_type, expires_at, access_token_jti)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-ON CONFLICT DO NOTHING RETURNING m_refresh_token_id
+INSERT INTO
+    m_refresh_token (
+        m_user_authorization_id,
+        token_hash,
+        ip_address,
+        device_fingerprint,
+        user_agent,
+        country_code,
+        city_name,
+        browser_name,
+        device_type,
+        expires_at,
+        access_token_jti
+    )
+VALUES
+    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+RETURNING
+    m_refresh_token_id
 `
 
 type SaveRefreshTokenParams struct {
@@ -243,7 +335,6 @@ type SaveRefreshTokenParams struct {
 }
 
 // リフレッシュトークンをテーブルに保存する。
-// token_hashに一意制約があり、重複する場合はpgx.ErrTxClosedが返される。
 // m_refresh_token_idが返される。
 func (q *Queries) SaveRefreshToken(ctx context.Context, arg SaveRefreshTokenParams) (int64, error) {
 	row := q.db.QueryRow(ctx, saveRefreshToken,
@@ -266,26 +357,35 @@ func (q *Queries) SaveRefreshToken(ctx context.Context, arg SaveRefreshTokenPara
 
 const updateRefreshToken = `-- name: UpdateRefreshToken :one
 WITH updated AS (
-    UPDATE m_refresh_token
-    SET token_hash         = $1,
-        expires_at         = $2,
-        ip_address         = $3,
+    UPDATE
+        m_refresh_token
+    SET
+        token_hash = $1,
+        expires_at = $2,
+        ip_address = $3,
         device_fingerprint = $4,
-        user_agent         = $5,
-        country_code       = $6,
-        city_name          = $7,
-        browser_name       = $8,
-        device_type        = $9,
-        updated_at         = current_timestamp,
-        generation         = generation + 1,
-        access_token_jti   = $10
-    WHERE token_hash = $11 -- NOTE: token_hashにunique indexがあるため、updated_at, expires_atにインデックスは張らなくてもよい
-    AND m_refresh_token.updated_at < $12
-    AND expires_at > current_timestamp
-    RETURNING m_user_authorization_id
+        user_agent = $5,
+        country_code = $6,
+        city_name = $7,
+        browser_name = $8,
+        device_type = $9,
+        updated_at = current_timestamp,
+        generation = generation + 1,
+        access_token_jti = $10
+    WHERE
+        token_hash = $11 -- NOTE: token_hashにunique indexがあるため、updated_at, expires_atにインデックスは張らなくてもよい
+        AND m_refresh_token.updated_at < $12
+        AND expires_at > current_timestamp
+    RETURNING
+        m_user_authorization_id
 )
-SELECT public_id FROM m_user INNER JOIN updated ON m_user.m_user_authorization_id = updated.m_user_authorization_id
-LIMIT 1
+SELECT
+    public_id
+FROM
+    m_user
+    INNER JOIN updated ON m_user.m_user_authorization_id = updated.m_user_authorization_id
+LIMIT
+    1
 `
 
 type UpdateRefreshTokenParams struct {

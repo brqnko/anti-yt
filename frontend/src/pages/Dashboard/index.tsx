@@ -1,4 +1,4 @@
-import { useState, useEffect } from "preact/hooks";
+import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
@@ -10,6 +10,7 @@ import type {
   GetFeed200ItemsItem,
   GetSubscriptions200ItemsItem,
   GetPlaylists200ItemsItem,
+  PostSubscriptions201,
 } from "../../api/generated/antiYtApi.schemas";
 
 function formatDuration(totalSeconds: number): string {
@@ -19,12 +20,6 @@ function formatDuration(totalSeconds: number): string {
   const mm = String(m).padStart(2, "0");
   const ss = String(s).padStart(2, "0");
   return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
-}
-
-function formatViews(count: number): string {
-  if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-  if (count >= 1_000) return `${(count / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
-  return String(count);
 }
 
 function formatTimeAgo(dateStr: string, t: (key: string, opts?: object) => string): string {
@@ -53,52 +48,158 @@ function VideoCard({
   t: (key: string, opts?: object) => string;
 }) {
   return (
-    <article class="flex flex-col gap-3 group">
-      <div class="relative aspect-video rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-800">
-        <div
-          class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-          style={`background-image: url('${video.external_video_thumbnail_url}');`}
+    <article class="flex flex-col gap-3">
+      <div class="group/thumb relative aspect-video rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-800 cursor-pointer">
+        <img
+          src={video.external_video_thumbnail_url}
+          alt={video.external_video_title}
+          class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/thumb:scale-105"
         />
-        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300" />
         <span class="absolute bottom-2 right-2 bg-black/80 text-white text-xs font-bold px-1.5 py-0.5 rounded">
           {formatDuration(video.external_video_length_seconds)}
         </span>
-        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-          <div class="size-12 rounded-full bg-primary/90 flex items-center justify-center text-white shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
+        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300 pointer-events-none">
+          <div class="size-12 rounded-full bg-primary/90 flex items-center justify-center text-white shadow-lg transform scale-90 group-hover/thumb:scale-100 transition-transform">
             <span class="material-symbols-outlined text-[28px] ml-1">
               play_arrow
             </span>
           </div>
         </div>
       </div>
-      <div class="flex gap-3">
-        <div class="size-9 rounded-full bg-gray-300 dark:bg-gray-700 flex-shrink-0 overflow-hidden mt-1">
+      <div class="flex gap-3 items-start">
+        <a href={`/channels/${video.channel_id}`} class="size-9 rounded-full bg-gray-300 dark:bg-gray-700 flex-shrink-0 overflow-hidden cursor-pointer">
           <img
             alt={video.external_channel_display_name}
             class="w-full h-full object-cover"
             src={video.external_channel_icon_url}
           />
-        </div>
-        <div class="flex flex-col">
-          <h3 class="text-base font-bold text-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+        </a>
+        <div class="flex flex-col min-w-0 flex-1">
+          <h3 class="text-base font-bold text-charcoal dark:text-white leading-tight line-clamp-2 cursor-pointer">
             {video.external_video_title}
           </h3>
-          <div class="flex flex-col text-sm text-text-muted-light dark:text-text-muted-dark mt-1">
-            <span class="font-medium hover:text-charcoal dark:hover:text-white cursor-pointer">
+          <div class="flex items-center justify-between text-sm text-text-muted-light dark:text-text-muted-dark mt-1">
+            <a href={`/channels/${video.channel_id}`} class="font-medium hover:text-charcoal dark:hover:text-white cursor-pointer truncate no-underline text-text-muted-light dark:text-text-muted-dark">
               {video.external_channel_display_name}
-            </span>
-            <div class="flex items-center gap-1 text-xs mt-0.5">
-              <span>
-                {formatViews(video.external_video_watch_count)}{" "}
-                {t("dashboard.views")}
-              </span>
-              <span>-</span>
-              <span>{formatTimeAgo(video.external_video_created_at, t)}</span>
-            </div>
+            </a>
+            <span class="text-xs flex-shrink-0 ml-2">{formatTimeAgo(video.external_video_created_at, t)}</span>
           </div>
         </div>
       </div>
     </article>
+  );
+}
+
+function AddChannelDialog({
+  open,
+  onClose,
+  onAdded,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onAdded: (sub: PostSubscriptions201) => void;
+}) {
+  const { t } = useTranslation();
+  const [channelId, setChannelId] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setChannelId("");
+      setIsSubmitting(false);
+      setError(null);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  const handleSubmit = async () => {
+    const trimmed = channelId.trim();
+    if (!trimmed || isSubmitting) return;
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const result = await getChannel().postSubscriptions({ channel_id: trimmed });
+      onAdded(result);
+      onClose();
+    } catch {
+      setError(t("dashboard.addChannelDialog.error"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 p-8 max-w-sm w-full">
+        <button
+          class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
+          onClick={onClose}
+        >
+          <span class="material-symbols-outlined">close</span>
+        </button>
+        <h2 class="text-lg font-bold text-charcoal dark:text-white mb-2">
+          {t("dashboard.addChannelDialog.title")}
+        </h2>
+        <p class="text-sm text-text-muted-light dark:text-text-muted-dark mb-4">
+          {t("dashboard.addChannelDialog.description")}
+        </p>
+        <div class="relative">
+          <button
+            type="button"
+            class="absolute inset-y-0 left-0 flex items-center pl-3 pr-1 text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors bg-transparent border-none cursor-pointer"
+            onClick={async () => {
+              try {
+                const text = await navigator.clipboard.readText();
+                if (text) setChannelId(text);
+              } catch {}
+            }}
+          >
+            <span class="material-symbols-outlined text-[20px]">content_paste</span>
+          </button>
+          <input
+            type="text"
+            class="w-full pl-10 pr-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all shadow-sm"
+            placeholder={t("dashboard.addChannelDialog.placeholder")}
+            value={channelId}
+            onInput={(e) => setChannelId((e.target as HTMLInputElement).value)}
+            onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
+          />
+        </div>
+        {error && (
+          <p class="text-sm text-red-500 mt-2">{error}</p>
+        )}
+        <div class="flex justify-end gap-3 mt-6">
+          <button
+            class="px-4 py-2 rounded-xl text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer"
+            onClick={onClose}
+          >
+            {t("dashboard.addChannelDialog.cancel")}
+          </button>
+          <button
+            class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 transition-colors border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!channelId.trim() || isSubmitting}
+            onClick={handleSubmit}
+          >
+            {isSubmitting
+              ? t("dashboard.addChannelDialog.adding")
+              : t("dashboard.addChannelDialog.add")}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -112,6 +213,10 @@ function DashboardContent() {
   >([]);
   const [playlists, setPlaylists] = useState<GetPlaylists200ItemsItem[]>([]);
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasNext, setHasNext] = useState(false);
+  const cursorRef = useRef<string | undefined>(undefined);
+  const [showAddChannel, setShowAddChannel] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -121,7 +226,12 @@ function DashboardContent() {
           getChannel().getSubscriptions({ limit: 10 }),
           getPlaylist().getPlaylists({ limit: 10 }),
         ]);
-        if (feedRes.status === "fulfilled") setFeedVideos(feedRes.value.items);
+        if (feedRes.status === "fulfilled") {
+          setFeedVideos(feedRes.value.items);
+          setHasNext(feedRes.value.has_next);
+          const lastItem = feedRes.value.items[feedRes.value.items.length - 1];
+          cursorRef.current = lastItem?.video_id;
+        }
         if (subsRes.status === "fulfilled")
           setSubscriptions(subsRes.value.items);
         if (playlistRes.status === "fulfilled")
@@ -133,13 +243,42 @@ function DashboardContent() {
     loadData();
   }, []);
 
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasNext) return;
+    setIsLoadingMore(true);
+    try {
+      const res = await getVideo().getFeed({ limit: 12, cursor: cursorRef.current });
+      setFeedVideos((prev) => [...prev, ...res.items]);
+      setHasNext(res.has_next);
+      const lastItem = res.items[res.items.length - 1];
+      cursorRef.current = lastItem?.video_id;
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, hasNext]);
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMore();
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadMore]);
+
   return (
-    <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
+    <div class="relative flex h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
       <DashboardHeader />
 
-      <div class="flex flex-1 w-full max-w-[1600px] mx-auto">
+      <div class="flex flex-1 w-full max-w-[1600px] mx-auto overflow-hidden">
         {/* Left Sidebar */}
-        <aside class="hidden lg:flex w-64 flex-col gap-6 p-6 border-r border-border-light dark:border-border-dark sticky top-[65px] h-[calc(100vh-65px)] overflow-y-auto">
+        <aside class="hidden lg:flex w-64 flex-col gap-6 p-6 border-r border-border-light dark:border-border-dark overflow-y-auto shrink-0">
           <nav class="flex flex-col gap-1">
             <a
               class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg font-bold no-underline"
@@ -157,11 +296,12 @@ function DashboardContent() {
             </a>
             <a
               class="flex items-center gap-3 px-3 py-2 text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-charcoal dark:hover:text-white rounded-lg font-medium transition-colors no-underline"
-              href="#"
+              href="/channels"
             >
-              <span class="material-symbols-outlined">settings</span>
-              {t("dashboard.nav.settings")}
+              <span class="material-symbols-outlined">recommend</span>
+              {t("dashboard.nav.recommendedChannels")}
             </a>
+
           </nav>
 
           <div class="h-px bg-border-light dark:bg-border-dark w-full my-2" />
@@ -176,7 +316,7 @@ function DashboardContent() {
                 <a
                   key={sub.channel_id}
                   class="flex items-center gap-3 px-3 py-2 hover:bg-card-light dark:hover:bg-card-dark rounded-lg group transition-colors no-underline"
-                  href="#"
+                  href={`/channels/${sub.channel_id}`}
                 >
                   <div class="size-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
                     <img
@@ -195,9 +335,12 @@ function DashboardContent() {
                   {t("dashboard.noChannels")}
                 </p>
               )}
-              <button class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium hover:underline mt-1 cursor-pointer bg-transparent border-none">
+              <button
+                class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium mt-1 cursor-pointer bg-transparent border-none group/add"
+                onClick={() => setShowAddChannel(true)}
+              >
                 <span class="material-symbols-outlined text-[18px]">add</span>
-                {t("dashboard.requestChannel")}
+                <span class="group-hover/add:underline">{t("dashboard.requestChannel")}</span>
               </button>
             </div>
           </div>
@@ -234,12 +377,7 @@ function DashboardContent() {
         </aside>
 
         {/* Main Content */}
-        <main class="flex-1 flex flex-col p-6 min-w-0">
-
-          {/* Feed header */}
-          <div class="mb-6">
-            <h1 class="text-2xl font-bold">{t("dashboard.curatedFeed")}</h1>
-          </div>
+        <main class="flex-1 flex flex-col p-6 min-w-0 overflow-y-auto">
 
           {/* Video grid */}
           {isLoadingFeed ? (
@@ -249,11 +387,26 @@ function DashboardContent() {
               </span>
             </div>
           ) : feedVideos.length > 0 ? (
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {feedVideos.map((video) => (
-                <VideoCard key={video.video_id} video={video} t={t} />
-              ))}
-            </div>
+            <>
+              <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {feedVideos.map((video) => (
+                  <VideoCard key={video.video_id} video={video} t={t} />
+                ))}
+              </div>
+              <div ref={sentinelRef} class="h-1" />
+              {isLoadingMore && (
+                <div class="flex items-center justify-center py-8">
+                  <span class="material-symbols-outlined text-3xl animate-spin text-primary">
+                    progress_activity
+                  </span>
+                </div>
+              )}
+              {!hasNext && !isLoadingMore && (
+                <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">
+                  🎉 {t("dashboard.endOfFeed")}
+                </p>
+              )}
+            </>
           ) : (
             <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
               <span class="material-symbols-outlined text-5xl mb-4">
@@ -261,11 +414,24 @@ function DashboardContent() {
               </span>
               <p class="text-lg font-medium">{t("dashboard.noVideos")}</p>
               <p class="text-sm mt-1">{t("dashboard.noVideosDesc")}</p>
+              <a
+                class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
+                href="/channels"
+              >
+                <span class="material-symbols-outlined text-[18px]">recommend</span>
+                {t("dashboard.nav.recommendedChannels")}
+              </a>
             </div>
           )}
         </main>
 
       </div>
+
+      <AddChannelDialog
+        open={showAddChannel}
+        onClose={() => setShowAddChannel(false)}
+        onAdded={(sub) => setSubscriptions((prev) => [...prev, sub])}
+      />
     </div>
   );
 }

@@ -12,7 +12,7 @@ import Step2, { type TimeRange, formatTime } from "./Step2";
 export default function Register() {
   const { t, i18n } = useTranslation();
   const { route } = useLocation();
-  const { refreshUser } = useAuth();
+  const { refreshAuth } = useAuth();
   useTitle(t("register.pageTitle"));
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
@@ -47,7 +47,7 @@ export default function Register() {
         })),
         daily_screen_seconds: isLimited ? hours * 3600 + minutes * 60 : undefined,
       });
-      await refreshUser();
+      await refreshAuth();
       route("/dashboard");
     } catch (err) {
       const apiDetail =

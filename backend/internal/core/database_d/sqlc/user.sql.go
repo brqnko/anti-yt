@@ -15,15 +15,41 @@ import (
 
 const countUsersByAuthorization = `-- name: CountUsersByAuthorization :one
 WITH auth AS (
-    SELECT m_user_authorization_id
-    FROM m_user_authorization
-    WHERE m_user_authorization.public_id = $1
-    LIMIT 1
+    SELECT
+        m_user_authorization_id
+    FROM
+        m_user_authorization
+    WHERE
+        m_user_authorization.public_id = $1
+    LIMIT
+        1
 )
 SELECT
-    (SELECT COUNT(*) FROM h_user WHERE m_user_authorization_id = (SELECT auth.m_user_authorization_id FROM auth)) +
-    (SELECT COUNT(*) FROM m_user WHERE m_user_authorization_id = (SELECT auth.m_user_authorization_id FROM auth))
-    AS total_count
+    (
+        SELECT
+            COUNT(*)
+        FROM
+            h_user
+        WHERE
+            m_user_authorization_id = (
+                SELECT
+                    auth.m_user_authorization_id
+                FROM
+                    auth
+            )
+    ) + (
+        SELECT
+            COUNT(*)
+        FROM
+            m_user
+        WHERE
+            m_user_authorization_id = (
+                SELECT
+                    auth.m_user_authorization_id
+                FROM
+                    auth
+            )
+    ) AS total_count
 `
 
 // m_user_authorization_idに紐づくh_userとm_userの数を数える
@@ -35,9 +61,18 @@ func (q *Queries) CountUsersByAuthorization(ctx context.Context, publicID uuid.U
 }
 
 const getUserProfile = `-- name: GetUserProfile :one
-SELECT m_user.m_user_id, m_user.joined_at, m_user.display_name, m_user.daily_screen_time_seconds, m_user.language_code FROM m_user
-WHERE m_user.public_id = $1
-LIMIT 1
+SELECT
+    m_user.m_user_id,
+    m_user.joined_at,
+    m_user.display_name,
+    m_user.daily_screen_time_seconds,
+    m_user.language_code
+FROM
+    m_user
+WHERE
+    m_user.public_id = $1
+LIMIT
+    1
 `
 
 type GetUserProfileRow struct {
@@ -63,9 +98,23 @@ func (q *Queries) GetUserProfile(ctx context.Context, userPublicID uuid.UUID) (G
 }
 
 const getUserScreenTimeRanges = `-- name: GetUserScreenTimeRanges :many
-SELECT m_user_screen_time_range.screen_time_range_start, m_user_screen_time_range.screen_time_range_end, m_user_screen_time_range.public_id FROM m_user_screen_time_range
-WHERE m_user_screen_time_range.m_user_id = (SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1)
-ORDER BY m_user_screen_time_range.screen_time_range_start
+SELECT
+    m_user_screen_time_range.screen_time_range_start,
+    m_user_screen_time_range.screen_time_range_end,
+    m_user_screen_time_range.public_id
+FROM
+    m_user_screen_time_range
+WHERE
+    m_user_screen_time_range.m_user_id = (
+        SELECT
+            m_user.m_user_id
+        FROM
+            m_user
+        WHERE
+            m_user.public_id = $1
+    )
+ORDER BY
+    m_user_screen_time_range.screen_time_range_start
 `
 
 type GetUserScreenTimeRangesRow struct {
@@ -96,7 +145,10 @@ func (q *Queries) GetUserScreenTimeRanges(ctx context.Context, userPublicID uuid
 }
 
 const removeScreenTimeRangesByUserId = `-- name: RemoveScreenTimeRangesByUserId :exec
-DELETE FROM m_user_screen_time_range WHERE m_user_screen_time_range.m_user_id = $1
+DELETE FROM
+    m_user_screen_time_range
+WHERE
+    m_user_screen_time_range.m_user_id = $1
 `
 
 // m_user.m_user_idから、そのユーザーのスクリーン時間の範囲制限を削除する
@@ -107,20 +159,41 @@ func (q *Queries) RemoveScreenTimeRangesByUserId(ctx context.Context, mUserID in
 
 const removeUser = `-- name: RemoveUser :exec
 WITH deleted AS (
-    DELETE FROM m_user WHERE m_user.public_id = $2
-    RETURNING m_user.m_user_id, m_user.m_user_authorization_id, m_user.display_name, m_user.language_code,
-    m_user.daily_screen_time_seconds, m_user.joined_at, m_user.public_id
+    DELETE FROM
+        m_user
+    WHERE
+        m_user.public_id = $2
+    RETURNING
+        m_user.m_user_id,
+        m_user.m_user_authorization_id,
+        m_user.display_name,
+        m_user.language_code,
+        m_user.daily_screen_time_seconds,
+        m_user.joined_at,
+        m_user.public_id
 )
-INSERT INTO h_user(h_user_id, m_user_authorization_id, display_name, language_code, daily_screen_time_seconds, joined_at, leave_reason_code, public_id) SELECT
-deleted.m_user_id AS h_user_id,
-deleted.m_user_authorization_id AS m_user_authorization_id,
-deleted.display_name AS display_name,
-deleted.language_code AS language_code,
-deleted.daily_screen_time_seconds AS daily_screen_time_seconds,
-deleted.joined_at AS joined_at,
-$1 AS leave_reason_code,
-deleted.public_id AS public_id
-FROM deleted
+INSERT INTO
+    h_user (
+        h_user_id,
+        m_user_authorization_id,
+        display_name,
+        language_code,
+        daily_screen_time_seconds,
+        joined_at,
+        leave_reason_code,
+        public_id
+    )
+SELECT
+    deleted.m_user_id AS h_user_id,
+    deleted.m_user_authorization_id AS m_user_authorization_id,
+    deleted.display_name AS display_name,
+    deleted.language_code AS language_code,
+    deleted.daily_screen_time_seconds AS daily_screen_time_seconds,
+    deleted.joined_at AS joined_at,
+    $1 AS leave_reason_code,
+    deleted.public_id AS public_id
+FROM
+    deleted
 `
 
 type RemoveUserParams struct {
@@ -135,10 +208,28 @@ func (q *Queries) RemoveUser(ctx context.Context, arg RemoveUserParams) error {
 }
 
 const saveUser = `-- name: SaveUser :one
-INSERT INTO m_user (m_user_authorization_id, display_name, language_code, daily_screen_time_seconds)
-SELECT m_user_authorization.m_user_authorization_id, $1, $2, $3 FROM m_user_authorization
-WHERE m_user_authorization.public_id = $4 LIMIT 1
-RETURNING m_user_id, joined_at, public_id
+INSERT INTO
+    m_user (
+        m_user_authorization_id,
+        display_name,
+        language_code,
+        daily_screen_time_seconds
+    )
+SELECT
+    m_user_authorization.m_user_authorization_id,
+    $1,
+    $2,
+    $3
+FROM
+    m_user_authorization
+WHERE
+    m_user_authorization.public_id = $4
+LIMIT
+    1
+RETURNING
+    m_user_id,
+    joined_at,
+    public_id
 `
 
 type SaveUserParams struct {
@@ -174,13 +265,31 @@ type SaveUserScreenTimeRangesParams struct {
 }
 
 const updateUserProfile = `-- name: UpdateUserProfile :one
-UPDATE m_user SET
-    display_name = COALESCE($1, m_user.display_name),
-    daily_screen_time_seconds = COALESCE($2, m_user.daily_screen_time_seconds),
-    language_code = COALESCE($3, m_user.language_code),
+UPDATE
+    m_user
+SET
+    display_name = COALESCE(
+        $1,
+        m_user.display_name
+    ),
+    daily_screen_time_seconds = COALESCE(
+        $2,
+        m_user.daily_screen_time_seconds
+    ),
+    language_code = COALESCE(
+        $3,
+        m_user.language_code
+    ),
     updated_at = CURRENT_TIMESTAMP
-WHERE m_user.public_id = $4
-RETURNING m_user.m_user_id, m_user.public_id, m_user.joined_at, m_user.display_name, m_user.daily_screen_time_seconds, m_user.language_code
+WHERE
+    m_user.public_id = $4
+RETURNING
+    m_user.m_user_id,
+    m_user.public_id,
+    m_user.joined_at,
+    m_user.display_name,
+    m_user.daily_screen_time_seconds,
+    m_user.language_code
 `
 
 type UpdateUserProfileParams struct {

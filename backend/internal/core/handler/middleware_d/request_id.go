@@ -16,6 +16,7 @@ func RequestIDMiddleware(f v1.StrictHandlerFunc, operationID string) v1.StrictHa
 			return writeErrorJSON(w, http.StatusInternalServerError, "internal server error", "internal server error")
 		}
 		newCtx := util.WithRequestID(ctx, requestID)
+		newCtx = util.WithRequestPath(newCtx, r.URL.Path)
 		return f(newCtx, w, r.WithContext(newCtx), request)
 	}
 }
