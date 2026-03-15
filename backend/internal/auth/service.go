@@ -86,12 +86,12 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 
 	sub, err := s.oidcService.ExchangeAndVerify(ctx, params.Code)
 	if err != nil {
-		return nil, fmt.Errorf("ExchangeAndVerify: %w", err)
+		return nil, fmt.Errorf("exchangeAndVerify: %w", err)
 	}
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Begin: %w", err)
+		return nil, fmt.Errorf("begin: %w", err)
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -105,7 +105,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 		Sub:    sub,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("SaveAuthorization: %w", err)
+		return nil, fmt.Errorf("saveAuthorization: %w", err)
 	}
 
 	// もし、userテーブルに存在するなら、ログイン用リフレッシュトークンを作成してダッシュボードにリダイレクトさせる。
@@ -142,7 +142,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 		AccessTokenJti:       accessTokenJti,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("SaveRefreshToken: %w", err)
+		return nil, fmt.Errorf("saveRefreshToken: %w", err)
 	}
 	csrf, err := util.RandomStringUrlSafe(32)
 	if err != nil {
@@ -158,11 +158,11 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 	if err == nil && !getUserByAuthorization.IsH { // 現役で存在する場合
 		accessToken, accessTokenExpiresAt, err := s.jwtService.SignUserAccessToken(getUserByAuthorization.PublicID, accessTokenJti, s.serverURL)
 		if err != nil {
-			return nil, fmt.Errorf("SignUserAccessToken: %w", err)
+			return nil, fmt.Errorf("signUserAccessToken: %w", err)
 		}
 
 		if err := tx.Commit(ctx); err != nil {
-			return nil, fmt.Errorf("Commit: %w", err)
+			return nil, fmt.Errorf("commit: %w", err)
 		}
 
 		return &GoogleOIDCCallbackResult{
@@ -176,11 +176,11 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 	} else if err == nil && getUserByAuthorization.IsH { // 退会済みだが、レコードが残っている場合
 		accessToken, accessTokenJtiExpiresAt, err := s.jwtService.SignRegisterToken(saveAuthorization.PublicID, accessTokenJti, s.serverURL)
 		if err != nil {
-			return nil, fmt.Errorf("SignRegisterToken: %w", err)
+			return nil, fmt.Errorf("signRegisterToken: %w", err)
 		}
 
 		if err := tx.Commit(ctx); err != nil {
-			return nil, fmt.Errorf("Commit: %w", err)
+			return nil, fmt.Errorf("commit: %w", err)
 		}
 
 		return &GoogleOIDCCallbackResult{
@@ -194,11 +194,11 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 	} else if errors.Is(err, pgx.ErrNoRows) { // 存在しない場合
 		accessToken, accessTokenJtiExpiresAt, err := s.jwtService.SignRegisterToken(saveAuthorization.PublicID, accessTokenJti, s.serverURL)
 		if err != nil {
-			return nil, fmt.Errorf("SignRegisterToken: %w", err)
+			return nil, fmt.Errorf("signRegisterToken: %w", err)
 		}
 
 		if err := tx.Commit(ctx); err != nil {
-			return nil, fmt.Errorf("Commit: %w", err)
+			return nil, fmt.Errorf("commit: %w", err)
 		}
 
 		return &GoogleOIDCCallbackResult{
@@ -210,7 +210,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 			RefreshTokenExpiresAt: refreshTokenExpiresAt,
 		}, nil
 	} else { // ただのDBエラー
-		return nil, fmt.Errorf("GetUserIDByAuthorization: %w", err)
+		return nil, fmt.Errorf("getUserIDByAuthorization: %w", err)
 	}
 }
 
@@ -225,7 +225,7 @@ func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) 
 		TokenHash:    refreshTokenHash,
 		ExpiresAt:    time.Now().UTC().Add(s.refreshTokenDuration),
 	}); err != nil {
-		return fmt.Errorf("RemoveRefreshTokenByTokenHashAndSaveJtiBlacklist: %w", err)
+		return fmt.Errorf("removeRefreshTokenByTokenHashAndSaveJtiBlacklist: %w", err)
 	}
 
 	return nil
@@ -252,7 +252,7 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return "", "", time.Time{}, time.Time{}, fmt.Errorf("Begin: %w", err)
+		return "", "", time.Time{}, time.Time{}, fmt.Errorf("begin: %w", err)
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -282,16 +282,16 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 		NewAccessTokenJti: newAccessTokenJti,
 	})
 	if err != nil { // 条件を満たさない、あるいはDBエラー
-		return "", "", time.Time{}, time.Time{}, fmt.Errorf("UpdateRefreshToken: %w", err)
+		return "", "", time.Time{}, time.Time{}, fmt.Errorf("updateRefreshToken: %w", err)
 	}
 
 	accessTokenString, signedAtExpiresAtD, err := s.jwtService.SignUserAccessToken(userPublicId, newAccessTokenJti, s.serverURL)
 	if err != nil {
-		return "", "", time.Time{}, time.Time{}, fmt.Errorf("SignUserAccessToken: %w", err)
+		return "", "", time.Time{}, time.Time{}, fmt.Errorf("signUserAccessToken: %w", err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return "", "", time.Time{}, time.Time{}, fmt.Errorf("Commit: %w", err)
+		return "", "", time.Time{}, time.Time{}, fmt.Errorf("commit: %w", err)
 	}
 
 	return newToken, accessTokenString, signedAtExpiresAtD, newTokenExpiresAt, nil
@@ -306,7 +306,7 @@ func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID) ([]Session,
 		Offset:  0,
 	}) // TODO: ページネーション
 	if err != nil {
-		return nil, fmt.Errorf("GetRefreshTokens: %w", err)
+		return nil, fmt.Errorf("getRefreshTokens: %w", err)
 	}
 
 	domainSessions := make([]Session, len(sessions))
@@ -340,7 +340,7 @@ func (s *Service) RemoveSession(ctx context.Context, sessionID uuid.UUID) (uuid.
 		if errors.Is(err, pgx.ErrNoRows) {
 			return uuid.Nil, ErrNoSuchRefreshToken
 		}
-		return uuid.Nil, fmt.Errorf("RemoveRefreshTokenByIDAndSaveJtiBlacklist: %w", err)
+		return uuid.Nil, fmt.Errorf("removeRefreshTokenByIDAndSaveJtiBlacklist: %w", err)
 	}
 
 	return removedPublicId, nil
