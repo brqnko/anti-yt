@@ -8,6 +8,8 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/history"
+	"github.com/brqnko/anti-yt/backend/internal/playlist"
 	"github.com/brqnko/anti-yt/backend/internal/user"
 	"github.com/brqnko/anti-yt/backend/internal/video"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -23,10 +25,12 @@ const (
 type APIHandler struct {
 	db *pgxpool.Pool
 
-	authService    *auth.Service
-	userService    *user.Service
-	channelService *channel.Service
-	videoService   *video.Service
+	authService     *auth.Service
+	userService     *user.Service
+	channelService  *channel.Service
+	videoService    *video.Service
+	playlistService *playlist.Service
+	historyService  *history.Service
 
 	serverURL   string
 	frontendURL string
@@ -56,7 +60,17 @@ func NewAPIHandler(
 		return nil, err
 	}
 
-	videoService, err := video.NewService(db)
+	videoService, err := video.NewService(db, ytService)
+	if err != nil {
+		return nil, err
+	}
+
+	playlistService, err := playlist.NewService(db)
+	if err != nil {
+		return nil, err
+	}
+
+	historyService, err := history.NewService(db)
 	if err != nil {
 		return nil, err
 	}
@@ -64,10 +78,12 @@ func NewAPIHandler(
 	return &APIHandler{
 		db: db,
 
-		authService:    authService,
-		userService:    userService,
-		channelService: channelService,
-		videoService:   videoService,
+		authService:     authService,
+		userService:     userService,
+		channelService:  channelService,
+		videoService:    videoService,
+		playlistService: playlistService,
+		historyService:  historyService,
 
 		serverURL:   serverURL,
 		frontendURL: frontendURL,

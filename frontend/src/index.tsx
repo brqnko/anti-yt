@@ -16,6 +16,8 @@ const Privacy = lazy(() => import("./pages/Privacy/index.jsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard/index.jsx"));
 const ChannelDetail = lazy(() => import("./pages/ChannelDetail/index.jsx"));
 const Profile = lazy(() => import("./pages/Profile/index.jsx"));
+const VideoPlayer = lazy(() => import("./pages/VideoPlayer/index.jsx"));
+const Analytics = lazy(() => import("./pages/Analytics/index.jsx"));
 const NotFound = lazy(() => import("./pages/_404.jsx"));
 import "./style.css";
 
@@ -25,6 +27,8 @@ function AppContent() {
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/channels/:channelId" component={ChannelDetail} />
+      <Route path="/watch/:videoId" component={VideoPlayer} />
+      <Route path="/analytics" component={Analytics} />
       <Route path="/profile" component={Profile} />
       <Route path="/register" component={Register} />
       <Route path="/terms" component={Terms} />

@@ -125,7 +125,17 @@ function ProfileContent() {
             <span class="material-symbols-outlined">shield_lock</span>
             {t("profile.nav.security")}
           </button>
-          <div class="mt-auto pt-6 border-t border-border-light dark:border-border-dark">
+          <div class="mt-auto flex flex-col gap-1">
+            <a
+              href="https://forms.gle/PLACEHOLDER"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-all font-bold no-underline"
+            >
+              <span class="material-symbols-outlined">flag</span>
+              {t("profile.nav.reportProblem")}
+            </a>
+            <div class="border-t border-border-light dark:border-border-dark my-1" />
             <button
               onClick={() => setShowLogoutConfirm(true)}
               class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 text-text-muted-light dark:text-text-muted-dark hover:text-red-500 transition-all font-bold cursor-pointer bg-transparent border-none"

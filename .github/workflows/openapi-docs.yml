@@ -1,0 +1,26 @@
+name: openapi-docs
+
+on:
+  push:
+    paths:
+      - 'shared/api/v1/openapi.yaml'
+      - '.github/workflows/openapi-docs.yml'
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - run: npx --yes @redocly/cli build-docs shared/api/v1/openapi.yaml --output shared/api/v1/index.html
+
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add shared/api/v1/index.html
+          git diff --cached --quiet || (git commit -m "docs: generate OpenAPI docs" && git push)

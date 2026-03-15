@@ -2,44 +2,13 @@ import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
-import { DashboardHeader } from "../../components/DashboardHeader";
+import { DashboardLayout } from "../../components/DashboardLayout";
 import { getChannel } from "../../api/generated/channel";
+import { formatDuration, formatTimeAgo, formatSubscriberCount } from "../../utils/format";
 import type {
   GetChannelsChannelIdVideos200ItemsItem,
 } from "../../api/generated/antiYtApi.schemas";
-
-function formatDuration(totalSeconds: number): string {
-  const h = Math.floor(totalSeconds / 3600);
-  const m = Math.floor((totalSeconds % 3600) / 60);
-  const s = totalSeconds % 60;
-  const mm = String(m).padStart(2, "0");
-  const ss = String(s).padStart(2, "0");
-  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
-}
-
-function formatTimeAgo(dateStr: string, t: (key: string, opts?: object) => string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-  const weeks = Math.floor(days / 7);
-  const months = Math.floor(days / 30);
-  const years = Math.floor(days / 365);
-
-  if (years > 0) return t("dashboard.timeAgo.years", { count: years });
-  if (months > 0) return t("dashboard.timeAgo.months", { count: months });
-  if (weeks > 0) return t("dashboard.timeAgo.weeks", { count: weeks });
-  if (days > 0) return t("dashboard.timeAgo.days", { count: days });
-  if (hours > 0) return t("dashboard.timeAgo.hours", { count: hours });
-  if (minutes > 0) return t("dashboard.timeAgo.minutes", { count: minutes });
-  return t("dashboard.timeAgo.justNow");
-}
-
-function formatSubscriberCount(count: number): string {
-  if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
-  if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K`;
-  return String(count);
-}
+import { Linkify } from "../../components/Linkify";
 
 interface ChannelInfo {
   channel_id: string;
@@ -69,7 +38,7 @@ function ExpandableDescription({ description }: { description: string }) {
         ref={ref}
         class={`text-sm text-text-muted-light dark:text-text-muted-dark leading-relaxed whitespace-pre-line ${expanded ? "" : "line-clamp-3"}`}
       >
-        {description}
+        <Linkify text={description} />
       </p>
       {clamped && (
         <button
@@ -199,22 +168,20 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
 
   if (isLoading) {
     return (
-      <div class="min-h-screen bg-background-light dark:bg-background-dark font-display">
-        <DashboardHeader />
+      <DashboardLayout>
         <div class="flex items-center justify-center py-32">
           <span class="material-symbols-outlined text-5xl animate-spin text-primary">
             progress_activity
           </span>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   if (!channelInfo) {
     return (
-      <div class="min-h-screen bg-background-light dark:bg-background-dark font-display">
-        <DashboardHeader />
-        <main class="w-full max-w-[1200px] mx-auto px-6 py-10">
+      <DashboardLayout>
+        <div class="w-full max-w-[1200px] mx-auto px-6 py-10">
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
             <span class="material-symbols-outlined text-5xl mb-4">search_off</span>
             <p class="text-lg font-medium">{t("channelDetail.notFound")}</p>
@@ -227,16 +194,14 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
               {t("channelDetail.backToDashboard")}
             </a>
           </div>
-        </main>
-      </div>
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div class="min-h-screen bg-background-light dark:bg-background-dark font-display text-charcoal dark:text-white">
-      <DashboardHeader />
-
-      <main class="w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
+    <DashboardLayout>
+      <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
         {/* Channel Info */}
         <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark mb-8 p-6">
           <div class="flex flex-col md:flex-row gap-6 items-start md:items-center">
@@ -317,7 +282,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
             <>
               <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {videos.map((video) => (
-                  <article key={video.video_id} class="flex flex-col gap-3">
+                  <a key={video.video_id} href={`/watch/${video.video_id}`} class="flex flex-col gap-3 no-underline text-inherit">
                     <div class="group/thumb relative aspect-video rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-800 cursor-pointer">
                       <img
                         src={video.external_video_thumbnail_url}
@@ -344,7 +309,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
                         {formatTimeAgo(video.external_video_created_at, t)}
                       </span>
                     </div>
-                  </article>
+                  </a>
                 ))}
               </div>
               <div ref={sentinelRef} class="h-1" />
@@ -368,8 +333,8 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
 

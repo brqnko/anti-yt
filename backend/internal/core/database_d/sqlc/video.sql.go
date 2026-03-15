@@ -265,6 +265,63 @@ func (q *Queries) GetSubscribingChannelFeed(ctx context.Context, arg GetSubscrib
 	return items, nil
 }
 
+const getVideoDetail = `-- name: GetVideoDetail :one
+SELECT
+    video.public_id AS id,
+    video.external_id,
+    video.external_title,
+    video.external_description,
+    video.external_thumbnail_url,
+    channel.public_id AS channel_id,
+    channel.external_id AS channel_external_id,
+    channel.external_display_name,
+    channel.external_custom_id AS channel_custom_id,
+    channel.external_icon_url,
+    channel.external_subscribers_count
+FROM
+    m_video video
+INNER JOIN
+    m_channel channel
+ON
+    video.m_channel_id = channel.m_channel_id
+WHERE
+    video.public_id = $1
+LIMIT 1
+`
+
+type GetVideoDetailRow struct {
+	ID                       uuid.UUID
+	ExternalID               string
+	ExternalTitle            string
+	ExternalDescription      string
+	ExternalThumbnailUrl     string
+	ChannelID                uuid.UUID
+	ChannelExternalID        string
+	ExternalDisplayName      string
+	ChannelCustomID          string
+	ExternalIconUrl          string
+	ExternalSubscribersCount int64
+}
+
+func (q *Queries) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (GetVideoDetailRow, error) {
+	row := q.db.QueryRow(ctx, getVideoDetail, videoID)
+	var i GetVideoDetailRow
+	err := row.Scan(
+		&i.ID,
+		&i.ExternalID,
+		&i.ExternalTitle,
+		&i.ExternalDescription,
+		&i.ExternalThumbnailUrl,
+		&i.ChannelID,
+		&i.ChannelExternalID,
+		&i.ExternalDisplayName,
+		&i.ChannelCustomID,
+		&i.ExternalIconUrl,
+		&i.ExternalSubscribersCount,
+	)
+	return i, err
+}
+
 const saveVideo = `-- name: SaveVideo :exec
 INSERT INTO
     m_video (
