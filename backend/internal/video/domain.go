@@ -7,7 +7,10 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrResourceTypeInvalidString = errors.New("invalid resource type string(video or channel)")
+var (
+	ErrResourceTypeInvalidString = errors.New("invalid resource type string(video or channel)")
+	ErrInvalidExternalVideoId    = errors.New("invalid external video id")
+)
 
 const (
 	ResourceTypeVideo   = "video"
@@ -65,4 +68,62 @@ func NewVideo(
 		ExternalVideoLengthSeconds: externalVideoLengthSeconds,
 		LastWatchSeconds:           lastWatchPtr,
 	}
+}
+
+type ExternalVideoId string
+
+func NewExternalVideoId(id string) (*ExternalVideoId, error) {
+	if len(id) != 11 {
+		return nil, ErrInvalidExternalVideoId
+	}
+
+	v := ExternalVideoId(id)
+	return &v, nil
+}
+
+type VideoDetail struct {
+	Id                              uuid.UUID
+	ExternalVideoId                 *ExternalVideoId
+	ExternalVideoTitle              string
+	ExternalVideoDescription        string
+	ExternalVideoThumbnailUrl       string
+	ChannelId                       uuid.UUID
+	ExternalChannelId               string
+	ExternalChannelDisplayName      string
+	ChannelCustomId                 string
+	ExternalChannelIconUrl          string
+	ExternalChannelSubscribersCount int
+}
+
+func NewVideoDetail(
+	id uuid.UUID,
+	externalId,
+	externalVideoTitle,
+	externalVideoDescription,
+	externalVideoThumbnailUrl string,
+	channelId uuid.UUID,
+	externalChannelId,
+	externalChannelDisplayName,
+	channelCustomId,
+	externalChannelIconUrl string,
+	externalChannelSubscribersCount int,
+) (*VideoDetail, error) {
+	extVideoId, err := NewExternalVideoId(externalId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &VideoDetail{
+		Id:                              id,
+		ExternalVideoId:                 extVideoId,
+		ExternalVideoTitle:              externalVideoTitle,
+		ExternalVideoDescription:        externalVideoDescription,
+		ExternalVideoThumbnailUrl:       externalVideoThumbnailUrl,
+		ChannelId:                       channelId,
+		ExternalChannelId:               externalChannelId,
+		ExternalChannelDisplayName:      externalChannelDisplayName,
+		ChannelCustomId:                 channelCustomId,
+		ExternalChannelIconUrl:          externalChannelIconUrl,
+		ExternalChannelSubscribersCount: externalChannelSubscribersCount,
+	}, nil
 }

@@ -124,11 +124,14 @@
     "remaining": "Remaining",
     "timeLeft": "Time Left",
     "logout": "Log out",
+    "toggleSidebar": "Toggle sidebar",
     "nav": {
       "mainFeed": "Main Feed",
       "analytics": "Analytics",
       "recommendedChannels": "Recommended Channels",
-      "settings": "Settings"
+      "settings": "Settings",
+      "sidebar": "Sidebar navigation",
+      "mainNav": "Main navigation"
     },
     "whitelistedChannels": "Whitelisted Channels",
     "requestChannel": "Request Channel",
@@ -139,7 +142,8 @@
       "cancel": "Cancel",
       "add": "Add",
       "adding": "Adding...",
-      "error": "Failed to add channel. Please check the ID and try again."
+      "error": "Failed to add channel. Please check the ID and try again.",
+      "paste": "Paste from clipboard"
     },
     "noChannels": "No channels subscribed yet.",
     "myPlaylists": "My Playlists",
@@ -210,7 +214,8 @@
       "restrictions": "Restrictions",
       "profileSettings": "Profile Settings",
       "security": "Security",
-      "signOut": "Sign Out"
+      "signOut": "Sign Out",
+      "reportProblem": "Report a Problem"
     },
     "accountDetails": "Account Details",
     "displayName": "Display Name",
@@ -272,6 +277,38 @@
     "notFoundDesc": "This channel could not be found.",
     "showMore": "Show more",
     "showLess": "Show less"
+  },
+  "videoPlayer": {
+    "pageTitle": "Video Player",
+    "notFound": "Video not found",
+    "quickNotes": "Quick Notes",
+    "notesPlaceholder": "Type your thoughts here... notes are automatically time-stamped.",
+    "saveNote": "Save Note",
+    "curatedPlaylist": "Curated Playlist",
+    "remaining": "Remaining",
+    "mindfulMode": "Mindful Mode Active",
+    "noDistractions": "No distractions detected",
+    "quality": "Quality",
+    "qualityAuto": "Auto"
+  },
+  "analytics": {
+    "pageTitle": "Analytics",
+    "title": "Your Digital Wellness",
+    "timeWasted": "Time Watched",
+    "dailyAverage": "Daily Average",
+    "goalProgress": "Goal Progress",
+    "lessVsLastMonth": "{{percent}}% less vs last month",
+    "onTrackToMeetGoal": "On track to meet goal",
+    "monthlyUsageTrends": "Monthly Usage Trends",
+    "actualUsage": "Actual Usage",
+    "limit": "Limit",
+    "dailyLimit": "Daily Limit ({{hours}}h)",
+    "weekLabel": "Wk {{week}}",
+    "weekHours": "Week {{week}}: {{hours}}h",
+    "weekHoursCurrent": "Week {{week}} (Current): {{hours}}h",
+    "focusAI": "FocusAI Assistant",
+    "newInsight": "NEW INSIGHT",
+    "insightMessage": "You watched <strong>{{hours}} hours</strong> this month! That is <strong>{{less}} hours less</strong> than last month. Keep it up!"
   },
   "home": {
     "heroTitle1": "Break the",

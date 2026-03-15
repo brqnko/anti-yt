@@ -2,9 +2,11 @@ package v1
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/util"
+	"github.com/jackc/pgx/v5"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -57,8 +59,38 @@ func (h *APIHandler) GetSearch(c context.Context, request GetSearchRequestObject
 }
 
 func (h *APIHandler) GetVideosVideoId(c context.Context, request GetVideosVideoIdRequestObject) (GetVideosVideoIdResponseObject, error) {
-	//TODO implement me
-	panic("implement me")
+	videoDetail, err := h.videoService.GetVideoDetail(c, request.VideoId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return GetVideosVideoId404JSONResponse{
+				NotFoundJSONResponse: NotFoundJSONResponse{
+					Detail: "video not found",
+					Title:  "Not Found",
+				},
+			}, nil
+		}
+		util.LogError(c, err)
+		return GetVideosVideoId500JSONResponse{
+			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
+				Detail: internalErrorDetail,
+				Title:  internalErrorTitle,
+			},
+		}, nil
+	}
+
+	return GetVideosVideoId200JSONResponse{
+		VideoId:                         openapi_types.UUID(videoDetail.Id),
+		ExternalVideoId:                 string(*videoDetail.ExternalVideoId),
+		ExternalVideoTitle:              videoDetail.ExternalVideoTitle,
+		ExternalVideoDescription:        videoDetail.ExternalVideoDescription,
+		ExternalVideoThumbnailUrl:       videoDetail.ExternalVideoThumbnailUrl,
+		ChannelId:                       openapi_types.UUID(videoDetail.ChannelId),
+		ExternalChannelId:               videoDetail.ExternalChannelId,
+		ExternalChannelDisplayName:      videoDetail.ExternalChannelDisplayName,
+		ChannelCustomId:                 videoDetail.ChannelCustomId,
+		ExternalChannelIconUrl:          videoDetail.ExternalChannelIconUrl,
+		ExternalChannelSubscribersCount: videoDetail.ExternalChannelSubscribersCount,
+	}, nil
 }
 
 func (h *APIHandler) PostVideosVideoIdHeartbeats(c context.Context, request PostVideosVideoIdHeartbeatsRequestObject) (PostVideosVideoIdHeartbeatsResponseObject, error) {

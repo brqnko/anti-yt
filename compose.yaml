@@ -3,6 +3,11 @@ services:
     build:
       context: backend
       dockerfile: "Dockerfile"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
       db:
         condition: service_healthy
