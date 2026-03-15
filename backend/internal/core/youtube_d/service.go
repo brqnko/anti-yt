@@ -131,7 +131,7 @@ func (s *youTubeAPIServiceImpl) FetchChannelInfo(ctx context.Context, channelId 
 
 	createdAt, err := time.Parse(time.RFC3339, found.Snippet.PublishedAt)
 	if err != nil {
-		return nil, fmt.Errorf("Parse: %w", err)
+		return nil, fmt.Errorf("parse: %w", err)
 	}
 
 	iconUrl := ""
