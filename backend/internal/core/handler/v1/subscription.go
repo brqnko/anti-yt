@@ -43,14 +43,14 @@ func (h *APIHandler) GetSubscriptions(c context.Context, request GetSubscription
 	}, len(channels))
 
 	for i, ch := range channels {
-		items[i].SubscriptionId = ch.SubscriptionId
-		items[i].ChannelId = ch.ChannelId
+		items[i].SubscriptionId = ch.SubscriptionID
+		items[i].ChannelId = ch.ChannelID
 		items[i].CreatedAt = ch.CreatedAt
-		items[i].ExternalChannelId = string(*ch.Id)
+		items[i].ExternalChannelId = string(*ch.ID)
 		items[i].ExternalChannelDisplayName = ch.DisplayName
-		items[i].ChannelCustomId = string(*ch.CustomId)
+		items[i].ChannelCustomId = string(*ch.CustomID)
 		items[i].ChannelDescription = ch.Description
-		items[i].ExternalChannelIconUrl = ch.IconUrl
+		items[i].ExternalChannelIconUrl = ch.IconURL
 		items[i].ChannelSubscribersCount = ch.SubscribersCount
 		items[i].ChannelCreatedAt = ch.ExternalChannelInfo.CreatedAt
 	}
@@ -97,23 +97,39 @@ func (h *APIHandler) PostSubscriptions(c context.Context, request PostSubscripti
 			SubscriptionId             openapi_types.UUID `json:"subscription_id"`
 		}{
 			ChannelCreatedAt:           subscribed.ExternalChannelInfo.CreatedAt,
-			ChannelCustomId:            string(*subscribed.CustomId),
+			ChannelCustomId:            string(*subscribed.CustomID),
 			ChannelDescription:         subscribed.Description,
-			ChannelId:                  subscribed.ChannelId,
+			ChannelId:                  subscribed.ChannelID,
 			ChannelSubscribersCount:    subscribed.SubscribersCount,
 			CreatedAt:                  subscribed.CreatedAt,
 			ExternalChannelDisplayName: subscribed.DisplayName,
-			ExternalChannelIconUrl:     subscribed.IconUrl,
-			ExternalChannelId:          string(*subscribed.Id),
-			SubscriptionId:             subscribed.SubscriptionId,
+			ExternalChannelIconUrl:     subscribed.IconURL,
+			ExternalChannelId:          string(*subscribed.ID),
+			SubscriptionId:             subscribed.SubscriptionID,
 		},
 		Headers: PostSubscriptions201ResponseHeaders{
-			Location: "/api/v1/subscriptions/" + subscribed.SubscriptionId.String(),
+			Location: "/api/v1/subscriptions/" + subscribed.SubscriptionID.String(),
 		},
 	}, nil
 }
 
 func (h *APIHandler) DeleteSubscriptionsSubscriptionId(c context.Context, request DeleteSubscriptionsSubscriptionIdRequestObject) (DeleteSubscriptionsSubscriptionIdResponseObject, error) {
-	//TODO implement me
-	panic("implement me")
+	if err := h.channelService.UnsubscribeChannel(c, request.SubscriptionId); err != nil {
+		if errors.Is(err, channel.ErrSubscriptionNotFound) {
+			return DeleteSubscriptionsSubscriptionId404JSONResponse{NotFoundJSONResponse{
+				Detail: "subscription not found",
+				Title:  "Not Found",
+			}}, nil
+		}
+
+		util.LogError(c, err)
+		return DeleteSubscriptionsSubscriptionId500JSONResponse{
+			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
+				Detail: internalErrorDetail,
+				Title:  internalErrorTitle,
+			},
+		}, nil
+	}
+
+	return DeleteSubscriptionsSubscriptionId204Response{}, nil
 }

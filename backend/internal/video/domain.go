@@ -9,7 +9,7 @@ import (
 
 var (
 	ErrResourceTypeInvalidString = errors.New("invalid resource type string(video or channel)")
-	ErrInvalidExternalVideoId    = errors.New("invalid external video id")
+	ErrInvalidExternalVideoID    = errors.New("invalid external video id")
 )
 
 const (
@@ -29,23 +29,23 @@ func NewResourceType(str string) (*ResourceType, error) {
 }
 
 type Video struct {
-	Id                         uuid.UUID
-	ExternalVideoThumbnailUrl  string
+	ID                         uuid.UUID
+	ExternalVideoThumbnailURL  string
 	ExternalVideoTitle         string
 	ExternalVideoCreatedAt     time.Time
 	ExternalVideoLengthSeconds int
 	LastWatchSeconds           *int
 
 	ChannelID                  uuid.UUID
-	ExternalChannelIconUrl     string
+	ExternalChannelIconURL     string
 	ExternalChannelDisplayname string
 }
 
 func NewVideo(
 	id uuid.UUID,
-	channelId uuid.UUID,
-	externalVideoThumbnailUrl string,
-	externalChannelIconUrl string,
+	channelID uuid.UUID,
+	externalVideoThumbnailURL string,
+	externalChannelIconURL string,
 	externalVideoTitle string,
 	externalChannelDisplayname string,
 	externalVideoCreatedAt time.Time,
@@ -58,10 +58,10 @@ func NewVideo(
 	}
 
 	return &Video{
-		Id:                         id,
-		ChannelID:                  channelId,
-		ExternalVideoThumbnailUrl:  externalVideoThumbnailUrl,
-		ExternalChannelIconUrl:     externalChannelIconUrl,
+		ID:                         id,
+		ChannelID:                  channelID,
+		ExternalVideoThumbnailURL:  externalVideoThumbnailURL,
+		ExternalChannelIconURL:     externalChannelIconURL,
 		ExternalVideoTitle:         externalVideoTitle,
 		ExternalChannelDisplayname: externalChannelDisplayname,
 		ExternalVideoCreatedAt:     externalVideoCreatedAt,
@@ -70,60 +70,60 @@ func NewVideo(
 	}
 }
 
-type ExternalVideoId string
+type ExternalVideoID string
 
-func NewExternalVideoId(id string) (*ExternalVideoId, error) {
+func NewExternalVideoID(id string) (*ExternalVideoID, error) {
 	if len(id) != 11 {
-		return nil, ErrInvalidExternalVideoId
+		return nil, ErrInvalidExternalVideoID
 	}
 
-	v := ExternalVideoId(id)
+	v := ExternalVideoID(id)
 	return &v, nil
 }
 
 type VideoDetail struct {
-	Id                              uuid.UUID
-	ExternalVideoId                 *ExternalVideoId
+	ID                              uuid.UUID
+	ExternalVideoID                 *ExternalVideoID
 	ExternalVideoTitle              string
 	ExternalVideoDescription        string
-	ExternalVideoThumbnailUrl       string
-	ChannelId                       uuid.UUID
-	ExternalChannelId               string
+	ExternalVideoThumbnailURL       string
+	ChannelID                       uuid.UUID
+	ExternalChannelID               string
 	ExternalChannelDisplayName      string
-	ChannelCustomId                 string
-	ExternalChannelIconUrl          string
+	ChannelCustomID                 string
+	ExternalChannelIconURL          string
 	ExternalChannelSubscribersCount int
 }
 
 func NewVideoDetail(
 	id uuid.UUID,
-	externalId,
+	externalID,
 	externalVideoTitle,
 	externalVideoDescription,
-	externalVideoThumbnailUrl string,
-	channelId uuid.UUID,
-	externalChannelId,
+	externalVideoThumbnailURL string,
+	channelID uuid.UUID,
+	externalChannelID,
 	externalChannelDisplayName,
-	channelCustomId,
-	externalChannelIconUrl string,
+	channelCustomID,
+	externalChannelIconURL string,
 	externalChannelSubscribersCount int,
 ) (*VideoDetail, error) {
-	extVideoId, err := NewExternalVideoId(externalId)
+	extVideoID, err := NewExternalVideoID(externalID)
 	if err != nil {
 		return nil, err
 	}
 
 	return &VideoDetail{
-		Id:                              id,
-		ExternalVideoId:                 extVideoId,
+		ID:                              id,
+		ExternalVideoID:                 extVideoID,
 		ExternalVideoTitle:              externalVideoTitle,
 		ExternalVideoDescription:        externalVideoDescription,
-		ExternalVideoThumbnailUrl:       externalVideoThumbnailUrl,
-		ChannelId:                       channelId,
-		ExternalChannelId:               externalChannelId,
+		ExternalVideoThumbnailURL:       externalVideoThumbnailURL,
+		ChannelID:                       channelID,
+		ExternalChannelID:               externalChannelID,
 		ExternalChannelDisplayName:      externalChannelDisplayName,
-		ChannelCustomId:                 channelCustomId,
-		ExternalChannelIconUrl:          externalChannelIconUrl,
+		ChannelCustomID:                 channelCustomID,
+		ExternalChannelIconURL:          externalChannelIconURL,
 		ExternalChannelSubscribersCount: externalChannelSubscribersCount,
 	}, nil
 }

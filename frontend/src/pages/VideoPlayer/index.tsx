@@ -6,6 +6,7 @@ import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { getVideo } from "../../api/generated/video";
 import { formatDuration, formatSubscriberCount } from "../../utils/format";
+import { getCookie } from "../../utils/cookie";
 import type { GetVideosVideoId200 } from "../../api/generated/antiYtApi.schemas";
 import { useYouTubePlayer, PlayerState } from "./useYouTubePlayer";
 import { Linkify } from "../../components/Linkify";
@@ -13,6 +14,27 @@ import { Linkify } from "../../components/Linkify";
 const PLAYER_CONTAINER_ID = "yt-player";
 const HEARTBEAT_INTERVAL_MS = 60_000;
 const HEARTBEAT_DEBOUNCE_MS = 2_000;
+
+/** Fire-and-forget heartbeat that survives page unload / navigation. */
+function sendBeaconHeartbeat(externalVideoId: string, positionSeconds: number): void {
+  const url = `/api/v1/videos/${encodeURIComponent(externalVideoId)}/heartbeats`;
+  const body = JSON.stringify({ current_position_seconds: positionSeconds });
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const csrfToken = getCookie("csrf_token");
+  if (csrfToken) headers["x-csrf-token"] = csrfToken;
+
+  try {
+    fetch(url, {
+      method: "POST",
+      headers,
+      body,
+      credentials: "include",
+      keepalive: true,
+    });
+  } catch {
+    // best-effort — ignore failures on teardown
+  }
+}
 
 function VideoPlayerContent() {
   const { t } = useTranslation();
@@ -34,15 +56,19 @@ function VideoPlayerContent() {
   const progressBarRef = useRef<HTMLDivElement>(null);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const heartbeatDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartbeatFailCountRef = useRef(0);
+  const finalHeartbeatSentRef = useRef(false);
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const descRef = useRef<HTMLDivElement>(null);
   const [descOverflows, setDescOverflows] = useState(false);
   const lastPointerTypeRef = useRef<string>("mouse");
 
-  // Refs for values used in keyboard handler to avoid frequent re-registration
+  // Refs for values used in keyboard handler / cleanup to avoid stale closures
   const currentTimeRef = useRef(0);
   const durationRef = useRef(0);
   const volumeRef = useRef(100);
+  const externalVideoIdRef = useRef<string | null>(null);
+  externalVideoIdRef.current = video?.external_video_id ?? null;
 
   useTitle(video?.external_video_title ?? t("videoPlayer.pageTitle"));
 
@@ -79,6 +105,25 @@ function VideoPlayerContent() {
   durationRef.current = duration;
   volumeRef.current = volume;
 
+  // Send a final heartbeat via keepalive fetch (survives unload). Guarded to fire at most once per pause/unload.
+  const sendFinalHeartbeat = useCallback(() => {
+    if (finalHeartbeatSentRef.current) return;
+    const extId = externalVideoIdRef.current;
+    if (extId) {
+      finalHeartbeatSentRef.current = true;
+      sendBeaconHeartbeat(extId, Math.floor(currentTimeRef.current));
+    }
+  }, []);
+
+  // Send final heartbeat on tab close / hard navigation while playing
+  useEffect(() => {
+    if (!video || playerState !== PlayerState.PLAYING) return;
+
+    const handler = () => sendFinalHeartbeat();
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [video, playerState, sendFinalHeartbeat]);
+
   // Heartbeat for watch time tracking (with debounce on play start)
   useEffect(() => {
     if (!video || playerState !== PlayerState.PLAYING) {
@@ -93,11 +138,31 @@ function VideoPlayerContent() {
       return;
     }
 
+    // Reset guard — playback resumed, allow a new final heartbeat on next pause/unload
+    finalHeartbeatSentRef.current = false;
+
     const sendHeartbeat = () => {
       getVideo()
-        .postVideosVideoIdHeartbeats(video.external_video_id)
-        .then((res) => setRemainingSeconds(res.daily_remaining_seconds))
-        .catch(() => {});
+        .postVideosVideoIdHeartbeats(video.external_video_id, {
+          current_position_seconds: Math.floor(currentTimeRef.current),
+        })
+        .then((res) => {
+          heartbeatFailCountRef.current = 0;
+          const remaining = res.daily_remaining_seconds ?? null;
+          setRemainingSeconds(remaining);
+          if (remaining !== null && remaining <= 0) {
+            togglePlay();
+          }
+        })
+        .catch((err: unknown) => {
+          const status = (err as { response?: { status?: number } })?.response?.status;
+          console.warn(`[heartbeat] request failed (status=${status ?? "unknown"})`);
+          heartbeatFailCountRef.current += 1;
+          if (heartbeatFailCountRef.current >= 3) {
+            console.warn("[heartbeat] 3 consecutive failures — pausing playback");
+            togglePlay();
+          }
+        });
     };
 
     // Debounce: wait before sending first heartbeat to avoid bursts from rapid pause/play
@@ -115,8 +180,9 @@ function VideoPlayerContent() {
         clearInterval(heartbeatRef.current);
         heartbeatRef.current = null;
       }
+      sendFinalHeartbeat();
     };
-  }, [video, playerState]);
+  }, [video, playerState, togglePlay, sendFinalHeartbeat]);
 
   // Check if description overflows (ResizeObserver for font-load safety)
   useEffect(() => {
@@ -322,6 +388,7 @@ function VideoPlayerContent() {
                   <button
                     class="size-20 rounded-full bg-primary text-white flex items-center justify-center shadow-lg hover:scale-105 transition-transform border-none cursor-pointer pointer-events-auto"
                     onClick={togglePlay}
+                    aria-label={t("videoPlayer.play")}
                   >
                     <span class="material-symbols-outlined text-5xl">play_arrow</span>
                   </button>
@@ -366,6 +433,13 @@ function VideoPlayerContent() {
                 <div class="flex items-center gap-4 mb-3">
                   <div
                     ref={progressBarRef}
+                    role="slider"
+                    aria-label={t("videoPlayer.seekBar")}
+                    aria-valuemin={0}
+                    aria-valuemax={Math.floor(duration)}
+                    aria-valuenow={Math.floor(currentTime)}
+                    aria-valuetext={`${formatDuration(currentTime)} / ${formatDuration(duration)}`}
+                    tabIndex={0}
                     class={`flex-1 h-1.5 bg-white/20 rounded-full relative cursor-pointer group/progress touch-none ${isSeeking ? "h-2.5" : ""}`}
                     onPointerDown={handleProgressPointerDown}
                     onPointerMove={handleProgressPointerMove}
@@ -387,6 +461,7 @@ function VideoPlayerContent() {
                     <button
                       class="bg-transparent border-none p-0 cursor-pointer text-white"
                       onClick={togglePlay}
+                      aria-label={isPlaying ? t("videoPlayer.pause") : t("videoPlayer.play")}
                     >
                       <span class="material-symbols-outlined">
                         {isPlaying ? "pause" : "play_arrow"}
@@ -395,6 +470,7 @@ function VideoPlayerContent() {
                     <button
                       class="bg-transparent border-none p-0 cursor-pointer text-white"
                       onClick={toggleMute}
+                      aria-label={isMuted ? t("videoPlayer.unmute") : t("videoPlayer.mute")}
                     >
                       <span class="material-symbols-outlined">
                         {isMuted || volume === 0
@@ -411,6 +487,7 @@ function VideoPlayerContent() {
                       value={isMuted ? 0 : volume}
                       onInput={(e) => setVolume(Number((e.target as HTMLInputElement).value))}
                       class="w-20 h-1 accent-primary cursor-pointer"
+                      aria-label={t("videoPlayer.volume")}
                     />
                     <span class="font-mono text-xs opacity-80">
                       {formatDuration(currentTime)} / {formatDuration(duration)}
@@ -425,6 +502,7 @@ function VideoPlayerContent() {
                     <button
                       class="bg-transparent border-none p-0 cursor-pointer text-white"
                       onClick={toggleFullscreen}
+                      aria-label={isFullscreen ? t("videoPlayer.exitFullscreen") : t("videoPlayer.fullscreen")}
                     >
                       <span class="material-symbols-outlined">
                         {isFullscreen ? "fullscreen_exit" : "fullscreen"}
@@ -461,7 +539,7 @@ function VideoPlayerContent() {
                         {video.external_channel_display_name}
                       </a>
                       <p class="text-taupe text-sm">
-                        @{video.channel_custom_id}
+                        {video.channel_custom_id}
                         {" · "}
                         {formatSubscriberCount(video.external_channel_subscribers_count)}{" "}
                         {t("channelDetail.subscribers")}

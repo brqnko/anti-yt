@@ -73,7 +73,7 @@ func NewDisplayName(s string) (*DisplayName, error) {
 	return &domain, nil
 }
 
-func (d *DisplayName) ToString() string {
+func (d *DisplayName) String() string {
 	if d == nil {
 		return ""
 	}
@@ -91,7 +91,7 @@ func NewLanguageCode(value string) (*LanguageCode, error) {
 	return &domain, nil
 }
 
-func (l *LanguageCode) ToString() string {
+func (l *LanguageCode) String() string {
 	if l == nil {
 		return ""
 	}
@@ -140,26 +140,26 @@ func NewDailyScreenTimeLimitRangeSet(limitRanges []struct{ Start, End int }) (*D
 }
 
 type User struct {
-	UserId               uuid.UUID
+	UserID               uuid.UUID
 	DisplayName          string
 	LanguageCode         string
 	JoinedAt             time.Time
 	ScreenTimeLimitRange []struct {
-		Id                       uuid.UUID
+		ID                       uuid.UUID
 		StartSeconds, EndSeconds int
 	}
 	ScreenTimeSeconds *int
 	RemainingSeconds  *int
 }
 
-func NewUser(userId uuid.UUID, displayName string, languageCode string, joinedAt time.Time,
+func NewUser(userID uuid.UUID, displayName string, languageCode string, joinedAt time.Time,
 	screenTimeLimitRange []struct {
-		Id                       uuid.UUID
+		ID                       uuid.UUID
 		StartSeconds, EndSeconds int
 	}, screenTimeSeconds *int, remainingSeconds *int) *User {
 
 	return &User{
-		UserId:               userId,
+		UserID:               userID,
 		DisplayName:          displayName,
 		LanguageCode:         languageCode,
 		JoinedAt:             joinedAt,

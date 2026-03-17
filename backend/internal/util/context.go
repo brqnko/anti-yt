@@ -37,12 +37,7 @@ func WithUserID(ctx context.Context, userID uuid.UUID) context.Context {
 	return context.WithValue(ctx, userIDKey{}, userID)
 }
 
-func UserIDFromContext(ctx context.Context) (uuid.UUID, bool) {
-	userID, ok := ctx.Value(userIDKey{}).(uuid.UUID)
-	return userID, ok
-}
-
-func MustUserIDFromContext(ctx context.Context) (uuid.UUID, error) {
+func UserIDFromContext(ctx context.Context) (uuid.UUID, error) {
 	userID, ok := ctx.Value(userIDKey{}).(uuid.UUID)
 	if !ok {
 		return uuid.Nil, ErrUserIDNotFoundInContext

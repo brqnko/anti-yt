@@ -216,12 +216,12 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 
 func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) error {
 	q := sqlc.New(s.db)
-	userId, _, _, _ := s.jwtService.VerifyUserAccessToken(accessToken)
+	userID, _, _, _ := s.jwtService.VerifyUserAccessToken(accessToken)
 
 	refreshTokenHashRaw := sha256.Sum256([]byte(refreshToken))
 	refreshTokenHash := hex.EncodeToString(refreshTokenHashRaw[:])
 	if _, err := q.RemoveRefreshTokenByTokenHashAndSaveJtiBlacklist(ctx, sqlc.RemoveRefreshTokenByTokenHashAndSaveJtiBlacklistParams{
-		UserPublicID: userId,
+		UserPublicID: userID,
 		TokenHash:    refreshTokenHash,
 		ExpiresAt:    time.Now().UTC().Add(s.refreshTokenDuration),
 	}); err != nil {
@@ -263,7 +263,7 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 
 	ua := user_agent.New(userAgent)
 	browserName, browserVersion := ua.Browser()
-	userPublicId, err := q.UpdateRefreshToken(ctx, sqlc.UpdateRefreshTokenParams{
+	userPublicID, err := q.UpdateRefreshToken(ctx, sqlc.UpdateRefreshTokenParams{
 		NewTokenHash:         newTokenHash,
 		NewExpiresAt:         newTokenExpiresAt,
 		NewIpAddress:         ipAddress,
@@ -285,7 +285,7 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 		return "", "", time.Time{}, time.Time{}, fmt.Errorf("updateRefreshToken: %w", err)
 	}
 
-	accessTokenString, signedAtExpiresAtD, err := s.jwtService.SignUserAccessToken(userPublicId, newAccessTokenJti, s.serverURL)
+	accessTokenString, signedAtExpiresAtD, err := s.jwtService.SignUserAccessToken(userPublicID, newAccessTokenJti, s.serverURL)
 	if err != nil {
 		return "", "", time.Time{}, time.Time{}, fmt.Errorf("signUserAccessToken: %w", err)
 	}
@@ -302,8 +302,8 @@ func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID) ([]Session,
 
 	sessions, err := q.GetRefreshTokens(ctx, sqlc.GetRefreshTokensParams{
 		PublicID: userID,
-		Limit:   20,
-		Offset:  0,
+		Limit:    20,
+		Offset:   0,
 	}) // TODO: ページネーション
 	if err != nil {
 		return nil, fmt.Errorf("getRefreshTokens: %w", err)
@@ -325,16 +325,16 @@ func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID) ([]Session,
 }
 
 func (s *Service) RemoveSession(ctx context.Context, sessionID uuid.UUID) (uuid.UUID, error) {
-	userId, err := util.MustUserIDFromContext(ctx)
+	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return uuid.Nil, err
 	}
 
 	q := sqlc.New(s.db)
-	removedPublicId, err := q.RemoveRefreshTokenByIDAndSaveJtiBlacklist(ctx, sqlc.RemoveRefreshTokenByIDAndSaveJtiBlacklistParams{
+	removedPublicID, err := q.RemoveRefreshTokenByIDAndSaveJtiBlacklist(ctx, sqlc.RemoveRefreshTokenByIDAndSaveJtiBlacklistParams{
 		RefreshTokenPublicID: sessionID,
 		ExpiresAt:            time.Now().UTC().Add(s.jwtService.TokenDuration()).UTC(),
-		UserPublicID:         userId,
+		UserPublicID:         userID,
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -343,5 +343,5 @@ func (s *Service) RemoveSession(ctx context.Context, sessionID uuid.UUID) (uuid.
 		return uuid.Nil, fmt.Errorf("removeRefreshTokenByIDAndSaveJtiBlacklist: %w", err)
 	}
 
-	return removedPublicId, nil
+	return removedPublicID, nil
 }

@@ -93,6 +93,22 @@ ORDER BY
 LIMIT
     @query_limit;
 
+-- name: DeleteChannelSubscription :execrows
+DELETE FROM
+    m_user_subscribing_channel
+WHERE
+    m_user_subscribing_channel.public_id = @subscription_public_id
+    AND m_user_subscribing_channel.m_user_id = (
+        SELECT
+            m_user.m_user_id
+        FROM
+            m_user
+        WHERE
+            m_user.public_id = @user_public_id
+        LIMIT
+            1
+    );
+
 -- name: GetChannelRSSFetchedAtForUpdate :one
 SELECT
     m_channel.m_channel_id,

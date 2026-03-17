@@ -26,6 +26,7 @@ type Service struct {
 var (
 	ErrInvalidSubscriptionLimit = errors.New("invalid subscription limit: out of range (should be [1..50])")
 	ErrInvalidGetUploadLimit    = errors.New("invalid get upload limit: out of range (should be [1..50])")
+	ErrSubscriptionNotFound     = errors.New("subscription not found")
 )
 
 func NewService(
@@ -41,12 +42,12 @@ func NewService(
 }
 
 func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (*SubscribedChannel, error) {
-	userId, err := util.MustUserIDFromContext(ctx)
+	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	channelId, err := util.ExtractChannelIdOrHandle(channelText)
+	channelID, err := util.ExtractChannelIDOrHandle(channelText)
 	if err != nil {
 		return nil, err
 	}
@@ -61,29 +62,29 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (*Su
 	}()
 	q := sqlc.New(tx)
 
-	if err := q.AcquireAdvisoryXactLock(ctx, util.Sha256Int64([]byte(channelId))); err != nil {
+	if err := q.AcquireAdvisoryXactLock(ctx, util.Sha256Int64([]byte(channelID))); err != nil {
 		return nil, fmt.Errorf("acquireAdvisoryXactLock: %w", err)
 	}
 	found, err := q.GetChannelByIdOrHandle(ctx, sqlc.GetChannelByIdOrHandleParams{
-		ExternalID:       channelId,
-		ExternalCustomID: channelId,
+		ExternalID:       channelID,
+		ExternalCustomID: channelID,
 	})
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("getChannelByIdOrHandle: %w", err)
 		}
 
-		info, err := s.ytService.FetchChannelInfo(ctx, channelId)
+		info, err := s.ytService.FetchChannelInfo(ctx, channelID)
 		if err != nil {
 			return nil, fmt.Errorf("fetchChannelInfo: %w", err)
 		}
 
 		// NOTE: fetchの結果をキャッシュするため、トランザクションの外で行う
 		saved, err := sqlc.New(s.db).SaveChannel(ctx, sqlc.SaveChannelParams{
-			ExternalID:               info.Id,
+			ExternalID:               info.ID,
 			ExternalDisplayName:      info.DisplayName,
-			ExternalCustomID:         info.CustomId,
-			ExternalIconUrl:          info.IconUrl,
+			ExternalCustomID:         info.CustomID,
+			ExternalIconUrl:          info.IconURL,
 			ExternalDescription:      info.Description,
 			ExternalSubscribersCount: int64(info.SubscribersCount),
 			ExternalCreatedAt:        info.CreatedAt,
@@ -93,10 +94,10 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (*Su
 		}
 		found = sqlc.GetChannelByIdOrHandleRow{
 			PublicID:                 saved.PublicID,
-			ExternalID:               info.Id,
-			ExternalCustomID:         info.CustomId,
+			ExternalID:               info.ID,
+			ExternalCustomID:         info.CustomID,
 			ExternalDescription:      info.Description,
-			ExternalIconUrl:          info.IconUrl,
+			ExternalIconUrl:          info.IconURL,
 			ExternalSubscribersCount: int64(info.SubscribersCount),
 			ExternalCreatedAt:        info.CreatedAt,
 			MChannelID:               saved.MChannelID,
@@ -106,7 +107,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (*Su
 
 	saveChannelSubscription, err := q.SaveChannelSubscription(ctx, sqlc.SaveChannelSubscriptionParams{
 		ChannelID:    found.MChannelID,
-		UserPublicID: userId,
+		UserPublicID: userID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("saveChannelSubscription: %w", err)
@@ -135,9 +136,30 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (*Su
 	return subscribed, nil
 }
 
+func (s *Service) UnsubscribeChannel(ctx context.Context, subscriptionID uuid.UUID) error {
+	userID, err := util.UserIDFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	q := sqlc.New(s.db)
+	rowsAffected, err := q.DeleteChannelSubscription(ctx, sqlc.DeleteChannelSubscriptionParams{
+		SubscriptionPublicID: subscriptionID,
+		UserPublicID:         userID,
+	})
+	if err != nil {
+		return fmt.Errorf("deleteChannelSubscription: %w", err)
+	}
+	if rowsAffected == 0 {
+		return ErrSubscriptionNotFound
+	}
+
+	return nil
+}
+
 // cursorは最後の登録チャンネルのPublicID
 func (s *Service) GetSubscriptions(ctx context.Context, limit int, cursor *uuid.UUID) (channels []*SubscribedChannel, hasNext bool, err error) {
-	userId, err := util.MustUserIDFromContext(ctx)
+	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, false, err
 	}
@@ -148,7 +170,7 @@ func (s *Service) GetSubscriptions(ctx context.Context, limit int, cursor *uuid.
 
 	q := sqlc.New(s.db)
 	subscriptions, err := q.GetChannelSubscriptions(ctx, sqlc.GetChannelSubscriptionsParams{
-		UserPublicID:   userId,
+		UserPublicID:   userID,
 		CursorPublicID: cursor,
 		QueryLimit:     int32(limit + 1),
 	})
@@ -181,8 +203,8 @@ func (s *Service) GetSubscriptions(ctx context.Context, limit int, cursor *uuid.
 	return res, len(subscriptions) == limit+1, nil
 }
 
-func (s *Service) GetChannelUploads(ctx context.Context, channelId uuid.UUID, cursor *uuid.UUID, limit int) (videos []*video.Video, hasNext bool, err error) {
-	userId, err := util.MustUserIDFromContext(ctx)
+func (s *Service) GetChannelUploads(ctx context.Context, channelID uuid.UUID, cursor *uuid.UUID, limit int) (videos []*video.Video, hasNext bool, err error) {
+	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, false, err
 	}
@@ -201,7 +223,7 @@ func (s *Service) GetChannelUploads(ctx context.Context, channelId uuid.UUID, cu
 	}()
 	q := sqlc.New(tx)
 
-	rssFetchedAt, err := q.GetChannelRSSFetchedAtForUpdate(ctx, channelId)
+	rssFetchedAt, err := q.GetChannelRSSFetchedAtForUpdate(ctx, channelID)
 	if err != nil {
 		return nil, false, fmt.Errorf("getChannelRSSFetchedAtForUpdate: %w", err)
 	}
@@ -211,11 +233,11 @@ func (s *Service) GetChannelUploads(ctx context.Context, channelId uuid.UUID, cu
 			return nil, false, fmt.Errorf("fetchRSSFeed: %w", err)
 		}
 
-		videoIds := make([]string, len(rss))
+		videoIDs := make([]string, len(rss))
 		for i, v := range rss {
-			videoIds[i] = v.VideoId
+			videoIDs[i] = v.VideoID
 		}
-		videoInfoMap, err := s.ytService.FetchVideoInfo(ctx, videoIds)
+		videoInfoMap, err := s.ytService.FetchVideoInfo(ctx, videoIDs)
 		if err != nil {
 			return nil, false, fmt.Errorf("fetchVideoInfo: %w", err)
 		}
@@ -223,19 +245,19 @@ func (s *Service) GetChannelUploads(ctx context.Context, channelId uuid.UUID, cu
 		now := time.Now().UTC()
 		// キャッシュはトランザクションでロールバックしたくない
 		for _, v := range rss {
-			videoInfo, ok := videoInfoMap[v.VideoId]
+			videoInfo, ok := videoInfoMap[v.VideoID]
 			if !ok {
 				continue
 			}
 
 			if err := sqlc.New(s.db).SaveVideo(ctx, sqlc.SaveVideoParams{
 				MChannelID:            rssFetchedAt.MChannelID,
-				ExternalID:            v.VideoId,
+				ExternalID:            v.VideoID,
 				ExternalTitle:         v.Title,
 				ExternalDescription:   v.Description,
 				FetchedAt:             now,
 				ExternalCreatedAt:     v.CreatedAt,
-				ExternalThumbnailUrl:  v.ThumbnailUrl,
+				ExternalThumbnailUrl:  v.ThumbnailURL,
 				ExternalLengthSeconds: videoInfo.LengthSeconds,
 			}); err != nil {
 				return nil, false, fmt.Errorf("saveVideo: %w", err)
@@ -248,8 +270,8 @@ func (s *Service) GetChannelUploads(ctx context.Context, channelId uuid.UUID, cu
 	}
 
 	getChannelVideos, err := q.GetChannelVideos(ctx, sqlc.GetChannelVideosParams{
-		UserID:     userId,
-		ChannelID:  channelId,
+		UserID:     userID,
+		ChannelID:  channelID,
 		Cursor:     cursor,
 		QueryLimit: (int32)(limit + 1),
 	})
@@ -286,7 +308,7 @@ func (s *Service) GetChannelUploads(ctx context.Context, channelId uuid.UUID, cu
 }
 
 func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (videos []*video.Video, hasNext bool, err error) {
-	userId, err := util.MustUserIDFromContext(ctx)
+	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, false, err
 	}
@@ -303,7 +325,7 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 	q := sqlc.New(tx)
 
 	forUpdates, err := q.GetChannelsToFetchRSSForUpdate(ctx, sqlc.GetChannelsToFetchRSSForUpdateParams{
-		UserID:   userId,
+		UserID:   userID,
 		RssFetch: time.Now().UTC().Add(-s.rssFetchDuration),
 	})
 	if err != nil {
@@ -318,19 +340,19 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 				return nil, false, fmt.Errorf("fetchRSSFeed: %w", err)
 			}
 
-			videoIds := make([]string, len(feed))
+			videoIDs := make([]string, len(feed))
 			for i, f := range feed {
-				videoIds[i] = f.VideoId
+				videoIDs[i] = f.VideoID
 			}
 			// TODO: 現在はforUpdates分YouTube Data APIにリクエストを投げているが、一括で取得したい
-			videoInfoMap, err := s.ytService.FetchVideoInfo(ctx, videoIds)
+			videoInfoMap, err := s.ytService.FetchVideoInfo(ctx, videoIDs)
 			if err != nil {
 				return nil, false, fmt.Errorf("fetchVideoInfo: %w", err)
 			}
 
 			now := time.Now().UTC()
 			for _, f := range feed {
-				videoInfo, ok := videoInfoMap[f.VideoId]
+				videoInfo, ok := videoInfoMap[f.VideoID]
 				// TODO: 削除された動画どうするか考える
 				if !ok {
 					continue
@@ -338,12 +360,12 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 
 				if err := sqlc.New(s.db).SaveVideo(ctx, sqlc.SaveVideoParams{
 					MChannelID:            forUpdate.MChannelID,
-					ExternalID:            f.VideoId,
+					ExternalID:            f.VideoID,
 					ExternalTitle:         f.Title,
 					ExternalDescription:   f.Description,
 					FetchedAt:             now,
 					ExternalCreatedAt:     f.CreatedAt,
-					ExternalThumbnailUrl:  f.ThumbnailUrl,
+					ExternalThumbnailUrl:  f.ThumbnailURL,
 					ExternalLengthSeconds: videoInfo.LengthSeconds,
 				}); err != nil {
 					return nil, false, fmt.Errorf("saveVideo: %w", err)
@@ -351,11 +373,11 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 			}
 		}
 
-		channelIds := make([]int64, len(forUpdates))
+		channelIDs := make([]int64, len(forUpdates))
 		for i, u := range forUpdates {
-			channelIds[i] = u.MChannelID
+			channelIDs[i] = u.MChannelID
 		}
-		if _, err := q.MarkChannelRSSAsFetched(ctx, channelIds); err != nil {
+		if _, err := q.MarkChannelRSSAsFetched(ctx, channelIDs); err != nil {
 			return nil, false, fmt.Errorf("markChannelRSSAsFetched: %w", err)
 		}
 	}
@@ -365,7 +387,7 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 	}
 
 	res, err := sqlc.New(s.db).GetSubscribingChannelFeed(ctx, sqlc.GetSubscribingChannelFeedParams{
-		UserID:     userId,
+		UserID:     userID,
 		Cursor:     cursor,
 		QueryLimit: (int32)(limit + 1),
 	})

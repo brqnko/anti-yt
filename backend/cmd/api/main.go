@@ -32,7 +32,7 @@ func main() {
 
 type config struct {
 	env                    string
-	oidcGoogleClientId     string
+	oidcGoogleClientID     string
 	oidcGoogleRedirectURL  string
 	oidcGoogleClientSecret string
 	serverURL              string
@@ -67,7 +67,7 @@ func run(ctx context.Context) int {
 	cfg := config{
 		env:                    os.Getenv("ENV"),
 		oidcGoogleRedirectURL:  os.Getenv("OIDC_GOOGLE_REDIRECT_URL"),
-		oidcGoogleClientId:     os.Getenv("OIDC_GOOGLE_CLIENT_ID"),
+		oidcGoogleClientID:     os.Getenv("OIDC_GOOGLE_CLIENT_ID"),
 		oidcGoogleClientSecret: strings.TrimSpace(string(oidcGoogleClientSecret)),
 		dbPassword:             strings.TrimSpace(string(dbPassword)),
 		dbName:                 os.Getenv("DATABASE_NAME"),
@@ -113,7 +113,7 @@ func run(ctx context.Context) int {
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
-	oidcService, err := oidc.NewGoogleOIDCService(initCtx, cfg.oidcGoogleClientId, cfg.oidcGoogleClientSecret, cfg.oidcGoogleRedirectURL)
+	oidcService, err := oidc.NewGoogleOIDCService(initCtx, cfg.oidcGoogleClientID, cfg.oidcGoogleClientSecret, cfg.oidcGoogleRedirectURL)
 	if err != nil {
 		slog.Error("failed to create oidc service", "error", err)
 		return 1
@@ -143,6 +143,7 @@ func run(ctx context.Context) int {
 		middleware_d.ResponseCookieMiddleware,
 		middleware_d.RandomLagMiddleware,
 		middleware_d.AccessTokenMiddleware(jwtService, db),
+		middleware_d.ScreenTimeMiddleware(db),
 		middleware_d.CsrfMiddleware,
 		middleware_d.AuthTokensMiddleware,
 		middleware_d.RequestIDMiddleware,

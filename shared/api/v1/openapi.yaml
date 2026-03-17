@@ -1027,6 +1027,19 @@ paths:
       summary: Heartbeats
       description: 視聴時間をトラックするためのハートビート用エンドポイント。一分ごとに送られる。
       operationId: postVideosVideoIdHeartbeats
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                current_position_seconds:
+                  description: 現在の再生位置（秒数）
+                  type: integer
+                  minimum: 0
+              required:
+                - current_position_seconds
       responses:
         "200":
           description: 200 OK
@@ -1039,7 +1052,6 @@ paths:
                     description: 今日の残り時間。無い場合は400が返る。
                     type: integer
                     minimum: 0
-                required: [ daily_remaining_seconds ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1558,9 +1570,6 @@ paths:
                         playlist_video_count:
                           type: integer
                           minimum: 0
-                        playlist_video_item_count_seconds:
-                          type: integer
-                          minimum: 0
                         playlist_created_at:
                           type: string
                           format: date-time
@@ -1570,7 +1579,7 @@ paths:
                         top_video_thumbnail_url:
                           type: string
                           format: uri
-                      required: [ playlist_id, playlist_type, playlist_visibility, playlist_title, playlist_description, playlist_video_count, playlist_video_item_count_seconds, playlist_created_at, playlist_updated_at ]
+                      required: [ playlist_id, playlist_type, playlist_visibility, playlist_title, playlist_description, playlist_video_count, playlist_created_at, playlist_updated_at ]
                 required: [ item_count, has_next, items ]
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -1606,7 +1615,7 @@ paths:
                   $ref: "#/components/schemas/PlaylistType"
                 playlist_visibility:
                   $ref: "#/components/schemas/PlaylistVisibility"
-              required: [ playlist_type, playlist_visibility ]
+              required: [ playlist_title, playlist_description, playlist_type, playlist_visibility ]
       responses:
         "201":
           description: 201 Created
@@ -1615,44 +1624,27 @@ paths:
               schema:
                 type: object
                 properties:
-                  item_count:
+                  playlist_id:
+                    type: string
+                    format: uuid
+                  playlist_type:
+                    $ref: "#/components/schemas/PlaylistType"
+                  playlist_visibility:
+                    $ref: "#/components/schemas/PlaylistVisibility"
+                  playlist_title:
+                    type: string
+                  playlist_description:
+                    type: string
+                  playlist_video_count:
                     type: integer
                     minimum: 0
-                  has_next:
-                    type: boolean
-                  items:
-                    type: array
-                    uniqueItems: true
-                    items:
-                      type: object
-                      properties:
-                        playlist_id:
-                          type: string
-                          format: uuid
-                        playlist_type:
-                          $ref: "#/components/schemas/PlaylistType"
-                        playlist_visibility:
-                          $ref: "#/components/schemas/PlaylistVisibility"
-                        playlist_title:
-                          type: string
-                        playlist_description:
-                          type: string
-                        playlist_video_count:
-                          type: integer
-                          minimum: 0
-                        playlist_video_item_count_seconds:
-                          type: integer
-                          minimum: 0
-                        playlist_created_at:
-                          type: string
-                          format: date-time
-                        playlist_updated_at:
-                          type: string
-                          format: date-time
-                        top_video_thumbnail_url:
-                          type: string
-                          format: uri
-                      required: [ playlist_id, playlist_type, playlist_visibility, playlist_title, playlist_description, playlist_video_count, playlist_video_item_count_seconds, playlist_created_at, playlist_updated_at ]
+                  playlist_created_at:
+                    type: string
+                    format: date-time
+                  playlist_updated_at:
+                    type: string
+                    format: date-time
+                required: [ playlist_id, playlist_type, playlist_visibility, playlist_title, playlist_description, playlist_video_count, playlist_created_at, playlist_updated_at ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1960,7 +1952,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ProblemDetailError"
+            $ref: "#/components/schemas/ForbiddenError"
 
     BadRequest:
       description: 400 Bad Request
@@ -1984,6 +1976,19 @@ components:
             $ref: "#/components/schemas/ProblemDetailError"
 
   schemas:
+    ForbiddenError:
+      type: object
+      properties:
+        title:
+          type: string
+        detail:
+          type: string
+        time:
+          type: string
+          format: date-time
+          description: 試聴を再開できる日時
+      required: [ title, detail ]
+
     ProblemDetailError:
       type: object
       properties:

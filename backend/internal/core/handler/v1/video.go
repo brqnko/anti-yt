@@ -35,11 +35,11 @@ func (h *APIHandler) GetFeed(c context.Context, request GetFeedRequestObject) (G
 	}, len(videos))
 
 	for i, v := range videos {
-		items[i].VideoId = v.Id
+		items[i].VideoId = v.ID
 		items[i].ChannelId = v.ChannelID
-		items[i].ExternalChannelIconUrl = v.ExternalChannelIconUrl
+		items[i].ExternalChannelIconUrl = v.ExternalChannelIconURL
 		items[i].ExternalChannelDisplayName = v.ExternalChannelDisplayname
-		items[i].ExternalVideoThumbnailUrl = v.ExternalVideoThumbnailUrl
+		items[i].ExternalVideoThumbnailUrl = v.ExternalVideoThumbnailURL
 		items[i].ExternalVideoTitle = v.ExternalVideoTitle
 		items[i].ExternalVideoCreatedAt = v.ExternalVideoCreatedAt
 		items[i].ExternalVideoLengthSeconds = v.ExternalVideoLengthSeconds
@@ -79,21 +79,41 @@ func (h *APIHandler) GetVideosVideoId(c context.Context, request GetVideosVideoI
 	}
 
 	return GetVideosVideoId200JSONResponse{
-		VideoId:                         openapi_types.UUID(videoDetail.Id),
-		ExternalVideoId:                 string(*videoDetail.ExternalVideoId),
+		VideoId:                         openapi_types.UUID(videoDetail.ID),
+		ExternalVideoId:                 string(*videoDetail.ExternalVideoID),
 		ExternalVideoTitle:              videoDetail.ExternalVideoTitle,
 		ExternalVideoDescription:        videoDetail.ExternalVideoDescription,
-		ExternalVideoThumbnailUrl:       videoDetail.ExternalVideoThumbnailUrl,
-		ChannelId:                       openapi_types.UUID(videoDetail.ChannelId),
-		ExternalChannelId:               videoDetail.ExternalChannelId,
+		ExternalVideoThumbnailUrl:       videoDetail.ExternalVideoThumbnailURL,
+		ChannelId:                       openapi_types.UUID(videoDetail.ChannelID),
+		ExternalChannelId:               videoDetail.ExternalChannelID,
 		ExternalChannelDisplayName:      videoDetail.ExternalChannelDisplayName,
-		ChannelCustomId:                 videoDetail.ChannelCustomId,
-		ExternalChannelIconUrl:          videoDetail.ExternalChannelIconUrl,
+		ChannelCustomId:                 videoDetail.ChannelCustomID,
+		ExternalChannelIconUrl:          videoDetail.ExternalChannelIconURL,
 		ExternalChannelSubscribersCount: videoDetail.ExternalChannelSubscribersCount,
 	}, nil
 }
 
 func (h *APIHandler) PostVideosVideoIdHeartbeats(c context.Context, request PostVideosVideoIdHeartbeatsRequestObject) (PostVideosVideoIdHeartbeatsResponseObject, error) {
-	//TODO implement me
-	panic("implement me")
+	remaining, err := h.videoService.Heartbeat(c, request.VideoId, request.Body.CurrentPositionSeconds)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return PostVideosVideoIdHeartbeats404JSONResponse{
+				NotFoundJSONResponse: NotFoundJSONResponse{
+					Detail: "video not found",
+					Title:  "Not Found",
+				},
+			}, nil
+		}
+		util.LogError(c, err)
+		return PostVideosVideoIdHeartbeats500JSONResponse{
+			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
+				Detail: internalErrorDetail,
+				Title:  internalErrorTitle,
+			},
+		}, nil
+	}
+
+	return PostVideosVideoIdHeartbeats200JSONResponse{
+		DailyRemainingSeconds: remaining,
+	}, nil
 }

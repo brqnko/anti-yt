@@ -11,7 +11,8 @@ import type {
   GetSearch200,
   GetSearchParams,
   GetVideosVideoId200,
-  PostVideosVideoIdHeartbeats200
+  PostVideosVideoIdHeartbeats200,
+  PostVideosVideoIdHeartbeatsBody
 } from './antiYtApi.schemas';
 
 import { customInstance } from '../mutator';
@@ -64,9 +65,12 @@ const getVideosVideoId = (
  */
 const postVideosVideoIdHeartbeats = (
     videoId: string,
+    postVideosVideoIdHeartbeatsBody: PostVideosVideoIdHeartbeatsBody,
  ) => {
       return customInstance<PostVideosVideoIdHeartbeats200>(
-      {url: `/api/v1/videos/${videoId}/heartbeats`, method: 'POST'
+      {url: `/api/v1/videos/${videoId}/heartbeats`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postVideosVideoIdHeartbeatsBody
     },
       );
     }

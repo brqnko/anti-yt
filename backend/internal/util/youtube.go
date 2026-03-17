@@ -12,7 +12,7 @@ var (
 	ErrInvalidChannelHandle = errors.New("invalid channel handle")
 )
 
-func ExtractChannelIdOrHandle(channelText string) (string, error) {
+func ExtractChannelIDOrHandle(channelText string) (string, error) {
 	if strings.HasPrefix(channelText, "@") {
 		if len([]rune(channelText)) <= 3 {
 			return "", ErrInvalidChannelHandle

@@ -9,6 +9,8 @@ interface AuthState {
   isAuthenticated: boolean;
   error: Error | null;
   sessionExpired: boolean;
+  screenTimeBlocked: boolean;
+  screenTimeBlockReason: "limit_exceeded" | "outside_time_range" | null;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
 }
@@ -18,6 +20,8 @@ const AuthContext = createContext<AuthState>({
   isAuthenticated: false,
   error: null,
   sessionExpired: false,
+  screenTimeBlocked: false,
+  screenTimeBlockReason: null,
   logout: async () => {},
   refreshAuth: async () => {},
 });
@@ -27,6 +31,10 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const [screenTimeBlocked, setScreenTimeBlocked] = useState(false);
+  const [screenTimeBlockReason, setScreenTimeBlockReason] = useState<
+    "limit_exceeded" | "outside_time_range" | null
+  >(null);
 
   const checkAuth = useCallback(async () => {
     if (typeof window === "undefined") {
@@ -78,6 +86,16 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
   }, []);
 
   useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setScreenTimeBlocked(true);
+      setScreenTimeBlockReason(detail?.reason ?? "limit_exceeded");
+    };
+    window.addEventListener("screen-time:blocked", handler);
+    return () => window.removeEventListener("screen-time:blocked", handler);
+  }, []);
+
+  useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
@@ -88,6 +106,8 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
         isAuthenticated,
         error,
         sessionExpired,
+        screenTimeBlocked,
+        screenTimeBlockReason,
         logout,
         refreshAuth: checkAuth,
       }}
