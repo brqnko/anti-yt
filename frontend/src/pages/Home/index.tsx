@@ -101,33 +101,26 @@ function DashboardPreview({ t }: { t: (key: string) => string }) {
 
           {/* Whitelist card */}
           <div class="bg-white dark:bg-[#1a1a1a] p-6 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-sm font-medium text-slate-500 dark:text-slate-400">
-                {t("home.whitelist")}
-              </h3>
-              <span class="text-primary rounded p-1">
-                <span class="material-symbols-outlined text-sm">add</span>
-              </span>
-            </div>
-            <div class="space-y-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 mb-4">
+              {t("home.whitelist")}
+            </h3>
+            <div class="flex flex-col gap-2">
               <WhitelistItem
-                color="blue"
-                initial="V"
                 name="Veritasium"
-                tag="Science & Eng"
+                icon="https://yt3.googleusercontent.com/ytc/AIdro_kKGORhjYOG2LfCpG2ZhqjqKMGaMMuGMsIP3IpABB1fxZk=s88-c-k-c0x00ffffff-no-rj"
               />
               <WhitelistItem
-                color="purple"
-                initial="K"
                 name="Kurzgesagt"
-                tag="Education"
+                icon="https://yt3.googleusercontent.com/ytc/AIdro_lGRv1CtMpCdYK7jBMG3l1zXEYPjo7v0jS0JHkMGkADMg0=s88-c-k-c0x00ffffff-no-rj"
               />
               <WhitelistItem
-                color="slate"
-                initial="H"
                 name="Huberman Lab"
-                faded
+                icon="https://yt3.googleusercontent.com/5iu-BPHEqMoHn2GOFBp_DYxRDZNFE6aOtOBIOHagsUWfbnhDf5W9izHd8y-ciah6qk2vjOdxOA=s88-c-k-c0x00ffffff-no-rj"
               />
+              <div class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium">
+                <span class="material-symbols-outlined text-[18px]">add</span>
+                <span>{t("dashboard.requestChannel")}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -136,42 +129,20 @@ function DashboardPreview({ t }: { t: (key: string) => string }) {
   );
 }
 
-const avatarColors: Record<string, string> = {
-  blue: "bg-blue-500/20 text-blue-500",
-  purple: "bg-purple-500/20 text-purple-500",
-  slate: "bg-slate-500/20 text-slate-500",
-};
-
 function WhitelistItem({
-  color,
-  initial,
   name,
-  tag,
-  faded,
+  icon,
 }: {
-  color: string;
-  initial: string;
   name: string;
-  tag?: string;
-  faded?: boolean;
+  icon: string;
 }) {
   return (
-    <div
-      class={`flex items-center gap-3 p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 ${faded ? "opacity-60" : ""}`}
-    >
-      <div
-        class={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${avatarColors[color] ?? ""}`}
-      >
-        {initial}
+    <div class="flex items-center gap-3 px-3 py-2 rounded-lg">
+      <div class="size-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden shrink-0">
+        <img alt={name} class="w-full h-full object-cover" src={icon} />
       </div>
-      <div class="flex-1 min-w-0">
-        <div class="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">
-          {name}
-        </div>
-        {tag && <div class="text-[10px] text-slate-400">{tag}</div>}
-      </div>
-      <span class="material-symbols-outlined text-slate-300 text-sm">
-        check_circle
+      <span class="text-sm font-medium text-slate-700 dark:text-white truncate">
+        {name}
       </span>
     </div>
   );

@@ -243,6 +243,18 @@ export function DashboardLayout({
                 <span class="material-symbols-outlined">recommend</span>
                 {t("dashboard.nav.recommendedChannels")}
               </a>
+              <a
+                class={`flex items-center gap-3 px-3 py-2 rounded-lg no-underline ${
+                  url === "/history"
+                    ? "bg-primary/10 text-primary font-bold"
+                    : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-charcoal dark:hover:text-white font-medium transition-colors"
+                }`}
+                href="/history"
+                aria-current={url === "/history" ? "page" : undefined}
+              >
+                <span class="material-symbols-outlined">history</span>
+                {t("dashboard.nav.history")}
+              </a>
             </nav>
 
             <div class="h-px bg-border-light dark:bg-border-dark w-full my-2" role="separator" />

@@ -129,6 +129,7 @@
       "mainFeed": "Main Feed",
       "analytics": "Analytics",
       "recommendedChannels": "Recommended Channels",
+      "history": "History",
       "settings": "Settings",
       "sidebar": "Sidebar navigation",
       "mainNav": "Main navigation"
@@ -289,7 +290,15 @@
     "mindfulMode": "Mindful Mode Active",
     "noDistractions": "No distractions detected",
     "quality": "Quality",
-    "qualityAuto": "Auto"
+    "qualityAuto": "Auto",
+    "play": "Play",
+    "pause": "Pause",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "volume": "Volume",
+    "fullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "seekBar": "Seek bar"
   },
   "analytics": {
     "pageTitle": "Analytics",
@@ -309,6 +318,18 @@
     "focusAI": "FocusAI Assistant",
     "newInsight": "NEW INSIGHT",
     "insightMessage": "You watched <strong>{{hours}} hours</strong> this month! That is <strong>{{less}} hours less</strong> than last month. Keep it up!"
+  },
+  "screenTimeBlock": {
+    "pageTitle": "Screen Time Limit",
+    "title": "Focus Zone",
+    "limitExceeded": "You've reached your daily screen time limit. Take a break and come back tomorrow — or enjoy a moment of zen.",
+    "outsideTimeRange": "Viewing is not available right now. Your scheduled access window is currently closed.",
+    "mowTheLawn": "Mow the Lawn",
+    "tapTheGrass": "Tap the grass to clear your mind",
+    "reset": "Reset",
+    "zenMode": "Zen Mode Active",
+    "mowTile": "Mow this grass tile",
+    "mownTile": "Already mown"
   },
   "home": {
     "heroTitle1": "Break the",

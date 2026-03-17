@@ -9,89 +9,89 @@ import (
 )
 
 var (
-	ErrChannelCustomIdTooShort           = errors.New("the channel custom id(handle) is too short(<=3)")
-	ErrChannelCustomIdShouldStartsWithAt = errors.New("the channel custom id should starts with @")
+	ErrChannelCustomIDTooShort           = errors.New("the channel custom id(handle) is too short(<=3)")
+	ErrChannelCustomIDShouldStartsWithAt = errors.New("the channel custom id should starts with @")
 
-	ErrChannelIdShouldStartsWithUC = errors.New("the channel id should starts with UC")
-	ErrInvalidChannelIdLength      = errors.New("invalid channel id length (should be 24)")
+	ErrChannelIDShouldStartsWithUC = errors.New("the channel id should starts with UC")
+	ErrInvalidChannelIDLength      = errors.New("invalid channel id length (should be 24)")
 )
 
-type ChannelCustomId string
+type ChannelCustomID string
 
-func NewChannelCustomId(id string) (*ChannelCustomId, error) {
+func NewChannelCustomID(id string) (*ChannelCustomID, error) {
 	if !strings.HasPrefix(id, "@") {
-		return nil, ErrChannelCustomIdShouldStartsWithAt
+		return nil, ErrChannelCustomIDShouldStartsWithAt
 	}
 	if len([]rune(id)) <= 3 {
-		return nil, ErrChannelCustomIdTooShort
+		return nil, ErrChannelCustomIDTooShort
 	}
 
-	c := ChannelCustomId(id)
+	c := ChannelCustomID(id)
 	return &c, nil
 }
 
-type ChannelId string
+type ChannelID string
 
-func NewChannelId(id string) (*ChannelId, error) {
+func NewChannelID(id string) (*ChannelID, error) {
 	if !strings.HasPrefix(id, "UC") {
-		return nil, ErrChannelIdShouldStartsWithUC
+		return nil, ErrChannelIDShouldStartsWithUC
 	}
 	if len(id) != 24 {
-		return nil, ErrInvalidChannelIdLength
+		return nil, ErrInvalidChannelIDLength
 	}
 
-	c := ChannelId(id)
+	c := ChannelID(id)
 	return &c, nil
 }
 
 type ExternalChannelInfo struct {
-	Id               *ChannelId
+	ID               *ChannelID
 	DisplayName      string
-	CustomId         *ChannelCustomId
+	CustomID         *ChannelCustomID
 	Description      string
-	IconUrl          string
+	IconURL          string
 	SubscribersCount int
 	CreatedAt        time.Time
 }
 
 type SubscribedChannel struct {
-	SubscriptionId uuid.UUID
-	ChannelId      uuid.UUID
+	SubscriptionID uuid.UUID
+	ChannelID      uuid.UUID
 	CreatedAt      time.Time
 	ExternalChannelInfo
 }
 
 func NewSubscribedChannel(
-	subscriptionId uuid.UUID,
-	channelId uuid.UUID,
+	subscriptionID uuid.UUID,
+	channelID uuid.UUID,
 	createdAt time.Time,
-	extId,
+	extID,
 	extDisplayname,
-	extCustomId,
+	extCustomID,
 	extDescription,
-	extIconUrl string,
+	extIconURL string,
 	extSubscribersCnt int,
 	extCreatedAt time.Time,
 ) (*SubscribedChannel, error) {
-	chId, err := NewChannelId(extId)
+	chID, err := NewChannelID(extID)
 	if err != nil {
 		return nil, err
 	}
-	channelCustomId, err := NewChannelCustomId(extCustomId)
+	channelCustomID, err := NewChannelCustomID(extCustomID)
 	if err != nil {
 		return nil, err
 	}
 
 	return &SubscribedChannel{
-		SubscriptionId: subscriptionId,
-		ChannelId:      channelId,
+		SubscriptionID: subscriptionID,
+		ChannelID:      channelID,
 		CreatedAt:      createdAt,
 		ExternalChannelInfo: ExternalChannelInfo{
-			Id:               chId,
+			ID:               chID,
 			DisplayName:      extDisplayname,
-			CustomId:         channelCustomId,
+			CustomID:         channelCustomID,
 			Description:      extDescription,
-			IconUrl:          extIconUrl,
+			IconURL:          extIconURL,
 			SubscribersCount: extSubscribersCnt,
 			CreatedAt:        extCreatedAt,
 		},

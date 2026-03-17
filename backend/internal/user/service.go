@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	ErrInvalidAuthorizationIdProcessed  = errors.New("invalid authorization id: currently processed")
-	ErrInvalidAuthorizationIdRegistered = errors.New("invalid authorization id: already registered")
+	ErrInvalidAuthorizationIDProcessed  = errors.New("invalid authorization id: currently processed")
+	ErrInvalidAuthorizationIDRegistered = errors.New("invalid authorization id: already registered")
 )
 
 type Service struct {
@@ -38,7 +38,7 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 	if !ok {
 		return nil, errors.New("access token not found in context")
 	}
-	authorizationId, err := s.jwtService.VerifyRegisterToken(accessToken)
+	authorizationID, err := s.jwtService.VerifyRegisterToken(accessToken)
 	if err != nil {
 		return nil, err
 	}
@@ -73,30 +73,30 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 	q := sqlc.New(tx)
 
 	// 勧告ロック
-	acquired, err := q.TryAcquireAdvisoryXactLock(ctx, util.Sha256Int64(authorizationId[:]))
+	acquired, err := q.TryAcquireAdvisoryXactLock(ctx, util.Sha256Int64(authorizationID[:]))
 	if err != nil {
 		return nil, fmt.Errorf("tryAcquireAdvisoryXactLock: %w", err)
 	}
 	if !acquired {
-		return nil, ErrInvalidAuthorizationIdProcessed
+		return nil, ErrInvalidAuthorizationIDProcessed
 	}
 
 	// すでに登録しているか
-	authorizationIdCount, err := q.CountUsersByAuthorization(ctx, authorizationId)
+	authorizationIDCount, err := q.CountUsersByAuthorization(ctx, authorizationID)
 	if err != nil {
 		return nil, fmt.Errorf("countUsersByAuthorization: %w", err)
 	}
-	if authorizationIdCount >= 1 {
-		return nil, ErrInvalidAuthorizationIdRegistered
+	if authorizationIDCount >= 1 {
+		return nil, ErrInvalidAuthorizationIDRegistered
 	}
 
 	// Userの保存
 	saveUser, err := q.SaveUser(ctx, sqlc.SaveUserParams{
-		DisplayName:  domainDisplayName.ToString(),
-		LanguageCode: domainLanguageCode.ToString(),
+		DisplayName:  domainDisplayName.String(),
+		LanguageCode: domainLanguageCode.String(),
 		// NOTE: domainDailyScreenLimitDurationはNewDailyScreenTimeLimitである、非nil
 		DailyScreenTimeSeconds:    *domainDailyScreenLimitDuration.ToInt(),
-		UserAuthorizationPublicID: authorizationId,
+		UserAuthorizationPublicID: authorizationID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("saveUser: %w", err)
@@ -131,16 +131,16 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 	}
 
 	screenTimeLimitRangesDTO := make([]struct {
-		Id                       uuid.UUID
+		ID                       uuid.UUID
 		StartSeconds, EndSeconds int
 	}, len(screenTimeLimitRanges))
 	for i, pg := range screenTimeLimitRanges {
 		screenTimeLimitRangesDTO[i] = struct {
-			Id           uuid.UUID
+			ID           uuid.UUID
 			StartSeconds int
 			EndSeconds   int
 		}{
-			Id:           pg.PublicID,
+			ID:           pg.PublicID,
 			StartSeconds: (int)(pg.ScreenTimeRangeStart),
 			EndSeconds:   (int)(pg.ScreenTimeRangeEnd),
 		}
@@ -148,8 +148,8 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 
 	return NewUser(
 		saveUser.PublicID,
-		domainDisplayName.ToString(),
-		domainLanguageCode.ToString(),
+		domainDisplayName.String(),
+		domainLanguageCode.String(),
 		saveUser.JoinedAt.UTC(),
 		screenTimeLimitRangesDTO,
 		remainingSeconds,
@@ -158,7 +158,7 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 }
 
 func (s *Service) EditUser(ctx context.Context, newDisplayName, newLanguageCode *string, newDailyScreenLimit *int, newScreenLimits *[]struct{ Start, End int }) (*User, error) {
-	userId, err := util.MustUserIDFromContext(ctx)
+	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +200,7 @@ func (s *Service) EditUser(ctx context.Context, newDisplayName, newLanguageCode 
 	}()
 	q := sqlc.New(tx)
 
-	totalWatchSecondsToday, err := q.GetTotalWatchSeconds(ctx, userId)
+	watchStats, err := q.GetTotalWatchSeconds(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("getTotalWatchSeconds: %w", err)
 	}
@@ -209,7 +209,7 @@ func (s *Service) EditUser(ctx context.Context, newDisplayName, newLanguageCode 
 		NewDisplayName:            (*string)(domainNewDisplayName),
 		NewDailyScreenTimeSeconds: domainNewScreenTime.ToInt(),
 		NewLanguageCode:           (*string)(domainNewLanguageCode),
-		UserPublicID:              userId,
+		UserPublicID:              userID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("updateUserProfile: %w", err)
@@ -243,7 +243,7 @@ func (s *Service) EditUser(ctx context.Context, newDisplayName, newLanguageCode 
 	}
 
 	// publicIdを取得するため、再度selectを実行
-	screenTimeLimitRanges, err := q.GetUserScreenTimeRanges(ctx, userId)
+	screenTimeLimitRanges, err := q.GetUserScreenTimeRanges(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("getUserScreenTimeRanges: %w", err)
 	}
@@ -253,16 +253,16 @@ func (s *Service) EditUser(ctx context.Context, newDisplayName, newLanguageCode 
 	}
 
 	screenTimeLimitRangesDTO := make([]struct {
-		Id                       uuid.UUID
+		ID                       uuid.UUID
 		StartSeconds, EndSeconds int
 	}, len(screenTimeLimitRanges))
 	for i, pg := range screenTimeLimitRanges {
 		screenTimeLimitRangesDTO[i] = struct {
-			Id           uuid.UUID
+			ID           uuid.UUID
 			StartSeconds int
 			EndSeconds   int
 		}{
-			Id:           pg.PublicID,
+			ID:           pg.PublicID,
 			StartSeconds: (int)(pg.ScreenTimeRangeStart),
 			EndSeconds:   (int)(pg.ScreenTimeRangeEnd),
 		}
@@ -271,12 +271,12 @@ func (s *Service) EditUser(ctx context.Context, newDisplayName, newLanguageCode 
 	var dailyScreenLimit, remainingSeconds *int
 	if updateUserProfile.DailyScreenTimeSeconds < 24*60*60 {
 		dailyScreenLimit = &updateUserProfile.DailyScreenTimeSeconds
-		rem := max(updateUserProfile.DailyScreenTimeSeconds-totalWatchSecondsToday, 0)
+		rem := max(updateUserProfile.DailyScreenTimeSeconds-watchStats.TodayWatchTotal, 0)
 		remainingSeconds = &rem
 	}
 
 	return NewUser(
-		userId,
+		userID,
 		updateUserProfile.DisplayName,
 		updateUserProfile.LanguageCode,
 		updateUserProfile.JoinedAt.UTC(),
@@ -287,51 +287,51 @@ func (s *Service) EditUser(ctx context.Context, newDisplayName, newLanguageCode 
 }
 
 func (s *Service) GetUserStatus(ctx context.Context) (*User, error) {
-	userId, err := util.MustUserIDFromContext(ctx)
+	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	q := sqlc.New(s.db)
 
-	userProfile, err := q.GetUserProfile(ctx, userId)
+	userProfile, err := q.GetUserProfile(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("getUserProfile: %w", err)
 	}
 
-	screenLimitRanges, err := q.GetUserScreenTimeRanges(ctx, userId)
+	screenLimitRanges, err := q.GetUserScreenTimeRanges(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("getUserScreenTimeRanges: %w", err)
 	}
 	screenTimeLimitRanges := make([]struct {
-		Id                       uuid.UUID
+		ID                       uuid.UUID
 		StartSeconds, EndSeconds int
 	}, len(screenLimitRanges))
 	for i, screenLimitRange := range screenLimitRanges {
 		screenTimeLimitRanges[i] = struct {
-			Id                       uuid.UUID
+			ID                       uuid.UUID
 			StartSeconds, EndSeconds int
 		}{
-			Id:           screenLimitRange.PublicID,
+			ID:           screenLimitRange.PublicID,
 			StartSeconds: int(screenLimitRange.ScreenTimeRangeStart),
 			EndSeconds:   int(screenLimitRange.ScreenTimeRangeEnd),
 		}
 	}
 
-	totalWatchSecondsToday, err := q.GetTotalWatchSeconds(ctx, userId)
+	watchStats, err := q.GetTotalWatchSeconds(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("getTotalWatchSeconds: %w", err)
 	}
 
 	var remainingSeconds, dailyScreenTimeLimit *int
-	if userProfile.DailyScreenTimeSeconds < 24*60*60 {
-		dailyScreenTimeLimit = &userProfile.DailyScreenTimeSeconds
-		rem := max(0, userProfile.DailyScreenTimeSeconds-totalWatchSecondsToday)
+	if watchStats.DailyLimitSeconds < 24*60*60 {
+		dailyScreenTimeLimit = &watchStats.DailyLimitSeconds
+		rem := max(0, watchStats.DailyLimitSeconds-watchStats.TodayWatchTotal)
 		remainingSeconds = &rem
 	}
 
 	return NewUser(
-		userId,
+		userID,
 		userProfile.DisplayName,
 		userProfile.LanguageCode,
 		userProfile.JoinedAt,
@@ -342,7 +342,7 @@ func (s *Service) GetUserStatus(ctx context.Context) (*User, error) {
 }
 
 func (s *Service) RemoveUser(ctx context.Context) error {
-	userId, err := util.MustUserIDFromContext(ctx)
+	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return err
 	}
@@ -350,7 +350,7 @@ func (s *Service) RemoveUser(ctx context.Context) error {
 	q := sqlc.New(s.db)
 	if err := q.RemoveUser(ctx, sqlc.RemoveUserParams{
 		LeaveReasonCode: 0,
-		UserPublicID:    userId,
+		UserPublicID:    userID,
 	}); err != nil {
 		return fmt.Errorf("removeUser: %w", err)
 	}

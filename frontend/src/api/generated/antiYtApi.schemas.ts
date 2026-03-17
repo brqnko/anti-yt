@@ -5,6 +5,13 @@
  * anti-yt api
  * OpenAPI spec version: 1.0.0
  */
+export interface ForbiddenError {
+  title: string;
+  detail: string;
+  /** 試聴を再開できる日時 */
+  time?: string;
+}
+
 export interface ProblemDetailError {
   title: string;
   detail: string;
@@ -121,7 +128,7 @@ export type UnauthorizedResponse = ProblemDetailError;
 /**
  * 403 Forbidden
  */
-export type ForbiddenResponse = ProblemDetailError;
+export type ForbiddenResponse = ForbiddenError;
 
 /**
  * 400 Bad Request
@@ -455,12 +462,20 @@ export type GetVideosVideoId200 = {
   external_channel_subscribers_count: number;
 };
 
+export type PostVideosVideoIdHeartbeatsBody = {
+  /**
+   * 現在の再生位置（秒数）
+   * @minimum 0
+   */
+  current_position_seconds: number;
+};
+
 export type PostVideosVideoIdHeartbeats200 = {
   /**
    * 今日の残り時間。無い場合は400が返る。
    * @minimum 0
    */
-  daily_remaining_seconds: number;
+  daily_remaining_seconds?: number;
 };
 
 export type PostUsersMeBody = {
@@ -642,8 +657,6 @@ export type GetPlaylists200ItemsItem = {
   playlist_description: string;
   /** @minimum 0 */
   playlist_video_count: number;
-  /** @minimum 0 */
-  playlist_video_item_count_seconds: number;
   playlist_created_at: string;
   playlist_updated_at: string;
   top_video_thumbnail_url?: string;
@@ -657,13 +670,13 @@ export type GetPlaylists200 = {
 };
 
 export type PostPlaylistsBody = {
-  playlist_title?: string;
-  playlist_description?: string;
+  playlist_title: string;
+  playlist_description: string;
   playlist_type: PlaylistType;
   playlist_visibility: PlaylistVisibility;
 };
 
-export type PostPlaylists201ItemsItem = {
+export type PostPlaylists201 = {
   playlist_id: string;
   playlist_type: PlaylistType;
   playlist_visibility: PlaylistVisibility;
@@ -671,18 +684,8 @@ export type PostPlaylists201ItemsItem = {
   playlist_description: string;
   /** @minimum 0 */
   playlist_video_count: number;
-  /** @minimum 0 */
-  playlist_video_item_count_seconds: number;
   playlist_created_at: string;
   playlist_updated_at: string;
-  top_video_thumbnail_url?: string;
-};
-
-export type PostPlaylists201 = {
-  /** @minimum 0 */
-  item_count?: number;
-  has_next?: boolean;
-  items?: PostPlaylists201ItemsItem[];
 };
 
 export type GetPlaylistsPlaylistIdParams = {

@@ -129,6 +129,7 @@
       "mainFeed": "メインフィード",
       "analytics": "アナリティクス",
       "recommendedChannels": "おすすめチャンネル",
+      "history": "履歴",
       "settings": "設定",
       "sidebar": "サイドバーナビゲーション",
       "mainNav": "メインナビゲーション"
@@ -289,7 +290,15 @@
     "mindfulMode": "マインドフルモード有効",
     "noDistractions": "邪魔なものは検出されていません",
     "quality": "画質",
-    "qualityAuto": "自動"
+    "qualityAuto": "自動",
+    "play": "再生",
+    "pause": "一時停止",
+    "mute": "ミュート",
+    "unmute": "ミュート解除",
+    "volume": "音量",
+    "fullscreen": "全画面表示",
+    "exitFullscreen": "全画面解除",
+    "seekBar": "シークバー"
   },
   "analytics": {
     "pageTitle": "アナリティクス",
@@ -309,6 +318,18 @@
     "focusAI": "FocusAI アシスタント",
     "newInsight": "新しい分析",
     "insightMessage": "今月の視聴時間は<strong>{{hours}}時間</strong>です！先月より<strong>{{less}}時間少なく</strong>なりました。この調子で頑張りましょう！"
+  },
+  "screenTimeBlock": {
+    "pageTitle": "視聴制限",
+    "title": "フォーカスゾーン",
+    "limitExceeded": "1日の視聴時間制限に達しました。休憩して明日また来てください — または、ちょっとした禅の時間をお楽しみください。",
+    "outsideTimeRange": "現在は視聴できません。スケジュールされたアクセス時間外です。",
+    "mowTheLawn": "芝を刈ろう",
+    "tapTheGrass": "芝をタップして心をリフレッシュ",
+    "reset": "リセット",
+    "zenMode": "禅モード有効",
+    "mowTile": "この芝を刈る",
+    "mownTile": "刈り済み"
   },
   "home": {
     "heroTitle1": "断ち切ろう",

@@ -7,22 +7,107 @@ package sqlc
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
 
+const getHistory = `-- name: GetHistory :many
+SELECT
+    m_video.public_id AS video_id,
+    m_video.external_id AS external_video_id,
+    m_video.external_title AS external_video_title,
+    m_video.external_thumbnail_url AS external_video_thumbnail_url,
+    m_video.external_length_seconds AS external_video_length_seconds,
+    t_video_watch.watch_position_seconds,
+    t_video_watch.watch_start_at AS watched_at,
+    m_channel.public_id AS channel_id,
+    m_channel.external_id AS external_channel_id,
+    m_channel.external_display_name AS external_channel_display_name,
+    m_channel.external_icon_url AS external_channel_icon_url
+FROM
+    t_video_watch
+    INNER JOIN m_video ON m_video.m_video_id = t_video_watch.m_video_id
+    INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
+WHERE
+    t_video_watch.m_user_id = (
+        SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1
+    )
+    AND (
+        $2::uuid IS NULL
+        OR t_video_watch.public_id < $2::uuid
+    )
+ORDER BY
+    t_video_watch.public_id DESC
+LIMIT
+    $3
+`
+
+type GetHistoryParams struct {
+	UserID     uuid.UUID
+	Cursor     *uuid.UUID
+	QueryLimit int32
+}
+
+type GetHistoryRow struct {
+	VideoID                    uuid.UUID
+	ExternalVideoID            string
+	ExternalVideoTitle         string
+	ExternalVideoThumbnailUrl  string
+	ExternalVideoLengthSeconds int
+	WatchPositionSeconds       int
+	WatchedAt                  time.Time
+	ChannelID                  uuid.UUID
+	ExternalChannelID          string
+	ExternalChannelDisplayName string
+	ExternalChannelIconUrl     string
+}
+
+func (q *Queries) GetHistory(ctx context.Context, arg GetHistoryParams) ([]GetHistoryRow, error) {
+	rows, err := q.db.Query(ctx, getHistory, arg.UserID, arg.Cursor, arg.QueryLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetHistoryRow
+	for rows.Next() {
+		var i GetHistoryRow
+		if err := rows.Scan(
+			&i.VideoID,
+			&i.ExternalVideoID,
+			&i.ExternalVideoTitle,
+			&i.ExternalVideoThumbnailUrl,
+			&i.ExternalVideoLengthSeconds,
+			&i.WatchPositionSeconds,
+			&i.WatchedAt,
+			&i.ChannelID,
+			&i.ExternalChannelID,
+			&i.ExternalChannelDisplayName,
+			&i.ExternalChannelIconUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getTotalWatchSeconds = `-- name: GetTotalWatchSeconds :one
 SELECT
+    (SELECT m_user.daily_screen_time_seconds FROM m_user WHERE m_user.public_id = $1)::int AS daily_limit_seconds,
     COALESCE(
         EXTRACT(
             EPOCH
             FROM
                 SUM(
-                    t_video_watch.watch_end_at - t_video_watch.watch_start_at
+                    LEAST(t_video_watch.watch_end_at, CURRENT_TIMESTAMP) - t_video_watch.watch_start_at
                 )
         ),
         0
-    ) :: int
+    )::int AS today_watch_total
 FROM
     t_video_watch
 WHERE
@@ -38,11 +123,110 @@ WHERE
     AND t_video_watch.watch_start_at < CURRENT_DATE + INTERVAL '1 day'
 `
 
-// m_user.public_idから、そのユーザーが今日視聴していた合計時間(seconds)を返す。
+type GetTotalWatchSecondsRow struct {
+	DailyLimitSeconds int
+	TodayWatchTotal   int
+}
+
+// m_user.public_idから、そのユーザーが今日視聴していた合計時間(seconds)と設定している制限時間を返す。
 // その日に一本も動画を視聴していない場合は0を返します。
-func (q *Queries) GetTotalWatchSeconds(ctx context.Context, publicID uuid.UUID) (int, error) {
+func (q *Queries) GetTotalWatchSeconds(ctx context.Context, publicID uuid.UUID) (GetTotalWatchSecondsRow, error) {
 	row := q.db.QueryRow(ctx, getTotalWatchSeconds, publicID)
-	var column_1 int
-	err := row.Scan(&column_1)
-	return column_1, err
+	var i GetTotalWatchSecondsRow
+	err := row.Scan(&i.DailyLimitSeconds, &i.TodayWatchTotal)
+	return i, err
+}
+
+const heartbeat = `-- name: Heartbeat :exec
+WITH resolved_user AS (
+    SELECT m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1
+),
+resolved_video AS (
+    SELECT m_video_id FROM m_video WHERE m_video.public_id = $2 LIMIT 1
+),
+close_stale AS (
+    -- heartbeatが途絶えた放置セッションをクローズ
+    UPDATE
+        t_video_watch
+    SET
+        watch_end_at = t_video_watch.updated_at,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE
+        m_user_id = (SELECT m_user_id FROM resolved_user)
+        AND watch_end_at > CURRENT_TIMESTAMP
+        AND t_video_watch.updated_at < CURRENT_TIMESTAMP - INTERVAL '2 minutes'
+    RETURNING t_video_watch_id
+),
+latest_active AS (
+    -- ユーザーの現在アクティブなレコードを取得（タイムアウトしていないもの）
+    SELECT
+        t_video_watch_id,
+        m_video_id
+    FROM
+        t_video_watch
+    WHERE
+        m_user_id = (SELECT m_user_id FROM resolved_user)
+        AND watch_end_at > CURRENT_TIMESTAMP
+        AND updated_at > CURRENT_TIMESTAMP - INTERVAL '2 minutes'
+    ORDER BY watch_start_at DESC
+    LIMIT 1
+),
+close_old AS (
+    -- 別の動画なら終了させる
+    UPDATE
+        t_video_watch
+    SET
+        watch_end_at = CURRENT_TIMESTAMP,
+        updated_at = CURRENT_TIMESTAMP
+    FROM
+        latest_active
+    WHERE
+        t_video_watch.t_video_watch_id = latest_active.t_video_watch_id AND
+        latest_active.m_video_id != (SELECT m_video_id FROM resolved_video)
+    RETURNING
+        t_video_watch.t_video_watch_id
+),
+update_same AS (
+    -- 同じ動画ならポジションを更新
+    UPDATE
+        t_video_watch
+    SET
+        watch_position_seconds = $3,
+        updated_at = CURRENT_TIMESTAMP
+    FROM
+        latest_active
+    WHERE
+        t_video_watch.t_video_watch_id = latest_active.t_video_watch_id AND
+        latest_active.m_video_id = (SELECT m_video_id FROM resolved_video)
+    RETURNING
+        t_video_watch.t_video_watch_id
+),
+do_insert AS (
+    -- update_same が空 = 同じ動画のアクティブセッションがない -> 新規INSERT
+    INSERT INTO
+        t_video_watch (
+            m_user_id,
+            m_video_id,
+            watch_position_seconds
+        )
+    SELECT
+        (SELECT m_user_id FROM resolved_user),
+        (SELECT m_video_id FROM resolved_video),
+        $3
+    WHERE
+        NOT EXISTS (SELECT 1 FROM update_same)
+    RETURNING t_video_watch_id, m_user_id, m_video_id, watch_start_at, watch_end_at, watch_position_seconds, created_at, updated_at, public_id
+)
+SELECT 1
+`
+
+type HeartbeatParams struct {
+	UserPublicID         uuid.UUID
+	VideoPublicID        uuid.UUID
+	WatchPositionSeconds int
+}
+
+func (q *Queries) Heartbeat(ctx context.Context, arg HeartbeatParams) error {
+	_, err := q.db.Exec(ctx, heartbeat, arg.UserPublicID, arg.VideoPublicID, arg.WatchPositionSeconds)
+	return err
 }

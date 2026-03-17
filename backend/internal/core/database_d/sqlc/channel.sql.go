@@ -12,6 +12,36 @@ import (
 	"github.com/google/uuid"
 )
 
+const deleteChannelSubscription = `-- name: DeleteChannelSubscription :execrows
+DELETE FROM
+    m_user_subscribing_channel
+WHERE
+    m_user_subscribing_channel.public_id = $1
+    AND m_user_subscribing_channel.m_user_id = (
+        SELECT
+            m_user.m_user_id
+        FROM
+            m_user
+        WHERE
+            m_user.public_id = $2
+        LIMIT
+            1
+    )
+`
+
+type DeleteChannelSubscriptionParams struct {
+	SubscriptionPublicID uuid.UUID
+	UserPublicID         uuid.UUID
+}
+
+func (q *Queries) DeleteChannelSubscription(ctx context.Context, arg DeleteChannelSubscriptionParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteChannelSubscription, arg.SubscriptionPublicID, arg.UserPublicID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getChannelByIdOrHandle = `-- name: GetChannelByIdOrHandle :one
 SELECT
     m_channel.m_channel_id,

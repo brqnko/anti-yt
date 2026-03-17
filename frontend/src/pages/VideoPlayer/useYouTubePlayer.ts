@@ -59,7 +59,13 @@ function loadIframeAPI(): Promise<void> {
     const existing = document.getElementById("yt-iframe-api");
     if (existing) {
       const prev = window.onYouTubeIframeAPIReady;
+      const fallbackTimeout = setTimeout(() => {
+        // Script tag exists but API never loaded — remove and reject
+        existing.remove();
+        reject(new Error("YouTube IFrame API load timed out (existing script)"));
+      }, IFRAME_API_TIMEOUT_MS);
       window.onYouTubeIframeAPIReady = () => {
+        clearTimeout(fallbackTimeout);
         prev?.();
         resolve();
       };
@@ -101,6 +107,12 @@ export function useYouTubePlayer({
   const [volume, setVolumeState] = useState(() => loadPreference(STORAGE_KEY_VOLUME, 100));
   const [isMuted, setIsMuted] = useState(() => loadPreference(STORAGE_KEY_MUTED, false));
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Keep callback refs stable to avoid re-creating the player on every render
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
+  const onStateChangeRef = useRef(onStateChange);
+  onStateChangeRef.current = onStateChange;
 
   // Sync time periodically while playing
   const startTimeSync = useCallback(() => {
@@ -156,13 +168,13 @@ export function useYouTubePlayer({
             }
             setIsMuted(savedMuted);
 
-            onReady?.();
+            onReadyRef.current?.();
           },
           onStateChange: (e: YT.OnStateChangeEvent) => {
             if (cancelled) return;
             const state = e.data as PlayerStateValue;
             setPlayerState(state);
-            onStateChange?.(state);
+            onStateChangeRef.current?.(state);
 
             if (state === PlayerState.PLAYING) {
               setDuration(player.getDuration());
@@ -189,6 +201,7 @@ export function useYouTubePlayer({
       playerRef.current = null;
       setIsReady(false);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- startTimeSync/stopTimeSync are stable (useCallback with []), callbacks via refs
   }, [videoId, containerId]);
 
   const play = useCallback(() => playerRef.current?.playVideo(), []);

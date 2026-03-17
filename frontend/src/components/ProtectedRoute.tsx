@@ -1,14 +1,25 @@
 import { useLocation } from "preact-iso";
 import { useEffect } from "preact/hooks";
+import { lazy } from "preact-iso";
 import type { ComponentChildren } from "preact";
 import { useAuth } from "../contexts/AuthContext";
+
+const ScreenTimeBlock = lazy(
+  () => import("../pages/ScreenTimeBlock/index.tsx"),
+);
 
 interface ProtectedRouteProps {
   children: ComponentChildren;
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, sessionExpired } = useAuth();
+  const {
+    isAuthenticated,
+    isLoading,
+    sessionExpired,
+    screenTimeBlocked,
+    screenTimeBlockReason,
+  } = useAuth();
   const { route } = useLocation();
 
   useEffect(() => {
@@ -29,6 +40,12 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!isAuthenticated) {
     return null;
+  }
+
+  if (screenTimeBlocked) {
+    return (
+      <ScreenTimeBlock reason={screenTimeBlockReason ?? "limit_exceeded"} />
+    );
   }
 
   return <>{children}</>;

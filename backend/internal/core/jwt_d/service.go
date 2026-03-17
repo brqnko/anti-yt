@@ -15,7 +15,7 @@ var (
 )
 
 type RegisterClaims struct {
-	AuthorizationId string `json:"authorization_id"`
+	AuthorizationID string `json:"authorization_id"`
 	jwt.RegisteredClaims
 }
 
@@ -73,7 +73,7 @@ func (s *jwtService) SignRegisterToken(authorizationID, jti uuid.UUID, serverURL
 	now := time.Now().UTC()
 	expiresAt := now.Add(s.accessTokenDuration)
 	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, RegisterClaims{
-		AuthorizationId: base64.URLEncoding.EncodeToString(authorizationID[:]),
+		AuthorizationID: base64.URLEncoding.EncodeToString(authorizationID[:]),
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    serverURL,
 			Subject:   "authorization_token",
@@ -109,7 +109,7 @@ func (s *jwtService) VerifyRegisterToken(token string) (uuid.UUID, error) {
 		return uuid.Nil, ErrInvalidToken
 	}
 
-	decoded, err := base64.URLEncoding.DecodeString(claims.AuthorizationId)
+	decoded, err := base64.URLEncoding.DecodeString(claims.AuthorizationID)
 	if err != nil || len(decoded) != 16 {
 		return uuid.Nil, ErrInvalidToken
 	}

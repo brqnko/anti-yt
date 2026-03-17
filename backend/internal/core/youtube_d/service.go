@@ -18,41 +18,41 @@ import (
 var iso8601DurationRe = regexp.MustCompile(`PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?`)
 
 var (
-	ErrInvalidChannelId              = errors.New("invalid channel id")
+	ErrInvalidChannelID              = errors.New("invalid channel id")
 	ErrChannelNotFound               = errors.New("requested channel not found")
 	ErrInvalidChannelSnippetResponse = errors.New("channel snippet not found in response")
 
-	ErrVideoIdsTooMuch = errors.New("video ids are too much")
-	ErrInvalidVideoId  = errors.New("invalid video id")
+	ErrVideoIDsTooMuch = errors.New("video ids are too much")
+	ErrInvalidVideoID  = errors.New("invalid video id")
 )
 
 type ChannelInfo struct {
-	Id               string
+	ID               string
 	DisplayName      string
-	CustomId         string
+	CustomID         string
 	Description      string
-	IconUrl          string
+	IconURL          string
 	SubscribersCount int
 	CreatedAt        time.Time
 }
 
 type RSSFeedVideo struct {
-	VideoId      string
+	VideoID      string
 	Title        string
-	ThumbnailUrl string
+	ThumbnailURL string
 	Description  string
 	CreatedAt    time.Time
 }
 
 type VideoInfo struct {
-	Id            string
+	ID            string
 	LengthSeconds int
 }
 
 type YouTubeAPIService interface {
-	FetchChannelInfo(ctx context.Context, channelId string) (*ChannelInfo, error)
-	FetchRSSFeed(ctx context.Context, channelId string) ([]RSSFeedVideo, error)
-	FetchVideoInfo(ctx context.Context, videoIds []string) (map[string]VideoInfo, error)
+	FetchChannelInfo(ctx context.Context, channelID string) (*ChannelInfo, error)
+	FetchRSSFeed(ctx context.Context, channelID string) ([]RSSFeedVideo, error)
+	FetchVideoInfo(ctx context.Context, videoIDs []string) (map[string]VideoInfo, error)
 }
 
 var _ YouTubeAPIService = (*youTubeAPIServiceImpl)(nil)
@@ -63,21 +63,21 @@ type youTubeAPIServiceImpl struct {
 }
 
 // NOTE: 削除された動画などはAPIから返ってこず、また順番も保証されないのでmapで返す
-func (s *youTubeAPIServiceImpl) FetchVideoInfo(ctx context.Context, videoIds []string) (map[string]VideoInfo, error) {
-	if len(videoIds) == 0 {
+func (s *youTubeAPIServiceImpl) FetchVideoInfo(ctx context.Context, videoIDs []string) (map[string]VideoInfo, error) {
+	if len(videoIDs) == 0 {
 		return map[string]VideoInfo{}, nil
 	}
-	if len(videoIds) > 50 {
-		return nil, ErrVideoIdsTooMuch
+	if len(videoIDs) > 50 {
+		return nil, ErrVideoIDsTooMuch
 	}
-	for _, videoId := range videoIds {
-		if len(videoId) != 11 {
-			return nil, ErrInvalidVideoId
+	for _, videoID := range videoIDs {
+		if len(videoID) != 11 {
+			return nil, ErrInvalidVideoID
 		}
 	}
 
 	res, err := s.ytClient.Videos.List([]string{"contentDetails"}).
-		Id(videoIds...).
+		Id(videoIDs...).
 		Context(ctx).
 		Do()
 	if err != nil {
@@ -97,7 +97,7 @@ func (s *youTubeAPIServiceImpl) FetchVideoInfo(ctx context.Context, videoIds []s
 			}
 		}
 		videos[item.Id] = VideoInfo{
-			Id:            item.Id,
+			ID:            item.Id,
 			LengthSeconds: lengthSeconds,
 		}
 	}
@@ -105,17 +105,17 @@ func (s *youTubeAPIServiceImpl) FetchVideoInfo(ctx context.Context, videoIds []s
 	return videos, nil
 }
 
-func (s *youTubeAPIServiceImpl) FetchChannelInfo(ctx context.Context, channelId string) (*ChannelInfo, error) {
+func (s *youTubeAPIServiceImpl) FetchChannelInfo(ctx context.Context, channelID string) (*ChannelInfo, error) {
 	q := s.ytClient.Channels.List([]string{
 		"snippet",
 		"statistics",
 	}).Context(ctx)
-	if strings.HasPrefix(channelId, "@") && len([]rune(channelId)) > 3 {
-		q = q.ForHandle(channelId)
-	} else if strings.HasPrefix(channelId, "UC") && len(channelId) == 24 { // NOTE: UCで始まるIDはASCIIのため、runeは使わない
-		q = q.Id(channelId)
+	if strings.HasPrefix(channelID, "@") && len([]rune(channelID)) > 3 {
+		q = q.ForHandle(channelID)
+	} else if strings.HasPrefix(channelID, "UC") && len(channelID) == 24 { // NOTE: UCで始まるIDはASCIIのため、runeは使わない
+		q = q.Id(channelID)
 	} else {
-		return nil, ErrInvalidChannelId
+		return nil, ErrInvalidChannelID
 	}
 	res, err := q.Do()
 	if err != nil {
@@ -134,16 +134,16 @@ func (s *youTubeAPIServiceImpl) FetchChannelInfo(ctx context.Context, channelId 
 		return nil, fmt.Errorf("parse: %w", err)
 	}
 
-	iconUrl := ""
+	iconURL := ""
 	if found.Snippet.Thumbnails != nil {
 		if found.Snippet.Thumbnails.Medium != nil {
-			iconUrl = found.Snippet.Thumbnails.Medium.Url
+			iconURL = found.Snippet.Thumbnails.Medium.Url
 		} else if found.Snippet.Thumbnails.Default != nil {
-			iconUrl = found.Snippet.Thumbnails.Default.Url
+			iconURL = found.Snippet.Thumbnails.Default.Url
 		}
 	}
-	if iconUrl == "" {
-		slog.Warn("icon url not foud when fetch channel info", "channel id", channelId)
+	if iconURL == "" {
+		slog.Warn("icon url not foud when fetch channel info", "channel id", channelID)
 	}
 
 	subscribersCount := 0
@@ -152,27 +152,27 @@ func (s *youTubeAPIServiceImpl) FetchChannelInfo(ctx context.Context, channelId 
 	}
 
 	return &ChannelInfo{
-		Id:               found.Id,
+		ID:               found.Id,
 		DisplayName:      found.Snippet.Title,
-		CustomId:         found.Snippet.CustomUrl,
+		CustomID:         found.Snippet.CustomUrl,
 		Description:      found.Snippet.Description,
-		IconUrl:          iconUrl,
+		IconURL:          iconURL,
 		SubscribersCount: subscribersCount,
 		CreatedAt:        createdAt,
 	}, nil
 }
 
-func (s *youTubeAPIServiceImpl) FetchRSSFeed(ctx context.Context, channelId string) ([]RSSFeedVideo, error) {
-	if !strings.HasPrefix(channelId, "UC") || len(channelId) != 24 {
-		return nil, ErrInvalidChannelId
+func (s *youTubeAPIServiceImpl) FetchRSSFeed(ctx context.Context, channelID string) ([]RSSFeedVideo, error) {
+	if !strings.HasPrefix(channelID, "UC") || len(channelID) != 24 {
+		return nil, ErrInvalidChannelID
 	}
 
 	feed, err := s.feedParser.ParseURLWithContext(
-		fmt.Sprintf("https://www.youtube.com/feeds/videos.xml?channel_id=%s", channelId),
+		fmt.Sprintf("https://www.youtube.com/feeds/videos.xml?channel_id=%s", channelID),
 		ctx,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("ParseURLWithContext(channel=%s): %w", channelId, err)
+		return nil, fmt.Errorf("ParseURLWithContext(channel=%s): %w", channelID, err)
 	}
 
 	videos := make([]RSSFeedVideo, 0, len(feed.Items))
@@ -187,8 +187,8 @@ func (s *youTubeAPIServiceImpl) FetchRSSFeed(ctx context.Context, channelId stri
 
 		// yt:videoId
 		if ytExt, ok := item.Extensions["yt"]; ok {
-			if videoIdExt, ok := ytExt["videoId"]; ok && len(videoIdExt) > 0 {
-				video.VideoId = videoIdExt[0].Value
+			if videoIDExt, ok := ytExt["videoId"]; ok && len(videoIDExt) > 0 {
+				video.VideoID = videoIDExt[0].Value
 			}
 		}
 
@@ -198,7 +198,7 @@ func (s *youTubeAPIServiceImpl) FetchRSSFeed(ctx context.Context, channelId stri
 				group := groups[0]
 
 				if thumbnails, ok := group.Children["thumbnail"]; ok && len(thumbnails) > 0 {
-					video.ThumbnailUrl = thumbnails[0].Attrs["url"]
+					video.ThumbnailURL = thumbnails[0].Attrs["url"]
 				}
 
 				if descriptions, ok := group.Children["description"]; ok && len(descriptions) > 0 {

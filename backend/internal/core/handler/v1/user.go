@@ -51,7 +51,7 @@ func (h *APIHandler) GetUsersMeStatus(c context.Context, request GetUsersMeStatu
 		DailyRemainingSeconds: user.RemainingSeconds,
 		DailyScreenSeconds:    user.ScreenTimeSeconds,
 		DisplayName:           user.DisplayName,
-		Id:                    user.UserId,
+		Id:                    user.UserID,
 		JoinedAt:              user.JoinedAt,
 		LanguageCode:          &user.LanguageCode,
 		ScreenTime:            screenTime,
@@ -102,7 +102,7 @@ func (h *APIHandler) PatchUsersMeStatus(c context.Context, request PatchUsersMeS
 		DailyRemainingSeconds: u.RemainingSeconds,
 		DailyScreenSeconds:    u.ScreenTimeSeconds,
 		DisplayName:           u.DisplayName,
-		Id:                    u.UserId,
+		Id:                    u.UserID,
 		JoinedAt:              u.JoinedAt,
 		LanguageCode:          &u.LanguageCode,
 		ScreenTime:            screenTime,
@@ -149,7 +149,7 @@ func (h *APIHandler) PostUsersMe(c context.Context, request PostUsersMeRequestOb
 		DailyRemainingSeconds: u.RemainingSeconds,
 		DailyScreenSeconds:    u.ScreenTimeSeconds,
 		DisplayName:           u.DisplayName,
-		Id:                    u.UserId,
+		Id:                    u.UserID,
 		JoinedAt:              u.JoinedAt,
 		LanguageCode:          &u.LanguageCode,
 		ScreenTime:            screenTime,
@@ -192,7 +192,7 @@ func screenTimeSlotsToDto(slots []ScreenTimeSlot) ([]struct{ Start, End int }, e
 }
 
 func dtoToScreenTimeSlots(screenTimeLimitRange []struct {
-	Id                       uuid.UUID
+	ID                       uuid.UUID
 	StartSeconds, EndSeconds int
 }) ([]ScreenTimeSlot, error) {
 	screenTime := make([]ScreenTimeSlot, len(screenTimeLimitRange))
@@ -210,7 +210,7 @@ func dtoToScreenTimeSlots(screenTimeLimitRange []struct {
 
 		screenTime[i] = ScreenTimeSlot{
 			EndTime:   endTime,
-			Id:        dto.Id,
+			Id:        dto.ID,
 			StartTime: startTime,
 		}
 	}

@@ -226,8 +226,8 @@ func (h *APIHandler) PostAuthRefresh(c context.Context, request PostAuthRefreshR
 }
 
 func (h *APIHandler) GetUsersMeSessions(c context.Context, request GetUsersMeSessionsRequestObject) (GetUsersMeSessionsResponseObject, error) {
-	userID, ok := util.UserIDFromContext(c)
-	if !ok {
+	userID, err := util.UserIDFromContext(c)
+	if err != nil {
 		return GetUsersMeSessions500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Detail: internalErrorDetail,

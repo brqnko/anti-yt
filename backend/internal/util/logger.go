@@ -13,7 +13,7 @@ func LogError(ctx context.Context, err error) {
 	if requestID, ok := RequestIDFromContext(ctx); ok {
 		attrs = append(attrs, slog.String("request_id", requestID.String()))
 	}
-	if userID, ok := UserIDFromContext(ctx); ok {
+	if userID, err := UserIDFromContext(ctx); err == nil {
 		attrs = append(attrs, slog.String("user_id", userID.String()))
 	}
 	if path, ok := RequestPathFromContext(ctx); ok {

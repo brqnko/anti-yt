@@ -41,8 +41,8 @@ func (h *APIHandler) GetChannelsChannelIdVideos(c context.Context, request GetCh
 	}, len(videos))
 
 	for i, v := range videos {
-		items[i].VideoId = v.Id
-		items[i].ExternalVideoThumbnailUrl = v.ExternalVideoThumbnailUrl
+		items[i].VideoId = v.ID
+		items[i].ExternalVideoThumbnailUrl = v.ExternalVideoThumbnailURL
 		items[i].ExternalVideoTitle = v.ExternalVideoTitle
 		items[i].ExternalVideoCreatedAt = v.ExternalVideoCreatedAt
 		items[i].ExternalVideoLengthSeconds = v.ExternalVideoLengthSeconds
