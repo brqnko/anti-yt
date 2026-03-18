@@ -22,7 +22,8 @@ func NewService(db *pgxpool.Pool) (*Service, error) {
 	}, nil
 }
 
-func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibilityStr, playlistTypeStr string) (*Playlist, error) {
+// TODO: YouTube Playlistからimportできるようにする
+func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibilityStr, playlistTypeStr string, basePlaylistUrl *string) (*Playlist, error) {
 	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, err

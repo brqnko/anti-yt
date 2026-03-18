@@ -2,10 +2,10 @@ import { useTranslation } from "react-i18next";
 import { Logo } from "./Logo";
 
 export function DashboardHeader({
-  sidebarOpen,
+  sidebarOpen = false,
   onToggleSidebar,
 }: {
-  sidebarOpen: boolean;
+  sidebarOpen?: boolean;
   onToggleSidebar?: () => void;
 }) {
   const { t } = useTranslation();

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getHistory = `-- name: GetHistory :many
@@ -19,6 +20,7 @@ SELECT
     m_video.external_title AS external_video_title,
     m_video.external_thumbnail_url AS external_video_thumbnail_url,
     m_video.external_length_seconds AS external_video_length_seconds,
+    m_video.external_created_at AS external_video_created_at,
     t_video_watch.watch_position_seconds,
     t_video_watch.watch_start_at AS watched_at,
     m_channel.public_id AS channel_id,
@@ -55,6 +57,7 @@ type GetHistoryRow struct {
 	ExternalVideoTitle         string
 	ExternalVideoThumbnailUrl  string
 	ExternalVideoLengthSeconds int
+	ExternalVideoCreatedAt     time.Time
 	WatchPositionSeconds       int
 	WatchedAt                  time.Time
 	ChannelID                  uuid.UUID
@@ -78,6 +81,7 @@ func (q *Queries) GetHistory(ctx context.Context, arg GetHistoryParams) ([]GetHi
 			&i.ExternalVideoTitle,
 			&i.ExternalVideoThumbnailUrl,
 			&i.ExternalVideoLengthSeconds,
+			&i.ExternalVideoCreatedAt,
 			&i.WatchPositionSeconds,
 			&i.WatchedAt,
 			&i.ChannelID,
@@ -105,7 +109,7 @@ SELECT
                 SUM(
                     LEAST(t_video_watch.watch_end_at, CURRENT_TIMESTAMP) - t_video_watch.watch_start_at
                 )
-        ),
+        )::bigint,
         0
     )::int AS today_watch_total
 FROM
@@ -118,6 +122,7 @@ WHERE
             m_user
         WHERE
             m_user.public_id = $1
+        LIMIT 1
     )
     AND CURRENT_DATE <= t_video_watch.watch_start_at
     AND t_video_watch.watch_start_at < CURRENT_DATE + INTERVAL '1 day'
@@ -135,6 +140,62 @@ func (q *Queries) GetTotalWatchSeconds(ctx context.Context, publicID uuid.UUID) 
 	var i GetTotalWatchSecondsRow
 	err := row.Scan(&i.DailyLimitSeconds, &i.TodayWatchTotal)
 	return i, err
+}
+
+const getUserStatisticsByWeek = `-- name: GetUserStatisticsByWeek :many
+SELECT
+    DATE(vw.watch_start_at) AS watch_date,
+    COUNT(DISTINCT vw.m_video_id) AS video_count,
+    EXTRACT(EPOCH FROM SUM(vw.watch_end_at - vw.watch_start_at))::bigint AS watch_sum
+FROM
+    t_video_watch vw
+WHERE
+    vw.m_user_id = (
+        SELECT
+            u.m_user_id
+        FROM
+            m_user u
+        WHERE
+            u.public_id = $1
+        LIMIT 1
+    ) AND
+    vw.watch_start_at >= $2 AND
+    vw.watch_start_at < $3 AND
+    vw.watch_end_at <= CURRENT_TIMESTAMP
+GROUP BY
+    DATE(vw.watch_start_at)
+`
+
+type GetUserStatisticsByWeekParams struct {
+	UserID    uuid.UUID
+	StartDate time.Time
+	EndDate   time.Time
+}
+
+type GetUserStatisticsByWeekRow struct {
+	WatchDate  pgtype.Date
+	VideoCount int64
+	WatchSum   int64
+}
+
+func (q *Queries) GetUserStatisticsByWeek(ctx context.Context, arg GetUserStatisticsByWeekParams) ([]GetUserStatisticsByWeekRow, error) {
+	rows, err := q.db.Query(ctx, getUserStatisticsByWeek, arg.UserID, arg.StartDate, arg.EndDate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserStatisticsByWeekRow
+	for rows.Next() {
+		var i GetUserStatisticsByWeekRow
+		if err := rows.Scan(&i.WatchDate, &i.VideoCount, &i.WatchSum); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const heartbeat = `-- name: Heartbeat :exec

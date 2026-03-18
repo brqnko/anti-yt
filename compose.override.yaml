@@ -19,6 +19,8 @@ services:
     volumes:
     - ./backend:/src
     - ./shared:/src/shared:ro
+    - go-mod-cache:/go/pkg/mod
+    - go-build-cache:/root/.cache/go-build
     secrets:
       - db-password
       - oidc-google-client-secret
@@ -53,6 +55,8 @@ services:
      - 5432
 volumes:
  db-data:
+ go-mod-cache:
+ go-build-cache:
 secrets:
  db-password:
    file: backend/password.txt

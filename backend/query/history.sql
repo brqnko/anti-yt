@@ -10,7 +10,7 @@ SELECT
                 SUM(
                     LEAST(t_video_watch.watch_end_at, CURRENT_TIMESTAMP) - t_video_watch.watch_start_at
                 )
-        ),
+        )::bigint,
         0
     )::int AS today_watch_total
 FROM
@@ -23,6 +23,7 @@ WHERE
             m_user
         WHERE
             m_user.public_id = @public_id
+        LIMIT 1
     )
     AND CURRENT_DATE <= t_video_watch.watch_start_at
     AND t_video_watch.watch_start_at < CURRENT_DATE + INTERVAL '1 day';
@@ -34,6 +35,7 @@ SELECT
     m_video.external_title AS external_video_title,
     m_video.external_thumbnail_url AS external_video_thumbnail_url,
     m_video.external_length_seconds AS external_video_length_seconds,
+    m_video.external_created_at AS external_video_created_at,
     t_video_watch.watch_position_seconds,
     t_video_watch.watch_start_at AS watched_at,
     m_channel.public_id AS channel_id,
@@ -138,3 +140,25 @@ do_insert AS (
     RETURNING *
 )
 SELECT 1;
+
+-- name: GetUserStatisticsByWeek :many
+SELECT
+    DATE(video_watch.watch_start_at) AS watch_date,
+    COUNT(DISTINCT video_watch.m_video_id) AS video_count,
+    EXTRACT(EPOCH FROM SUM(video_watch.watch_end_at - video_watch.watch_start_at))::bigint AS watch_sum
+FROM
+    t_video_watch video_watch
+WHERE
+    video_watch.m_user_id = (
+        SELECT
+            u.m_user_id
+        FROM
+            m_user u
+        WHERE
+            u.public_id = @user_id
+        LIMIT 1
+    ) AND
+    video_watch.watch_start_at BETWEEN @start_date AND @end_date AND
+    video_watch.watch_end_at <= CURRENT_TIMESTAMP
+GROUP BY
+    DATE(video_watch.watch_start_at);

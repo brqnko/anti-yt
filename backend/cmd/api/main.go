@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -39,6 +40,8 @@ type config struct {
 	frontendURL            string
 	youtubeDataAPIKey      string
 
+	port int
+
 	dbPassword string
 	dbName     string
 }
@@ -64,6 +67,11 @@ func run(ctx context.Context) int {
 		fmt.Printf("failed to load jwt-public: %v\n", err)
 		return 1
 	}
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		fmt.Printf("invalid or missing PORT: %v\n", err)
+		return 1
+	}
 	cfg := config{
 		env:                    os.Getenv("ENV"),
 		oidcGoogleRedirectURL:  os.Getenv("OIDC_GOOGLE_REDIRECT_URL"),
@@ -74,6 +82,7 @@ func run(ctx context.Context) int {
 		serverURL:              os.Getenv("SERVER_URL"),
 		frontendURL:            os.Getenv("FRONTEND_URL"),
 		youtubeDataAPIKey:      os.Getenv("YOUTUBE_DATA_API_KEY"),
+		port:                   port,
 	}
 	clear(dbPassword)
 	clear(oidcGoogleClientSecret)
@@ -139,9 +148,12 @@ func run(ctx context.Context) int {
 	// NOTE: RateLimit, gzip, loggerはLB(pingora, nginx等)で行う。各リクエストへのレートリミットはHandlerが行う
 	r.Use(middleware.Recoverer)
 	r.Use(middleware_d.SecureHeaders)
+	if cfg.env != "production" {
+		r.Use(middleware_d.RandomLag)
+		r.Use(v1.SwaggerMiddleware())
+	}
 	v1.HandlerFromMux(v1.NewStrictHandler(h, []v1.StrictMiddlewareFunc{
 		middleware_d.ResponseCookieMiddleware,
-		middleware_d.RandomLagMiddleware,
 		middleware_d.AccessTokenMiddleware(jwtService, db),
 		middleware_d.ScreenTimeMiddleware(db),
 		middleware_d.CsrfMiddleware,
@@ -150,7 +162,7 @@ func run(ctx context.Context) int {
 	}), r)
 
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    fmt.Sprintf(":%d", cfg.port),
 		Handler: r,
 	}
 
