@@ -28,7 +28,9 @@ func SwaggerMiddleware() func(http.Handler) http.Handler {
 			switch r.URL.Path {
 			case "/api/v1/swagger", "/api/v1/swagger/":
 				w.Header().Set("Content-Type", "text/html; charset=utf-8")
-				w.Write([]byte(swaggerUIHTML))
+				if _, err := w.Write([]byte(swaggerUIHTML)); err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+				}
 			case "/api/v1/swagger/openapi.json":
 				swagger, err := GetSwagger()
 				if err != nil {
@@ -37,7 +39,9 @@ func SwaggerMiddleware() func(http.Handler) http.Handler {
 				}
 				swagger.Servers = nil
 				w.Header().Set("Content-Type", "application/json")
-				json.NewEncoder(w).Encode(swagger)
+				if err := json.NewEncoder(w).Encode(swagger); err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+				}
 			default:
 				next.ServeHTTP(w, r)
 			}
