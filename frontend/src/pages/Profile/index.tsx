@@ -273,7 +273,7 @@ function ProfileContent() {
                   <button
                     onClick={handleSave}
                     disabled={isSaving || !isNameValid}
-                    class="px-8 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors shadow-lg shadow-primary/20 cursor-pointer border-none"
+                    class="px-8 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors cursor-pointer border-none"
                   >
                     {isSaving ? t("profile.saving") : t("profile.saveChanges")}
                   </button>
@@ -332,7 +332,7 @@ function ProfileContent() {
                   </div>
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
-                    class="shrink-0 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-red-600/20 flex items-center justify-center cursor-pointer border-none"
+                    class="shrink-0 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all flex items-center justify-center cursor-pointer border-none"
                   >
                     {t("profile.deleteAccount")}
                   </button>

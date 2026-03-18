@@ -563,6 +563,8 @@ export type GetHistory200ItemsItem = {
   external_channel_id: string;
   /** チャンネルの表示名 */
   external_channel_display_name: string;
+  /** 動画の公開日時 */
+  external_video_created_at: string;
 };
 
 export type GetHistory200 = {
@@ -576,11 +578,14 @@ export type GetHistory200 = {
   items: GetHistory200ItemsItem[];
 };
 
-export type GetStatisticsMonthlyParams = {
-target_month: string;
+export type GetStatisticsWeeklyParams = {
+/**
+ * 対象週の開始日(月曜日)
+ */
+target_week: string;
 };
 
-export type GetStatisticsMonthly200ItemsItem = {
+export type GetStatisticsWeekly200ItemsItem = {
   target_day: string;
   /**
    * その日に動画を視聴した回数
@@ -591,49 +596,17 @@ export type GetStatisticsMonthly200ItemsItem = {
   video_watch_seconds: number;
 };
 
-export type GetStatisticsMonthly200 = {
-  target_month: string;
+export type GetStatisticsWeekly200 = {
+  /** 対象週の開始日(月曜日) */
+  target_week: string;
   /**
    * 総件数
    * @minimum 0
    */
   item_count: number;
-  items: GetStatisticsMonthly200ItemsItem[];
-};
-
-export type GetStatisticsDailyParams = {
-target_day: string;
-};
-
-export type GetStatisticsDaily200ItemsItem = {
-  video_id: string;
-  /** @pattern ^[a-zA-Z0-9_-]{11}$ */
-  external_video_id: string;
-  external_video_thumbnail_url: string;
-  /** @minimum 0 */
-  external_video_length_seconds: number;
-  watch_start_at: string;
-  watch_end_at: string;
-  /** @minimum 0 */
-  watch_seconds: number;
-};
-
-export type GetStatisticsDaily200 = {
-  target_day: string;
-  /** AIの要約分(short) */
-  ai_summary_short: string;
-  /** AIの要約分(long) */
-  ai_summary_long: string;
-  /**
-   * 総件数
-   * @minimum 0
-   */
-  item_count: number;
-  /** @minimum 0 */
-  total_watch_count: number;
-  /** @minimum 0 */
-  total_watch_seconds: number;
-  items: GetStatisticsDaily200ItemsItem[];
+  items: GetStatisticsWeekly200ItemsItem[];
+  /** AIによる週間視聴傾向の要約 */
+  ai_summary?: string;
 };
 
 export type GetPlaylistsParams = {
@@ -674,6 +647,8 @@ export type PostPlaylistsBody = {
   playlist_description: string;
   playlist_type: PlaylistType;
   playlist_visibility: PlaylistVisibility;
+  /** インポート元のプレイリストURL */
+  base_playlist_url?: string;
 };
 
 export type PostPlaylists201 = {

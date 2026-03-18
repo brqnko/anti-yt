@@ -20,6 +20,7 @@ func (h *APIHandler) PostPlaylists(c context.Context, request PostPlaylistsReque
 		request.Body.PlaylistDescription,
 		string(request.Body.PlaylistVisibility),
 		string(request.Body.PlaylistType),
+		request.Body.BasePlaylistUrl,
 	)
 	if err != nil {
 		if errors.Is(err, playlist.ErrInvalidPlaylistTitle) ||

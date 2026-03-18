@@ -1,6 +1,7 @@
 import { useState, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { getAuth } from "../../api/generated/auth";
+import { LoadingSpinner } from "../../components/LoadingSpinner";
 import type { GetUsersMeSessions200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 
 function getDeviceIcon(browserName: string): string {
@@ -79,13 +80,7 @@ export function SecurityTab() {
   const otherSessions = sessions.filter((s) => s.id !== currentSessionId);
 
   if (isLoading) {
-    return (
-      <div class="flex items-center justify-center py-20">
-        <span class="material-symbols-outlined text-4xl text-primary animate-spin">
-          progress_activity
-        </span>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

@@ -8,10 +8,8 @@
 import type {
   GetHistory200,
   GetHistoryParams,
-  GetStatisticsDaily200,
-  GetStatisticsDailyParams,
-  GetStatisticsMonthly200,
-  GetStatisticsMonthlyParams
+  GetStatisticsWeekly200,
+  GetStatisticsWeeklyParams
 } from './antiYtApi.schemas';
 
 import { customInstance } from '../mutator';
@@ -34,32 +32,18 @@ const getHistory = (
       );
     }
   /**
- * 月ごとのユーザーの統計情報を取得する
- * @summary Get User Statistics by month
+ * 週ごとのユーザーの統計情報を取得する
+ * @summary Get User Statistics by week
  */
-const getStatisticsMonthly = (
-    params: GetStatisticsMonthlyParams,
+const getStatisticsWeekly = (
+    params: GetStatisticsWeeklyParams,
  ) => {
-      return customInstance<GetStatisticsMonthly200>(
-      {url: `/api/v1/statistics/monthly`, method: 'GET',
+      return customInstance<GetStatisticsWeekly200>(
+      {url: `/api/v1/statistics/weekly`, method: 'GET',
         params
     },
       );
     }
-  /**
- * 日付ごとのユーザーの統計情報を取得する
- * @summary Get User Statics by day
- */
-const getStatisticsDaily = (
-    params: GetStatisticsDailyParams,
- ) => {
-      return customInstance<GetStatisticsDaily200>(
-      {url: `/api/v1/statistics/daily`, method: 'GET',
-        params
-    },
-      );
-    }
-  return {getHistory,getStatisticsMonthly,getStatisticsDaily}};
+  return {getHistory,getStatisticsWeekly}};
 export type GetHistoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getHistory>['getHistory']>>>
-export type GetStatisticsMonthlyResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getHistory>['getStatisticsMonthly']>>>
-export type GetStatisticsDailyResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getHistory>['getStatisticsDaily']>>>
+export type GetStatisticsWeeklyResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getHistory>['getStatisticsWeekly']>>>

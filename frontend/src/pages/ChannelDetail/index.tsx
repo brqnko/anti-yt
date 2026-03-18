@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
+import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
+import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getChannel } from "../../api/generated/channel";
-import { formatDuration, formatTimeAgo, formatSubscriberCount } from "../../utils/format";
+import { formatSubscriberCount } from "../../utils/format";
+import { VideoCard } from "../../components/VideoCard";
 import type {
   GetChannelsChannelIdVideos200ItemsItem,
 } from "../../api/generated/antiYtApi.schemas";
@@ -120,20 +123,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     }
   }, [channelId, isLoadingMore, hasNextVideos]);
 
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) loadMore();
-      },
-      { rootMargin: "200px" },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [loadMore]);
+  const sentinelRef = useInfiniteScroll(loadMore);
 
   const handleToggleSubscription = async () => {
     if (isToggling || !channelInfo) return;
@@ -169,11 +159,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div class="flex items-center justify-center py-32">
-          <span class="material-symbols-outlined text-5xl animate-spin text-primary">
-            progress_activity
-          </span>
-        </div>
+        <LoadingSpinner className="py-32" />
       </DashboardLayout>
     );
   }
@@ -282,44 +268,19 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
             <>
               <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {videos.map((video) => (
-                  <a key={video.video_id} href={`/watch/${video.video_id}`} class="flex flex-col gap-3 no-underline text-inherit">
-                    <div class="group/thumb relative aspect-video rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-800 cursor-pointer">
-                      <img
-                        src={video.external_video_thumbnail_url}
-                        alt={video.external_video_title}
-                        class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/thumb:scale-105"
-                      />
-                      <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300" />
-                      <span class="absolute bottom-2 right-2 bg-black/80 text-white text-xs font-bold px-1.5 py-0.5 rounded">
-                        {formatDuration(video.external_video_length_seconds)}
-                      </span>
-                      <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300 pointer-events-none">
-                        <div class="size-12 rounded-full bg-primary/90 flex items-center justify-center text-white shadow-lg transform scale-90 group-hover/thumb:scale-100 transition-transform">
-                          <span class="material-symbols-outlined text-[28px] ml-1">
-                            play_arrow
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="flex flex-col min-w-0">
-                      <h3 class="text-base font-bold text-charcoal dark:text-white leading-tight line-clamp-2 cursor-pointer">
-                        {video.external_video_title}
-                      </h3>
-                      <span class="text-xs text-text-muted-light dark:text-text-muted-dark mt-1">
-                        {formatTimeAgo(video.external_video_created_at, t)}
-                      </span>
-                    </div>
-                  </a>
+                  <VideoCard
+                    key={video.video_id}
+                    videoId={video.video_id}
+                    thumbnailUrl={video.external_video_thumbnail_url}
+                    title={video.external_video_title}
+                    lengthSeconds={video.external_video_length_seconds}
+                    dateStr={video.external_video_created_at}
+                    watchedSeconds={video.last_watch_seconds}
+                  />
                 ))}
               </div>
               <div ref={sentinelRef} class="h-1" />
-              {isLoadingMore && (
-                <div class="flex items-center justify-center py-8">
-                  <span class="material-symbols-outlined text-3xl animate-spin text-primary">
-                    progress_activity
-                  </span>
-                </div>
-              )}
+              {isLoadingMore && <LoadingSpinner size="sm" className="py-8" />}
               {!hasNextVideos && !isLoadingMore && videos.length > 0 && (
                 <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">
                   🎉 {t("dashboard.endOfFeed")}

@@ -18,6 +18,7 @@ const ChannelDetail = lazy(() => import("./pages/ChannelDetail/index.jsx"));
 const Profile = lazy(() => import("./pages/Profile/index.jsx"));
 const VideoPlayer = lazy(() => import("./pages/VideoPlayer/index.jsx"));
 const Analytics = lazy(() => import("./pages/Analytics/index.jsx"));
+const History = lazy(() => import("./pages/History/index.jsx"));
 const NotFound = lazy(() => import("./pages/_404.jsx"));
 import "./style.css";
 
@@ -29,6 +30,7 @@ function AppContent() {
       <Route path="/channels/:channelId" component={ChannelDetail} />
       <Route path="/watch/:videoId" component={VideoPlayer} />
       <Route path="/analytics" component={Analytics} />
+      <Route path="/history" component={History} />
       <Route path="/profile" component={Profile} />
       <Route path="/register" component={Register} />
       <Route path="/terms" component={Terms} />

@@ -379,8 +379,10 @@ type GetPlaylistsParams struct {
 
 // PostPlaylistsJSONBody defines parameters for PostPlaylists.
 type PostPlaylistsJSONBody struct {
-	PlaylistDescription string `json:"playlist_description"`
-	PlaylistTitle       string `json:"playlist_title"`
+	// BasePlaylistUrl インポート元のプレイリストURL
+	BasePlaylistUrl     *string `json:"base_playlist_url,omitempty"`
+	PlaylistDescription string  `json:"playlist_description"`
+	PlaylistTitle       string  `json:"playlist_title"`
 
 	// PlaylistType プレイリストのタイプ
 	PlaylistType PlaylistType `json:"playlist_type"`
@@ -532,27 +534,10 @@ type GetSearchParams struct {
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
-// GetStatisticsDailyParams defines parameters for GetStatisticsDaily.
-type GetStatisticsDailyParams struct {
-	TargetDay openapi_types.Date `form:"target_day" json:"target_day"`
-
-	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
-	XRealIP HeaderXRealIP `json:"X-Real-IP"`
-
-	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
-	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
-
-	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
-	CfRay HeaderCfRay `json:"Cf-Ray"`
-
-	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-}
-
-// GetStatisticsMonthlyParams defines parameters for GetStatisticsMonthly.
-type GetStatisticsMonthlyParams struct {
-	TargetMonth openapi_types.Date `form:"target_month" json:"target_month"`
+// GetStatisticsWeeklyParams defines parameters for GetStatisticsWeekly.
+type GetStatisticsWeeklyParams struct {
+	// TargetWeek 対象週の開始日(月曜日)
+	TargetWeek openapi_types.Date `form:"target_week" json:"target_week"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -875,12 +860,9 @@ type ServerInterface interface {
 	// Get search result
 	// (GET /api/v1/search)
 	GetSearch(w http.ResponseWriter, r *http.Request, params GetSearchParams)
-	// Get User Statics by day
-	// (GET /api/v1/statistics/daily)
-	GetStatisticsDaily(w http.ResponseWriter, r *http.Request, params GetStatisticsDailyParams)
-	// Get User Statistics by month
-	// (GET /api/v1/statistics/monthly)
-	GetStatisticsMonthly(w http.ResponseWriter, r *http.Request, params GetStatisticsMonthlyParams)
+	// Get User Statistics by week
+	// (GET /api/v1/statistics/weekly)
+	GetStatisticsWeekly(w http.ResponseWriter, r *http.Request, params GetStatisticsWeeklyParams)
 	// Get subscriptions
 	// (GET /api/v1/subscriptions)
 	GetSubscriptions(w http.ResponseWriter, r *http.Request, params GetSubscriptionsParams)
@@ -1019,15 +1001,9 @@ func (_ Unimplemented) GetSearch(w http.ResponseWriter, r *http.Request, params 
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Get User Statics by day
-// (GET /api/v1/statistics/daily)
-func (_ Unimplemented) GetStatisticsDaily(w http.ResponseWriter, r *http.Request, params GetStatisticsDailyParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Get User Statistics by month
-// (GET /api/v1/statistics/monthly)
-func (_ Unimplemented) GetStatisticsMonthly(w http.ResponseWriter, r *http.Request, params GetStatisticsMonthlyParams) {
+// Get User Statistics by week
+// (GET /api/v1/statistics/weekly)
+func (_ Unimplemented) GetStatisticsWeekly(w http.ResponseWriter, r *http.Request, params GetStatisticsWeeklyParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -3639,8 +3615,8 @@ func (siw *ServerInterfaceWrapper) GetSearch(w http.ResponseWriter, r *http.Requ
 	handler.ServeHTTP(w, r)
 }
 
-// GetStatisticsDaily operation middleware
-func (siw *ServerInterfaceWrapper) GetStatisticsDaily(w http.ResponseWriter, r *http.Request) {
+// GetStatisticsWeekly operation middleware
+func (siw *ServerInterfaceWrapper) GetStatisticsWeekly(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -3651,20 +3627,20 @@ func (siw *ServerInterfaceWrapper) GetStatisticsDaily(w http.ResponseWriter, r *
 	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params GetStatisticsDailyParams
+	var params GetStatisticsWeeklyParams
 
-	// ------------- Required query parameter "target_day" -------------
+	// ------------- Required query parameter "target_week" -------------
 
-	if paramValue := r.URL.Query().Get("target_day"); paramValue != "" {
+	if paramValue := r.URL.Query().Get("target_week"); paramValue != "" {
 
 	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "target_day"})
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "target_week"})
 		return
 	}
 
-	err = runtime.BindQueryParameterWithOptions("form", true, true, "target_day", r.URL.Query(), &params.TargetDay, runtime.BindQueryParameterOptions{Type: "string", Format: "date"})
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "target_week", r.URL.Query(), &params.TargetWeek, runtime.BindQueryParameterOptions{Type: "string", Format: "date"})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "target_day", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "target_week", Err: err})
 		return
 	}
 
@@ -3786,164 +3762,7 @@ func (siw *ServerInterfaceWrapper) GetStatisticsDaily(w http.ResponseWriter, r *
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetStatisticsDaily(w, r, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// GetStatisticsMonthly operation middleware
-func (siw *ServerInterfaceWrapper) GetStatisticsMonthly(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	ctx := r.Context()
-
-	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
-
-	r = r.WithContext(ctx)
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetStatisticsMonthlyParams
-
-	// ------------- Required query parameter "target_month" -------------
-
-	if paramValue := r.URL.Query().Get("target_month"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "target_month"})
-		return
-	}
-
-	err = runtime.BindQueryParameterWithOptions("form", true, true, "target_month", r.URL.Query(), &params.TargetMonth, runtime.BindQueryParameterOptions{Type: "string", Format: "date"})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "target_month", Err: err})
-		return
-	}
-
-	headers := r.Header
-
-	// ------------- Required header parameter "X-Real-IP" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
-		var XRealIP HeaderXRealIP
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "ipv4"})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
-			return
-		}
-
-		params.XRealIP = XRealIP
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "Cf-Ipcountry" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
-		var CfIpcountry HeaderCfIpCountry
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "iso-3166-1-alpha-2"})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
-			return
-		}
-
-		params.CfIpcountry = CfIpcountry
-
-	} else {
-		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "Cf-Ray" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
-		var CfRay HeaderCfRay
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
-			return
-		}
-
-		params.CfRay = CfRay
-
-	} else {
-		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "User-Agent" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
-		var UserAgent HeaderUserAgent
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
-			return
-		}
-
-		params.UserAgent = UserAgent
-
-	} else {
-		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetStatisticsMonthly(w, r, params)
+		siw.Handler.GetStatisticsWeekly(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -5872,10 +5691,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/api/v1/search", wrapper.GetSearch)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/statistics/daily", wrapper.GetStatisticsDaily)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/statistics/monthly", wrapper.GetStatisticsMonthly)
+		r.Get(options.BaseURL+"/api/v1/statistics/weekly", wrapper.GetStatisticsWeekly)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/subscriptions", wrapper.GetSubscriptions)
@@ -6585,7 +6401,10 @@ type GetHistory200JSONResponse struct {
 
 		// ExternalChannelId チャンネルのYouTube ID
 		ExternalChannelId string `json:"external_channel_id"`
-		ExternalVideoId   string `json:"external_video_id"`
+
+		// ExternalVideoCreatedAt 動画の公開日時
+		ExternalVideoCreatedAt time.Time `json:"external_video_created_at"`
+		ExternalVideoId        string    `json:"external_video_id"`
 
 		// ExternalVideoLengthSeconds 動画の長さ(秒数)
 		ExternalVideoLengthSeconds int `json:"external_video_length_seconds"`
@@ -7418,118 +7237,18 @@ func (response GetSearch500JSONResponse) VisitGetSearchResponse(w http.ResponseW
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetStatisticsDailyRequestObject struct {
-	Params GetStatisticsDailyParams
+type GetStatisticsWeeklyRequestObject struct {
+	Params GetStatisticsWeeklyParams
 }
 
-type GetStatisticsDailyResponseObject interface {
-	VisitGetStatisticsDailyResponse(w http.ResponseWriter) error
+type GetStatisticsWeeklyResponseObject interface {
+	VisitGetStatisticsWeeklyResponse(w http.ResponseWriter) error
 }
 
-type GetStatisticsDaily200JSONResponse struct {
-	// AiSummaryLong AIの要約分(long)
-	AiSummaryLong string `json:"ai_summary_long"`
+type GetStatisticsWeekly200JSONResponse struct {
+	// AiSummary AIによる週間視聴傾向の要約
+	AiSummary *string `json:"ai_summary,omitempty"`
 
-	// AiSummaryShort AIの要約分(short)
-	AiSummaryShort string `json:"ai_summary_short"`
-
-	// ItemCount 総件数
-	ItemCount int `json:"item_count"`
-	Items     []struct {
-		ExternalVideoId            string             `json:"external_video_id"`
-		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
-		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
-		VideoId                    openapi_types.UUID `json:"video_id"`
-		WatchEndAt                 time.Time          `json:"watch_end_at"`
-		WatchSeconds               int                `json:"watch_seconds"`
-		WatchStartAt               time.Time          `json:"watch_start_at"`
-	} `json:"items"`
-	TargetDay         openapi_types.Date `json:"target_day"`
-	TotalWatchCount   int                `json:"total_watch_count"`
-	TotalWatchSeconds int                `json:"total_watch_seconds"`
-}
-
-func (response GetStatisticsDaily200JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetStatisticsDaily400JSONResponse struct{ BadRequestJSONResponse }
-
-func (response GetStatisticsDaily400JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(400)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetStatisticsDaily401JSONResponse struct{ UnauthorizedJSONResponse }
-
-func (response GetStatisticsDaily401JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(401)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetStatisticsDaily403JSONResponse struct{ ForbiddenJSONResponse }
-
-func (response GetStatisticsDaily403JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(403)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetStatisticsDaily404JSONResponse struct{ NotFoundJSONResponse }
-
-func (response GetStatisticsDaily404JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(404)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetStatisticsDaily413JSONResponse struct{ PayloadTooLargeJSONResponse }
-
-func (response GetStatisticsDaily413JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(413)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetStatisticsDaily429JSONResponse struct{ TooManyRequestsJSONResponse }
-
-func (response GetStatisticsDaily429JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(429)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetStatisticsDaily500JSONResponse struct {
-	InternalServerErrorJSONResponse
-}
-
-func (response GetStatisticsDaily500JSONResponse) VisitGetStatisticsDailyResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(500)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetStatisticsMonthlyRequestObject struct {
-	Params GetStatisticsMonthlyParams
-}
-
-type GetStatisticsMonthlyResponseObject interface {
-	VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error
-}
-
-type GetStatisticsMonthly200JSONResponse struct {
 	// ItemCount 総件数
 	ItemCount int `json:"item_count"`
 	Items     []struct {
@@ -7539,75 +7258,77 @@ type GetStatisticsMonthly200JSONResponse struct {
 		VideoWatchCount   int `json:"video_watch_count"`
 		VideoWatchSeconds int `json:"video_watch_seconds"`
 	} `json:"items"`
-	TargetMonth openapi_types.Date `json:"target_month"`
+
+	// TargetWeek 対象週の開始日(月曜日)
+	TargetWeek openapi_types.Date `json:"target_week"`
 }
 
-func (response GetStatisticsMonthly200JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+func (response GetStatisticsWeekly200JSONResponse) VisitGetStatisticsWeeklyResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetStatisticsMonthly400JSONResponse struct{ BadRequestJSONResponse }
+type GetStatisticsWeekly400JSONResponse struct{ BadRequestJSONResponse }
 
-func (response GetStatisticsMonthly400JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+func (response GetStatisticsWeekly400JSONResponse) VisitGetStatisticsWeeklyResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetStatisticsMonthly401JSONResponse struct{ UnauthorizedJSONResponse }
+type GetStatisticsWeekly401JSONResponse struct{ UnauthorizedJSONResponse }
 
-func (response GetStatisticsMonthly401JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+func (response GetStatisticsWeekly401JSONResponse) VisitGetStatisticsWeeklyResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetStatisticsMonthly403JSONResponse struct{ ForbiddenJSONResponse }
+type GetStatisticsWeekly403JSONResponse struct{ ForbiddenJSONResponse }
 
-func (response GetStatisticsMonthly403JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+func (response GetStatisticsWeekly403JSONResponse) VisitGetStatisticsWeeklyResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetStatisticsMonthly404JSONResponse struct{ NotFoundJSONResponse }
+type GetStatisticsWeekly404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response GetStatisticsMonthly404JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+func (response GetStatisticsWeekly404JSONResponse) VisitGetStatisticsWeeklyResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetStatisticsMonthly413JSONResponse struct{ PayloadTooLargeJSONResponse }
+type GetStatisticsWeekly413JSONResponse struct{ PayloadTooLargeJSONResponse }
 
-func (response GetStatisticsMonthly413JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+func (response GetStatisticsWeekly413JSONResponse) VisitGetStatisticsWeeklyResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(413)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetStatisticsMonthly429JSONResponse struct{ TooManyRequestsJSONResponse }
+type GetStatisticsWeekly429JSONResponse struct{ TooManyRequestsJSONResponse }
 
-func (response GetStatisticsMonthly429JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+func (response GetStatisticsWeekly429JSONResponse) VisitGetStatisticsWeeklyResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(429)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetStatisticsMonthly500JSONResponse struct {
+type GetStatisticsWeekly500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
 
-func (response GetStatisticsMonthly500JSONResponse) VisitGetStatisticsMonthlyResponse(w http.ResponseWriter) error {
+func (response GetStatisticsWeekly500JSONResponse) VisitGetStatisticsWeeklyResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(500)
 
@@ -8750,12 +8471,9 @@ type StrictServerInterface interface {
 	// Get search result
 	// (GET /api/v1/search)
 	GetSearch(ctx context.Context, request GetSearchRequestObject) (GetSearchResponseObject, error)
-	// Get User Statics by day
-	// (GET /api/v1/statistics/daily)
-	GetStatisticsDaily(ctx context.Context, request GetStatisticsDailyRequestObject) (GetStatisticsDailyResponseObject, error)
-	// Get User Statistics by month
-	// (GET /api/v1/statistics/monthly)
-	GetStatisticsMonthly(ctx context.Context, request GetStatisticsMonthlyRequestObject) (GetStatisticsMonthlyResponseObject, error)
+	// Get User Statistics by week
+	// (GET /api/v1/statistics/weekly)
+	GetStatisticsWeekly(ctx context.Context, request GetStatisticsWeeklyRequestObject) (GetStatisticsWeeklyResponseObject, error)
 	// Get subscriptions
 	// (GET /api/v1/subscriptions)
 	GetSubscriptions(ctx context.Context, request GetSubscriptionsRequestObject) (GetSubscriptionsResponseObject, error)
@@ -9275,51 +8993,25 @@ func (sh *strictHandler) GetSearch(w http.ResponseWriter, r *http.Request, param
 	}
 }
 
-// GetStatisticsDaily operation middleware
-func (sh *strictHandler) GetStatisticsDaily(w http.ResponseWriter, r *http.Request, params GetStatisticsDailyParams) {
-	var request GetStatisticsDailyRequestObject
+// GetStatisticsWeekly operation middleware
+func (sh *strictHandler) GetStatisticsWeekly(w http.ResponseWriter, r *http.Request, params GetStatisticsWeeklyParams) {
+	var request GetStatisticsWeeklyRequestObject
 
 	request.Params = params
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.GetStatisticsDaily(ctx, request.(GetStatisticsDailyRequestObject))
+		return sh.ssi.GetStatisticsWeekly(ctx, request.(GetStatisticsWeeklyRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetStatisticsDaily")
+		handler = middleware(handler, "GetStatisticsWeekly")
 	}
 
 	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(GetStatisticsDailyResponseObject); ok {
-		if err := validResponse.VisitGetStatisticsDailyResponse(w); err != nil {
-			sh.options.ResponseErrorHandlerFunc(w, r, err)
-		}
-	} else if response != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
-	}
-}
-
-// GetStatisticsMonthly operation middleware
-func (sh *strictHandler) GetStatisticsMonthly(w http.ResponseWriter, r *http.Request, params GetStatisticsMonthlyParams) {
-	var request GetStatisticsMonthlyRequestObject
-
-	request.Params = params
-
-	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.GetStatisticsMonthly(ctx, request.(GetStatisticsMonthlyRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetStatisticsMonthly")
-	}
-
-	response, err := handler(r.Context(), w, r, request)
-
-	if err != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(GetStatisticsMonthlyResponseObject); ok {
-		if err := validResponse.VisitGetStatisticsMonthlyResponse(w); err != nil {
+	} else if validResponse, ok := response.(GetStatisticsWeeklyResponseObject); ok {
+		if err := validResponse.VisitGetStatisticsWeeklyResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -9677,99 +9369,98 @@ func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request, param
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
