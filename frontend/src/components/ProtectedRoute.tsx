@@ -3,6 +3,7 @@ import { useEffect } from "preact/hooks";
 import { lazy } from "preact-iso";
 import type { ComponentChildren } from "preact";
 import { useAuth } from "../contexts/AuthContext";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 const ScreenTimeBlock = lazy(
   () => import("../pages/ScreenTimeBlock/index.tsx"),
@@ -30,11 +31,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (isLoading) {
     return (
-      <div class="flex items-center justify-center h-screen bg-background-light dark:bg-background-dark">
-        <span class="material-symbols-outlined text-5xl animate-spin text-primary">
-          progress_activity
-        </span>
-      </div>
+      <LoadingSpinner className="h-screen bg-background-light dark:bg-background-dark" />
     );
   }
 

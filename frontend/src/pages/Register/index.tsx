@@ -7,7 +7,9 @@ import { useAuth } from "../../contexts/AuthContext";
 import { getUser } from "../../api/generated/user";
 import type { ProblemDetailError } from "../../api/generated/antiYtApi.schemas";
 import Step1 from "./Step1";
-import Step2, { type TimeRange, formatTime } from "./Step2";
+import Step2 from "./Step2";
+import type { TimeRange } from "../../types/time-range";
+import { formatTime } from "../../utils/format";
 
 export default function Register() {
   const { t, i18n } = useTranslation();
@@ -116,7 +118,7 @@ export default function Register() {
             {!error.apiDetail && <div class="mb-4" />}
             <button
               type="button"
-              class="w-full px-6 py-3 bg-primary hover:bg-[#b8a37e] text-charcoal font-bold rounded-xl shadow-lg shadow-primary/20 transition-all cursor-pointer"
+              class="w-full px-6 py-3 bg-primary hover:bg-[#b8a37e] text-charcoal font-bold rounded-xl transition-all cursor-pointer"
               onClick={() => setError(null)}
             >
               {t("register.error.close")}

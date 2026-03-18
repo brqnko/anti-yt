@@ -21,21 +21,7 @@ func NewService(db *pgxpool.Pool) (*Service, error) {
 	}, nil
 }
 
-type HistoryItem struct {
-	VideoID                    uuid.UUID
-	ExternalVideoID            string
-	ExternalVideoTitle         string
-	ExternalVideoThumbnailURL  string
-	ExternalVideoLengthSeconds int
-	WatchPositionSeconds       int
-	WatchedAt                  time.Time
-	ChannelID                  uuid.UUID
-	ExternalChannelID          string
-	ExternalChannelDisplayName string
-	ExternalChannelIconURL     string
-}
-
-func (s *Service) GetHistory(ctx context.Context, limit int, cursor *uuid.UUID) (items []HistoryItem, hasNext bool, err error) {
+func (s *Service) GetHistory(ctx context.Context, limit int, cursor *uuid.UUID) (items []*HistoryItem, hasNext bool, err error) {
 	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, false, err
@@ -57,22 +43,50 @@ func (s *Service) GetHistory(ctx context.Context, limit int, cursor *uuid.UUID) 
 		rows = rows[:limit]
 	}
 
-	items = make([]HistoryItem, len(rows))
+	items = make([]*HistoryItem, len(rows))
 	for i, row := range rows {
-		items[i] = HistoryItem{
-			VideoID:                    row.VideoID,
-			ExternalVideoID:            row.ExternalVideoID,
-			ExternalVideoTitle:         row.ExternalVideoTitle,
-			ExternalVideoThumbnailURL:  row.ExternalVideoThumbnailUrl,
-			ExternalVideoLengthSeconds: row.ExternalVideoLengthSeconds,
-			WatchPositionSeconds:       row.WatchPositionSeconds,
-			WatchedAt:                  row.WatchedAt,
-			ChannelID:                  row.ChannelID,
-			ExternalChannelID:          row.ExternalChannelID,
-			ExternalChannelDisplayName: row.ExternalChannelDisplayName,
-			ExternalChannelIconURL:     row.ExternalChannelIconUrl,
+		item, err := NewHistoryItem(
+			row.VideoID,
+			row.ExternalVideoID,
+			row.ExternalVideoTitle,
+			row.ExternalVideoThumbnailUrl,
+			row.ExternalVideoLengthSeconds,
+			row.ExternalVideoCreatedAt,
+			row.WatchPositionSeconds,
+			row.WatchedAt,
+			row.ChannelID,
+			row.ExternalChannelID,
+			row.ExternalChannelDisplayName,
+			row.ExternalChannelIconUrl,
+		)
+		if err != nil {
+			return nil, false, fmt.Errorf("newHistoryItem: %w", err)
 		}
+		items[i] = item
 	}
 
 	return items, hasNext, nil
+}
+
+func (s *Service) GetStatisticsByWeek(ctx context.Context, targetWeek time.Time) (*WeeklyStatistics, error) {
+	userID, err := util.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := sqlc.New(s.db).GetUserStatisticsByWeek(ctx, sqlc.GetUserStatisticsByWeekParams{
+		UserID:    userID,
+		StartDate: targetWeek,
+		EndDate:   targetWeek.Add(7 * 24 * time.Hour), // NOTE: postgresql側で+ '7 days'するとsqlcがパースエラー起こす
+	})
+	if err != nil {
+		return nil, fmt.Errorf("getUserStatisticsByWeek: %w", err)
+	}
+
+	daily := make([]*DailyStatistics, len(rows))
+	for i, row := range rows {
+		daily[i] = NewDailyStatistics(row.WatchDate.Time, row.VideoCount, row.WatchSum)
+	}
+
+	return NewWeeklyStatistics(targetWeek, daily, nil), nil
 }

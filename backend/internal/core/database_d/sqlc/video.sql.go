@@ -55,10 +55,34 @@ WHERE
     m_channel.public_id = $2
     AND (
         $3 :: uuid IS NULL
-        OR m_video.public_id < $3 :: uuid
+        OR (
+            m_video.external_created_at < (
+                SELECT
+                    mv.external_created_at
+                FROM
+                    m_video mv
+                WHERE
+                    mv.public_id = $3 :: uuid
+                LIMIT
+                    1
+            )
+        )
+        OR (
+            m_video.external_created_at = (
+                SELECT
+                    mv.external_created_at
+                FROM
+                    m_video mv
+                WHERE
+                    mv.public_id = $3 :: uuid
+                LIMIT
+                    1
+            )
+            AND m_video.public_id < $3 :: uuid
+        )
     )
 ORDER BY
-    m_video.m_channel_id,
+    m_video.external_created_at DESC,
     m_video.public_id DESC
 LIMIT
     $4

@@ -148,6 +148,23 @@
     },
     "noChannels": "No channels subscribed yet.",
     "myPlaylists": "My Playlists",
+    "addPlaylist": "Create Playlist",
+    "addPlaylistDialog": {
+      "title": "New Playlist",
+      "description": "Enter a title and description for your playlist.",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Enter playlist name",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Playlist description (optional)",
+      "importLabel": "Import from YouTube playlist",
+      "optional": "optional",
+      "importPlaceholder": "https://www.youtube.com/playlist?list=PL...",
+      "cancel": "Cancel",
+      "add": "Create",
+      "adding": "Creating...",
+      "error": "Failed to create playlist. Please try again.",
+      "required": "required"
+    },
     "noPlaylists": "No playlists yet.",
     "views": "views",
     "noVideos": "No videos yet",
@@ -298,7 +315,8 @@
     "volume": "Volume",
     "fullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
-    "seekBar": "Seek bar"
+    "seekBar": "Seek bar",
+    "seconds": "s"
   },
   "analytics": {
     "pageTitle": "Analytics",
@@ -306,18 +324,24 @@
     "timeWasted": "Time Watched",
     "dailyAverage": "Daily Average",
     "goalProgress": "Goal Progress",
+    "weeklyAverageGoal": "Weekly Avg Goal",
     "lessVsLastMonth": "{{percent}}% less vs last month",
     "onTrackToMeetGoal": "On track to meet goal",
-    "monthlyUsageTrends": "Monthly Usage Trends",
+    "weeklyGoalOnTrack": "On track (weekly avg)",
+    "weeklyUsageTrends": "This Week's Usage",
     "actualUsage": "Actual Usage",
     "limit": "Limit",
     "dailyLimit": "Daily Limit ({{hours}}h)",
-    "weekLabel": "Wk {{week}}",
-    "weekHours": "Week {{week}}: {{hours}}h",
-    "weekHoursCurrent": "Week {{week}} (Current): {{hours}}h",
+    "tooltipVideos": "{{count}} videos",
+    "tooltipHours": "{{hours}}h",
     "focusAI": "FocusAI Assistant",
     "newInsight": "NEW INSIGHT",
-    "insightMessage": "You watched <strong>{{hours}} hours</strong> this month! That is <strong>{{less}} hours less</strong> than last month. Keep it up!"
+    "insightMessage": "You watched <strong>{{hours}} hours</strong> this month! That is <strong>{{less}} hours less</strong> than last month. Keep it up!",
+    "loadError": "Failed to load data",
+    "retry": "Retry",
+    "daysActive": "{{count}} days active",
+    "weeklyGoalBehind": "Behind goal",
+    "noLimitSet": "No limit set"
   },
   "screenTimeBlock": {
     "pageTitle": "Screen Time Limit",
@@ -330,6 +354,18 @@
     "zenMode": "Zen Mode Active",
     "mowTile": "Mow this grass tile",
     "mownTile": "Already mown"
+  },
+  "history": {
+    "pageTitle": "Watch History",
+    "title": "Watch History",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "noHistory": "No watch history",
+    "noHistoryDesc": "Videos you watch will appear here.",
+    "endOfHistory": "You've reached the end of your history",
+    "watchedAgo": "Watched {{time}}",
+    "loadError": "Failed to load history",
+    "retry": "Try again"
   },
   "home": {
     "heroTitle1": "Break the",

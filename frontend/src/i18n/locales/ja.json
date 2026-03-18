@@ -148,6 +148,23 @@
     },
     "noChannels": "チャンネルが登録されていません。",
     "myPlaylists": "マイプレイリスト",
+    "addPlaylist": "プレイリストを作成",
+    "addPlaylistDialog": {
+      "title": "新しいプレイリスト",
+      "description": "プレイリストのタイトルと説明を入力してください。",
+      "titleLabel": "タイトル",
+      "titlePlaceholder": "プレイリスト名を入力",
+      "descriptionLabel": "説明",
+      "descriptionPlaceholder": "プレイリストの説明（任意）",
+      "importLabel": "YouTubeプレイリストからインポート",
+      "optional": "任意",
+      "importPlaceholder": "https://www.youtube.com/playlist?list=PL...",
+      "cancel": "キャンセル",
+      "add": "作成",
+      "adding": "作成中...",
+      "error": "プレイリストの作成に失敗しました。再度お試しください。",
+      "required": "必須"
+    },
     "noPlaylists": "プレイリストがありません。",
     "views": "回視聴",
     "noVideos": "動画がありません",
@@ -298,7 +315,8 @@
     "volume": "音量",
     "fullscreen": "全画面表示",
     "exitFullscreen": "全画面解除",
-    "seekBar": "シークバー"
+    "seekBar": "シークバー",
+    "seconds": "秒"
   },
   "analytics": {
     "pageTitle": "アナリティクス",
@@ -306,18 +324,24 @@
     "timeWasted": "視聴時間",
     "dailyAverage": "1日の平均",
     "goalProgress": "目標達成度",
+    "weeklyAverageGoal": "週間平均 目標達成度",
     "lessVsLastMonth": "先月比 {{percent}}% 減少",
     "onTrackToMeetGoal": "目標達成ペースです",
-    "monthlyUsageTrends": "月間利用トレンド",
+    "weeklyGoalOnTrack": "週平均で目標達成ペースです",
+    "weeklyUsageTrends": "今週の利用状況",
     "actualUsage": "実際の利用",
     "limit": "制限",
     "dailyLimit": "1日の制限 ({{hours}}時間)",
-    "weekLabel": "第{{week}}週",
-    "weekHours": "第{{week}}週: {{hours}}時間",
-    "weekHoursCurrent": "第{{week}}週 (現在): {{hours}}時間",
+    "tooltipVideos": "{{count}}本の動画",
+    "tooltipHours": "{{hours}}時間",
     "focusAI": "FocusAI アシスタント",
     "newInsight": "新しい分析",
-    "insightMessage": "今月の視聴時間は<strong>{{hours}}時間</strong>です！先月より<strong>{{less}}時間少なく</strong>なりました。この調子で頑張りましょう！"
+    "insightMessage": "今月の視聴時間は<strong>{{hours}}時間</strong>です！先月より<strong>{{less}}時間少なく</strong>なりました。この調子で頑張りましょう！",
+    "loadError": "データの読み込みに失敗しました",
+    "retry": "再試行",
+    "daysActive": "{{count}}日間アクティブ",
+    "weeklyGoalBehind": "目標を超えた日が多いです",
+    "noLimitSet": "制限未設定"
   },
   "screenTimeBlock": {
     "pageTitle": "視聴制限",
@@ -330,6 +354,18 @@
     "zenMode": "禅モード有効",
     "mowTile": "この芝を刈る",
     "mownTile": "刈り済み"
+  },
+  "history": {
+    "pageTitle": "視聴履歴",
+    "title": "視聴履歴",
+    "today": "今日",
+    "yesterday": "昨日",
+    "noHistory": "視聴履歴がありません",
+    "noHistoryDesc": "動画を視聴すると、ここに履歴が表示されます。",
+    "endOfHistory": "すべての履歴を読み込みました",
+    "watchedAgo": "{{time}}に視聴",
+    "loadError": "履歴の読み込みに失敗しました",
+    "retry": "再試行"
   },
   "home": {
     "heroTitle1": "断ち切ろう",

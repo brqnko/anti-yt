@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
+import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getVideo } from "../../api/generated/video";
 import { formatDuration, formatSubscriberCount } from "../../utils/format";
 import { getCookie } from "../../utils/cookie";
@@ -16,8 +17,8 @@ const HEARTBEAT_INTERVAL_MS = 60_000;
 const HEARTBEAT_DEBOUNCE_MS = 2_000;
 
 /** Fire-and-forget heartbeat that survives page unload / navigation. */
-function sendBeaconHeartbeat(externalVideoId: string, positionSeconds: number): void {
-  const url = `/api/v1/videos/${encodeURIComponent(externalVideoId)}/heartbeats`;
+function sendBeaconHeartbeat(videoId: string, positionSeconds: number): void {
+  const url = `/api/v1/videos/${encodeURIComponent(videoId)}/heartbeats`;
   const body = JSON.stringify({ current_position_seconds: positionSeconds });
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   const csrfToken = getCookie("csrf_token");
@@ -44,6 +45,15 @@ function VideoPlayerContent() {
   const [video, setVideo] = useState<GetVideosVideoId200 | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+  const startTimeRef = useRef<number | null>(
+    typeof window !== "undefined"
+      ? (() => {
+          const t = new URLSearchParams(window.location.search).get("t");
+          const n = Number(t);
+          return t && Number.isFinite(n) && n > 0 ? Math.floor(n) : null;
+        })()
+      : null,
+  );
   const [noteText, setNoteText] = useState("");
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -58,6 +68,7 @@ function VideoPlayerContent() {
   const heartbeatDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartbeatFailCountRef = useRef(0);
   const finalHeartbeatSentRef = useRef(false);
+  const lastFinalSentAtRef = useRef(0);
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const descRef = useRef<HTMLDivElement>(null);
   const [descOverflows, setDescOverflows] = useState(false);
@@ -67,8 +78,8 @@ function VideoPlayerContent() {
   const currentTimeRef = useRef(0);
   const durationRef = useRef(0);
   const volumeRef = useRef(100);
-  const externalVideoIdRef = useRef<string | null>(null);
-  externalVideoIdRef.current = video?.external_video_id ?? null;
+  const videoIdRef = useRef<string | null>(null);
+  videoIdRef.current = video?.video_id ?? null;
 
   useTitle(video?.external_video_title ?? t("videoPlayer.pageTitle"));
 
@@ -100,6 +111,14 @@ function VideoPlayerContent() {
     containerId: PLAYER_CONTAINER_ID,
   });
 
+  // Seek to start time from ?t= query param once player is ready
+  useEffect(() => {
+    if (isReady && startTimeRef.current != null) {
+      seekTo(startTimeRef.current);
+      startTimeRef.current = null;
+    }
+  }, [isReady, seekTo]);
+
   // Keep refs in sync with latest values
   currentTimeRef.current = currentTime;
   durationRef.current = duration;
@@ -108,10 +127,13 @@ function VideoPlayerContent() {
   // Send a final heartbeat via keepalive fetch (survives unload). Guarded to fire at most once per pause/unload.
   const sendFinalHeartbeat = useCallback(() => {
     if (finalHeartbeatSentRef.current) return;
-    const extId = externalVideoIdRef.current;
-    if (extId) {
+    const now = Date.now();
+    if (now - lastFinalSentAtRef.current < 10_000) return;
+    const vid = videoIdRef.current;
+    if (vid) {
       finalHeartbeatSentRef.current = true;
-      sendBeaconHeartbeat(extId, Math.floor(currentTimeRef.current));
+      lastFinalSentAtRef.current = now;
+      sendBeaconHeartbeat(vid, Math.floor(currentTimeRef.current));
     }
   }, []);
 
@@ -143,7 +165,7 @@ function VideoPlayerContent() {
 
     const sendHeartbeat = () => {
       getVideo()
-        .postVideosVideoIdHeartbeats(video.external_video_id, {
+        .postVideosVideoIdHeartbeats(video.video_id, {
           current_position_seconds: Math.floor(currentTimeRef.current),
         })
         .then((res) => {
@@ -327,16 +349,28 @@ function VideoPlayerContent() {
   );
 
   const displayProgress = seekProgress ?? (duration > 0 ? (currentTime / duration) * 100 : 0);
+  // Local countdown: decrement remainingSeconds every second while playing
+  useEffect(() => {
+    if (remainingSeconds === null || playerState !== PlayerState.PLAYING) return;
+    const timer = setInterval(() => {
+      setRemainingSeconds((prev) => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          togglePlay();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [remainingSeconds !== null, playerState, togglePlay]);
+
   const isPlaying = playerState === PlayerState.PLAYING;
 
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div class="flex items-center justify-center flex-1">
-          <span class="material-symbols-outlined text-5xl animate-spin text-primary">
-            progress_activity
-          </span>
-        </div>
+        <LoadingSpinner className="flex-1" />
       </DashboardLayout>
     );
   }
@@ -496,7 +530,7 @@ function VideoPlayerContent() {
                   <div class="flex items-center gap-4 md:gap-6">
                     {remainingSeconds !== null && (
                       <span class="text-xs opacity-70">
-                        {t("videoPlayer.remaining")}: {formatDuration(remainingSeconds)}
+                        {t("videoPlayer.remaining")}: {remainingSeconds}{t("videoPlayer.seconds")}
                       </span>
                     )}
                     <button
