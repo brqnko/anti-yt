@@ -99,9 +99,6 @@ export function AddPlaylistDialog({
               placeholder={`${t("dashboard.addPlaylistDialog.titlePlaceholder")} (${t("dashboard.addPlaylistDialog.required")})`}
               value={title}
               onInput={(e) => setTitle((e.target as HTMLInputElement).value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSubmit();
-              }}
             />
           </div>
 

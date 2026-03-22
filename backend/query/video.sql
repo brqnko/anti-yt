@@ -1,4 +1,4 @@
--- name: SaveVideo :exec
+-- name: SaveVideo :one
 INSERT INTO
     m_video (
         m_channel_id,
@@ -18,7 +18,8 @@ ON CONFLICT (external_id) DO UPDATE SET
     external_thumbnail_url = EXCLUDED.external_thumbnail_url,
     external_length_seconds = EXCLUDED.external_length_seconds,
     fetched_at = EXCLUDED.fetched_at,
-    updated_at = CURRENT_TIMESTAMP;
+    updated_at = CURRENT_TIMESTAMP
+RETURNING m_video_id;
 
 -- name: GetChannelVideos :many
 SELECT

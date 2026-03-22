@@ -13,6 +13,8 @@ var (
 	ErrInvalidPlaylistDescription = errors.New("invalid playlist description: must be at most 255 characters")
 	ErrInvalidVisibilityCode      = errors.New("invalid visibility code")
 	ErrInvalidPlaylistCode        = errors.New("invalid playlist code")
+	ErrPlaylistNotFound           = errors.New("playlist not found")
+	ErrVideoNotInPlaylist         = errors.New("video not in playlist")
 )
 
 type VisibilityCode int
@@ -91,9 +93,13 @@ type Playlist struct {
 	PlaylistCode                 PlaylistCode
 	VideoCount           int
 	CreatedAt            time.Time
-	UpdatedAt                    time.Time
-	TopVideoThumbnailURL         *string
-	Videos                       []*video.Video
+	TopVideoThumbnailURL *string
+	Videos               []*video.Video
+}
+
+func (p *Playlist) SetGeneratedFields(id uuid.UUID, createdAt time.Time) {
+	p.ID = id
+	p.CreatedAt = createdAt
 }
 
 func NewPlaylist(
@@ -104,7 +110,6 @@ func NewPlaylist(
 	playlistTypeStr string,
 	videoCount int,
 	createdAt time.Time,
-	updatedAt time.Time,
 	topVideoThumbnailUrl *string,
 	videos []*video.Video,
 ) (*Playlist, error) {
@@ -136,7 +141,6 @@ func NewPlaylist(
 		PlaylistCode:         p,
 		VideoCount:           videoCount,
 		CreatedAt:            createdAt,
-		UpdatedAt:            updatedAt,
 		TopVideoThumbnailURL: topVideoThumbnailUrl,
 		Videos:               videos,
 	}, nil

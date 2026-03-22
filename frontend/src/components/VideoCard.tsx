@@ -16,6 +16,7 @@ export interface VideoCardProps {
   watchedAt?: string;
   watchedSeconds?: number;
   layout?: "card" | "row";
+  playlistId?: string;
 }
 
 function VideoThumbnail({
@@ -86,13 +87,14 @@ export function VideoCard({
   watchedAt,
   watchedSeconds,
   layout = "card",
+  playlistId,
 }: VideoCardProps) {
   const { t } = useTranslation();
   const progressPercent =
     watchedSeconds != null && lengthSeconds > 0
       ? Math.min((watchedSeconds / lengthSeconds) * 100, 100)
       : 0;
-  const watchUrl = buildWatchUrl(videoId, watchedSeconds);
+  const watchUrl = buildWatchUrl(videoId, watchedSeconds, playlistId);
 
   const thumbnail = (
     <VideoThumbnail

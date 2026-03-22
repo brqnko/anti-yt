@@ -54,8 +54,13 @@ func (h *APIHandler) GetFeed(c context.Context, request GetFeedRequestObject) (G
 }
 
 func (h *APIHandler) GetSearch(c context.Context, request GetSearchRequestObject) (GetSearchResponseObject, error) {
-	//TODO implement me
-	panic("implement me")
+	// TODO
+	return GetSearch500JSONResponse{
+		InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
+			Detail: internalErrorDetail,
+			Title:  internalErrorTitle,
+		},
+	}, nil
 }
 
 func (h *APIHandler) GetVideosVideoId(c context.Context, request GetVideosVideoIdRequestObject) (GetVideosVideoIdResponseObject, error) {

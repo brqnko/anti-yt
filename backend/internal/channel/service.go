@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
@@ -27,6 +29,9 @@ var (
 	ErrInvalidSubscriptionLimit = errors.New("invalid subscription limit: out of range (should be [1..50])")
 	ErrInvalidGetUploadLimit    = errors.New("invalid get upload limit: out of range (should be [1..50])")
 	ErrSubscriptionNotFound     = errors.New("subscription not found")
+	ErrInvalidYouTubeURL        = errors.New("invalid youtube url or unsupported format")
+	ErrInvalidChannelID         = errors.New("invalid channel id")
+	ErrInvalidChannelHandle     = errors.New("invalid channel handle")
 )
 
 func NewService(
@@ -47,7 +52,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (*Su
 		return nil, err
 	}
 
-	channelID, err := util.ExtractChannelIDOrHandle(channelText)
+	channelID, err := extractChannelIDOrHandle(channelText)
 	if err != nil {
 		return nil, err
 	}
@@ -62,8 +67,12 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (*Su
 	}()
 	q := sqlc.New(tx)
 
-	if err := q.AcquireAdvisoryXactLock(ctx, util.Sha256Int64([]byte(channelID))); err != nil {
-		return nil, fmt.Errorf("acquireAdvisoryXactLock: %w", err)
+	acquired, err := q.TryAcquireAdvisoryXactLock(ctx, util.Sha256Int64([]byte(channelID)))
+	if err != nil {
+		return nil, fmt.Errorf("tryAcquireAdvisoryXactLock: %w", err)
+	}
+	if !acquired {
+		return nil, fmt.Errorf("tryAcquireAdvisoryXactLock: channel lock not acquired")
 	}
 	found, err := q.GetChannelByIdOrHandle(ctx, sqlc.GetChannelByIdOrHandleParams{
 		ExternalID:       channelID,
@@ -74,34 +83,73 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (*Su
 			return nil, fmt.Errorf("getChannelByIdOrHandle: %w", err)
 		}
 
-		info, err := s.ytService.FetchChannelInfo(ctx, channelID)
+		channelDetailMap, err := s.ytService.FetchChannelDetail(ctx, []string{channelID})
 		if err != nil {
-			return nil, fmt.Errorf("fetchChannelInfo: %w", err)
+			return nil, fmt.Errorf("fetchChannelDetail: %w", err)
+		}
+		channelDetail, ok := channelDetailMap[channelID]
+		if !ok {
+			return nil, youtube_d.ErrChannelNotFound
 		}
 
 		// NOTE: fetchの結果をキャッシュするため、トランザクションの外で行う
+		if err := sqlc.New(s.db).ClearStaleChannelCustomID(ctx, sqlc.ClearStaleChannelCustomIDParams{
+			ExternalCustomID: channelDetail.CustomID,
+			ExternalID:       channelDetail.ID,
+		}); err != nil {
+			return nil, fmt.Errorf("clearStaleChannelCustomID: %w", err)
+		}
 		saved, err := sqlc.New(s.db).SaveChannel(ctx, sqlc.SaveChannelParams{
-			ExternalID:               info.ID,
-			ExternalDisplayName:      info.DisplayName,
-			ExternalCustomID:         info.CustomID,
-			ExternalIconUrl:          info.IconURL,
-			ExternalDescription:      info.Description,
-			ExternalSubscribersCount: int64(info.SubscribersCount),
-			ExternalCreatedAt:        info.CreatedAt,
+			ExternalID:                channelDetail.ID,
+			ExternalDisplayName:       channelDetail.DisplayName,
+			ExternalCustomID:          channelDetail.CustomID,
+			ExternalIconUrl:           channelDetail.IconURL,
+			ExternalDescription:       channelDetail.Description,
+			ExternalSubscribersCount:  int64(channelDetail.SubscribersCount),
+			ExternalCreatedAt:         channelDetail.CreatedAt,
+			ExternalUploadsPlaylistID: channelDetail.UploadsPlaylistID,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("saveChannel: %w", err)
 		}
+
+		// 新しいチャンネルは、新規ユーザーによる可能性が高い。
+		// 新規ユーザーは貴重なため、RSS Feedより確実なYouTube Data APIで動画を取得しておく。
+		uploadIDs, _, err := s.ytService.FetchPlaylistVideoIDs(ctx, channelDetail.UploadsPlaylistID, "")
+		if err != nil {
+			return nil, err
+		}
+		videoDetails, err := s.ytService.FetchVideoDetail(ctx, uploadIDs)
+		if err != nil {
+			return nil, err
+		}
+
+		fetchedAt := time.Now().UTC()
+		for _, vd := range videoDetails {
+			if _, err := sqlc.New(s.db).SaveVideo(ctx, sqlc.SaveVideoParams{
+				MChannelID:            saved.MChannelID,
+				ExternalID:            vd.ID,
+				ExternalTitle:         vd.Title,
+				ExternalDescription:   vd.Description,
+				FetchedAt:             fetchedAt,
+				ExternalCreatedAt:     vd.CreatedAt,
+				ExternalThumbnailUrl:  vd.ThumbnailURL,
+				ExternalLengthSeconds: vd.LengthSeconds,
+			}); err != nil {
+				return nil, fmt.Errorf("saveVideo: %w", err)
+			}
+		}
+
 		found = sqlc.GetChannelByIdOrHandleRow{
 			PublicID:                 saved.PublicID,
-			ExternalID:               info.ID,
-			ExternalCustomID:         info.CustomID,
-			ExternalDescription:      info.Description,
-			ExternalIconUrl:          info.IconURL,
-			ExternalSubscribersCount: int64(info.SubscribersCount),
-			ExternalCreatedAt:        info.CreatedAt,
+			ExternalID:               channelDetail.ID,
+			ExternalCustomID:         channelDetail.CustomID,
+			ExternalDescription:      channelDetail.Description,
+			ExternalIconUrl:          channelDetail.IconURL,
+			ExternalSubscribersCount: int64(channelDetail.SubscribersCount),
+			ExternalCreatedAt:        channelDetail.CreatedAt,
 			MChannelID:               saved.MChannelID,
-			ExternalDisplayName:      info.DisplayName,
+			ExternalDisplayName:      channelDetail.DisplayName,
 		}
 	}
 
@@ -237,20 +285,20 @@ func (s *Service) GetChannelUploads(ctx context.Context, channelID uuid.UUID, cu
 		for i, v := range rss {
 			videoIDs[i] = v.VideoID
 		}
-		videoInfoMap, err := s.ytService.FetchVideoInfo(ctx, videoIDs)
+		videoDetailMap, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
 		if err != nil {
-			return nil, false, fmt.Errorf("fetchVideoInfo: %w", err)
+			return nil, false, fmt.Errorf("fetchVideoDetail: %w", err)
 		}
 
 		now := time.Now().UTC()
 		// キャッシュはトランザクションでロールバックしたくない
 		for _, v := range rss {
-			videoInfo, ok := videoInfoMap[v.VideoID]
+			videoDetail, ok := videoDetailMap[v.VideoID]
 			if !ok {
 				continue
 			}
 
-			if err := sqlc.New(s.db).SaveVideo(ctx, sqlc.SaveVideoParams{
+			if _, err := sqlc.New(s.db).SaveVideo(ctx, sqlc.SaveVideoParams{
 				MChannelID:            rssFetchedAt.MChannelID,
 				ExternalID:            v.VideoID,
 				ExternalTitle:         v.Title,
@@ -258,7 +306,7 @@ func (s *Service) GetChannelUploads(ctx context.Context, channelID uuid.UUID, cu
 				FetchedAt:             now,
 				ExternalCreatedAt:     v.CreatedAt,
 				ExternalThumbnailUrl:  v.ThumbnailURL,
-				ExternalLengthSeconds: videoInfo.LengthSeconds,
+				ExternalLengthSeconds: videoDetail.LengthSeconds,
 			}); err != nil {
 				return nil, false, fmt.Errorf("saveVideo: %w", err)
 			}
@@ -327,6 +375,9 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 	forUpdates, err := q.GetChannelsToFetchRSSForUpdate(ctx, sqlc.GetChannelsToFetchRSSForUpdateParams{
 		UserID:   userID,
 		RssFetch: time.Now().UTC().Add(-s.rssFetchDuration),
+		// NOTE: YouTube RSS Feedはレートリミットが厳しい。
+		// rss_fetched_atで昇順ソートしているので、ちょっとずつ更新されていくはず
+		QueryLimit: 1,
 	})
 	if err != nil {
 		return nil, false, fmt.Errorf("getChannelsToFetchRSSForUpdate: %w", err)
@@ -345,20 +396,20 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 				videoIDs[i] = f.VideoID
 			}
 			// TODO: 現在はforUpdates分YouTube Data APIにリクエストを投げているが、一括で取得したい
-			videoInfoMap, err := s.ytService.FetchVideoInfo(ctx, videoIDs)
+			videoDetailMap, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
 			if err != nil {
-				return nil, false, fmt.Errorf("fetchVideoInfo: %w", err)
+				return nil, false, fmt.Errorf("fetchVideoDetail: %w", err)
 			}
 
 			now := time.Now().UTC()
 			for _, f := range feed {
-				videoInfo, ok := videoInfoMap[f.VideoID]
+				videoDetail, ok := videoDetailMap[f.VideoID]
 				// TODO: 削除された動画どうするか考える
 				if !ok {
 					continue
 				}
 
-				if err := sqlc.New(s.db).SaveVideo(ctx, sqlc.SaveVideoParams{
+				if _, err := sqlc.New(s.db).SaveVideo(ctx, sqlc.SaveVideoParams{
 					MChannelID:            forUpdate.MChannelID,
 					ExternalID:            f.VideoID,
 					ExternalTitle:         f.Title,
@@ -366,7 +417,7 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 					FetchedAt:             now,
 					ExternalCreatedAt:     f.CreatedAt,
 					ExternalThumbnailUrl:  f.ThumbnailURL,
-					ExternalLengthSeconds: videoInfo.LengthSeconds,
+					ExternalLengthSeconds: videoDetail.LengthSeconds,
 				}); err != nil {
 					return nil, false, fmt.Errorf("saveVideo: %w", err)
 				}
@@ -415,4 +466,54 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 	}
 
 	return videosToReturn, len(res) == limit+1, nil
+}
+
+func extractChannelIDOrHandle(channelText string) (string, error) {
+	if strings.HasPrefix(channelText, "@") {
+		if len([]rune(channelText)) <= 3 {
+			return "", ErrInvalidChannelHandle
+		}
+
+		return channelText, nil
+	}
+
+	if strings.HasPrefix(channelText, "UC") {
+		if len(channelText) != 24 {
+			return "", ErrInvalidChannelID
+		}
+
+		return channelText, nil
+	}
+
+	if !strings.HasPrefix(channelText, "http://") && !strings.HasPrefix(channelText, "https://") {
+		channelText = "https://" + channelText
+	}
+	u, err := url.Parse(channelText)
+	if err != nil {
+		return "", err
+	}
+
+	if !strings.HasSuffix(u.Host, "youtube.com") && u.Host != "youtu.be" {
+		return "", ErrInvalidYouTubeURL
+	}
+
+	path := strings.Trim(u.Path, "/")
+	parts := strings.Split(path, "/")
+
+	if len(parts) == 0 || parts[0] == "" {
+		return "", ErrInvalidYouTubeURL
+	}
+
+	if strings.HasPrefix(parts[0], "@") {
+		return parts[0], nil
+	}
+
+	if parts[0] == "channel" && len(parts) > 1 {
+		id := parts[1]
+		if strings.HasPrefix(id, "UC") && len(id) == 24 {
+			return id, nil
+		}
+	}
+
+	return "", ErrInvalidYouTubeURL
 }

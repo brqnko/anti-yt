@@ -17,6 +17,13 @@ WHERE
 LIMIT
     1;
 
+-- NOTE: SaveChannelの前にこれをする. CTEでやろうと思ったけど、トランザクション...
+-- name: ClearStaleChannelCustomID :exec
+UPDATE m_channel
+SET external_custom_id = '@' || external_id
+WHERE external_custom_id = @external_custom_id
+  AND external_id != @external_id;
+
 -- name: SaveChannel :one
 INSERT INTO
     m_channel (
@@ -26,10 +33,20 @@ INSERT INTO
         external_icon_url,
         external_description,
         external_subscribers_count,
-        external_created_at
+        external_created_at,
+        external_uploads_playlist_id
     )
 VALUES
-    ($1, $2, $3, $4, $5, $6, $7)
+    ($1, $2, $3, $4, $5, $6, $7, $8)
+ON CONFLICT (external_id) DO UPDATE SET
+    external_display_name = EXCLUDED.external_display_name,
+    external_custom_id = EXCLUDED.external_custom_id,
+    external_icon_url = EXCLUDED.external_icon_url,
+    external_description = EXCLUDED.external_description,
+    external_subscribers_count = EXCLUDED.external_subscribers_count,
+    external_created_at = EXCLUDED.external_created_at,
+    external_uploads_playlist_id = EXCLUDED.external_uploads_playlist_id,
+    updated_at = CURRENT_TIMESTAMP
 RETURNING
     m_channel.m_channel_id,
     m_channel.public_id,
@@ -135,6 +152,8 @@ ON
 WHERE
     sub.m_user_id = (SELECT u.m_user_id FROM m_user u WHERE u.public_id = @user_id) AND
     c.rss_fetched_at < @rss_fetch
+ORDER BY c.rss_fetched_at
+LIMIT @query_limit
 FOR UPDATE;
 
 -- name: MarkChannelRSSAsFetched :one

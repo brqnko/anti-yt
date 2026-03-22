@@ -269,10 +269,9 @@ func (s *Service) EditUser(ctx context.Context, newDisplayName, newLanguageCode 
 	}
 
 	var dailyScreenLimit, remainingSeconds *int
-	if updateUserProfile.DailyScreenTimeSeconds < 24*60*60 {
+	remainingSeconds = CalcRemainingSeconds(updateUserProfile.DailyScreenTimeSeconds, watchStats.TodayWatchTotal)
+	if remainingSeconds != nil {
 		dailyScreenLimit = &updateUserProfile.DailyScreenTimeSeconds
-		rem := max(updateUserProfile.DailyScreenTimeSeconds-watchStats.TodayWatchTotal, 0)
-		remainingSeconds = &rem
 	}
 
 	return NewUser(
@@ -324,10 +323,9 @@ func (s *Service) GetUserStatus(ctx context.Context) (*User, error) {
 	}
 
 	var remainingSeconds, dailyScreenTimeLimit *int
-	if watchStats.DailyLimitSeconds < 24*60*60 {
+	remainingSeconds = CalcRemainingSeconds(watchStats.DailyLimitSeconds, watchStats.TodayWatchTotal)
+	if remainingSeconds != nil {
 		dailyScreenTimeLimit = &watchStats.DailyLimitSeconds
-		rem := max(0, watchStats.DailyLimitSeconds-watchStats.TodayWatchTotal)
-		remainingSeconds = &rem
 	}
 
 	return NewUser(
