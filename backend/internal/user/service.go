@@ -63,7 +63,7 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return User{}, fmt.Errorf("begin: %w", err)
+		return User{}, fmt.Errorf("failed to begin: %w", err)
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -75,7 +75,7 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 	// 勧告ロック
 	acquired, err := q.TryAcquireAdvisoryXactLock(ctx, util.Sha256Int64(authorizationID[:]))
 	if err != nil {
-		return User{}, fmt.Errorf("tryAcquireAdvisoryXactLock: %w", err)
+		return User{}, fmt.Errorf("failed to tryAcquireAdvisoryXactLock: %w", err)
 	}
 	if !acquired {
 		return User{}, ErrInvalidAuthorizationIDProcessed
@@ -84,7 +84,7 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 	// すでに登録しているか
 	authorizationIDCount, err := q.CountUsersByAuthorization(ctx, authorizationID)
 	if err != nil {
-		return User{}, fmt.Errorf("countUsersByAuthorization: %w", err)
+		return User{}, fmt.Errorf("failed to countUsersByAuthorization: %w", err)
 	}
 	if authorizationIDCount >= 1 {
 		return User{}, ErrInvalidAuthorizationIDRegistered
@@ -99,7 +99,7 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 		UserAuthorizationPublicID: authorizationID,
 	})
 	if err != nil {
-		return User{}, fmt.Errorf("saveUser: %w", err)
+		return User{}, fmt.Errorf("failed to saveUser: %w", err)
 	}
 
 	// rangesの保存
@@ -112,17 +112,17 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 		}
 	}
 	if _, err := q.SaveUserScreenTimeRanges(ctx, saveUserScreenTimeRangesParams); err != nil {
-		return User{}, fmt.Errorf("saveUserScreenTimeRanges: %w", err)
+		return User{}, fmt.Errorf("failed to saveUserScreenTimeRanges: %w", err)
 	}
 
 	// publicIdを取得するため、selectで取得する。(:copyFromはRETURNING使えないっぽい)
 	screenTimeLimitRanges, err := q.GetUserScreenTimeRanges(ctx, saveUser.PublicID)
 	if err != nil {
-		return User{}, fmt.Errorf("getUserScreenTimeRanges: %w", err)
+		return User{}, fmt.Errorf("failed to getUserScreenTimeRanges: %w", err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return User{}, fmt.Errorf("commit: %w", err)
+		return User{}, fmt.Errorf("failed to commit: %w", err)
 	}
 
 	remainingSeconds := -1
@@ -194,7 +194,7 @@ func (s *Service) EditUser(ctx context.Context, newDisplayName, newLanguageCode 
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return User{}, fmt.Errorf("begin: %w", err)
+		return User{}, fmt.Errorf("failed to begin: %w", err)
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -205,7 +205,7 @@ func (s *Service) EditUser(ctx context.Context, newDisplayName, newLanguageCode 
 
 	watchStats, err := q.GetTotalWatchSeconds(ctx, userID)
 	if err != nil {
-		return User{}, fmt.Errorf("getTotalWatchSeconds: %w", err)
+		return User{}, fmt.Errorf("failed to getTotalWatchSeconds: %w", err)
 	}
 
 	updateUserProfile, err := q.UpdateUserProfile(ctx, sqlc.UpdateUserProfileParams{
@@ -215,7 +215,7 @@ func (s *Service) EditUser(ctx context.Context, newDisplayName, newLanguageCode 
 		UserPublicID:              userID,
 	})
 	if err != nil {
-		return User{}, fmt.Errorf("updateUserProfile: %w", err)
+		return User{}, fmt.Errorf("failed to updateUserProfile: %w", err)
 	}
 
 	// screen limitsの更新
@@ -238,21 +238,21 @@ func (s *Service) EditUser(ctx context.Context, newDisplayName, newLanguageCode 
 
 		// sql発行
 		if err := q.RemoveScreenTimeRangesByUserId(ctx, updateUserProfile.MUserID); err != nil {
-			return User{}, fmt.Errorf("removeScreenTimeRangesByUserId: %w", err)
+			return User{}, fmt.Errorf("failed to removeScreenTimeRangesByUserId: %w", err)
 		}
 		if _, err := q.SaveUserScreenTimeRanges(ctx, saveUserScreenTimeRangesParams); err != nil {
-			return User{}, fmt.Errorf("saveUserScreenTimeRanges: %w", err)
+			return User{}, fmt.Errorf("failed to saveUserScreenTimeRanges: %w", err)
 		}
 	}
 
 	// publicIdを取得するため、再度selectを実行
 	screenTimeLimitRanges, err := q.GetUserScreenTimeRanges(ctx, userID)
 	if err != nil {
-		return User{}, fmt.Errorf("getUserScreenTimeRanges: %w", err)
+		return User{}, fmt.Errorf("failed to getUserScreenTimeRanges: %w", err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return User{}, fmt.Errorf("commit: %w", err)
+		return User{}, fmt.Errorf("failed to commit: %w", err)
 	}
 
 	screenTimeLimitRangesDTO := make([]struct {
@@ -298,12 +298,12 @@ func (s *Service) GetUserStatus(ctx context.Context) (User, error) {
 
 	userProfile, err := q.GetUserProfile(ctx, userID)
 	if err != nil {
-		return User{}, fmt.Errorf("getUserProfile: %w", err)
+		return User{}, fmt.Errorf("failed to getUserProfile: %w", err)
 	}
 
 	screenLimitRanges, err := q.GetUserScreenTimeRanges(ctx, userID)
 	if err != nil {
-		return User{}, fmt.Errorf("getUserScreenTimeRanges: %w", err)
+		return User{}, fmt.Errorf("failed to getUserScreenTimeRanges: %w", err)
 	}
 	screenTimeLimitRanges := make([]struct {
 		ID                       uuid.UUID
@@ -322,7 +322,7 @@ func (s *Service) GetUserStatus(ctx context.Context) (User, error) {
 
 	watchStats, err := q.GetTotalWatchSeconds(ctx, userID)
 	if err != nil {
-		return User{}, fmt.Errorf("getTotalWatchSeconds: %w", err)
+		return User{}, fmt.Errorf("failed to getTotalWatchSeconds: %w", err)
 	}
 
 	remainingSeconds := CalcRemainingSeconds(watchStats.DailyLimitSeconds, watchStats.TodayWatchTotal)
@@ -353,7 +353,7 @@ func (s *Service) RemoveUser(ctx context.Context) error {
 		LeaveReasonCode: 0,
 		UserPublicID:    userID,
 	}); err != nil {
-		return fmt.Errorf("removeUser: %w", err)
+		return fmt.Errorf("failed to removeUser: %w", err)
 	}
 
 	return nil

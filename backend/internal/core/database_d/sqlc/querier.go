@@ -51,7 +51,7 @@ type Querier interface {
 	Heartbeat(ctx context.Context, arg HeartbeatParams) error
 	InsertIntoPlaylist(ctx context.Context, arg InsertIntoPlaylistParams) (InsertIntoPlaylistRow, error)
 	// jtiがブラックリストに存在するか確認する。
-	// jtiが存在しない場合はpgx.ErrTxClosedが返される。
+	// jtiが存在しない場合はpgx.ErrNoRowsが返される。
 	// jtiが存在する場合は、そのexpires_atが返される。
 	IsJTIBlacklisted(ctx context.Context, jti uuid.UUID) (time.Time, error)
 	MarkChannelRSSAsFetched(ctx context.Context, mChannelIds []int64) (uuid.UUID, error)
@@ -93,7 +93,7 @@ type Querier interface {
 	// token_hash = token_hash_for_check
 	// updated_at < updated_at_for_check
 	// expires_at > current_timestamp
-	// の条件をすべて満たす場合にのみ更新されます。条件を満たさない場合は、pgx.ErrTxClosedが返されます。
+	// の条件をすべて満たす場合にのみ更新されます。条件を満たさない場合は、pgx.ErrNoRowsが返されます。
 	// リフレッシュトークンに紐づくuser_authorization_idから、それに紐づくuserのpublic_idを返します。
 	UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) (uuid.UUID, error)
 	// m_user.public_idから、ユーザーのプロファイルを更新する

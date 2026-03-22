@@ -4,6 +4,7 @@ import (
 	"crypto/ed25519"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -66,7 +67,10 @@ func (s *jwtService) SignUserAccessToken(userID, jti uuid.UUID, serverURL string
 		},
 	})
 	signed, err := token.SignedString(s.privateKey)
-	return signed, expiresAt, err
+	if err != nil {
+		return "", expiresAt, fmt.Errorf("failed to SignUserAccessToken: %w", err)
+	}
+	return signed, expiresAt, nil
 }
 
 func (s *jwtService) SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string) (string, time.Time, error) {
@@ -85,7 +89,10 @@ func (s *jwtService) SignRegisterToken(authorizationID, jti uuid.UUID, serverURL
 		},
 	})
 	signed, err := token.SignedString(s.privateKey)
-	return signed, expiresAt, err
+	if err != nil {
+		return "", expiresAt, fmt.Errorf("failed to SignRegisterToken: %w", err)
+	}
+	return signed, expiresAt, nil
 }
 
 func (s *jwtService) VerifyRegisterToken(token string) (uuid.UUID, error) {

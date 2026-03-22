@@ -42,14 +42,15 @@ func (h *APIHandler) GetAuthGoogle(c context.Context, request GetAuthGoogleReque
 }
 
 func (h *APIHandler) GetAuthGoogleCallback(c context.Context, request GetAuthGoogleCallbackRequestObject) (GetAuthGoogleCallbackResponseObject, error) {
-	result, err := h.authService.GoogleOIDCCallback(c, auth.GoogleOIDCCallbackParams{
-		CSRF:        request.Params.Csrf,
-		State:       request.Params.State,
-		Code:        request.Params.Code,
-		IPAddress:   request.Params.XRealIP,
-		CountryCode: request.Params.CfIpcountry,
-		UserAgent:   request.Params.UserAgent,
-	})
+	resultAccessToken, resultRefreshToken, resultCSRFToken, resultRedirectPath, resultAccessTokenExpiresAt, resultRefreshTokenExpiresAt, err := h.authService.GoogleOIDCCallback(c,
+		request.Params.Csrf,
+		request.Params.State,
+		request.Params.Code,
+		request.Params.XRealIP,
+		request.Params.CfIpcountry,
+		"", // TODO: OpenAPIにX-Device-Fingerprintを追加する
+		request.Params.UserAgent,
+	)
 	if err != nil {
 		if errors.Is(err, auth.ErrInvalidCSRFOrState) {
 			return GetAuthGoogleCallback400JSONResponse{
@@ -87,25 +88,25 @@ func (h *APIHandler) GetAuthGoogleCallback(c context.Context, request GetAuthGoo
 
 	util.AddResponseCookie(c, (&http.Cookie{
 		Name:     "access_token",
-		Value:    result.AccessToken,
+		Value:    resultAccessToken,
 		Path:     "/",
-		Expires:  result.AccessTokenExpiresAt,
+		Expires:  resultAccessTokenExpiresAt,
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	}).String())
 	util.AddResponseCookie(c, (&http.Cookie{
 		Name:     "refresh_token",
-		Value:    result.RefreshToken,
+		Value:    resultRefreshToken,
 		Path:     "/",
-		Expires:  result.RefreshTokenExpiresAt,
+		Expires:  resultRefreshTokenExpiresAt,
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	}).String())
 	util.AddResponseCookie(c, (&http.Cookie{
 		Name:     "csrf_token",
-		Value:    result.CSRFToken,
+		Value:    resultCSRFToken,
 		Path:     "/",
 		Expires:  time.Now().AddDate(100, 0, 0),
 		HttpOnly: false,
@@ -115,7 +116,7 @@ func (h *APIHandler) GetAuthGoogleCallback(c context.Context, request GetAuthGoo
 
 	return GetAuthGoogleCallback302Response{
 		Headers: GetAuthGoogleCallback302ResponseHeaders{
-			Location: fmt.Sprintf("%s/%s", h.frontendURL, result.RedirectPath),
+			Location: fmt.Sprintf("%s/%s", h.frontendURL, resultRedirectPath),
 		},
 	}, nil
 }
@@ -254,8 +255,11 @@ func (h *APIHandler) GetUsersMeSessions(c context.Context, request GetUsersMeSes
 			CityName       string             `json:"city_name"`
 			CountryCode    string             `json:"country_code"`
 			CreatedAt      time.Time          `json:"created_at"`
+			DeviceType     string             `json:"device_type"`
 			Id             openapi_types.UUID `json:"id"`
+			IpAddress      string             `json:"ip_address"`
 			LastLoggedInAt time.Time          `json:"last_logged_in_at"`
+			UserAgent      string             `json:"user_agent"`
 		}, len(sessions)),
 	}
 
@@ -263,9 +267,12 @@ func (h *APIHandler) GetUsersMeSessions(c context.Context, request GetUsersMeSes
 		resp.Items[i].BrowserName = session.BrowserName
 		resp.Items[i].CityName = session.CityName
 		resp.Items[i].CountryCode = session.CountryCode
-		resp.Items[i].CreatedAt = session.CreatedAt
+		resp.Items[i].CreatedAt = session.ActivatedAt
+		resp.Items[i].DeviceType = session.DeviceType
 		resp.Items[i].Id = session.ID
+		resp.Items[i].IpAddress = session.IpAddress
 		resp.Items[i].LastLoggedInAt = session.LastLoggedInAt
+		resp.Items[i].UserAgent = session.UserAgent
 	}
 
 	return resp, nil

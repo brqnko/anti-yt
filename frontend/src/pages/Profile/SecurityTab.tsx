@@ -4,9 +4,9 @@ import { getAuth } from "../../api/generated/auth";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import type { GetUsersMeSessions200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 
-function getDeviceIcon(browserName: string): string {
-  const lower = browserName.toLowerCase();
-  if (lower.includes("mobile") || lower.includes("iphone") || lower.includes("android")) {
+function getDeviceIcon(deviceType: string): string {
+  const lower = deviceType.toLowerCase();
+  if (lower.includes("iphone") || lower.includes("android") || lower.includes("mobile")) {
     return "smartphone";
   }
   if (lower.includes("ipad") || lower.includes("tablet")) {
@@ -47,6 +47,7 @@ export function SecurityTab() {
       const { getUsersMeSessions } = getAuth();
       const data = await getUsersMeSessions();
       setSessions(data.items);
+      // TODO: 現在のセッションを正確に判定する
       if (data.items.length > 0) {
         setCurrentSessionId(data.items[0].id);
       }
@@ -118,7 +119,7 @@ export function SecurityTab() {
               <div class="flex items-center gap-4 flex-1">
                 <div class="flex items-center justify-center rounded-lg bg-primary/20 shrink-0 size-14">
                   <span class="material-symbols-outlined text-2xl text-primary font-bold">
-                    {getDeviceIcon(currentSession.browser_name)}
+                    {getDeviceIcon(currentSession.device_type)}
                   </span>
                 </div>
                 <div class="flex flex-col justify-center">
@@ -131,7 +132,7 @@ export function SecurityTab() {
                     </span>
                   </div>
                   <p class="text-text-muted-light dark:text-text-muted-dark text-sm font-medium leading-normal mt-1">
-                    {currentSession.city_name}, {currentSession.country_code}
+                    {currentSession.device_type} · {currentSession.city_name}, {currentSession.country_code}
                   </p>
                 </div>
               </div>
@@ -154,6 +155,22 @@ export function SecurityTab() {
                   {formatLastActive(currentSession.last_logged_in_at, t)}
                 </p>
               </div>
+              <div class="flex flex-col gap-1">
+                <p class="text-text-muted-light dark:text-text-muted-dark text-xs font-bold uppercase tracking-wider">
+                  {t("security.ipAddress")}
+                </p>
+                <p class="text-sm font-medium leading-relaxed font-mono">
+                  {currentSession.ip_address}
+                </p>
+              </div>
+              <div class="flex flex-col gap-1 md:col-span-2">
+                <p class="text-text-muted-light dark:text-text-muted-dark text-xs font-bold uppercase tracking-wider">
+                  {t("security.userAgent")}
+                </p>
+                <p class="text-sm font-medium leading-relaxed font-mono break-all">
+                  {currentSession.user_agent}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -174,15 +191,19 @@ export function SecurityTab() {
                 <div class="flex items-center gap-4">
                   <div class="flex items-center justify-center rounded-lg bg-background-light dark:bg-background-dark shrink-0 size-12">
                     <span class="material-symbols-outlined text-text-muted-light dark:text-text-muted-dark">
-                      {getDeviceIcon(session.browser_name)}
+                      {getDeviceIcon(session.device_type)}
                     </span>
                   </div>
                   <div class="flex flex-col justify-center">
                     <p class="text-base font-bold leading-normal">
                       {session.browser_name}
                     </p>
-                    <div class="flex items-center gap-2 text-text-muted-light dark:text-text-muted-dark text-sm">
+                    <div class="flex items-center gap-2 text-text-muted-light dark:text-text-muted-dark text-sm flex-wrap">
+                      <span>{session.device_type}</span>
+                      <span class="size-1 rounded-full bg-text-muted-light dark:bg-text-muted-dark" />
                       <span>{session.city_name}, {session.country_code}</span>
+                      <span class="size-1 rounded-full bg-text-muted-light dark:bg-text-muted-dark" />
+                      <span class="font-mono">{session.ip_address}</span>
                       <span class="size-1 rounded-full bg-text-muted-light dark:bg-text-muted-dark" />
                       <span>{formatLastActive(session.last_logged_in_at, t)}</span>
                     </div>

@@ -201,6 +201,14 @@ export type GetUsersMeSessions200ItemsItem = {
    * @maxLength 2
    */
   country_code: string;
+  /** IPアドレス */
+  ip_address: string;
+  /** デバイスの種類 */
+  device_type: string;
+  /** ユーザーエージェント */
+  user_agent: string;
+  /** セッションの有効期限 */
+  expires_at: string;
 };
 
 export type GetUsersMeSessions200 = {

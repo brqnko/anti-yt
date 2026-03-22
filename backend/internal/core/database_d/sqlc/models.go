@@ -91,6 +91,8 @@ type MRefreshToken struct {
 	UpdatedAt            time.Time
 	PublicID             uuid.UUID
 	AccessTokenJti       uuid.UUID
+	ActivatedAt          time.Time
+	LastLoggedInAt       time.Time
 }
 
 type MUser struct {

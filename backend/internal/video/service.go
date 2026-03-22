@@ -30,7 +30,7 @@ func NewService(db *pgxpool.Pool, ytService youtube_d.YouTubeAPIService) (*Servi
 func (s *Service) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (VideoDetail, error) {
 	videoDetail, err := sqlc.New(s.db).GetVideoDetail(ctx, videoID)
 	if err != nil {
-		return VideoDetail{}, fmt.Errorf("getVideoDetail: %w", err)
+		return VideoDetail{}, fmt.Errorf("failed to getVideoDetail: %w", err)
 	}
 
 	video, err := NewVideoDetail(
@@ -47,7 +47,7 @@ func (s *Service) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (VideoD
 		int(videoDetail.ExternalSubscribersCount),
 	)
 	if err != nil {
-		return VideoDetail{}, fmt.Errorf("newVideoDetail: %w", err)
+		return VideoDetail{}, fmt.Errorf("failed to newVideoDetail: %w", err)
 	}
 
 	return video, nil
@@ -72,10 +72,10 @@ func (s *Service) Heartbeat(ctx context.Context, videoID uuid.UUID, positionSeco
 
 	acquired, err := q.TryAcquireAdvisoryXactLock(ctx, util.Sha256Int64(userID[:]))
 	if err != nil {
-		return 0, fmt.Errorf("tryAcquireAdvisoryXactLock: %w", err)
+		return 0, fmt.Errorf("failed to tryAcquireAdvisoryXactLock: %w", err)
 	}
 	if !acquired {
-		return 0, fmt.Errorf("tryAcquireAdvisoryXactLock: lock not acquired")
+		return 0, fmt.Errorf("failed to tryAcquireAdvisoryXactLock: lock not acquired")
 	}
 
 	if err := q.Heartbeat(ctx, sqlc.HeartbeatParams{

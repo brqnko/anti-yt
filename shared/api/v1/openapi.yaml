@@ -244,7 +244,16 @@ paths:
                           description: 国コード
                           maxLength: 2
                           minLength: 2
-                      required: [ id, created_at, last_logged_in_at, city_name, browser_name, country_code ]
+                        ip_address:
+                          type: string
+                          description: IPアドレス
+                        device_type:
+                          type: string
+                          description: デバイスの種類
+                        user_agent:
+                          type: string
+                          description: ユーザーエージェント
+                      required: [ id, created_at, last_logged_in_at, city_name, browser_name, country_code, ip_address, device_type, user_agent ]
                 required: [ item_count, items ]
         "400":
           $ref: "#/components/responses/BadRequest"

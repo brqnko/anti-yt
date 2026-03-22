@@ -89,7 +89,7 @@ func (s *youTubeAPIServiceImpl) FetchVideoDetail(ctx context.Context, videoIDs [
 		Context(ctx).
 		Do()
 	if err != nil {
-		return nil, fmt.Errorf("Videos.List: %w", err)
+		return nil, fmt.Errorf("failed to Videos.List: %w", err)
 	}
 
 	videos := make(map[string]VideoDetail, len(res.Items))
@@ -144,7 +144,7 @@ func (s *youTubeAPIServiceImpl) FetchChannelDetail(ctx context.Context, channelI
 		if strings.HasPrefix(id, "@") && len([]rune(id)) > 3 {
 			res, err := s.ytClient.Channels.List(parts).ForHandle(id).Context(ctx).Do()
 			if err != nil {
-				return nil, fmt.Errorf("Channels.List(handle=%s): %w", id, err)
+				return nil, fmt.Errorf("failed to Channels.List(handle=%s): %w", id, err)
 			}
 			if len(res.Items) == 0 {
 				continue
@@ -155,7 +155,7 @@ func (s *youTubeAPIServiceImpl) FetchChannelDetail(ctx context.Context, channelI
 			}
 			createdAt, err := time.Parse(time.RFC3339, found.Snippet.PublishedAt)
 			if err != nil {
-				return nil, fmt.Errorf("parse: %w", err)
+				return nil, fmt.Errorf("failed to parse: %w", err)
 			}
 			iconURL := ""
 			if found.Snippet.Thumbnails != nil {
@@ -196,7 +196,7 @@ func (s *youTubeAPIServiceImpl) FetchChannelDetail(ctx context.Context, channelI
 	if len(ucIDs) > 0 {
 		res, err := s.ytClient.Channels.List(parts).Id(ucIDs...).Context(ctx).Do()
 		if err != nil {
-			return nil, fmt.Errorf("Channels.List: %w", err)
+			return nil, fmt.Errorf("failed to Channels.List: %w", err)
 		}
 		for _, found := range res.Items {
 			if found.Snippet == nil {
@@ -204,7 +204,7 @@ func (s *youTubeAPIServiceImpl) FetchChannelDetail(ctx context.Context, channelI
 			}
 			createdAt, err := time.Parse(time.RFC3339, found.Snippet.PublishedAt)
 			if err != nil {
-				return nil, fmt.Errorf("parse: %w", err)
+				return nil, fmt.Errorf("failed to parse: %w", err)
 			}
 			iconURL := ""
 			if found.Snippet.Thumbnails != nil {
@@ -251,7 +251,7 @@ func (s *youTubeAPIServiceImpl) FetchRSSFeed(ctx context.Context, channelID stri
 		ctx,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("ParseURLWithContext(channel=%s): %w", channelID, err)
+		return nil, fmt.Errorf("failed to ParseURLWithContext(channel=%s): %w", channelID, err)
 	}
 
 	videos := make([]RSSFeedVideo, len(feed.Items))
@@ -301,7 +301,7 @@ func (s *youTubeAPIServiceImpl) FetchPlaylistVideoIDs(ctx context.Context, playl
 
 	res, err := call.Do()
 	if err != nil {
-		return nil, "", fmt.Errorf("PlaylistItems.List(playlist=%s): %w", playlistID, err)
+		return nil, "", fmt.Errorf("failed to PlaylistItems.List(playlist=%s): %w", playlistID, err)
 	}
 
 	videoIDs := make([]string, 0, len(res.Items))
@@ -317,7 +317,7 @@ func (s *youTubeAPIServiceImpl) FetchPlaylistVideoIDs(ctx context.Context, playl
 func NewYouTubeAPIServiceImpl(ctx context.Context, apiKey string) (YouTubeAPIService, error) {
 	ytClient, err := youtube.NewService(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
-		return nil, fmt.Errorf("NewService: %w", err)
+		return nil, fmt.Errorf("failed to NewService: %w", err)
 	}
 
 	feedParser := gofeed.NewParser()

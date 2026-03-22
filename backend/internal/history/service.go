@@ -35,7 +35,7 @@ func (s *Service) GetHistory(ctx context.Context, limit int, cursor *uuid.UUID) 
 		QueryLimit: int32(limit + 1),
 	})
 	if err != nil {
-		return nil, false, fmt.Errorf("getHistory: %w", err)
+		return nil, false, fmt.Errorf("failed to getHistory: %w", err)
 	}
 
 	if len(rows) > limit {
@@ -60,7 +60,7 @@ func (s *Service) GetHistory(ctx context.Context, limit int, cursor *uuid.UUID) 
 			row.ExternalChannelIconUrl,
 		)
 		if err != nil {
-			return nil, false, fmt.Errorf("newHistoryItem: %w", err)
+			return nil, false, fmt.Errorf("failed to newHistoryItem: %w", err)
 		}
 		items[i] = item
 	}
@@ -80,7 +80,7 @@ func (s *Service) GetStatisticsByWeek(ctx context.Context, targetWeek time.Time)
 		EndDate:   targetWeek.Add(7 * 24 * time.Hour), // NOTE: postgresql側で+ '7 days'するとsqlcがパースエラー起こす
 	})
 	if err != nil {
-		return WeeklyStatistics{}, fmt.Errorf("getUserStatisticsByWeek: %w", err)
+		return WeeklyStatistics{}, fmt.Errorf("failed to getUserStatisticsByWeek: %w", err)
 	}
 
 	daily := make([]DailyStatistics, len(rows))

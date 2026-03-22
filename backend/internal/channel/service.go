@@ -58,7 +58,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (Sub
 	}
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return SubscribedChannel{}, fmt.Errorf("begin: %w", err)
+		return SubscribedChannel{}, fmt.Errorf("failed to begin: %w", err)
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -69,10 +69,10 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (Sub
 
 	acquired, err := q.TryAcquireAdvisoryXactLock(ctx, util.Sha256Int64([]byte(channelID)))
 	if err != nil {
-		return SubscribedChannel{}, fmt.Errorf("tryAcquireAdvisoryXactLock: %w", err)
+		return SubscribedChannel{}, fmt.Errorf("failed to tryAcquireAdvisoryXactLock: %w", err)
 	}
 	if !acquired {
-		return SubscribedChannel{}, fmt.Errorf("tryAcquireAdvisoryXactLock: channel lock not acquired")
+		return SubscribedChannel{}, fmt.Errorf("failed to tryAcquireAdvisoryXactLock: channel lock not acquired")
 	}
 	found, err := q.GetChannelByIdOrHandle(ctx, sqlc.GetChannelByIdOrHandleParams{
 		ExternalID:       channelID,
@@ -80,12 +80,12 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (Sub
 	})
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
-			return SubscribedChannel{}, fmt.Errorf("getChannelByIdOrHandle: %w", err)
+			return SubscribedChannel{}, fmt.Errorf("failed to getChannelByIdOrHandle: %w", err)
 		}
 
 		channelDetailMap, err := s.ytService.FetchChannelDetail(ctx, []string{channelID})
 		if err != nil {
-			return SubscribedChannel{}, fmt.Errorf("fetchChannelDetail: %w", err)
+			return SubscribedChannel{}, fmt.Errorf("failed to fetchChannelDetail: %w", err)
 		}
 		channelDetail, ok := channelDetailMap[channelID]
 		if !ok {
@@ -97,7 +97,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (Sub
 			ExternalCustomID: channelDetail.CustomID,
 			ExternalID:       channelDetail.ID,
 		}); err != nil {
-			return SubscribedChannel{}, fmt.Errorf("clearStaleChannelCustomID: %w", err)
+			return SubscribedChannel{}, fmt.Errorf("failed to clearStaleChannelCustomID: %w", err)
 		}
 		saved, err := sqlc.New(s.db).SaveChannel(ctx, sqlc.SaveChannelParams{
 			ExternalID:                channelDetail.ID,
@@ -110,7 +110,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (Sub
 			ExternalUploadsPlaylistID: channelDetail.UploadsPlaylistID,
 		})
 		if err != nil {
-			return SubscribedChannel{}, fmt.Errorf("saveChannel: %w", err)
+			return SubscribedChannel{}, fmt.Errorf("failed to saveChannel: %w", err)
 		}
 
 		// 新しいチャンネルは、新規ユーザーによる可能性が高い。
@@ -136,7 +136,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (Sub
 				ExternalThumbnailUrl:  vd.ThumbnailURL,
 				ExternalLengthSeconds: vd.LengthSeconds,
 			}); err != nil {
-				return SubscribedChannel{}, fmt.Errorf("saveVideo: %w", err)
+				return SubscribedChannel{}, fmt.Errorf("failed to saveVideo: %w", err)
 			}
 		}
 
@@ -158,7 +158,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (Sub
 		UserPublicID: userID,
 	})
 	if err != nil {
-		return SubscribedChannel{}, fmt.Errorf("saveChannelSubscription: %w", err)
+		return SubscribedChannel{}, fmt.Errorf("failed to saveChannelSubscription: %w", err)
 	}
 
 	subscribed, err := NewSubscribedChannel(
@@ -178,7 +178,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (Sub
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return SubscribedChannel{}, fmt.Errorf("commit: %w", err)
+		return SubscribedChannel{}, fmt.Errorf("failed to commit: %w", err)
 	}
 
 	return subscribed, nil
@@ -196,7 +196,7 @@ func (s *Service) UnsubscribeChannel(ctx context.Context, subscriptionID uuid.UU
 		UserPublicID:         userID,
 	})
 	if err != nil {
-		return fmt.Errorf("deleteChannelSubscription: %w", err)
+		return fmt.Errorf("failed to deleteChannelSubscription: %w", err)
 	}
 	if rowsAffected == 0 {
 		return ErrSubscriptionNotFound
@@ -223,7 +223,7 @@ func (s *Service) GetSubscriptions(ctx context.Context, limit int, cursor *uuid.
 		QueryLimit:     int32(limit + 1),
 	})
 	if err != nil {
-		return nil, false, fmt.Errorf("getChannelSubscriptions: %w", err)
+		return nil, false, fmt.Errorf("failed to getChannelSubscriptions: %w", err)
 	}
 	res := make([]SubscribedChannel, min(len(subscriptions), limit))
 	for i, subscription := range subscriptions {
@@ -262,7 +262,7 @@ func (s *Service) GetChannelUploads(ctx context.Context, channelID uuid.UUID, cu
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, false, fmt.Errorf("begin: %w", err)
+		return nil, false, fmt.Errorf("failed to begin: %w", err)
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -273,12 +273,12 @@ func (s *Service) GetChannelUploads(ctx context.Context, channelID uuid.UUID, cu
 
 	rssFetchedAt, err := q.GetChannelRSSFetchedAtForUpdate(ctx, channelID)
 	if err != nil {
-		return nil, false, fmt.Errorf("getChannelRSSFetchedAtForUpdate: %w", err)
+		return nil, false, fmt.Errorf("failed to getChannelRSSFetchedAtForUpdate: %w", err)
 	}
 	if time.Now().UTC().Sub(rssFetchedAt.RssFetchedAt) > s.rssFetchDuration {
 		rss, err := s.ytService.FetchRSSFeed(ctx, rssFetchedAt.ExternalID)
 		if err != nil {
-			return nil, false, fmt.Errorf("fetchRSSFeed: %w", err)
+			return nil, false, fmt.Errorf("failed to fetchRSSFeed: %w", err)
 		}
 
 		videoIDs := make([]string, len(rss))
@@ -287,7 +287,7 @@ func (s *Service) GetChannelUploads(ctx context.Context, channelID uuid.UUID, cu
 		}
 		videoDetailMap, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
 		if err != nil {
-			return nil, false, fmt.Errorf("fetchVideoDetail: %w", err)
+			return nil, false, fmt.Errorf("failed to fetchVideoDetail: %w", err)
 		}
 
 		now := time.Now().UTC()
@@ -308,12 +308,12 @@ func (s *Service) GetChannelUploads(ctx context.Context, channelID uuid.UUID, cu
 				ExternalThumbnailUrl:  v.ThumbnailURL,
 				ExternalLengthSeconds: videoDetail.LengthSeconds,
 			}); err != nil {
-				return nil, false, fmt.Errorf("saveVideo: %w", err)
+				return nil, false, fmt.Errorf("failed to saveVideo: %w", err)
 			}
 		}
 
 		if _, err := q.MarkChannelRSSAsFetched(ctx, []int64{rssFetchedAt.MChannelID}); err != nil {
-			return nil, false, fmt.Errorf("markChannelRSSAsFetched: %w", err)
+			return nil, false, fmt.Errorf("failed to markChannelRSSAsFetched: %w", err)
 		}
 	}
 
@@ -324,7 +324,7 @@ func (s *Service) GetChannelUploads(ctx context.Context, channelID uuid.UUID, cu
 		QueryLimit: (int32)(limit + 1),
 	})
 	if err != nil {
-		return nil, false, fmt.Errorf("getChannelVideos: %w", err)
+		return nil, false, fmt.Errorf("failed to getChannelVideos: %w", err)
 	}
 
 	videosToReturn := make([]video.Video, min(limit, len(getChannelVideos)))
@@ -349,7 +349,7 @@ func (s *Service) GetChannelUploads(ctx context.Context, channelID uuid.UUID, cu
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return nil, false, fmt.Errorf("commit: %w", err)
+		return nil, false, fmt.Errorf("failed to commit: %w", err)
 	}
 
 	return videosToReturn, len(getChannelVideos) == limit+1, nil
@@ -363,7 +363,7 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, false, fmt.Errorf("begin: %w", err)
+		return nil, false, fmt.Errorf("failed to begin: %w", err)
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -380,7 +380,7 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 		QueryLimit: 1,
 	})
 	if err != nil {
-		return nil, false, fmt.Errorf("getChannelsToFetchRSSForUpdate: %w", err)
+		return nil, false, fmt.Errorf("failed to getChannelsToFetchRSSForUpdate: %w", err)
 	}
 
 	if len(forUpdates) != 0 {
@@ -388,7 +388,7 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 			feed, err := s.ytService.FetchRSSFeed(ctx, forUpdate.ExternalID)
 			// TODO: チャンネルが削除されてrssの取得に失敗した場合のケースを考慮する
 			if err != nil {
-				return nil, false, fmt.Errorf("fetchRSSFeed: %w", err)
+				return nil, false, fmt.Errorf("failed to fetchRSSFeed: %w", err)
 			}
 
 			videoIDs := make([]string, len(feed))
@@ -398,7 +398,7 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 			// TODO: 現在はforUpdates分YouTube Data APIにリクエストを投げているが、一括で取得したい
 			videoDetailMap, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
 			if err != nil {
-				return nil, false, fmt.Errorf("fetchVideoDetail: %w", err)
+				return nil, false, fmt.Errorf("failed to fetchVideoDetail: %w", err)
 			}
 
 			now := time.Now().UTC()
@@ -419,7 +419,7 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 					ExternalThumbnailUrl:  f.ThumbnailURL,
 					ExternalLengthSeconds: videoDetail.LengthSeconds,
 				}); err != nil {
-					return nil, false, fmt.Errorf("saveVideo: %w", err)
+					return nil, false, fmt.Errorf("failed to saveVideo: %w", err)
 				}
 			}
 		}
@@ -429,12 +429,12 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 			channelIDs[i] = u.MChannelID
 		}
 		if _, err := q.MarkChannelRSSAsFetched(ctx, channelIDs); err != nil {
-			return nil, false, fmt.Errorf("markChannelRSSAsFetched: %w", err)
+			return nil, false, fmt.Errorf("failed to markChannelRSSAsFetched: %w", err)
 		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return nil, false, fmt.Errorf("commit: %w", err)
+		return nil, false, fmt.Errorf("failed to commit: %w", err)
 	}
 
 	res, err := sqlc.New(s.db).GetSubscribingChannelFeed(ctx, sqlc.GetSubscribingChannelFeedParams{
@@ -443,7 +443,7 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 		QueryLimit: (int32)(limit + 1),
 	})
 	if err != nil {
-		return nil, false, fmt.Errorf("getSubscribingChannelFeed: %w", err)
+		return nil, false, fmt.Errorf("failed to getSubscribingChannelFeed: %w", err)
 	}
 
 	videosToReturn := make([]video.Video, 0, min(len(res), limit))
