@@ -27,10 +27,10 @@ func NewService(db *pgxpool.Pool, ytService youtube_d.YouTubeAPIService) (*Servi
 	}, nil
 }
 
-func (s *Service) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (*VideoDetail, error) {
+func (s *Service) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (VideoDetail, error) {
 	videoDetail, err := sqlc.New(s.db).GetVideoDetail(ctx, videoID)
 	if err != nil {
-		return nil, fmt.Errorf("getVideoDetail: %w", err)
+		return VideoDetail{}, fmt.Errorf("getVideoDetail: %w", err)
 	}
 
 	video, err := NewVideoDetail(
@@ -47,21 +47,21 @@ func (s *Service) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (*Video
 		int(videoDetail.ExternalSubscribersCount),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("newVideoDetail: %w", err)
+		return VideoDetail{}, fmt.Errorf("newVideoDetail: %w", err)
 	}
 
 	return video, nil
 }
 
-func (s *Service) Heartbeat(ctx context.Context, videoID uuid.UUID, positionSeconds int) (*int, error) {
+func (s *Service) Heartbeat(ctx context.Context, videoID uuid.UUID, positionSeconds int) (int, error) {
 	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -72,10 +72,10 @@ func (s *Service) Heartbeat(ctx context.Context, videoID uuid.UUID, positionSeco
 
 	acquired, err := q.TryAcquireAdvisoryXactLock(ctx, util.Sha256Int64(userID[:]))
 	if err != nil {
-		return nil, fmt.Errorf("tryAcquireAdvisoryXactLock: %w", err)
+		return 0, fmt.Errorf("tryAcquireAdvisoryXactLock: %w", err)
 	}
 	if !acquired {
-		return nil, fmt.Errorf("tryAcquireAdvisoryXactLock: lock not acquired")
+		return 0, fmt.Errorf("tryAcquireAdvisoryXactLock: lock not acquired")
 	}
 
 	if err := q.Heartbeat(ctx, sqlc.HeartbeatParams{
@@ -83,16 +83,16 @@ func (s *Service) Heartbeat(ctx context.Context, videoID uuid.UUID, positionSeco
 		UserPublicID:         userID,
 		VideoPublicID:        videoID,
 	}); err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	watchStats, err := q.GetTotalWatchSeconds(ctx, userID)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	return user.CalcRemainingSeconds(watchStats.DailyLimitSeconds, watchStats.TodayWatchTotal), nil

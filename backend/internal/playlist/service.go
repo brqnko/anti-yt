@@ -62,10 +62,10 @@ func NewService(db *pgxpool.Pool, ytService youtube_d.YouTubeAPIService) (*Servi
 	}, nil
 }
 
-func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibilityStr, playlistTypeStr string, basePlaylistUrl *string) (*Playlist, error) {
+func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibilityStr, playlistTypeStr string, basePlaylistUrl *string) (Playlist, error) {
 	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
-		return nil, err
+		return Playlist{}, err
 	}
 
 	pl, err := NewPlaylist(
@@ -76,16 +76,16 @@ func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibi
 		playlistTypeStr,
 		0,
 		time.Time{},
-		nil,
-		[]*video.Video{},
+		"",
+		[]video.Video{},
 	)
 	if err != nil {
-		return nil, err
+		return Playlist{}, err
 	}
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return Playlist{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -98,20 +98,20 @@ func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibi
 	// なので、ロックなどをつける意味はない
 	row, err := q.CreatePlaylist(ctx, sqlc.CreatePlaylistParams{
 		UserPublicID:        userID,
-		PlaylistTitle:       string(*pl.Title),
-		PlaylistDescription: string(*pl.Description),
+		PlaylistTitle:       string(pl.Title),
+		PlaylistDescription: string(pl.Description),
 		VisibilityCode:      int(pl.VisibilityCode),
 		PlaylistCode:        int(pl.PlaylistCode),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("createPlaylist: %w", err)
+		return Playlist{}, fmt.Errorf("createPlaylist: %w", err)
 	}
 
-	pl.SetGeneratedFields(row.PublicID, row.CreatedAt)
+	pl = pl.WithGeneratedFields(row.PublicID, row.CreatedAt)
 
 	if basePlaylistUrl == nil {
 		if err := tx.Commit(ctx); err != nil {
-			return nil, err
+			return Playlist{}, err
 		}
 
 		return pl, nil
@@ -120,7 +120,7 @@ func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibi
 	// YouTubeからプレイリストをimportする
 	playlistID, err := extractPlaylistID(*basePlaylistUrl)
 	if err != nil {
-		return nil, err
+		return Playlist{}, err
 	}
 
 	// insert時に使うcopyfromはon conflictに対応していないので、コード側で重複がないことを検証する
@@ -131,13 +131,13 @@ func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibi
 		// プレイリストから動画IDのリストを取得
 		videoIDs, pageToken, err := s.ytService.FetchPlaylistVideoIDs(ctx, playlistID, nextPageToken)
 		if err != nil {
-			return nil, fmt.Errorf("fetchPlaylistVideoIds: %w", err)
+			return Playlist{}, fmt.Errorf("fetchPlaylistVideoIds: %w", err)
 		}
 
 		// 動画IDのリストから詳細を取得
 		videoDetails, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
 		if err != nil {
-			return nil, fmt.Errorf("fetchVideoDetail: %w", err)
+			return Playlist{}, fmt.Errorf("fetchVideoDetail: %w", err)
 		}
 
 		// 各動画のチャンネル詳細を取得（重複排除）
@@ -153,7 +153,7 @@ func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibi
 		}
 		channelDetails, err := s.ytService.FetchChannelDetail(ctx, channelIDs)
 		if err != nil {
-			return nil, fmt.Errorf("fetchChannelDetail: %w", err)
+			return Playlist{}, fmt.Errorf("fetchChannelDetail: %w", err)
 		}
 
 		savedChannels := make(map[string]int64)
@@ -166,7 +166,7 @@ func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibi
 				ExternalCustomID: channelDetail.CustomID,
 				ExternalID:       channelDetail.ID,
 			}); err != nil {
-				return nil, fmt.Errorf("clearStaleChannelCustomID: %w", err)
+				return Playlist{}, fmt.Errorf("clearStaleChannelCustomID: %w", err)
 			}
 			saveChannel, err := sqlc.New(s.db).SaveChannel(ctx, sqlc.SaveChannelParams{
 				ExternalID:                channelDetail.ID,
@@ -179,7 +179,7 @@ func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibi
 				ExternalUploadsPlaylistID: channelDetail.UploadsPlaylistID,
 			})
 			if err != nil { // NOTE: on conflict do update returningはコンフリクト時はその行を返してれる
-				return nil, err
+				return Playlist{}, err
 			}
 			savedChannels[channelDetail.ID] = saveChannel.MChannelID
 		}
@@ -201,7 +201,7 @@ func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibi
 				ExternalLengthSeconds: videoDetail.LengthSeconds,
 			})
 			if err != nil {
-				return nil, fmt.Errorf("saveVideo: %w", err)
+				return Playlist{}, fmt.Errorf("saveVideo: %w", err)
 			}
 
 			if _, exists := seenVideoIDs[saveVideo]; !exists {
@@ -225,17 +225,17 @@ func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibi
 		}
 	}
 	if _, err := q.BulkInsertIntoPlaylist(ctx, bulkParams); err != nil {
-		return nil, fmt.Errorf("bulkInsertIntoPlaylist: %w", err)
+		return Playlist{}, fmt.Errorf("bulkInsertIntoPlaylist: %w", err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return nil, err
+		return Playlist{}, err
 	}
 
 	return pl, nil
 }
 
-func (s *Service) GetPlaylists(ctx context.Context, cursor *uuid.UUID, limit int) ([]*Playlist, error) {
+func (s *Service) GetPlaylists(ctx context.Context, cursor *uuid.UUID, limit int) ([]Playlist, error) {
 	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -251,13 +251,8 @@ func (s *Service) GetPlaylists(ctx context.Context, cursor *uuid.UUID, limit int
 		return nil, fmt.Errorf("getUserPlaylists: %w", err)
 	}
 
-	playlists := make([]*Playlist, len(rows))
+	playlists := make([]Playlist, len(rows))
 	for i, row := range rows {
-		var topThumbnail *string
-		if row.TopThumbnail != "" {
-			topThumbnail = &row.TopThumbnail
-		}
-
 		pl, err := NewPlaylist(
 			row.PublicID,
 			row.PlaylistTitle,
@@ -266,8 +261,8 @@ func (s *Service) GetPlaylists(ctx context.Context, cursor *uuid.UUID, limit int
 			PlaylistCode(row.PlaylistCode).String(),
 			int(row.VideoCount),
 			row.CreatedAt,
-			topThumbnail,
-			[]*video.Video{},
+			row.TopThumbnail,
+			[]video.Video{},
 		)
 		if err != nil {
 			return nil, fmt.Errorf("newPlaylist: %w", err)
@@ -278,10 +273,10 @@ func (s *Service) GetPlaylists(ctx context.Context, cursor *uuid.UUID, limit int
 	return playlists, nil
 }
 
-func (s *Service) GetPlaylistInfo(ctx context.Context, playlistID uuid.UUID) (*Playlist, error) {
+func (s *Service) GetPlaylistInfo(ctx context.Context, playlistID uuid.UUID) (Playlist, error) {
 	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
-		return nil, err
+		return Playlist{}, err
 	}
 
 	q := sqlc.New(s.db)
@@ -290,15 +285,10 @@ func (s *Service) GetPlaylistInfo(ctx context.Context, playlistID uuid.UUID) (*P
 		PlaylistID: playlistID,
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, ErrPlaylistNotFound
+		return Playlist{}, ErrPlaylistNotFound
 	}
 	if err != nil {
-		return nil, fmt.Errorf("getPlaylistInfo: %w", err)
-	}
-
-	var topThumbnail *string
-	if row.TopThumbnail != "" {
-		topThumbnail = &row.TopThumbnail
+		return Playlist{}, fmt.Errorf("getPlaylistInfo: %w", err)
 	}
 
 	return NewPlaylist(
@@ -309,8 +299,8 @@ func (s *Service) GetPlaylistInfo(ctx context.Context, playlistID uuid.UUID) (*P
 		PlaylistCode(row.PlaylistCode).String(),
 		int(row.VideoCount),
 		row.CreatedAt,
-		topThumbnail,
-		[]*video.Video{},
+		row.TopThumbnail,
+		[]video.Video{},
 	)
 }
 
@@ -335,7 +325,7 @@ func (s *Service) DeletePlaylist(ctx context.Context, playlistID uuid.UUID) erro
 	return nil
 }
 
-func (s *Service) GetPlaylistItems(ctx context.Context, playlistID uuid.UUID, videoCursor *uuid.UUID, limit int) ([]*video.Video, error) {
+func (s *Service) GetPlaylistItems(ctx context.Context, playlistID uuid.UUID, videoCursor *uuid.UUID, limit int) ([]video.Video, error) {
 	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -352,9 +342,9 @@ func (s *Service) GetPlaylistItems(ctx context.Context, playlistID uuid.UUID, vi
 		return nil, fmt.Errorf("getPlaylistVideos: %w", err)
 	}
 
-	videos := make([]*video.Video, len(rows))
+	videos := make([]video.Video, len(rows))
 	for i, row := range rows {
-		videos[i] = video.NewVideo(
+		videos[i] = *video.NewVideo(
 			row.PublicID,
 			row.ChannelID,
 			row.ExternalThumbnailUrl,
@@ -370,20 +360,20 @@ func (s *Service) GetPlaylistItems(ctx context.Context, playlistID uuid.UUID, vi
 	return videos, nil
 }
 
-func (s *Service) UpdatePlaylist(ctx context.Context, playlistID uuid.UUID, newPlaylistTitle *string, newPlaylistDescription *string) (*Playlist, error) {
+func (s *Service) UpdatePlaylist(ctx context.Context, playlistID uuid.UUID, newPlaylistTitle *string, newPlaylistDescription *string) (Playlist, error) {
 	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
-		return nil, err
+		return Playlist{}, err
 	}
 
 	if newPlaylistTitle != nil {
 		if _, err := NewPlaylistTitle(*newPlaylistTitle); err != nil {
-			return nil, err
+			return Playlist{}, err
 		}
 	}
 	if newPlaylistDescription != nil {
 		if _, err := NewPlaylistDescription(*newPlaylistDescription); err != nil {
-			return nil, err
+			return Playlist{}, err
 		}
 	}
 
@@ -395,10 +385,10 @@ func (s *Service) UpdatePlaylist(ctx context.Context, playlistID uuid.UUID, newP
 		NewPlaylistDescription: newPlaylistDescription,
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, ErrPlaylistNotFound
+		return Playlist{}, ErrPlaylistNotFound
 	}
 	if err != nil {
-		return nil, fmt.Errorf("updatePlaylist: %w", err)
+		return Playlist{}, fmt.Errorf("updatePlaylist: %w", err)
 	}
 
 	row, err := q.GetPlaylist(ctx, sqlc.GetPlaylistParams{
@@ -406,12 +396,7 @@ func (s *Service) UpdatePlaylist(ctx context.Context, playlistID uuid.UUID, newP
 		PlaylistID: playlistID,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("getPlaylist: %w", err)
-	}
-
-	var topThumbnail *string
-	if row.TopThumbnail != "" {
-		topThumbnail = &row.TopThumbnail
+		return Playlist{}, fmt.Errorf("getPlaylist: %w", err)
 	}
 
 	return NewPlaylist(
@@ -422,8 +407,8 @@ func (s *Service) UpdatePlaylist(ctx context.Context, playlistID uuid.UUID, newP
 		PlaylistCode(row.PlaylistCode).String(),
 		int(row.VideoCount),
 		row.CreatedAt,
-		topThumbnail,
-		[]*video.Video{},
+		row.TopThumbnail,
+		[]video.Video{},
 	)
 }
 

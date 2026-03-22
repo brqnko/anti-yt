@@ -48,8 +48,8 @@ func (h *APIHandler) GetUsersMeStatus(c context.Context, request GetUsersMeStatu
 	}
 
 	return GetUsersMeStatus200JSONResponse{
-		DailyRemainingSeconds: user.RemainingSeconds,
-		DailyScreenSeconds:    user.ScreenTimeSeconds,
+		DailyRemainingSeconds: intToOptPtr(user.RemainingSeconds),
+		DailyScreenSeconds:    intToOptPtr(user.ScreenTimeSeconds),
 		DisplayName:           user.DisplayName,
 		Id:                    user.UserID,
 		JoinedAt:              user.JoinedAt,
@@ -99,8 +99,8 @@ func (h *APIHandler) PatchUsersMeStatus(c context.Context, request PatchUsersMeS
 	}
 
 	return PatchUsersMeStatus200JSONResponse{
-		DailyRemainingSeconds: u.RemainingSeconds,
-		DailyScreenSeconds:    u.ScreenTimeSeconds,
+		DailyRemainingSeconds: intToOptPtr(u.RemainingSeconds),
+		DailyScreenSeconds:    intToOptPtr(u.ScreenTimeSeconds),
 		DisplayName:           u.DisplayName,
 		Id:                    u.UserID,
 		JoinedAt:              u.JoinedAt,
@@ -146,8 +146,8 @@ func (h *APIHandler) PostUsersMe(c context.Context, request PostUsersMeRequestOb
 	}
 
 	return PostUsersMe201JSONResponse{
-		DailyRemainingSeconds: u.RemainingSeconds,
-		DailyScreenSeconds:    u.ScreenTimeSeconds,
+		DailyRemainingSeconds: intToOptPtr(u.RemainingSeconds),
+		DailyScreenSeconds:    intToOptPtr(u.ScreenTimeSeconds),
 		DisplayName:           u.DisplayName,
 		Id:                    u.UserID,
 		JoinedAt:              u.JoinedAt,
@@ -173,6 +173,14 @@ func userDomainErrToBadRequest(err error) *BadRequestJSONResponse {
 		return nil
 	}
 	return &BadRequestJSONResponse{Detail: detail, Title: detail}
+}
+
+// intToOptPtr は -1 を nil に変換し、それ以外はポインタを返す。
+func intToOptPtr(v int) *int {
+	if v == -1 {
+		return nil
+	}
+	return &v
 }
 
 func screenTimeSlotsToDto(slots []ScreenTimeSlot) ([]struct{ Start, End int }, error) {

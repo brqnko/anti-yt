@@ -44,7 +44,9 @@ func (h *APIHandler) GetChannelsChannelIdVideos(c context.Context, request GetCh
 		items[i].ExternalVideoTitle = v.ExternalVideoTitle
 		items[i].ExternalVideoCreatedAt = v.ExternalVideoCreatedAt
 		items[i].ExternalVideoLengthSeconds = v.ExternalVideoLengthSeconds
-		items[i].LastWatchSeconds = v.LastWatchSeconds
+		if v.LastWatchSeconds != 0 {
+			items[i].LastWatchSeconds = &v.LastWatchSeconds
+		}
 	}
 
 	return GetChannelsChannelIdVideos200JSONResponse{

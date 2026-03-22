@@ -19,13 +19,11 @@ const (
 
 type ResourceType string
 
-func NewResourceType(str string) (*ResourceType, error) {
+func NewResourceType(str string) (ResourceType, error) {
 	if str != ResourceTypeChannel && str != ResourceTypeVideo {
-		return nil, ErrResourceTypeInvalidString
+		return "", ErrResourceTypeInvalidString
 	}
-	r := ResourceType(str)
-
-	return &r, nil
+	return ResourceType(str), nil
 }
 
 type Video struct {
@@ -34,7 +32,7 @@ type Video struct {
 	ExternalVideoTitle         string
 	ExternalVideoCreatedAt     time.Time
 	ExternalVideoLengthSeconds int
-	LastWatchSeconds           *int
+	LastWatchSeconds           int
 
 	ChannelID                  uuid.UUID
 	ExternalChannelIconURL     string
@@ -51,13 +49,8 @@ func NewVideo(
 	externalVideoCreatedAt time.Time,
 	externalVideoLengthSeconds int,
 	lastWatchSeconds int,
-) *Video {
-	var lastWatchPtr *int
-	if lastWatchSeconds != 0 {
-		lastWatchPtr = &lastWatchSeconds
-	}
-
-	return &Video{
+) Video {
+	return Video{
 		ID:                         id,
 		ChannelID:                  channelID,
 		ExternalVideoThumbnailURL:  externalVideoThumbnailURL,
@@ -66,24 +59,22 @@ func NewVideo(
 		ExternalChannelDisplayname: externalChannelDisplayname,
 		ExternalVideoCreatedAt:     externalVideoCreatedAt,
 		ExternalVideoLengthSeconds: externalVideoLengthSeconds,
-		LastWatchSeconds:           lastWatchPtr,
+		LastWatchSeconds:           lastWatchSeconds,
 	}
 }
 
 type ExternalVideoID string
 
-func NewExternalVideoID(id string) (*ExternalVideoID, error) {
+func NewExternalVideoID(id string) (ExternalVideoID, error) {
 	if len(id) != 11 {
-		return nil, ErrInvalidExternalVideoID
+		return "", ErrInvalidExternalVideoID
 	}
-
-	v := ExternalVideoID(id)
-	return &v, nil
+	return ExternalVideoID(id), nil
 }
 
 type VideoDetail struct {
 	ID                              uuid.UUID
-	ExternalVideoID                 *ExternalVideoID
+	ExternalVideoID                 ExternalVideoID
 	ExternalVideoTitle              string
 	ExternalVideoDescription        string
 	ExternalVideoThumbnailURL       string
@@ -107,15 +98,15 @@ func NewVideoDetail(
 	channelCustomID,
 	externalChannelIconURL string,
 	externalChannelSubscribersCount int,
-) (*VideoDetail, error) {
+) (VideoDetail, error) {
 	extVideoID, err := NewExternalVideoID(externalID)
 	if err != nil {
-		return nil, err
+		return VideoDetail{}, err
 	}
 
-	return &VideoDetail{
-		ID:                              id,
-		ExternalVideoID:                 extVideoID,
+	return VideoDetail{
+		ID:              id,
+		ExternalVideoID: extVideoID,
 		ExternalVideoTitle:              externalVideoTitle,
 		ExternalVideoDescription:        externalVideoDescription,
 		ExternalVideoThumbnailURL:       externalVideoThumbnailURL,

@@ -37,7 +37,7 @@ func (h *APIHandler) GetHistory(c context.Context, request GetHistoryRequestObje
 
 	for i, item := range historyItems {
 		items[i].VideoId = item.VideoID
-		items[i].ExternalVideoId = string(*item.ExternalVideoID)
+		items[i].ExternalVideoId = string(item.ExternalVideoID)
 		items[i].ExternalVideoTitle = item.ExternalVideoTitle
 		items[i].ExternalVideoThumbnailUrl = item.ExternalVideoThumbnailURL
 		items[i].ExternalVideoLengthSeconds = item.ExternalVideoLengthSeconds
@@ -45,7 +45,7 @@ func (h *APIHandler) GetHistory(c context.Context, request GetHistoryRequestObje
 		items[i].WatchPositionSeconds = item.WatchPositionSeconds
 		items[i].WatchedAt = item.WatchedAt
 		items[i].ChannelId = item.ChannelID
-		items[i].ExternalChannelId = string(*item.ExternalChannelID)
+		items[i].ExternalChannelId = string(item.ExternalChannelID)
 		items[i].ExternalChannelDisplayName = item.ExternalChannelDisplayName
 		items[i].ExternalChannelIconUrl = item.ExternalChannelIconURL
 	}
@@ -87,6 +87,11 @@ func (h *APIHandler) GetStatisticsWeekly(c context.Context, request GetStatistic
 		TargetWeek: openapi_types.Date{Time: targetWeek},
 		ItemCount:  len(items),
 		Items:      items,
-		AiSummary:  stats.AIComment,
+		AiSummary: func() *string {
+			if stats.AIComment == "" {
+				return nil
+			}
+			return &stats.AIComment
+		}(),
 	}, nil
 }

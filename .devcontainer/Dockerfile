@@ -44,7 +44,6 @@ RUN wget -O /usr/local/bin/goose \
 
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=cache,target=/root/.cache/go-build \
-    go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.6.0 && \
-    go install golang.org/x/tools/gopls@v0.21.1
+    go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.6.0
 
 CMD ["sleep", "infinity"]

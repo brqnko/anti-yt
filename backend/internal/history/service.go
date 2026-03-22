@@ -21,7 +21,7 @@ func NewService(db *pgxpool.Pool) (*Service, error) {
 	}, nil
 }
 
-func (s *Service) GetHistory(ctx context.Context, limit int, cursor *uuid.UUID) (items []*HistoryItem, hasNext bool, err error) {
+func (s *Service) GetHistory(ctx context.Context, limit int, cursor *uuid.UUID) (items []HistoryItem, hasNext bool, err error) {
 	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, false, err
@@ -43,7 +43,7 @@ func (s *Service) GetHistory(ctx context.Context, limit int, cursor *uuid.UUID) 
 		rows = rows[:limit]
 	}
 
-	items = make([]*HistoryItem, len(rows))
+	items = make([]HistoryItem, len(rows))
 	for i, row := range rows {
 		item, err := NewHistoryItem(
 			row.VideoID,
@@ -68,10 +68,10 @@ func (s *Service) GetHistory(ctx context.Context, limit int, cursor *uuid.UUID) 
 	return items, hasNext, nil
 }
 
-func (s *Service) GetStatisticsByWeek(ctx context.Context, targetWeek time.Time) (*WeeklyStatistics, error) {
+func (s *Service) GetStatisticsByWeek(ctx context.Context, targetWeek time.Time) (WeeklyStatistics, error) {
 	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
-		return nil, err
+		return WeeklyStatistics{}, err
 	}
 
 	rows, err := sqlc.New(s.db).GetUserStatisticsByWeek(ctx, sqlc.GetUserStatisticsByWeekParams{
@@ -80,13 +80,13 @@ func (s *Service) GetStatisticsByWeek(ctx context.Context, targetWeek time.Time)
 		EndDate:   targetWeek.Add(7 * 24 * time.Hour), // NOTE: postgresql側で+ '7 days'するとsqlcがパースエラー起こす
 	})
 	if err != nil {
-		return nil, fmt.Errorf("getUserStatisticsByWeek: %w", err)
+		return WeeklyStatistics{}, fmt.Errorf("getUserStatisticsByWeek: %w", err)
 	}
 
-	daily := make([]*DailyStatistics, len(rows))
+	daily := make([]DailyStatistics, len(rows))
 	for i, row := range rows {
 		daily[i] = NewDailyStatistics(row.WatchDate.Time, row.VideoCount, row.WatchSum)
 	}
 
-	return NewWeeklyStatistics(targetWeek, daily, nil), nil
+	return NewWeeklyStatistics(targetWeek, daily, ""), nil
 }

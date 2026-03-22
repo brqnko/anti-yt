@@ -10,7 +10,7 @@ import (
 
 type HistoryItem struct {
 	VideoID                    uuid.UUID
-	ExternalVideoID            *video.ExternalVideoID
+	ExternalVideoID            video.ExternalVideoID
 	ExternalVideoTitle         string
 	ExternalVideoThumbnailURL  string
 	ExternalVideoLengthSeconds int
@@ -18,7 +18,7 @@ type HistoryItem struct {
 	WatchPositionSeconds       int
 	WatchedAt                  time.Time
 	ChannelID                  uuid.UUID
-	ExternalChannelID          *channel.ChannelID
+	ExternalChannelID          channel.ChannelID
 	ExternalChannelDisplayName string
 	ExternalChannelIconURL     string
 }
@@ -36,18 +36,18 @@ func NewHistoryItem(
 	externalChannelID string,
 	externalChannelDisplayName string,
 	externalChannelIconURL string,
-) (*HistoryItem, error) {
+) (HistoryItem, error) {
 	extVideoID, err := video.NewExternalVideoID(externalVideoID)
 	if err != nil {
-		return nil, err
+		return HistoryItem{}, err
 	}
 
 	extChannelID, err := channel.NewChannelID(externalChannelID)
 	if err != nil {
-		return nil, err
+		return HistoryItem{}, err
 	}
 
-	return &HistoryItem{
+	return HistoryItem{
 		VideoID:                    videoID,
 		ExternalVideoID:            extVideoID,
 		ExternalVideoTitle:         externalVideoTitle,
@@ -69,8 +69,8 @@ type DailyStatistics struct {
 	WatchSum   int64 // seconds
 }
 
-func NewDailyStatistics(watchDate time.Time, videoCount int64, watchSum int64) *DailyStatistics {
-	return &DailyStatistics{
+func NewDailyStatistics(watchDate time.Time, videoCount int64, watchSum int64) DailyStatistics {
+	return DailyStatistics{
 		WatchDate:  watchDate,
 		VideoCount: int(videoCount),
 		WatchSum:   watchSum,
@@ -79,12 +79,12 @@ func NewDailyStatistics(watchDate time.Time, videoCount int64, watchSum int64) *
 
 type WeeklyStatistics struct {
 	StartDate      time.Time
-	DailyBreakdown []*DailyStatistics
-	AIComment      *string
+	DailyBreakdown []DailyStatistics
+	AIComment      string
 }
 
-func NewWeeklyStatistics(startDate time.Time, daily []*DailyStatistics, aiComment *string) *WeeklyStatistics {
-	return &WeeklyStatistics{
+func NewWeeklyStatistics(startDate time.Time, daily []DailyStatistics, aiComment string) WeeklyStatistics {
+	return WeeklyStatistics{
 		StartDate:      startDate,
 		DailyBreakdown: daily,
 		AIComment:      aiComment,

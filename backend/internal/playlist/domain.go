@@ -43,22 +43,20 @@ func (v VisibilityCode) String() string {
 
 type PlaylistTitle string
 
-func NewPlaylistTitle(s string) (*PlaylistTitle, error) {
+func NewPlaylistTitle(s string) (PlaylistTitle, error) {
 	if len(s) == 0 || len(s) > 128 {
-		return nil, ErrInvalidPlaylistTitle
+		return "", ErrInvalidPlaylistTitle
 	}
-	t := PlaylistTitle(s)
-	return &t, nil
+	return PlaylistTitle(s), nil
 }
 
 type PlaylistDescription string
 
-func NewPlaylistDescription(s string) (*PlaylistDescription, error) {
+func NewPlaylistDescription(s string) (PlaylistDescription, error) {
 	if len(s) > 255 {
-		return nil, ErrInvalidPlaylistDescription
+		return "", ErrInvalidPlaylistDescription
 	}
-	d := PlaylistDescription(s)
-	return &d, nil
+	return PlaylistDescription(s), nil
 }
 
 type PlaylistCode int
@@ -86,20 +84,21 @@ func (p PlaylistCode) String() string {
 }
 
 type Playlist struct {
-	ID                           uuid.UUID
-	Title                        *PlaylistTitle
-	Description                  *PlaylistDescription
-	VisibilityCode               VisibilityCode
-	PlaylistCode                 PlaylistCode
+	ID                   uuid.UUID
+	Title                PlaylistTitle
+	Description          PlaylistDescription
+	VisibilityCode       VisibilityCode
+	PlaylistCode         PlaylistCode
 	VideoCount           int
 	CreatedAt            time.Time
-	TopVideoThumbnailURL *string
-	Videos               []*video.Video
+	TopVideoThumbnailURL string
+	Videos               []video.Video
 }
 
-func (p *Playlist) SetGeneratedFields(id uuid.UUID, createdAt time.Time) {
+func (p Playlist) WithGeneratedFields(id uuid.UUID, createdAt time.Time) Playlist {
 	p.ID = id
 	p.CreatedAt = createdAt
+	return p
 }
 
 func NewPlaylist(
@@ -110,30 +109,30 @@ func NewPlaylist(
 	playlistTypeStr string,
 	videoCount int,
 	createdAt time.Time,
-	topVideoThumbnailUrl *string,
-	videos []*video.Video,
-) (*Playlist, error) {
+	topVideoThumbnailUrl string,
+	videos []video.Video,
+) (Playlist, error) {
 	t, err := NewPlaylistTitle(title)
 	if err != nil {
-		return nil, err
+		return Playlist{}, err
 	}
 
 	d, err := NewPlaylistDescription(description)
 	if err != nil {
-		return nil, err
+		return Playlist{}, err
 	}
 
 	v, err := NewVisibilityCode(visibilityStr)
 	if err != nil {
-		return nil, err
+		return Playlist{}, err
 	}
 
 	p, err := NewPlaylistCode(playlistTypeStr)
 	if err != nil {
-		return nil, err
+		return Playlist{}, err
 	}
 
-	return &Playlist{
+	return Playlist{
 		ID:                   id,
 		Title:                t,
 		Description:          d,

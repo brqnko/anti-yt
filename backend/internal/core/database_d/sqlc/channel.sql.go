@@ -24,6 +24,7 @@ type ClearStaleChannelCustomIDParams struct {
 	ExternalID       string
 }
 
+// NOTE: SaveChannelの前にこれをする. CTEでやろうと思ったけど、トランザクション...
 func (q *Queries) ClearStaleChannelCustomID(ctx context.Context, arg ClearStaleChannelCustomIDParams) error {
 	_, err := q.db.Exec(ctx, clearStaleChannelCustomID, arg.ExternalCustomID, arg.ExternalID)
 	return err

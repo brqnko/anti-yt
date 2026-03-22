@@ -41,14 +41,16 @@ func (h *APIHandler) GetPlaylists(c context.Context, request GetPlaylistsRequest
 
 	for i, pl := range playlists {
 		items[i].PlaylistId = pl.ID
-		items[i].PlaylistTitle = string(*pl.Title)
-		items[i].PlaylistDescription = string(*pl.Description)
+		items[i].PlaylistTitle = string(pl.Title)
+		items[i].PlaylistDescription = string(pl.Description)
 		items[i].PlaylistType = PlaylistType(pl.PlaylistCode.String())
 		items[i].PlaylistVisibility = PlaylistVisibility(pl.VisibilityCode.String())
 		items[i].PlaylistVideoCount = pl.VideoCount
 		items[i].PlaylistCreatedAt = pl.CreatedAt
 		items[i].PlaylistUpdatedAt = pl.CreatedAt
-		items[i].TopVideoThumbnailUrl = pl.TopVideoThumbnailURL
+		if pl.TopVideoThumbnailURL != "" {
+			items[i].TopVideoThumbnailUrl = &pl.TopVideoThumbnailURL
+		}
 	}
 
 	return GetPlaylists200JSONResponse{
@@ -91,8 +93,8 @@ func (h *APIHandler) PostPlaylists(c context.Context, request PostPlaylistsReque
 		PlaylistId:          created.ID,
 		PlaylistType:        PlaylistType(created.PlaylistCode.String()),
 		PlaylistVisibility:  PlaylistVisibility(created.VisibilityCode.String()),
-		PlaylistTitle:       string(*created.Title),
-		PlaylistDescription: string(*created.Description),
+		PlaylistTitle:       string(created.Title),
+		PlaylistDescription: string(created.Description),
 		PlaylistVideoCount:  created.VideoCount,
 		PlaylistCreatedAt:   created.CreatedAt,
 		PlaylistUpdatedAt:   created.CreatedAt,
@@ -142,14 +144,19 @@ func (h *APIHandler) GetPlaylistsPlaylistId(c context.Context, request GetPlayli
 
 	return GetPlaylistsPlaylistId200JSONResponse{
 		PlaylistId:           pl.ID,
-		PlaylistTitle:        string(*pl.Title),
-		PlaylistDescription:  string(*pl.Description),
+		PlaylistTitle:        string(pl.Title),
+		PlaylistDescription:  string(pl.Description),
 		PlaylistType:         PlaylistType(pl.PlaylistCode.String()),
 		PlaylistVisibility:   PlaylistVisibility(pl.VisibilityCode.String()),
 		PlaylistVideoCount:   pl.VideoCount,
 		PlaylistCreatedAt:    pl.CreatedAt,
 		PlaylistUpdatedAt:    pl.CreatedAt,
-		TopVideoThumbnailUrl: pl.TopVideoThumbnailURL,
+		TopVideoThumbnailUrl: func() *string {
+			if pl.TopVideoThumbnailURL == "" {
+				return nil
+			}
+			return &pl.TopVideoThumbnailURL
+		}(),
 	}, nil
 }
 
@@ -191,7 +198,9 @@ func (h *APIHandler) GetPlaylistsPlaylistIdVideos(c context.Context, request Get
 		items[i].ExternalVideoLengthSeconds = v.ExternalVideoLengthSeconds
 		items[i].ExternalChannelIconUrl = v.ExternalChannelIconURL
 		items[i].ExternalChannelDisplayName = v.ExternalChannelDisplayname
-		items[i].LastWatchSeconds = v.LastWatchSeconds
+		if v.LastWatchSeconds != 0 {
+			items[i].LastWatchSeconds = &v.LastWatchSeconds
+		}
 	}
 
 	return GetPlaylistsPlaylistIdVideos200JSONResponse{
@@ -229,8 +238,8 @@ func (h *APIHandler) PatchPlaylistsPlaylistId(c context.Context, request PatchPl
 
 	return PatchPlaylistsPlaylistId200JSONResponse{
 		PlaylistId:          updated.ID,
-		PlaylistTitle:       string(*updated.Title),
-		PlaylistDescription: string(*updated.Description),
+		PlaylistTitle:       string(updated.Title),
+		PlaylistDescription: string(updated.Description),
 		PlaylistUpdatedAt:   updated.CreatedAt,
 	}, nil
 }

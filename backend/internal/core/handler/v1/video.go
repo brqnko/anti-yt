@@ -43,7 +43,9 @@ func (h *APIHandler) GetFeed(c context.Context, request GetFeedRequestObject) (G
 		items[i].ExternalVideoTitle = v.ExternalVideoTitle
 		items[i].ExternalVideoCreatedAt = v.ExternalVideoCreatedAt
 		items[i].ExternalVideoLengthSeconds = v.ExternalVideoLengthSeconds
-		items[i].LastWatchSeconds = v.LastWatchSeconds
+		if v.LastWatchSeconds != 0 {
+			items[i].LastWatchSeconds = &v.LastWatchSeconds
+		}
 	}
 
 	return GetFeed200JSONResponse{
@@ -85,7 +87,7 @@ func (h *APIHandler) GetVideosVideoId(c context.Context, request GetVideosVideoI
 
 	return GetVideosVideoId200JSONResponse{
 		VideoId:                         openapi_types.UUID(videoDetail.ID),
-		ExternalVideoId:                 string(*videoDetail.ExternalVideoID),
+		ExternalVideoId:                 string(videoDetail.ExternalVideoID),
 		ExternalVideoTitle:              videoDetail.ExternalVideoTitle,
 		ExternalVideoDescription:        videoDetail.ExternalVideoDescription,
 		ExternalVideoThumbnailUrl:       videoDetail.ExternalVideoThumbnailURL,
@@ -119,6 +121,6 @@ func (h *APIHandler) PostVideosVideoIdHeartbeats(c context.Context, request Post
 	}
 
 	return PostVideosVideoIdHeartbeats200JSONResponse{
-		DailyRemainingSeconds: remaining,
+		DailyRemainingSeconds: intToOptPtr(remaining),
 	}, nil
 }
