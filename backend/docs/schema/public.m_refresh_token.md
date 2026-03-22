@@ -22,12 +22,15 @@
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | public_id | uuid | uuidv7() | false |  |  |  |
 | access_token_jti | uuid |  | false |  |  |  |
+| activated_at | timestamp with time zone |  | false |  |  |  |
+| last_logged_in_at | timestamp with time zone |  | false |  |  |  |
 
 ## Constraints
 
 | Name | Type | Definition |
 | ---- | ---- | ---------- |
 | m_refresh_token_access_token_jti_not_null | n | NOT NULL access_token_jti |
+| m_refresh_token_activated_at_not_null | n | NOT NULL activated_at |
 | m_refresh_token_browser_name_not_null | n | NOT NULL browser_name |
 | m_refresh_token_city_name_not_null | n | NOT NULL city_name |
 | m_refresh_token_country_code_not_null | n | NOT NULL country_code |
@@ -37,6 +40,7 @@
 | m_refresh_token_expires_at_not_null | n | NOT NULL expires_at |
 | m_refresh_token_generation_not_null | n | NOT NULL generation |
 | m_refresh_token_ip_address_not_null | n | NOT NULL ip_address |
+| m_refresh_token_last_logged_in_at_not_null | n | NOT NULL last_logged_in_at |
 | m_refresh_token_m_refresh_token_id_not_null | n | NOT NULL m_refresh_token_id |
 | m_refresh_token_m_user_authorization_id_not_null | n | NOT NULL m_user_authorization_id |
 | m_refresh_token_public_id_not_null | n | NOT NULL public_id |

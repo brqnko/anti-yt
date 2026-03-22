@@ -6,7 +6,7 @@
 
 | Name | Type | Default | Nullable | Children | Parents | Comment |
 | ---- | ---- | ------- | -------- | -------- | ------- | ------- |
-| m_playlist_id | bigint |  | false |  |  |  |
+| m_playlist_id | bigint |  | false | [public.m_playlist_video](public.m_playlist_video.md) |  |  |
 | m_user_id | bigint |  | false |  |  |  |
 | visibility_code | integer | 0 | false |  |  |  |
 | playlist_title | varchar(128) |  | false |  |  |  |
@@ -40,6 +40,7 @@
 | m_playlist_pkey | CREATE UNIQUE INDEX m_playlist_pkey ON public.m_playlist USING btree (m_playlist_id) |
 | uk_1_m_playlist | CREATE UNIQUE INDEX uk_1_m_playlist ON public.m_playlist USING btree (public_id) |
 | idx_1_m_playlist | CREATE INDEX idx_1_m_playlist ON public.m_playlist USING btree (m_user_id, visibility_code, playlist_code, created_at) |
+| idx_2_m_playlist | CREATE INDEX idx_2_m_playlist ON public.m_playlist USING btree (m_user_id, public_id DESC) |
 
 ## Relations
 

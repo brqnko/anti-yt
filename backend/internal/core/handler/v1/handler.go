@@ -50,7 +50,7 @@ func NewAPIHandler(
 		return nil, err
 	}
 
-	userService, err := user.NewService(db, jwtService)
+	userService, err := user.NewService(db, jwtService, serverURL)
 	if err != nil {
 		return nil, err
 	}

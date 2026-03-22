@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/url"
-	"strings"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
@@ -20,35 +18,6 @@ import (
 
 var ErrInvalidPlaylistID = errors.New("invalid playlist id or unsupported format")
 
-// extractPlaylistID はYouTubeのプレイリストURLまたは生のプレイリストIDからプレイリストIDを抽出する
-// NOTE: UU, PL, OL以外はAPIで取得できないので無視する.
-// UUはチャンネルのアップロード動画
-// PLはプレイリスt
-// OLは公式のプレイリスト
-func extractPlaylistID(playlistText string) (string, error) {
-	if strings.HasPrefix(playlistText, "PL") || strings.HasPrefix(playlistText, "UU") || strings.HasPrefix(playlistText, "OL") {
-		return playlistText, nil
-	}
-
-	if !strings.HasPrefix(playlistText, "http://") && !strings.HasPrefix(playlistText, "https://") {
-		playlistText = "https://" + playlistText
-	}
-	u, err := url.Parse(playlistText)
-	if err != nil {
-		return "", ErrInvalidPlaylistID
-	}
-
-	if u.Host != "youtube.com" && !strings.HasSuffix(u.Host, ".youtube.com") && u.Host != "youtu.be" {
-		return "", ErrInvalidPlaylistID
-	}
-
-	listID := u.Query().Get("list")
-	if listID == "" {
-		return "", ErrInvalidPlaylistID
-	}
-
-	return listID, nil
-}
 
 type Service struct {
 	db        *pgxpool.Pool

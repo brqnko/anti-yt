@@ -19,6 +19,7 @@ var (
 	accessTokenIgnorePathPrefixes = []string{
 		"/api/v1/auth/google",
 		"/api/v1/auth/google/callback",
+		"/api/v1/auth/refresh",
 	}
 )
 

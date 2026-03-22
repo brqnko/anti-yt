@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"net/http"
 
 	"github.com/brqnko/anti-yt/backend/internal/user"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -120,7 +121,7 @@ func (h *APIHandler) PostUsersMe(c context.Context, request PostUsersMeRequestOb
 			},
 		}, nil
 	}
-	u, err := h.userService.CreateNewUser(c, request.Body.DailyScreenSeconds, screenTimeDto, request.Body.DisplayName, request.Body.LanguageCode)
+	u, newAccessToken, accessTokenExpiresAt, err := h.userService.CreateNewUser(c, request.Body.DailyScreenSeconds, screenTimeDto, request.Body.DisplayName, request.Body.LanguageCode)
 	if err != nil {
 		if br := userDomainErrToBadRequest(err); br != nil {
 			return PostUsersMe400JSONResponse{BadRequestJSONResponse: *br}, nil
@@ -133,6 +134,17 @@ func (h *APIHandler) PostUsersMe(c context.Context, request PostUsersMeRequestOb
 			},
 		}, nil
 	}
+
+	// RegisterTokenからUserAccessTokenに切り替え
+	util.AddResponseCookie(c, (&http.Cookie{
+		Name:     "access_token",
+		Value:    newAccessToken,
+		Path:     "/",
+		Expires:  accessTokenExpiresAt,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	}).String())
 
 	screenTime, err := dtoToScreenTimeSlots(u.ScreenTimeLimitRange)
 	if err != nil {

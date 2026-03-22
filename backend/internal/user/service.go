@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
@@ -23,47 +24,49 @@ var (
 type Service struct {
 	db         *pgxpool.Pool
 	jwtService jwt_d.JWTService
+	serverURL  string
 }
 
-func NewService(db *pgxpool.Pool, jwtService jwt_d.JWTService) (*Service, error) {
+func NewService(db *pgxpool.Pool, jwtService jwt_d.JWTService, serverURL string) (*Service, error) {
 	return &Service{
 		db:         db,
 		jwtService: jwtService,
+		serverURL:  serverURL,
 	}, nil
 }
 
-func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, screenLimits []struct{ Start, End int }, displayName string, languageCode string) (User, error) {
+func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, screenLimits []struct{ Start, End int }, displayName string, languageCode string) (User, string, time.Time, error) {
 	// 登録用アクセストークン取得
 	accessToken, ok := util.AccessTokenFromContext(ctx)
 	if !ok {
-		return User{}, errors.New("access token not found in context")
+		return User{}, "", time.Time{}, errors.New("access token not found in context")
 	}
-	authorizationID, err := s.jwtService.VerifyRegisterToken(accessToken)
+	authorizationID, jti, err := s.jwtService.VerifyRegisterToken(accessToken)
 	if err != nil {
-		return User{}, err
+		return User{}, "", time.Time{}, err
 	}
 
 	// Entityの検証
 	domainDailyScreenLimitDuration, err := NewDailyScreenTimeLimit(dailyScreenLimit)
 	if err != nil {
-		return User{}, err
+		return User{}, "", time.Time{}, err
 	}
 	domainDisplayName, err := NewDisplayName(displayName)
 	if err != nil {
-		return User{}, err
+		return User{}, "", time.Time{}, err
 	}
 	domainLanguageCode, err := NewLanguageCode(languageCode)
 	if err != nil {
-		return User{}, err
+		return User{}, "", time.Time{}, err
 	}
 	domainDailyScreenTimeLimitRangeSet, err := NewDailyScreenTimeLimitRangeSet(screenLimits)
 	if err != nil {
-		return User{}, err
+		return User{}, "", time.Time{}, err
 	}
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return User{}, fmt.Errorf("failed to begin: %w", err)
+		return User{}, "", time.Time{}, fmt.Errorf("failed to begin: %w", err)
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -75,19 +78,19 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 	// 勧告ロック
 	acquired, err := q.TryAcquireAdvisoryXactLock(ctx, util.Sha256Int64(authorizationID[:]))
 	if err != nil {
-		return User{}, fmt.Errorf("failed to tryAcquireAdvisoryXactLock: %w", err)
+		return User{}, "", time.Time{}, fmt.Errorf("failed to tryAcquireAdvisoryXactLock: %w", err)
 	}
 	if !acquired {
-		return User{}, ErrInvalidAuthorizationIDProcessed
+		return User{}, "", time.Time{}, ErrInvalidAuthorizationIDProcessed
 	}
 
 	// すでに登録しているか
 	authorizationIDCount, err := q.CountUsersByAuthorization(ctx, authorizationID)
 	if err != nil {
-		return User{}, fmt.Errorf("failed to countUsersByAuthorization: %w", err)
+		return User{}, "", time.Time{}, fmt.Errorf("failed to countUsersByAuthorization: %w", err)
 	}
 	if authorizationIDCount >= 1 {
-		return User{}, ErrInvalidAuthorizationIDRegistered
+		return User{}, "", time.Time{}, ErrInvalidAuthorizationIDRegistered
 	}
 
 	// Userの保存
@@ -99,7 +102,7 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 		UserAuthorizationPublicID: authorizationID,
 	})
 	if err != nil {
-		return User{}, fmt.Errorf("failed to saveUser: %w", err)
+		return User{}, "", time.Time{}, fmt.Errorf("failed to saveUser: %w", err)
 	}
 
 	// rangesの保存
@@ -112,17 +115,23 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 		}
 	}
 	if _, err := q.SaveUserScreenTimeRanges(ctx, saveUserScreenTimeRangesParams); err != nil {
-		return User{}, fmt.Errorf("failed to saveUserScreenTimeRanges: %w", err)
+		return User{}, "", time.Time{}, fmt.Errorf("failed to saveUserScreenTimeRanges: %w", err)
 	}
 
 	// publicIdを取得するため、selectで取得する。(:copyFromはRETURNING使えないっぽい)
 	screenTimeLimitRanges, err := q.GetUserScreenTimeRanges(ctx, saveUser.PublicID)
 	if err != nil {
-		return User{}, fmt.Errorf("failed to getUserScreenTimeRanges: %w", err)
+		return User{}, "", time.Time{}, fmt.Errorf("failed to getUserScreenTimeRanges: %w", err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return User{}, fmt.Errorf("failed to commit: %w", err)
+		return User{}, "", time.Time{}, fmt.Errorf("failed to commit: %w", err)
+	}
+
+	// ユーザー作成成功後、UserAccessTokenを発行する（RegisterTokenからの切り替え）
+	newAccessToken, accessTokenExpiresAt, err := s.jwtService.SignUserAccessToken(saveUser.PublicID, jti, s.serverURL)
+	if err != nil {
+		return User{}, "", time.Time{}, fmt.Errorf("failed to signUserAccessToken: %w", err)
 	}
 
 	remainingSeconds := -1
@@ -154,7 +163,7 @@ func (s *Service) CreateNewUser(ctx context.Context, dailyScreenLimit *int, scre
 		screenTimeLimitRangesDTO,
 		remainingSeconds,
 		remainingSeconds,
-	), nil
+	), newAccessToken, accessTokenExpiresAt, nil
 }
 
 func (s *Service) EditUser(ctx context.Context, newDisplayName, newLanguageCode *string, newDailyScreenLimit *int, newScreenLimits *[]struct{ Start, End int }) (User, error) {
