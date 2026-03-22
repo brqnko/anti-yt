@@ -1,5 +1,0 @@
-services:
-  server:
-    command: ["air", "-c", ".air.toml"]
-  frontend:
-    command: ["sleep", "infinity"]

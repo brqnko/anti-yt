@@ -446,6 +446,15 @@ paths:
             type: string
             format: uuid
           required: true
+        - name: limit
+          description: 取得する最大の数
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
         - name: cursor
           in: query
           schema:
@@ -1456,6 +1465,7 @@ paths:
           required: false
           schema:
             type: string
+            format: uuid
       responses:
         "200":
           description: 200 OK
@@ -1598,25 +1608,9 @@ paths:
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ playlist ]
-      summary: Get playlist
-      description: 特定のプレイリストにある動画一覧を取得する
+      summary: Get playlist info
+      description: 特定のプレイリストのメタ情報を取得する
       operationId: getPlaylistsPlaylistId
-      parameters:
-        - name: limit
-          description: 取得する最大の数
-          in: query
-          required: true
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 20
-        - name: cursor
-          description: 最後に取得した動画ID(ページネーション)
-          in: query
-          required: false
-          schema:
-            type: string
       responses:
         "200":
           description: 200 OK
@@ -1625,50 +1619,30 @@ paths:
               schema:
                 type: object
                 properties:
-                  item_count:
+                  playlist_id:
+                    type: string
+                    format: uuid
+                  playlist_title:
+                    type: string
+                  playlist_description:
+                    type: string
+                  playlist_type:
+                    $ref: "#/components/schemas/PlaylistType"
+                  playlist_visibility:
+                    $ref: "#/components/schemas/PlaylistVisibility"
+                  playlist_video_count:
                     type: integer
                     minimum: 0
-                  has_next:
-                    type: boolean
-                  items:
-                    type: array
-                    uniqueItems: true
-                    items:
-                      type: object
-                      properties:
-                        video_id:
-                          type: string
-                          format: uuid
-                        channel_id:
-                          type: string
-                          format: uuid
-                        external_video_id:
-                          type: string
-                        external_video_thumbnail_url:
-                          type: string
-                          format: uri
-                        external_channel_icon_url:
-                          type: string
-                          format: uri
-                        external_video_title:
-                          type: string
-                        external_video_description:
-                          type: string
-                        external_channel_id:
-                          type: string
-                        external_channel_display_name:
-                          type: string
-                        external_video_created_at:
-                          type: string
-                          format: date-time
-                        external_video_length_seconds:
-                          type: integer
-                          minimum: 0
-                        last_watch_seconds:
-                          type: integer
-                          minimum: 0
-                      required: [ video_id, channel_id, external_video_id, external_channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_title, external_video_description, external_channel_display_name, external_video_created_at, external_video_length_seconds ]
-                required: [ item_count, has_next, items ]
+                  playlist_created_at:
+                    type: string
+                    format: date-time
+                  playlist_updated_at:
+                    type: string
+                    format: date-time
+                  top_video_thumbnail_url:
+                    type: string
+                    format: uri
+                required: [ playlist_id, playlist_title, playlist_description, playlist_type, playlist_visibility, playlist_video_count, playlist_created_at, playlist_updated_at ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1769,6 +1743,88 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
+    get:
+      tags: [ playlist ]
+      summary: Get playlist videos
+      description: 特定のプレイリストにある動画一覧を取得する
+      operationId: getPlaylistsPlaylistIdVideos
+      parameters:
+        - name: limit
+          description: 取得する最大の数
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: cursor
+          description: 最後に取得した動画ID(ページネーション)
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item_count:
+                    type: integer
+                    minimum: 0
+                  has_next:
+                    type: boolean
+                  items:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      type: object
+                      properties:
+                        video_id:
+                          type: string
+                          format: uuid
+                        channel_id:
+                          type: string
+                          format: uuid
+                        external_video_thumbnail_url:
+                          type: string
+                          format: uri
+                        external_channel_icon_url:
+                          type: string
+                          format: uri
+                        external_video_title:
+                          type: string
+                        external_channel_display_name:
+                          type: string
+                        external_video_created_at:
+                          type: string
+                          format: date-time
+                        external_video_length_seconds:
+                          type: integer
+                          minimum: 0
+                        last_watch_seconds:
+                          type: integer
+                          minimum: 0
+                      required: [ video_id, channel_id, external_video_thumbnail_url, external_channel_icon_url, external_video_title, external_channel_display_name, external_video_created_at, external_video_length_seconds ]
+                required: [ item_count, has_next, items ]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags: [ playlist ]
       summary: Insert a new video into playlist

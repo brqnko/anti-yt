@@ -65,7 +65,7 @@ func NewAPIHandler(
 		return nil, err
 	}
 
-	playlistService, err := playlist.NewService(db)
+	playlistService, err := playlist.NewService(db, ytService)
 	if err != nil {
 		return nil, err
 	}

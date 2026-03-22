@@ -8,6 +8,7 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/user"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -69,8 +70,12 @@ func (s *Service) Heartbeat(ctx context.Context, videoID uuid.UUID, positionSeco
 	}()
 	q := sqlc.New(tx)
 
-	if err := q.AcquireAdvisoryXactLock(ctx, util.Sha256Int64(userID[:])); err != nil {
-		return nil, err
+	acquired, err := q.TryAcquireAdvisoryXactLock(ctx, util.Sha256Int64(userID[:]))
+	if err != nil {
+		return nil, fmt.Errorf("tryAcquireAdvisoryXactLock: %w", err)
+	}
+	if !acquired {
+		return nil, fmt.Errorf("tryAcquireAdvisoryXactLock: lock not acquired")
 	}
 
 	if err := q.Heartbeat(ctx, sqlc.HeartbeatParams{
@@ -90,10 +95,5 @@ func (s *Service) Heartbeat(ctx context.Context, videoID uuid.UUID, positionSeco
 		return nil, err
 	}
 
-	if watchStats.DailyLimitSeconds >= 24*60*60 {
-		return nil, nil
-	}
-
-	remaining := max(0, watchStats.DailyLimitSeconds-watchStats.TodayWatchTotal)
-	return &remaining, nil
+	return user.CalcRemainingSeconds(watchStats.DailyLimitSeconds, watchStats.TodayWatchTotal), nil
 }

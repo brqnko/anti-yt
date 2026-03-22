@@ -248,6 +248,12 @@ export type GetFeedChannels200 = {
 };
 
 export type GetChannelsChannelIdVideosParams = {
+/**
+ * 取得する最大の数
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
 cursor?: string;
 };
 
@@ -663,41 +669,17 @@ export type PostPlaylists201 = {
   playlist_updated_at: string;
 };
 
-export type GetPlaylistsPlaylistIdParams = {
-/**
- * 取得する最大の数
- * @minimum 1
- * @maximum 50
- */
-limit?: number;
-/**
- * 最後に取得した動画ID(ページネーション)
- */
-cursor?: string;
-};
-
-export type GetPlaylistsPlaylistId200ItemsItem = {
-  video_id: string;
-  channel_id: string;
-  external_video_id: string;
-  external_video_thumbnail_url: string;
-  external_channel_icon_url: string;
-  external_video_title: string;
-  external_video_description: string;
-  external_channel_id: string;
-  external_channel_display_name: string;
-  external_video_created_at: string;
-  /** @minimum 0 */
-  external_video_length_seconds: number;
-  /** @minimum 0 */
-  last_watch_seconds?: number;
-};
-
 export type GetPlaylistsPlaylistId200 = {
+  playlist_id: string;
+  playlist_title: string;
+  playlist_description: string;
+  playlist_type: PlaylistType;
+  playlist_visibility: PlaylistVisibility;
   /** @minimum 0 */
-  item_count: number;
-  has_next: boolean;
-  items: GetPlaylistsPlaylistId200ItemsItem[];
+  playlist_video_count: number;
+  playlist_created_at: string;
+  playlist_updated_at: string;
+  top_video_thumbnail_url?: string;
 };
 
 export type PatchPlaylistsPlaylistIdBody = {
@@ -710,6 +692,40 @@ export type PatchPlaylistsPlaylistId200 = {
   playlist_title: string;
   playlist_description: string;
   playlist_updated_at: string;
+};
+
+export type GetPlaylistsPlaylistIdVideosParams = {
+/**
+ * 取得する最大の数
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+/**
+ * 最後に取得した動画ID(ページネーション)
+ */
+cursor?: string;
+};
+
+export type GetPlaylistsPlaylistIdVideos200ItemsItem = {
+  video_id: string;
+  channel_id: string;
+  external_video_thumbnail_url: string;
+  external_channel_icon_url: string;
+  external_video_title: string;
+  external_channel_display_name: string;
+  external_video_created_at: string;
+  /** @minimum 0 */
+  external_video_length_seconds: number;
+  /** @minimum 0 */
+  last_watch_seconds?: number;
+};
+
+export type GetPlaylistsPlaylistIdVideos200 = {
+  /** @minimum 0 */
+  item_count: number;
+  has_next: boolean;
+  items: GetPlaylistsPlaylistIdVideos200ItemsItem[];
 };
 
 export type PostPlaylistsPlaylistIdVideosBody = {

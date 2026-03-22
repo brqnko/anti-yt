@@ -22,6 +22,16 @@ var (
 
 const DailyScreenTimeLimitInfinity = 24*time.Hour + 1*time.Second
 
+// CalcRemainingSeconds はDBから取得した1日の視聴制限秒数と今日の視聴秒数から残り秒数を計算する。
+// limitSeconds が24時間以上（無制限センチネル値）の場合は nil を返す。
+func CalcRemainingSeconds(limitSeconds, watchedSeconds int) *int {
+	if limitSeconds >= int((24 * time.Hour).Seconds()) {
+		return nil
+	}
+	rem := max(0, limitSeconds-watchedSeconds)
+	return &rem
+}
+
 type DailyScreenTimeLimit time.Duration
 
 func NewDailyScreenTimeLimit(seconds *int) (*DailyScreenTimeLimit, error) {

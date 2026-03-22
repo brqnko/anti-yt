@@ -10,7 +10,8 @@ import type {
   GetPlaylists200,
   GetPlaylistsParams,
   GetPlaylistsPlaylistId200,
-  GetPlaylistsPlaylistIdParams,
+  GetPlaylistsPlaylistIdVideos200,
+  GetPlaylistsPlaylistIdVideosParams,
   PatchPlaylistsPlaylistId200,
   PatchPlaylistsPlaylistIdBody,
   PostPlaylists201,
@@ -53,16 +54,14 @@ const postPlaylists = (
       );
     }
   /**
- * 特定のプレイリストにある動画一覧を取得する
- * @summary Get playlist
+ * 特定のプレイリストのメタ情報を取得する
+ * @summary Get playlist info
  */
 const getPlaylistsPlaylistId = (
     playlistId: string,
-    params: GetPlaylistsPlaylistIdParams,
  ) => {
       return customInstance<GetPlaylistsPlaylistId200>(
-      {url: `/api/v1/playlists/${playlistId}`, method: 'GET',
-        params
+      {url: `/api/v1/playlists/${playlistId}`, method: 'GET'
     },
       );
     }
@@ -90,6 +89,20 @@ const deletePlaylistsPlaylistId = (
  ) => {
       return customInstance<void>(
       {url: `/api/v1/playlists/${playlistId}`, method: 'DELETE'
+    },
+      );
+    }
+  /**
+ * 特定のプレイリストにある動画一覧を取得する
+ * @summary Get playlist videos
+ */
+const getPlaylistsPlaylistIdVideos = (
+    playlistId: string,
+    params: GetPlaylistsPlaylistIdVideosParams,
+ ) => {
+      return customInstance<GetPlaylistsPlaylistIdVideos200>(
+      {url: `/api/v1/playlists/${playlistId}/videos`, method: 'GET',
+        params
     },
       );
     }
@@ -122,11 +135,12 @@ const deletePlaylistsPlaylistIdVideos = (
     },
       );
     }
-  return {getPlaylists,postPlaylists,getPlaylistsPlaylistId,patchPlaylistsPlaylistId,deletePlaylistsPlaylistId,postPlaylistsPlaylistIdVideos,deletePlaylistsPlaylistIdVideos}};
+  return {getPlaylists,postPlaylists,getPlaylistsPlaylistId,patchPlaylistsPlaylistId,deletePlaylistsPlaylistId,getPlaylistsPlaylistIdVideos,postPlaylistsPlaylistIdVideos,deletePlaylistsPlaylistIdVideos}};
 export type GetPlaylistsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['getPlaylists']>>>
 export type PostPlaylistsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['postPlaylists']>>>
 export type GetPlaylistsPlaylistIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['getPlaylistsPlaylistId']>>>
 export type PatchPlaylistsPlaylistIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['patchPlaylistsPlaylistId']>>>
 export type DeletePlaylistsPlaylistIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['deletePlaylistsPlaylistId']>>>
+export type GetPlaylistsPlaylistIdVideosResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['getPlaylistsPlaylistIdVideos']>>>
 export type PostPlaylistsPlaylistIdVideosResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['postPlaylistsPlaylistIdVideos']>>>
 export type DeletePlaylistsPlaylistIdVideosResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['deletePlaylistsPlaylistIdVideos']>>>

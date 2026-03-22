@@ -1,0 +1,6 @@
+*.txt
+*.pem
+*.crt
+*.key
+.env
+main

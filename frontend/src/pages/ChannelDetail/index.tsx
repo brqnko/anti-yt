@@ -76,7 +76,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       try {
         const [subsRes, videosRes] = await Promise.allSettled([
           getChannel().getSubscriptions({ limit: 50 }),
-          getChannel().getChannelsChannelIdVideos(channelId),
+          getChannel().getChannelsChannelIdVideos(channelId, {}),
         ]);
 
         if (subsRes.status === "fulfilled") {
@@ -171,7 +171,6 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
             <span class="material-symbols-outlined text-5xl mb-4">search_off</span>
             <p class="text-lg font-medium">{t("channelDetail.notFound")}</p>
-            <p class="text-sm mt-1">{t("channelDetail.notFoundDesc")}</p>
             <a
               class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
               href="/dashboard"

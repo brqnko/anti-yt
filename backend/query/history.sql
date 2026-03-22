@@ -48,7 +48,13 @@ FROM
     INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
 WHERE
     t_video_watch.m_user_id = (
-        SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_id LIMIT 1
+        SELECT
+            m_user.m_user_id
+        FROM
+            m_user
+        WHERE
+            m_user.public_id = @user_id
+        LIMIT 1
     )
     AND (
         sqlc.narg('cursor')::uuid IS NULL
@@ -61,10 +67,22 @@ LIMIT
 
 -- name: Heartbeat :exec
 WITH resolved_user AS (
-    SELECT m_user_id FROM m_user WHERE m_user.public_id = @user_public_id LIMIT 1
+    SELECT
+        m_user_id
+    FROM
+        m_user
+    WHERE
+        m_user.public_id = @user_public_id
+    LIMIT 1
 ),
 resolved_video AS (
-    SELECT m_video_id FROM m_video WHERE m_video.public_id = @video_public_id LIMIT 1
+    SELECT
+        m_video_id
+    FROM
+        m_video
+    WHERE
+        m_video.public_id = @video_public_id
+    LIMIT 1
 ),
 close_stale AS (
     -- heartbeatが途絶えた放置セッションをクローズ
@@ -103,8 +121,8 @@ close_old AS (
     FROM
         latest_active
     WHERE
-        t_video_watch.t_video_watch_id = latest_active.t_video_watch_id AND
-        latest_active.m_video_id != (SELECT m_video_id FROM resolved_video)
+        t_video_watch.t_video_watch_id = latest_active.t_video_watch_id
+        AND latest_active.m_video_id != (SELECT m_video_id FROM resolved_video)
     RETURNING
         t_video_watch.t_video_watch_id
 ),
@@ -118,8 +136,8 @@ update_same AS (
     FROM
         latest_active
     WHERE
-        t_video_watch.t_video_watch_id = latest_active.t_video_watch_id AND
-        latest_active.m_video_id = (SELECT m_video_id FROM resolved_video)
+        t_video_watch.t_video_watch_id = latest_active.t_video_watch_id
+        AND latest_active.m_video_id = (SELECT m_video_id FROM resolved_video)
     RETURNING
         t_video_watch.t_video_watch_id
 ),
@@ -157,8 +175,8 @@ WHERE
         WHERE
             u.public_id = @user_id
         LIMIT 1
-    ) AND
-    video_watch.watch_start_at BETWEEN @start_date AND @end_date AND
-    video_watch.watch_end_at <= CURRENT_TIMESTAMP
+    )
+    AND video_watch.watch_start_at BETWEEN @start_date AND @end_date
+    AND video_watch.watch_end_at <= CURRENT_TIMESTAMP
 GROUP BY
     DATE(video_watch.watch_start_at);

@@ -9,6 +9,40 @@ import (
 	"context"
 )
 
+// iteratorForBulkInsertIntoPlaylist implements pgx.CopyFromSource.
+type iteratorForBulkInsertIntoPlaylist struct {
+	rows                 []BulkInsertIntoPlaylistParams
+	skippedFirstNextCall bool
+}
+
+func (r *iteratorForBulkInsertIntoPlaylist) Next() bool {
+	if len(r.rows) == 0 {
+		return false
+	}
+	if !r.skippedFirstNextCall {
+		r.skippedFirstNextCall = true
+		return true
+	}
+	r.rows = r.rows[1:]
+	return len(r.rows) > 0
+}
+
+func (r iteratorForBulkInsertIntoPlaylist) Values() ([]interface{}, error) {
+	return []interface{}{
+		r.rows[0].MPlaylistID,
+		r.rows[0].MVideoID,
+		r.rows[0].PlaylistPosition,
+	}, nil
+}
+
+func (r iteratorForBulkInsertIntoPlaylist) Err() error {
+	return nil
+}
+
+func (q *Queries) BulkInsertIntoPlaylist(ctx context.Context, arg []BulkInsertIntoPlaylistParams) (int64, error) {
+	return q.db.CopyFrom(ctx, []string{"m_playlist_video"}, []string{"m_playlist_id", "m_video_id", "playlist_position"}, &iteratorForBulkInsertIntoPlaylist{rows: arg})
+}
+
 // iteratorForSaveUserScreenTimeRanges implements pgx.CopyFromSource.
 type iteratorForSaveUserScreenTimeRanges struct {
 	rows                 []SaveUserScreenTimeRangesParams

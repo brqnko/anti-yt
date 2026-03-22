@@ -105,9 +105,6 @@ export function AddChannelDialog({
             onInput={(e) =>
               setChannelId((e.target as HTMLInputElement).value)
             }
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSubmit();
-            }}
           />
         </div>
         {error && (

@@ -9,16 +9,6 @@ import (
 	"context"
 )
 
-const acquireAdvisoryXactLock = `-- name: AcquireAdvisoryXactLock :exec
-SELECT pg_advisory_xact_lock($1::bigint)
-`
-
-// トランザクションレベルのロック（トランザクション終了時に自動解放）
-func (q *Queries) AcquireAdvisoryXactLock(ctx context.Context, dollar_1 int64) error {
-	_, err := q.db.Exec(ctx, acquireAdvisoryXactLock, dollar_1)
-	return err
-}
-
 const tryAcquireAdvisoryXactLock = `-- name: TryAcquireAdvisoryXactLock :one
 SELECT pg_try_advisory_xact_lock($1::bigint) AS acquired
 `

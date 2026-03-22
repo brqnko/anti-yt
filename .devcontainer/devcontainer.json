@@ -1,0 +1,22 @@
+{
+    "name": "anti-yt",
+    "dockerComposeFile": [
+        "./compose.yaml"
+    ],
+    "service": "full",
+    "workspaceFolder": "/usr/src/app",
+    "postCreateCommand": "nginx",
+    "forwardPorts": [],
+    "remoteUser": "root",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "golang.go",
+                "rajasunrise.sqlc-snippets",
+                "ckolkman.vscode-postgres",
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode"
+            ]
+        }
+    }
+}

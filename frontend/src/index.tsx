@@ -19,6 +19,8 @@ const Profile = lazy(() => import("./pages/Profile/index.jsx"));
 const VideoPlayer = lazy(() => import("./pages/VideoPlayer/index.jsx"));
 const Analytics = lazy(() => import("./pages/Analytics/index.jsx"));
 const History = lazy(() => import("./pages/History/index.jsx"));
+const Playlists = lazy(() => import("./pages/Playlists/index.jsx"));
+const PlaylistDetail = lazy(() => import("./pages/PlaylistDetail/index.jsx"));
 const NotFound = lazy(() => import("./pages/_404.jsx"));
 import "./style.css";
 
@@ -31,6 +33,8 @@ function AppContent() {
       <Route path="/watch/:videoId" component={VideoPlayer} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/history" component={History} />
+      <Route path="/playlists" component={Playlists} />
+      <Route path="/playlists/:playlistId" component={PlaylistDetail} />
       <Route path="/profile" component={Profile} />
       <Route path="/register" component={Register} />
       <Route path="/terms" component={Terms} />
