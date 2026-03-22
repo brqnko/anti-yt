@@ -25,3 +25,44 @@ func NewSession(id uuid.UUID, createdAt, lastLoggedInAt time.Time, countryCode, 
 		BrowserName:    browserName,
 	}
 }
+
+type Authorization struct {
+	ID             uuid.UUID
+	Issuer         string
+	Sub            string
+	LastLoggedInAt time.Time
+}
+
+type AuthorizationOption func(*Authorization)
+
+func WithLastLoggedInAt(lastLoggedInAt time.Time) AuthorizationOption {
+	return func(a *Authorization) {
+		a.LastLoggedInAt = lastLoggedInAt
+	}
+}
+
+func WithID(id uuid.UUID) AuthorizationOption {
+	return func(a *Authorization) {
+		a.ID = id
+	}
+}
+
+func NewAuthorization(issuer, sub string, options ...AuthorizationOption) (Authorization, error) {
+	id, err := uuid.NewV7()
+	if err != nil {
+		return Authorization{}, err
+	}
+
+	authorization := Authorization{
+		ID:             id,
+		Issuer:         issuer,
+		Sub:            sub,
+		LastLoggedInAt: time.Now().UTC(),
+	}
+
+	for _, opt := range options {
+		opt(&authorization)
+	}
+
+	return authorization, nil
+}

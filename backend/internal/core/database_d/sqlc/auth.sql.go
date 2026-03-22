@@ -243,14 +243,16 @@ func (q *Queries) RemoveRefreshTokenByTokenHashAndSaveJtiBlacklist(ctx context.C
 
 const saveAuthorization = `-- name: SaveAuthorization :one
 INSERT INTO
-    m_user_authorization (issuer, sub)
+    m_user_authorization (issuer, sub, last_logged_in_at, public_id)
 VALUES
-    ($1, $2)
+    ($1, $2, $3, $4)
 ON CONFLICT (issuer, sub) DO
 UPDATE
 SET
     issuer = EXCLUDED.issuer,
-    last_logged_in_at = current_timestamp
+    last_logged_in_at = EXCLUDED.last_logged_in_at,
+    updated_at = current_timestamp,
+    public_id = EXCLUDED.public_id
 RETURNING
     m_user_authorization_id,
     public_id,
@@ -258,8 +260,10 @@ RETURNING
 `
 
 type SaveAuthorizationParams struct {
-	Issuer string
-	Sub    string
+	Issuer         string
+	Sub            string
+	LastLoggedInAt time.Time
+	PublicID       uuid.UUID
 }
 
 type SaveAuthorizationRow struct {
@@ -273,7 +277,12 @@ type SaveAuthorizationRow struct {
 // 重複した場合でも特にエラーは発生せず、既存のレコードが返される。
 // 返り値は、m_user_authorization_idとpublic_id、そして新規作成されたかどうかを示すis_createdフラグ。
 func (q *Queries) SaveAuthorization(ctx context.Context, arg SaveAuthorizationParams) (SaveAuthorizationRow, error) {
-	row := q.db.QueryRow(ctx, saveAuthorization, arg.Issuer, arg.Sub)
+	row := q.db.QueryRow(ctx, saveAuthorization,
+		arg.Issuer,
+		arg.Sub,
+		arg.LastLoggedInAt,
+		arg.PublicID,
+	)
 	var i SaveAuthorizationRow
 	err := row.Scan(&i.MUserAuthorizationID, &i.PublicID, &i.IsCreated)
 	return i, err

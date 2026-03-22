@@ -4,17 +4,18 @@
 -- 返り値は、m_user_authorization_idとpublic_id、そして新規作成されたかどうかを示すis_createdフラグ。
 -- name: SaveAuthorization :one
 INSERT INTO
-    m_user_authorization (issuer, sub)
+    m_user_authorization (issuer, sub, last_logged_in_at, public_id)
 VALUES
-    ($1, $2)
+    ($1, $2, $3, $4)
 ON CONFLICT (issuer, sub) DO
 UPDATE
 SET
     issuer = EXCLUDED.issuer,
-    last_logged_in_at = current_timestamp
+    last_logged_in_at = EXCLUDED.last_logged_in_at,
+    updated_at = current_timestamp,
+    public_id = EXCLUDED.public_id
 RETURNING
     m_user_authorization_id,
-    public_id,
     (xmax = 0) AS is_created;
 
 -- リフレッシュトークンをテーブルに保存する。

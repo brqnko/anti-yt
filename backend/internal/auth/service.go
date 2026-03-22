@@ -99,13 +99,16 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 		}
 	}()
 	q := sqlc.New(tx)
+	authorizationRepository := NewAuthorizationRepository(q)
 
-	saveAuthorization, err := q.SaveAuthorization(ctx, sqlc.SaveAuthorizationParams{
-		Issuer: "https://accounts.google.com", // TODO: DI
-		Sub:    sub,
-	})
+	authorization, err := NewAuthorization("https://accounts.google.com", sub) // TODO: DI
 	if err != nil {
-		return nil, fmt.Errorf("saveAuthorization: %w", err)
+		return nil, err
+	}
+
+	authorizationID, err := authorizationRepository.Save(ctx, authorization)
+	if err != nil {
+		return nil, err
 	}
 
 	// もし、userテーブルに存在するなら、ログイン用リフレッシュトークンを作成してダッシュボードにリダイレクトさせる。
@@ -129,7 +132,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 	ua := user_agent.New(params.UserAgent)
 	browserName, browserVersion := ua.Browser()
 	_, err = q.SaveRefreshToken(ctx, sqlc.SaveRefreshTokenParams{
-		MUserAuthorizationID: saveAuthorization.MUserAuthorizationID,
+		MUserAuthorizationID: authorizationID,
 		TokenHash:            refreshTokenHash,
 		IpAddress:            params.IPAddress,
 		DeviceFingerprint:    params.DeviceFingerprint,
@@ -153,7 +156,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 	// userテーブルに存在しない場合、登録用アクセストークンを発行する。
 
 	// userテーブルに存在するかどうか
-	getUserByAuthorization, err := q.GetUserIDByAuthorization(ctx, saveAuthorization.MUserAuthorizationID)
+	getUserByAuthorization, err := q.GetUserIDByAuthorization(ctx, authorizationID)
 
 	if err == nil && !getUserByAuthorization.IsH { // 現役で存在する場合
 		accessToken, accessTokenExpiresAt, err := s.jwtService.SignUserAccessToken(getUserByAuthorization.PublicID, accessTokenJti, s.serverURL)
@@ -174,7 +177,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 			RefreshTokenExpiresAt: refreshTokenExpiresAt,
 		}, nil
 	} else if err == nil && getUserByAuthorization.IsH { // 退会済みだが、レコードが残っている場合
-		accessToken, accessTokenJtiExpiresAt, err := s.jwtService.SignRegisterToken(saveAuthorization.PublicID, accessTokenJti, s.serverURL)
+		accessToken, accessTokenJtiExpiresAt, err := s.jwtService.SignRegisterToken(authorization.ID, accessTokenJti, s.serverURL)
 		if err != nil {
 			return nil, fmt.Errorf("signRegisterToken: %w", err)
 		}
@@ -192,7 +195,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, params GoogleOIDCCallb
 			RefreshTokenExpiresAt: refreshTokenExpiresAt,
 		}, nil
 	} else if errors.Is(err, pgx.ErrNoRows) { // 存在しない場合
-		accessToken, accessTokenJtiExpiresAt, err := s.jwtService.SignRegisterToken(saveAuthorization.PublicID, accessTokenJti, s.serverURL)
+		accessToken, accessTokenJtiExpiresAt, err := s.jwtService.SignRegisterToken(authorization.ID, accessTokenJti, s.serverURL)
 		if err != nil {
 			return nil, fmt.Errorf("signRegisterToken: %w", err)
 		}

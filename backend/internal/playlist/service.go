@@ -344,7 +344,7 @@ func (s *Service) GetPlaylistItems(ctx context.Context, playlistID uuid.UUID, vi
 
 	videos := make([]video.Video, len(rows))
 	for i, row := range rows {
-		videos[i] = *video.NewVideo(
+		videos[i] = video.NewVideo(
 			row.PublicID,
 			row.ChannelID,
 			row.ExternalThumbnailUrl,
