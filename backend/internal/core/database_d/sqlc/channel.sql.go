@@ -12,6 +12,23 @@ import (
 	"github.com/google/uuid"
 )
 
+const clearStaleChannelCustomID = `-- name: ClearStaleChannelCustomID :exec
+UPDATE m_channel
+SET external_custom_id = '@' || external_id
+WHERE external_custom_id = $1
+  AND external_id != $2
+`
+
+type ClearStaleChannelCustomIDParams struct {
+	ExternalCustomID string
+	ExternalID       string
+}
+
+func (q *Queries) ClearStaleChannelCustomID(ctx context.Context, arg ClearStaleChannelCustomIDParams) error {
+	_, err := q.db.Exec(ctx, clearStaleChannelCustomID, arg.ExternalCustomID, arg.ExternalID)
+	return err
+}
+
 const deleteChannelSubscription = `-- name: DeleteChannelSubscription :execrows
 DELETE FROM
     m_user_subscribing_channel
@@ -223,12 +240,15 @@ ON
 WHERE
     sub.m_user_id = (SELECT u.m_user_id FROM m_user u WHERE u.public_id = $1) AND
     c.rss_fetched_at < $2
+ORDER BY c.rss_fetched_at
+LIMIT $3
 FOR UPDATE
 `
 
 type GetChannelsToFetchRSSForUpdateParams struct {
-	UserID   uuid.UUID
-	RssFetch time.Time
+	UserID     uuid.UUID
+	RssFetch   time.Time
+	QueryLimit int32
 }
 
 type GetChannelsToFetchRSSForUpdateRow struct {
@@ -237,7 +257,7 @@ type GetChannelsToFetchRSSForUpdateRow struct {
 }
 
 func (q *Queries) GetChannelsToFetchRSSForUpdate(ctx context.Context, arg GetChannelsToFetchRSSForUpdateParams) ([]GetChannelsToFetchRSSForUpdateRow, error) {
-	rows, err := q.db.Query(ctx, getChannelsToFetchRSSForUpdate, arg.UserID, arg.RssFetch)
+	rows, err := q.db.Query(ctx, getChannelsToFetchRSSForUpdate, arg.UserID, arg.RssFetch, arg.QueryLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -283,10 +303,20 @@ INSERT INTO
         external_icon_url,
         external_description,
         external_subscribers_count,
-        external_created_at
+        external_created_at,
+        external_uploads_playlist_id
     )
 VALUES
-    ($1, $2, $3, $4, $5, $6, $7)
+    ($1, $2, $3, $4, $5, $6, $7, $8)
+ON CONFLICT (external_id) DO UPDATE SET
+    external_display_name = EXCLUDED.external_display_name,
+    external_custom_id = EXCLUDED.external_custom_id,
+    external_icon_url = EXCLUDED.external_icon_url,
+    external_description = EXCLUDED.external_description,
+    external_subscribers_count = EXCLUDED.external_subscribers_count,
+    external_created_at = EXCLUDED.external_created_at,
+    external_uploads_playlist_id = EXCLUDED.external_uploads_playlist_id,
+    updated_at = CURRENT_TIMESTAMP
 RETURNING
     m_channel.m_channel_id,
     m_channel.public_id,
@@ -294,13 +324,14 @@ RETURNING
 `
 
 type SaveChannelParams struct {
-	ExternalID               string
-	ExternalDisplayName      string
-	ExternalCustomID         string
-	ExternalIconUrl          string
-	ExternalDescription      string
-	ExternalSubscribersCount int64
-	ExternalCreatedAt        time.Time
+	ExternalID                string
+	ExternalDisplayName       string
+	ExternalCustomID          string
+	ExternalIconUrl           string
+	ExternalDescription       string
+	ExternalSubscribersCount  int64
+	ExternalCreatedAt         time.Time
+	ExternalUploadsPlaylistID string
 }
 
 type SaveChannelRow struct {
@@ -318,6 +349,7 @@ func (q *Queries) SaveChannel(ctx context.Context, arg SaveChannelParams) (SaveC
 		arg.ExternalDescription,
 		arg.ExternalSubscribersCount,
 		arg.ExternalCreatedAt,
+		arg.ExternalUploadsPlaylistID,
 	)
 	var i SaveChannelRow
 	err := row.Scan(&i.MChannelID, &i.PublicID, &i.CreatedAt)

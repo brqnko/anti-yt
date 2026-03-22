@@ -10,10 +10,8 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
-const defaultGetChannelVideosLimit = 20
-
 func (h *APIHandler) GetChannelsChannelIdVideos(c context.Context, request GetChannelsChannelIdVideosRequestObject) (GetChannelsChannelIdVideosResponseObject, error) {
-	videos, hasNext, err := h.channelService.GetChannelUploads(c, request.ChannelId, request.Params.Cursor, defaultGetChannelVideosLimit)
+	videos, hasNext, err := h.channelService.GetChannelUploads(c, request.ChannelId, request.Params.Cursor, request.Params.Limit)
 	if err != nil {
 		if errors.Is(err, channel.ErrInvalidGetUploadLimit) {
 			return GetChannelsChannelIdVideos400JSONResponse{BadRequestJSONResponse{

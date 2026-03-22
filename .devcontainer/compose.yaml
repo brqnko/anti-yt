@@ -1,0 +1,80 @@
+services:
+  full:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    environment:
+      NODE_ENV: development
+    ports:
+      - "443:443"
+    volumes:
+      - ../:/usr/src/app
+      - go-mod-cache:/root/go/pkg/mod
+      - go-build-cache:/root/.cache/go-build
+      - node-modules:/usr/src/app/frontend/node_modules
+      - frontend-dist:/usr/src/app/frontend/dist
+      - air-tmp:/usr/src/app/backend/tmp
+      - ./default.conf:/etc/nginx/http.d/default.conf:ro
+      - ./server.crt:/etc/nginx/certs/server.crt:ro
+      - ./server.key:/etc/nginx/certs/server.key:ro
+    secrets:
+      - db-password
+      - oidc-google-client-secret
+      - jwt-private
+      - jwt-public
+      - google-oidc-secret
+    env_file:
+      - .env
+    networks:
+      dev-network:
+    depends_on:
+      - db
+
+  db:
+    image: "postgres:18.1-alpine3.23"
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    user: postgres
+    secrets:
+      - db-password
+    volumes:
+      - db-data:/var/lib/postgresql
+    environment:
+      - POSTGRES_DB=example
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+    expose:
+      - 5432
+    networks:
+      dev-network:
+
+volumes:
+ db-data:
+ go-mod-cache:
+ go-build-cache:
+ node-modules:
+ frontend-dist:
+ air-tmp:
+
+secrets:
+ db-password:
+   file: password.txt
+ oidc-google-client-secret:
+   file: oidc_secret.txt
+ jwt-private:
+   file: jwt_private.pem
+ jwt-public:
+   file: jwt_public.pem
+ google-oidc-secret:
+   file: google_oidc_secret.txt
+
+networks:
+  dev-network:

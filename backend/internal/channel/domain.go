@@ -44,7 +44,7 @@ func NewChannelID(id string) (*ChannelID, error) {
 	return &c, nil
 }
 
-type ExternalChannelInfo struct {
+type ExternalChannelDetail struct {
 	ID               *ChannelID
 	DisplayName      string
 	CustomID         *ChannelCustomID
@@ -58,7 +58,7 @@ type SubscribedChannel struct {
 	SubscriptionID uuid.UUID
 	ChannelID      uuid.UUID
 	CreatedAt      time.Time
-	ExternalChannelInfo
+	ExternalChannelDetail
 }
 
 func NewSubscribedChannel(
@@ -86,7 +86,7 @@ func NewSubscribedChannel(
 		SubscriptionID: subscriptionID,
 		ChannelID:      channelID,
 		CreatedAt:      createdAt,
-		ExternalChannelInfo: ExternalChannelInfo{
+		ExternalChannelDetail: ExternalChannelDetail{
 			ID:               chID,
 			DisplayName:      extDisplayname,
 			CustomID:         channelCustomID,

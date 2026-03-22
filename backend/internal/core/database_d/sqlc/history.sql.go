@@ -33,7 +33,13 @@ FROM
     INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
 WHERE
     t_video_watch.m_user_id = (
-        SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1
+        SELECT
+            m_user.m_user_id
+        FROM
+            m_user
+        WHERE
+            m_user.public_id = $1
+        LIMIT 1
     )
     AND (
         $2::uuid IS NULL
@@ -144,13 +150,13 @@ func (q *Queries) GetTotalWatchSeconds(ctx context.Context, publicID uuid.UUID) 
 
 const getUserStatisticsByWeek = `-- name: GetUserStatisticsByWeek :many
 SELECT
-    DATE(vw.watch_start_at) AS watch_date,
-    COUNT(DISTINCT vw.m_video_id) AS video_count,
-    EXTRACT(EPOCH FROM SUM(vw.watch_end_at - vw.watch_start_at))::bigint AS watch_sum
+    DATE(video_watch.watch_start_at) AS watch_date,
+    COUNT(DISTINCT video_watch.m_video_id) AS video_count,
+    EXTRACT(EPOCH FROM SUM(video_watch.watch_end_at - video_watch.watch_start_at))::bigint AS watch_sum
 FROM
-    t_video_watch vw
+    t_video_watch video_watch
 WHERE
-    vw.m_user_id = (
+    video_watch.m_user_id = (
         SELECT
             u.m_user_id
         FROM
@@ -158,12 +164,11 @@ WHERE
         WHERE
             u.public_id = $1
         LIMIT 1
-    ) AND
-    vw.watch_start_at >= $2 AND
-    vw.watch_start_at < $3 AND
-    vw.watch_end_at <= CURRENT_TIMESTAMP
+    )
+    AND video_watch.watch_start_at BETWEEN $2 AND $3
+    AND video_watch.watch_end_at <= CURRENT_TIMESTAMP
 GROUP BY
-    DATE(vw.watch_start_at)
+    DATE(video_watch.watch_start_at)
 `
 
 type GetUserStatisticsByWeekParams struct {
@@ -200,10 +205,22 @@ func (q *Queries) GetUserStatisticsByWeek(ctx context.Context, arg GetUserStatis
 
 const heartbeat = `-- name: Heartbeat :exec
 WITH resolved_user AS (
-    SELECT m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1
+    SELECT
+        m_user_id
+    FROM
+        m_user
+    WHERE
+        m_user.public_id = $1
+    LIMIT 1
 ),
 resolved_video AS (
-    SELECT m_video_id FROM m_video WHERE m_video.public_id = $2 LIMIT 1
+    SELECT
+        m_video_id
+    FROM
+        m_video
+    WHERE
+        m_video.public_id = $2
+    LIMIT 1
 ),
 close_stale AS (
     -- heartbeatが途絶えた放置セッションをクローズ
@@ -242,8 +259,8 @@ close_old AS (
     FROM
         latest_active
     WHERE
-        t_video_watch.t_video_watch_id = latest_active.t_video_watch_id AND
-        latest_active.m_video_id != (SELECT m_video_id FROM resolved_video)
+        t_video_watch.t_video_watch_id = latest_active.t_video_watch_id
+        AND latest_active.m_video_id != (SELECT m_video_id FROM resolved_video)
     RETURNING
         t_video_watch.t_video_watch_id
 ),
@@ -257,8 +274,8 @@ update_same AS (
     FROM
         latest_active
     WHERE
-        t_video_watch.t_video_watch_id = latest_active.t_video_watch_id AND
-        latest_active.m_video_id = (SELECT m_video_id FROM resolved_video)
+        t_video_watch.t_video_watch_id = latest_active.t_video_watch_id
+        AND latest_active.m_video_id = (SELECT m_video_id FROM resolved_video)
     RETURNING
         t_video_watch.t_video_watch_id
 ),

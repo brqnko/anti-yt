@@ -52,7 +52,7 @@ func (h *APIHandler) GetSubscriptions(c context.Context, request GetSubscription
 		items[i].ChannelDescription = ch.Description
 		items[i].ExternalChannelIconUrl = ch.IconURL
 		items[i].ChannelSubscribersCount = ch.SubscribersCount
-		items[i].ChannelCreatedAt = ch.ExternalChannelInfo.CreatedAt
+		items[i].ChannelCreatedAt = ch.ExternalChannelDetail.CreatedAt
 	}
 
 	return GetSubscriptions200JSONResponse{
@@ -65,9 +65,9 @@ func (h *APIHandler) GetSubscriptions(c context.Context, request GetSubscription
 func (h *APIHandler) PostSubscriptions(c context.Context, request PostSubscriptionsRequestObject) (PostSubscriptionsResponseObject, error) {
 	subscribed, err := h.channelService.SubscribeChannel(c, request.Body.ChannelId)
 	if err != nil {
-		if errors.Is(err, util.ErrInvalidYouTubeURL) ||
-			errors.Is(err, util.ErrInvalidChannelID) ||
-			errors.Is(err, util.ErrInvalidChannelHandle) {
+		if errors.Is(err, channel.ErrInvalidYouTubeURL) ||
+			errors.Is(err, channel.ErrInvalidChannelID) ||
+			errors.Is(err, channel.ErrInvalidChannelHandle) {
 			return PostSubscriptions400JSONResponse{BadRequestJSONResponse{
 				Detail: err.Error(),
 				Title:  "Bad Request",
@@ -96,7 +96,7 @@ func (h *APIHandler) PostSubscriptions(c context.Context, request PostSubscripti
 			ExternalChannelId          string             `json:"external_channel_id"`
 			SubscriptionId             openapi_types.UUID `json:"subscription_id"`
 		}{
-			ChannelCreatedAt:           subscribed.ExternalChannelInfo.CreatedAt,
+			ChannelCreatedAt:           subscribed.ExternalChannelDetail.CreatedAt,
 			ChannelCustomId:            string(*subscribed.CustomID),
 			ChannelDescription:         subscribed.Description,
 			ChannelId:                  subscribed.ChannelID,

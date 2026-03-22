@@ -52,6 +52,13 @@ export function DashboardLayout({
     }
   }, [url]);
 
+  const refreshPlaylists = useCallback(async () => {
+    try {
+      const res = await getPlaylist().getPlaylists({ limit: 10 });
+      setPlaylists(res.items);
+    } catch {}
+  }, []);
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -67,6 +74,12 @@ export function DashboardLayout({
     };
     load();
   }, []);
+
+  useEffect(() => {
+    const handler = () => refreshPlaylists();
+    window.addEventListener("playlist-changed", handler);
+    return () => window.removeEventListener("playlist-changed", handler);
+  }, [refreshPlaylists]);
 
   return (
     <div class="relative flex h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
@@ -130,6 +143,18 @@ export function DashboardLayout({
               >
                 <span class="material-symbols-outlined">recommend</span>
                 {t("dashboard.nav.recommendedChannels")}
+              </a>
+              <a
+                class={`flex items-center gap-3 px-3 py-2 rounded-lg no-underline ${
+                  url === "/playlists" || url.startsWith("/playlists/")
+                    ? "bg-primary/10 text-primary font-bold"
+                    : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-charcoal dark:hover:text-white font-medium transition-colors"
+                }`}
+                href="/playlists"
+                aria-current={url === "/playlists" || url.startsWith("/playlists/") ? "page" : undefined}
+              >
+                <span class="material-symbols-outlined">playlist_play</span>
+                {t("dashboard.nav.playlists")}
               </a>
               <a
                 class={`flex items-center gap-3 px-3 py-2 rounded-lg no-underline ${
@@ -200,8 +225,10 @@ export function DashboardLayout({
                 {playlists.map((pl) => (
                   <a
                     key={pl.playlist_id}
-                    class="flex items-center gap-3 px-3 py-2 hover:bg-card-light dark:hover:bg-card-dark rounded-lg group transition-colors no-underline"
-                    href="#"
+                    class={`flex items-center gap-3 px-3 py-2 hover:bg-card-light dark:hover:bg-card-dark rounded-lg group transition-colors no-underline ${
+                      url === `/playlists/${pl.playlist_id}` ? "bg-primary/10" : ""
+                    }`}
+                    href={`/playlists/${pl.playlist_id}`}
                   >
                     <span class="material-symbols-outlined text-text-muted-light dark:text-text-muted-dark group-hover:text-primary">
                       playlist_play

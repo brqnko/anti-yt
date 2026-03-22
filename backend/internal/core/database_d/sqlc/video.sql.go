@@ -346,7 +346,7 @@ func (q *Queries) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (GetVid
 	return i, err
 }
 
-const saveVideo = `-- name: SaveVideo :exec
+const saveVideo = `-- name: SaveVideo :one
 INSERT INTO
     m_video (
         m_channel_id,
@@ -367,6 +367,7 @@ ON CONFLICT (external_id) DO UPDATE SET
     external_length_seconds = EXCLUDED.external_length_seconds,
     fetched_at = EXCLUDED.fetched_at,
     updated_at = CURRENT_TIMESTAMP
+RETURNING m_video_id
 `
 
 type SaveVideoParams struct {
@@ -380,8 +381,8 @@ type SaveVideoParams struct {
 	ExternalLengthSeconds int
 }
 
-func (q *Queries) SaveVideo(ctx context.Context, arg SaveVideoParams) error {
-	_, err := q.db.Exec(ctx, saveVideo,
+func (q *Queries) SaveVideo(ctx context.Context, arg SaveVideoParams) (int64, error) {
+	row := q.db.QueryRow(ctx, saveVideo,
 		arg.MChannelID,
 		arg.ExternalID,
 		arg.ExternalTitle,
@@ -391,5 +392,7 @@ func (q *Queries) SaveVideo(ctx context.Context, arg SaveVideoParams) error {
 		arg.ExternalThumbnailUrl,
 		arg.ExternalLengthSeconds,
 	)
-	return err
+	var m_video_id int64
+	err := row.Scan(&m_video_id)
+	return m_video_id, err
 }

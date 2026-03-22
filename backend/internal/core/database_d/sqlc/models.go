@@ -36,19 +36,20 @@ type HUser struct {
 }
 
 type MChannel struct {
-	MChannelID               int64
-	ExternalID               string
-	ExternalDisplayName      string
-	ExternalCustomID         string
-	ExternalIconUrl          string
-	ExternalDescription      string
-	ExternalSubscribersCount int64
-	ExternalCreatedAt        time.Time
-	FetchedAt                time.Time
-	CreatedAt                time.Time
-	UpdatedAt                time.Time
-	PublicID                 uuid.UUID
-	RssFetchedAt             time.Time
+	MChannelID                int64
+	ExternalID                string
+	ExternalDisplayName       string
+	ExternalCustomID          string
+	ExternalIconUrl           string
+	ExternalDescription       string
+	ExternalSubscribersCount  int64
+	ExternalCreatedAt         time.Time
+	FetchedAt                 time.Time
+	CreatedAt                 time.Time
+	UpdatedAt                 time.Time
+	PublicID                  uuid.UUID
+	RssFetchedAt              time.Time
+	ExternalUploadsPlaylistID string
 }
 
 type MPlaylist struct {

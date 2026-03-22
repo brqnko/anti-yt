@@ -39,7 +39,7 @@ const getFeedChannels = (
  */
 const getChannelsChannelIdVideos = (
     channelId: string,
-    params?: GetChannelsChannelIdVideosParams,
+    params: GetChannelsChannelIdVideosParams,
  ) => {
       return customInstance<GetChannelsChannelIdVideos200>(
       {url: `/api/v1/channels/${channelId}/videos`, method: 'GET',

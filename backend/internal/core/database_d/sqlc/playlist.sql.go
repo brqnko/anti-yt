@@ -12,6 +12,12 @@ import (
 	"github.com/google/uuid"
 )
 
+type BulkInsertIntoPlaylistParams struct {
+	MPlaylistID      int64
+	MVideoID         int64
+	PlaylistPosition int64
+}
+
 const createPlaylist = `-- name: CreatePlaylist :one
 INSERT INTO
     m_playlist (
@@ -30,12 +36,8 @@ VALUES
         $5
     )
 RETURNING
+    m_playlist.m_playlist_id,
     m_playlist.public_id,
-    m_playlist.playlist_title,
-    m_playlist.playlist_description,
-    m_playlist.visibility_code,
-    m_playlist.playlist_code,
-    m_playlist.video_count,
     m_playlist.created_at,
     m_playlist.updated_at
 `
@@ -49,14 +51,10 @@ type CreatePlaylistParams struct {
 }
 
 type CreatePlaylistRow struct {
-	PublicID            uuid.UUID
-	PlaylistTitle       string
-	PlaylistDescription string
-	VisibilityCode      int
-	PlaylistCode        int
-	VideoCount          int
-	CreatedAt           time.Time
-	UpdatedAt           time.Time
+	MPlaylistID int64
+	PublicID    uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 func (q *Queries) CreatePlaylist(ctx context.Context, arg CreatePlaylistParams) (CreatePlaylistRow, error) {
@@ -69,14 +67,491 @@ func (q *Queries) CreatePlaylist(ctx context.Context, arg CreatePlaylistParams) 
 	)
 	var i CreatePlaylistRow
 	err := row.Scan(
+		&i.MPlaylistID,
+		&i.PublicID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const deletePlaylist = `-- name: DeletePlaylist :one
+WITH deleted AS (
+    DELETE FROM
+        m_playlist playlist -- NOTE: cascadeつけてるのでm_playlist_videoは勝手に消えてくれる
+    WHERE
+        playlist.m_user_id = (
+            SELECT
+                u.m_user_id
+            FROM
+                m_user u
+            WHERE
+                u.public_id = $1
+            LIMIT 1
+        ) AND
+        playlist.public_id = $2
+    RETURNING playlist.public_id
+)
+SELECT
+    deleted.public_id
+FROM
+    deleted
+`
+
+type DeletePlaylistParams struct {
+	UserID     uuid.UUID
+	PlaylistID uuid.UUID
+}
+
+func (q *Queries) DeletePlaylist(ctx context.Context, arg DeletePlaylistParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, deletePlaylist, arg.UserID, arg.PlaylistID)
+	var public_id uuid.UUID
+	err := row.Scan(&public_id)
+	return public_id, err
+}
+
+const getPlaylist = `-- name: GetPlaylist :one
+SELECT
+    playlist.public_id,
+    playlist.playlist_title,
+    playlist.playlist_description,
+    playlist.visibility_code,
+    playlist.playlist_code,
+    playlist.created_at,
+    (
+        SELECT
+            COUNT(*)
+        FROM
+            m_playlist_video playlist_video
+        WHERE
+            playlist_video.m_playlist_id = playlist.m_playlist_id
+    )::int AS video_count,
+    COALESCE((
+        SELECT
+            video.external_thumbnail_url
+        FROM
+            m_playlist_video playlist_video
+        INNER JOIN
+            m_video video
+        ON
+            playlist_video.m_video_id = video.m_video_id
+        WHERE
+            playlist_video.m_playlist_id = playlist.m_playlist_id
+        LIMIT 1
+    ), '')::varchar AS top_thumbnail
+FROM
+    m_playlist playlist
+WHERE
+    playlist.m_user_id = (
+        SELECT u.m_user_id FROM m_user u WHERE u.public_id = $1 LIMIT 1
+    ) AND
+    playlist.public_id = $2
+`
+
+type GetPlaylistParams struct {
+	UserID     uuid.UUID
+	PlaylistID uuid.UUID
+}
+
+type GetPlaylistRow struct {
+	PublicID            uuid.UUID
+	PlaylistTitle       string
+	PlaylistDescription string
+	VisibilityCode      int
+	PlaylistCode        int
+	CreatedAt           time.Time
+	VideoCount          int
+	TopThumbnail        string
+}
+
+func (q *Queries) GetPlaylist(ctx context.Context, arg GetPlaylistParams) (GetPlaylistRow, error) {
+	row := q.db.QueryRow(ctx, getPlaylist, arg.UserID, arg.PlaylistID)
+	var i GetPlaylistRow
+	err := row.Scan(
 		&i.PublicID,
 		&i.PlaylistTitle,
 		&i.PlaylistDescription,
 		&i.VisibilityCode,
 		&i.PlaylistCode,
-		&i.VideoCount,
 		&i.CreatedAt,
-		&i.UpdatedAt,
+		&i.VideoCount,
+		&i.TopThumbnail,
 	)
 	return i, err
+}
+
+const getPlaylistVideos = `-- name: GetPlaylistVideos :many
+SELECT
+    video.public_id,
+    video.external_thumbnail_url,
+    video.external_title,
+    video.external_created_at,
+    video.external_length_seconds,
+    COALESCE((
+        SELECT
+            t_video_watch.watch_position_seconds
+        FROM
+            t_video_watch
+        WHERE
+            t_video_watch.m_user_id = (
+                SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1
+            )
+            AND t_video_watch.m_video_id = video.m_video_id
+        ORDER BY
+            t_video_watch.m_user_id,
+            t_video_watch.m_video_id,
+            t_video_watch.watch_start_at DESC
+        LIMIT 1
+    ), 0)::int AS last_watch_seconds,
+    channel.public_id AS channel_id,
+    channel.external_icon_url AS external_channel_icon_url,
+    channel.external_display_name AS external_channel_displayname
+FROM
+    m_playlist_video playlist_video
+INNER JOIN
+    m_video video
+ON
+    video.m_video_id = playlist_video.m_video_id
+INNER JOIN
+    m_channel channel
+ON
+    channel.m_channel_id = video.m_channel_id
+WHERE
+    playlist_video.m_playlist_id = (
+        SELECT playlist.m_playlist_id FROM m_playlist playlist
+        WHERE playlist.m_user_id = (SELECT u.m_user_id FROM m_user u WHERE u.public_id = $1 LIMIT 1) AND
+        playlist.public_id = $2
+        LIMIT 1
+    ) AND (
+        $3::uuid IS NULL OR
+        playlist_video.playlist_position > (
+            SELECT pv.playlist_position FROM m_playlist_video pv
+            INNER JOIN m_video v ON v.m_video_id = pv.m_video_id
+            WHERE v.public_id = $3::uuid AND
+            pv.m_playlist_id = (
+                SELECT playlist.m_playlist_id FROM m_playlist playlist
+                WHERE playlist.m_user_id = (SELECT u.m_user_id FROM m_user u WHERE u.public_id = $1 LIMIT 1) AND
+                playlist.public_id = $2
+                LIMIT 1
+            )
+            LIMIT 1
+        )
+    )
+ORDER BY
+    playlist_video.m_playlist_id, playlist_video.playlist_position
+LIMIT $4
+`
+
+type GetPlaylistVideosParams struct {
+	UserID     uuid.UUID
+	PlaylistID uuid.UUID
+	Cursor     *uuid.UUID
+	QueryLimit int32
+}
+
+type GetPlaylistVideosRow struct {
+	PublicID                   uuid.UUID
+	ExternalThumbnailUrl       string
+	ExternalTitle              string
+	ExternalCreatedAt          time.Time
+	ExternalLengthSeconds      int
+	LastWatchSeconds           int
+	ChannelID                  uuid.UUID
+	ExternalChannelIconUrl     string
+	ExternalChannelDisplayname string
+}
+
+func (q *Queries) GetPlaylistVideos(ctx context.Context, arg GetPlaylistVideosParams) ([]GetPlaylistVideosRow, error) {
+	rows, err := q.db.Query(ctx, getPlaylistVideos,
+		arg.UserID,
+		arg.PlaylistID,
+		arg.Cursor,
+		arg.QueryLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPlaylistVideosRow
+	for rows.Next() {
+		var i GetPlaylistVideosRow
+		if err := rows.Scan(
+			&i.PublicID,
+			&i.ExternalThumbnailUrl,
+			&i.ExternalTitle,
+			&i.ExternalCreatedAt,
+			&i.ExternalLengthSeconds,
+			&i.LastWatchSeconds,
+			&i.ChannelID,
+			&i.ExternalChannelIconUrl,
+			&i.ExternalChannelDisplayname,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserPlaylists = `-- name: GetUserPlaylists :many
+SELECT
+    playlist.public_id,
+    playlist.playlist_title,
+    playlist.playlist_description,
+    playlist.visibility_code,
+    playlist.playlist_code,
+    playlist.created_at,
+    (
+        SELECT
+            COUNT(*)
+        FROM
+            m_playlist_video playlist_video
+        WHERE
+            playlist_video.m_playlist_id = playlist.m_playlist_id
+    )::int AS video_count,
+    COALESCE((
+        SELECT
+            video.external_thumbnail_url
+        FROM
+            m_playlist_video playlist_video
+        INNER JOIN
+            m_video video
+        ON
+            playlist_video.m_video_id = video.m_video_id
+        WHERE
+            playlist_video.m_playlist_id = playlist.m_playlist_id
+        LIMIT 1
+    ), '')::varchar AS top_thumbnail
+FROM
+    m_playlist playlist
+WHERE
+    playlist.m_user_id = (
+        SELECT
+            u.m_user_id
+        FROM
+            m_user u
+        WHERE
+            u.public_id = $1
+        LIMIT 1
+    ) AND
+    (
+        $2::uuid IS NULL OR
+        playlist.public_id < $2::uuid
+    )
+ORDER BY
+    playlist.m_user_id, playlist.public_id DESC
+LIMIT $3
+`
+
+type GetUserPlaylistsParams struct {
+	UserID     uuid.UUID
+	Cursor     *uuid.UUID
+	QueryLimit int32
+}
+
+type GetUserPlaylistsRow struct {
+	PublicID            uuid.UUID
+	PlaylistTitle       string
+	PlaylistDescription string
+	VisibilityCode      int
+	PlaylistCode        int
+	CreatedAt           time.Time
+	VideoCount          int
+	TopThumbnail        string
+}
+
+func (q *Queries) GetUserPlaylists(ctx context.Context, arg GetUserPlaylistsParams) ([]GetUserPlaylistsRow, error) {
+	rows, err := q.db.Query(ctx, getUserPlaylists, arg.UserID, arg.Cursor, arg.QueryLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserPlaylistsRow
+	for rows.Next() {
+		var i GetUserPlaylistsRow
+		if err := rows.Scan(
+			&i.PublicID,
+			&i.PlaylistTitle,
+			&i.PlaylistDescription,
+			&i.VisibilityCode,
+			&i.PlaylistCode,
+			&i.CreatedAt,
+			&i.VideoCount,
+			&i.TopThumbnail,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const insertIntoPlaylist = `-- name: InsertIntoPlaylist :one
+WITH inserted AS (
+    INSERT INTO
+        m_playlist_video (
+            m_playlist_id,
+            m_video_id,
+            playlist_position
+        )
+    SELECT
+        -- m_playlist_id
+        (
+            SELECT
+                m_playlist.m_playlist_id
+            FROM
+                m_playlist
+            WHERE
+                m_playlist.m_user_id = (
+                    SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1
+                ) AND
+                m_playlist.public_id = $2
+            LIMIT 1
+        ),
+        -- m_video_id
+        (
+            SELECT
+                video.m_video_id
+            FROM
+                m_video video
+            WHERE
+                video.public_id = $3
+            LIMIT 1
+        ),
+        -- playlist_position
+        COALESCE(
+            (
+                SELECT
+                    MAX(m_playlist_video.playlist_position) + 1048576 -- NOTE: 2^20
+                FROM
+                    m_playlist_video
+                WHERE
+                    m_playlist_video.m_playlist_id = (
+                        SELECT
+                            m_playlist.m_playlist_id
+                        FROM
+                            m_playlist
+                        WHERE
+                            m_playlist.m_user_id = (
+                                SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1
+                            ) AND
+                            m_playlist.public_id = $2
+                        LIMIT 1
+                    )
+            ),
+            0
+        )
+    RETURNING m_playlist_id
+)
+UPDATE
+    m_playlist playlist
+SET
+    updated_at = CURRENT_TIMESTAMP
+WHERE
+    EXISTS (SELECT 1 FROM inserted) AND
+    playlist.m_user_id = (
+        SELECT
+            u.m_user_id
+        FROM
+            m_user u
+        WHERE
+            u.public_id = $1
+        LIMIT 1
+    ) AND
+    playlist.public_id = $2
+RETURNING playlist.public_id, playlist.updated_at
+`
+
+type InsertIntoPlaylistParams struct {
+	UserID     uuid.UUID
+	PlaylistID uuid.UUID
+	VideoID    uuid.UUID
+}
+
+type InsertIntoPlaylistRow struct {
+	PublicID  uuid.UUID
+	UpdatedAt time.Time
+}
+
+func (q *Queries) InsertIntoPlaylist(ctx context.Context, arg InsertIntoPlaylistParams) (InsertIntoPlaylistRow, error) {
+	row := q.db.QueryRow(ctx, insertIntoPlaylist, arg.UserID, arg.PlaylistID, arg.VideoID)
+	var i InsertIntoPlaylistRow
+	err := row.Scan(&i.PublicID, &i.UpdatedAt)
+	return i, err
+}
+
+const removeVideoFromPlaylist = `-- name: RemoveVideoFromPlaylist :one
+WITH removed AS (
+    DELETE FROM
+        m_playlist_video playlist_video
+    WHERE
+        playlist_video.m_playlist_id = (
+            SELECT playlist.m_playlist_id FROM m_playlist playlist WHERE playlist.m_user_id = (SELECT u.m_user_id FROM m_user u WHERE u.public_id = $2 LIMIT 1) AND playlist.public_id = $1 LIMIT 1
+        ) AND
+        playlist_video.m_video_id = (
+            SELECT video.m_video_id FROM m_video video WHERE video.public_id = $3 LIMIT 1
+        )
+    RETURNING playlist_video.m_playlist_video_id
+)
+UPDATE
+    m_playlist playlist
+SET
+    updated_at = CURRENT_TIMESTAMP
+WHERE
+    EXISTS (SELECT 1 FROM removed) AND
+    playlist.public_id = $1
+RETURNING playlist.public_id
+`
+
+type RemoveVideoFromPlaylistParams struct {
+	PlaylistID uuid.UUID
+	UserID     uuid.UUID
+	VideoID    uuid.UUID
+}
+
+func (q *Queries) RemoveVideoFromPlaylist(ctx context.Context, arg RemoveVideoFromPlaylistParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, removeVideoFromPlaylist, arg.PlaylistID, arg.UserID, arg.VideoID)
+	var public_id uuid.UUID
+	err := row.Scan(&public_id)
+	return public_id, err
+}
+
+const updatePlaylist = `-- name: UpdatePlaylist :one
+UPDATE
+    m_playlist playlist
+SET
+    playlist_title = COALESCE($1, playlist.playlist_title),
+    playlist_description = COALESCE($2, playlist.playlist_description),
+    updated_at = CURRENT_TIMESTAMP
+WHERE
+    playlist.m_user_id = (
+        SELECT u.m_user_id FROM m_user u WHERE u.public_id = $3 LIMIT 1
+    ) AND
+    playlist.public_id = $4
+RETURNING playlist.public_id
+`
+
+type UpdatePlaylistParams struct {
+	NewPlaylistTitle       *string
+	NewPlaylistDescription *string
+	UserID                 uuid.UUID
+	PlaylistID             uuid.UUID
+}
+
+func (q *Queries) UpdatePlaylist(ctx context.Context, arg UpdatePlaylistParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, updatePlaylist,
+		arg.NewPlaylistTitle,
+		arg.NewPlaylistDescription,
+		arg.UserID,
+		arg.PlaylistID,
+	)
+	var public_id uuid.UUID
+	err := row.Scan(&public_id)
+	return public_id, err
 }

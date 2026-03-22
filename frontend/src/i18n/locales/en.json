@@ -129,6 +129,7 @@
       "mainFeed": "Main Feed",
       "analytics": "Analytics",
       "recommendedChannels": "Recommended Channels",
+      "playlists": "Playlists",
       "history": "History",
       "settings": "Settings",
       "sidebar": "Sidebar navigation",
@@ -303,6 +304,9 @@
     "notesPlaceholder": "Type your thoughts here... notes are automatically time-stamped.",
     "saveNote": "Save Note",
     "curatedPlaylist": "Curated Playlist",
+    "viewPlaylist": "View Full Playlist",
+    "addToPlaylist": "Add to Playlist",
+    "noPlaylists": "No playlists yet.",
     "remaining": "Remaining",
     "mindfulMode": "Mindful Mode Active",
     "noDistractions": "No distractions detected",
@@ -366,6 +370,57 @@
     "watchedAgo": "Watched {{time}}",
     "loadError": "Failed to load history",
     "retry": "Try again"
+  },
+  "playlists": {
+    "pageTitle": "Playlists",
+    "title": "My Curated Library",
+    "createNew": "Create New Playlist",
+    "videoCount_one": "{{count}} video",
+    "videoCount_other": "{{count}} videos",
+    "lastUpdated": "Last updated {{time}}",
+    "play": "Play",
+    "empty": "No playlists yet",
+    "emptyDesc": "Create a playlist to organize your curated content.",
+    "loadError": "Failed to load playlists",
+    "retry": "Retry"
+  },
+  "playlistDetail": {
+    "pageTitle": "Playlist Detail",
+    "backToPlaylists": "Back to Playlists",
+    "videos": "Videos",
+    "edit": "Edit",
+    "delete": "Delete",
+    "removeVideo": "Remove video",
+    "noVideos": "No videos yet",
+    "notFound": "Playlist not found",
+    "notFoundDesc": "This playlist doesn't exist or may have been deleted.",
+    "loadError": "Failed to load playlist",
+    "retry": "Retry",
+    "endOfList": "\uD83C\uDF89 You've reached the end of the playlist",
+    "editDialog": {
+      "title": "Edit Playlist",
+      "titleLabel": "Title",
+      "descriptionLabel": "Description",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving...",
+      "error": "Failed to save. Please try again."
+    },
+    "deleteDialog": {
+      "title": "Delete this playlist?",
+      "description": "This action cannot be undone. All videos in this playlist will be removed.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "deleting": "Deleting..."
+    },
+    "removeVideoDialog": {
+      "title": "Remove video?",
+      "description": "Remove \"{{title}}\" from this playlist?",
+      "cancel": "Cancel",
+      "confirm": "Remove",
+      "removing": "Removing...",
+      "error": "Failed to remove. Please try again."
+    }
   },
   "home": {
     "heroTitle1": "Break the",
