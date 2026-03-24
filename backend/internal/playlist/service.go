@@ -7,16 +7,17 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/channel"
+	"github.com/brqnko/anti-yt/backend/internal/core"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
-	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/brqnko/anti-yt/backend/internal/video"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var ErrInvalidPlaylistID = util.NewDomainError("playlist.invalid_playlist_id", "invalid playlist id or unsupported format")
+var ErrInvalidPlaylistID = core.NewDomainError("playlist.invalid_playlist_id", "invalid playlist id or unsupported format")
 
 type Service struct {
 	db         *pgxpool.Pool

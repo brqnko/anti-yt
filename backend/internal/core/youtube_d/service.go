@@ -11,6 +11,7 @@ import (
 
 	"strings"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/mmcdole/gofeed"
 	"google.golang.org/api/option"
@@ -20,9 +21,9 @@ import (
 var iso8601DurationRe = regexp.MustCompile(`PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?`)
 
 var (
-	ErrInvalidChannelID = util.NewDomainError("youtube.invalid_channel_id", "invalid channel id")
+	ErrInvalidChannelID = core.NewDomainError("youtube.invalid_channel_id", "invalid channel id")
 
-	ErrVideoIDsTooMuch = util.NewDomainError("youtube.video_ids_too_much", "video ids are too much")
+	ErrVideoIDsTooMuch = core.NewDomainError("youtube.video_ids_too_much", "video ids are too much")
 )
 
 type Service interface {

@@ -10,6 +10,7 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
 	"github.com/brqnko/anti-yt/backend/internal/user"
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -17,8 +18,8 @@ import (
 )
 
 var (
-	ErrInvalidCSRFOrState = util.NewDomainError("auth.invalid_csrf_or_state", "invalid csrf or state")
-	ErrInvalidCSRF        = util.NewDomainError("auth.invalid_csrf", "invalid csrf: csrf != state")
+	ErrInvalidCSRFOrState = core.NewDomainError("auth.invalid_csrf_or_state", "invalid csrf or state")
+	ErrInvalidCSRF        = core.NewDomainError("auth.invalid_csrf", "invalid csrf: csrf != state")
 	ErrIDTokenNotFound    = oidc.ErrIDTokenNotFound
 )
 

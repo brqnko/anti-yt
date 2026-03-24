@@ -8,6 +8,7 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -15,7 +16,7 @@ import (
 )
 
 var (
-	ErrInvalidAuthorizationIDRegistered = util.NewDomainError("user.already_registered", "invalid authorization id: already registered")
+	ErrInvalidAuthorizationIDRegistered = core.NewDomainError("user.already_registered", "invalid authorization id: already registered")
 )
 
 type Service struct {

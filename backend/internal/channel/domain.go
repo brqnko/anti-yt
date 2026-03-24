@@ -4,12 +4,13 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 )
 
 var (
-	ErrInvalidValuableDescription = util.NewDomainError("valuable_channel.invalid_valuable_reason", "invalid valuable description")
+	ErrInvalidValuableDescription = core.NewDomainError("valuable_channel.invalid_valuable_reason", "invalid valuable description")
 )
 
 type SubscribedChannel struct {
@@ -102,7 +103,7 @@ func (v ValuableDescription) String() string {
 type ValuableCategoryCode int
 
 var (
-	ErrInvalidValuableCategoryCode = util.NewDomainError("valuable_channel.invalid_valuable_category_code", "invalid valuable category code")
+	ErrInvalidValuableCategoryCode = core.NewDomainError("valuable_channel.invalid_valuable_category_code", "invalid valuable category code")
 
 	valuableCategoryCodeMap = []struct {
 		code ValuableCategoryCode

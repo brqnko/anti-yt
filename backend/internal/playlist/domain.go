@@ -3,15 +3,16 @@ package playlist
 import (
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 )
 
 var (
-	ErrInvalidPlaylistTitle       = util.NewDomainError("playlist.invalid_title", "invalid playlist title: must be between 1 and 128 characters")
-	ErrInvalidPlaylistDescription = util.NewDomainError("playlist.invalid_description", "invalid playlist description: must be at most 255 characters")
-	ErrInvalidVisibilityCode      = util.NewDomainError("playlist.invalid_visibility_code", "invalid visibility code")
-	ErrInvalidPlaylistCode        = util.NewDomainError("playlist.invalid_playlist_code", "invalid playlist code")
+	ErrInvalidPlaylistTitle       = core.NewDomainError("playlist.invalid_title", "invalid playlist title: must be between 1 and 128 characters")
+	ErrInvalidPlaylistDescription = core.NewDomainError("playlist.invalid_description", "invalid playlist description: must be at most 255 characters")
+	ErrInvalidVisibilityCode      = core.NewDomainError("playlist.invalid_visibility_code", "invalid visibility code")
+	ErrInvalidPlaylistCode        = core.NewDomainError("playlist.invalid_playlist_code", "invalid playlist code")
 )
 
 type VisibilityCode int
@@ -97,8 +98,8 @@ func (p *Playlist) SetDescription(s *string) error {
 	return nil
 }
 
-var ErrNegativeVideoCount = util.NewDomainError("playlist.negative_video_count", "video count must not be negative")
-var ErrVideoCountUnderflow = util.NewDomainError("playlist.video_count_underflow", "video count is already 0")
+var ErrNegativeVideoCount = core.NewDomainError("playlist.negative_video_count", "video count must not be negative")
+var ErrVideoCountUnderflow = core.NewDomainError("playlist.video_count_underflow", "video count is already 0")
 
 func (p *Playlist) SetVideoCount(count int) error {
 	if count < 0 {
