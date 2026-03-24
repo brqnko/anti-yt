@@ -57,13 +57,13 @@ axiosInstance.interceptors.response.use(
 
     // Handle 403 Forbidden (screen time restrictions)
     if (error.response?.status === 403) {
-      const code: string = error.response?.data?.code ?? "";
+      const title: string = error.response?.data?.title ?? "";
       if (
-        code === "screen_time_limit_exceeded" ||
-        code === "outside_allowed_time_range"
+        title === "screen_time_limit_exceeded" ||
+        title === "outside_allowed_time_range"
       ) {
         const reason =
-          code === "screen_time_limit_exceeded"
+          title === "screen_time_limit_exceeded"
             ? "limit_exceeded"
             : "outside_time_range";
         window.dispatchEvent(

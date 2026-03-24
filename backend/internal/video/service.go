@@ -2,98 +2,76 @@ package video
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"log/slog"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
-	"github.com/brqnko/anti-yt/backend/internal/user"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+var (
+	ErrInvalidGetUploadLimit = util.NewDomainError("video.invalid_get_upload_limit", "invalid get upload limit: out of range (should be [1..50])")
+)
+
+// ChannelUploadRefresher refreshes channel uploads if the RSS cache is stale.
+type ChannelUploadRefresher interface {
+	RefreshChannelIfStale(ctx context.Context, channelID uuid.UUID) error
+}
 
 type Service struct {
 	db        *pgxpool.Pool
 	ytService youtube_d.YouTubeAPIService
+
+	videoQS            VideoQueryService
+	channelRefresher   ChannelUploadRefresher
 }
 
-func NewService(db *pgxpool.Pool, ytService youtube_d.YouTubeAPIService) (*Service, error) {
+func NewService(db *pgxpool.Pool, ytService youtube_d.YouTubeAPIService, channelRefresher ChannelUploadRefresher) (*Service, error) {
 	return &Service{
-		db:        db,
-		ytService: ytService,
+		db:               db,
+		ytService:        ytService,
+		videoQS:          NewVideoQueryService(db),
+		channelRefresher: channelRefresher,
 	}, nil
 }
 
-func (s *Service) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (*VideoDetail, error) {
-	videoDetail, err := sqlc.New(s.db).GetVideoDetail(ctx, videoID)
+func (s *Service) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (GetVideoDetailView, error) {
+	view, err := s.videoQS.Find(ctx, videoID)
 	if err != nil {
-		return nil, fmt.Errorf("getVideoDetail: %w", err)
+		return GetVideoDetailView{}, err
 	}
 
-	video, err := NewVideoDetail(
-		videoDetail.ID,
-		videoDetail.ExternalID,
-		videoDetail.ExternalTitle,
-		videoDetail.ExternalDescription,
-		videoDetail.ExternalThumbnailUrl,
-		videoDetail.ChannelID,
-		videoDetail.ChannelExternalID,
-		videoDetail.ExternalDisplayName,
-		videoDetail.ChannelCustomID,
-		videoDetail.ExternalIconUrl,
-		int(videoDetail.ExternalSubscribersCount),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("newVideoDetail: %w", err)
-	}
-
-	return video, nil
+	return view, nil
 }
 
-func (s *Service) Heartbeat(ctx context.Context, videoID uuid.UUID, positionSeconds int) (*int, error) {
-	userID, err := util.UserIDFromContext(ctx)
+func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32) (videos []GetChannelUploadsView, hasNext bool, err error) {
+	if limit < 1 || 50 < limit {
+		return nil, false, ErrInvalidGetUploadLimit
+	}
+
+	if err := s.channelRefresher.RefreshChannelIfStale(ctx, channelID); err != nil {
+		return nil, false, err
+	}
+
+	videos, err = s.videoQS.GetChannelUploads(ctx, userID, channelID, cursor, limit+1)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	tx, err := s.db.Begin(ctx)
+	if len(videos) > int(limit) {
+		return videos[:limit], true, nil
+	}
+	return videos, false, nil
+}
+
+func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (videos []GetVideoFeedView, hasNext bool, err error) {
+	videos, err = s.videoQS.GetVideoFeed(ctx, userID, cursor, limit+1)
 	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			slog.Error("failed to rollback transaction", "error", err)
-		}
-	}()
-	q := sqlc.New(tx)
-
-	acquired, err := q.TryAcquireAdvisoryXactLock(ctx, util.Sha256Int64(userID[:]))
-	if err != nil {
-		return nil, fmt.Errorf("tryAcquireAdvisoryXactLock: %w", err)
-	}
-	if !acquired {
-		return nil, fmt.Errorf("tryAcquireAdvisoryXactLock: lock not acquired")
+		return nil, false, err
 	}
 
-	if err := q.Heartbeat(ctx, sqlc.HeartbeatParams{
-		WatchPositionSeconds: positionSeconds,
-		UserPublicID:         userID,
-		VideoPublicID:        videoID,
-	}); err != nil {
-		return nil, err
+	if len(videos) > int(limit) {
+		return videos[:limit], true, nil
 	}
-
-	watchStats, err := q.GetTotalWatchSeconds(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return nil, err
-	}
-
-	return user.CalcRemainingSeconds(watchStats.DailyLimitSeconds, watchStats.TodayWatchTotal), nil
+	return videos, false, nil
 }

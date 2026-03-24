@@ -10,7 +10,7 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
-	"github.com/brqnko/anti-yt/backend/internal/util"
+	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -19,6 +19,7 @@ var (
 	accessTokenIgnorePathPrefixes = []string{
 		"/api/v1/auth/google",
 		"/api/v1/auth/google/callback",
+		"/api/v1/auth/refresh",
 	}
 )
 
@@ -44,16 +45,19 @@ func AccessTokenMiddleware(jwtService jwt_d.JWTService, db *pgxpool.Pool) func(v
 			if err != nil {
 				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 			}
-			expiresAt, err := q.IsJTIBlacklisted(ctx, jti)
+			expiresAt, err := q.FindBlacklistedJTI(ctx, jti)
 			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 			}
 
-			if errors.Is(err, pgx.ErrNoRows) || !time.Now().Before(expiresAt) {
-				newCtx := util.WithUserID(ctx, userID)
+			// ErrNoRows = ブラックリストに無い → アクセス許可
+			// レコードが存在しても有効期限切れ → アクセス許可
+			if errors.Is(err, pgx.ErrNoRows) || !time.Now().UTC().Before(expiresAt) {
+				newCtx := hutil.WithUserID(ctx, userID)
 				return f(newCtx, w, r.WithContext(newCtx), request)
 			}
 
+			// ブラックリストに存在し、まだ有効期限内 → 拒否
 			return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 		}
 	}

@@ -13,10 +13,13 @@ import (
 )
 
 const clearStaleChannelCustomID = `-- name: ClearStaleChannelCustomID :exec
-UPDATE m_channel
-SET external_custom_id = '@' || external_id
-WHERE external_custom_id = $1
-  AND external_id != $2
+UPDATE
+    m_channel
+SET
+    external_custom_id = '@' || external_id
+WHERE
+    external_custom_id = $1
+    AND external_id != $2
 `
 
 type ClearStaleChannelCustomIDParams struct {
@@ -24,42 +27,52 @@ type ClearStaleChannelCustomIDParams struct {
 	ExternalID       string
 }
 
+// NOTE: SaveChannelの前にこれをする. CTEでやろうと思ったけど、トランザクション...
 func (q *Queries) ClearStaleChannelCustomID(ctx context.Context, arg ClearStaleChannelCustomIDParams) error {
 	_, err := q.db.Exec(ctx, clearStaleChannelCustomID, arg.ExternalCustomID, arg.ExternalID)
 	return err
 }
 
-const deleteChannelSubscription = `-- name: DeleteChannelSubscription :execrows
+const deleteSubscription = `-- name: DeleteSubscription :execrows
 DELETE FROM
     m_user_subscribing_channel
 WHERE
-    m_user_subscribing_channel.public_id = $1
-    AND m_user_subscribing_channel.m_user_id = (
+    m_user_subscribing_channel.m_user_id = (
         SELECT
             m_user.m_user_id
         FROM
             m_user
         WHERE
-            m_user.public_id = $2
+            m_user.public_id = $1
+        LIMIT
+            1
+    )
+    AND m_user_subscribing_channel.m_channel_id = (
+        SELECT
+            c.m_channel_id
+        FROM
+            m_channel c
+        WHERE
+            c.public_id = $2
         LIMIT
             1
     )
 `
 
-type DeleteChannelSubscriptionParams struct {
-	SubscriptionPublicID uuid.UUID
-	UserPublicID         uuid.UUID
+type DeleteSubscriptionParams struct {
+	UserPublicID uuid.UUID
+	ChannelID    uuid.UUID
 }
 
-func (q *Queries) DeleteChannelSubscription(ctx context.Context, arg DeleteChannelSubscriptionParams) (int64, error) {
-	result, err := q.db.Exec(ctx, deleteChannelSubscription, arg.SubscriptionPublicID, arg.UserPublicID)
+func (q *Queries) DeleteSubscription(ctx context.Context, arg DeleteSubscriptionParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteSubscription, arg.UserPublicID, arg.ChannelID)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected(), nil
 }
 
-const getChannelByIdOrHandle = `-- name: GetChannelByIdOrHandle :one
+const findChannelByExternalID = `-- name: FindChannelByExternalID :one
 SELECT
     m_channel.m_channel_id,
     m_channel.public_id,
@@ -69,7 +82,10 @@ SELECT
     m_channel.external_description,
     m_channel.external_icon_url,
     m_channel.external_subscribers_count,
-    m_channel.external_created_at
+    m_channel.external_created_at,
+    m_channel.external_uploads_playlist_id,
+    m_channel.fetched_at,
+    m_channel.rss_fetched_at
 FROM
     m_channel
 WHERE
@@ -79,26 +95,29 @@ LIMIT
     1
 `
 
-type GetChannelByIdOrHandleParams struct {
+type FindChannelByExternalIDParams struct {
 	ExternalID       string
 	ExternalCustomID string
 }
 
-type GetChannelByIdOrHandleRow struct {
-	MChannelID               int64
-	PublicID                 uuid.UUID
-	ExternalID               string
-	ExternalCustomID         string
-	ExternalDisplayName      string
-	ExternalDescription      string
-	ExternalIconUrl          string
-	ExternalSubscribersCount int64
-	ExternalCreatedAt        time.Time
+type FindChannelByExternalIDRow struct {
+	MChannelID                int64
+	PublicID                  uuid.UUID
+	ExternalID                string
+	ExternalCustomID          string
+	ExternalDisplayName       string
+	ExternalDescription       string
+	ExternalIconUrl           string
+	ExternalSubscribersCount  int64
+	ExternalCreatedAt         time.Time
+	ExternalUploadsPlaylistID string
+	FetchedAt                 time.Time
+	RssFetchedAt              time.Time
 }
 
-func (q *Queries) GetChannelByIdOrHandle(ctx context.Context, arg GetChannelByIdOrHandleParams) (GetChannelByIdOrHandleRow, error) {
-	row := q.db.QueryRow(ctx, getChannelByIdOrHandle, arg.ExternalID, arg.ExternalCustomID)
-	var i GetChannelByIdOrHandleRow
+func (q *Queries) FindChannelByExternalID(ctx context.Context, arg FindChannelByExternalIDParams) (FindChannelByExternalIDRow, error) {
+	row := q.db.QueryRow(ctx, findChannelByExternalID, arg.ExternalID, arg.ExternalCustomID)
+	var i FindChannelByExternalIDRow
 	err := row.Scan(
 		&i.MChannelID,
 		&i.PublicID,
@@ -109,15 +128,26 @@ func (q *Queries) GetChannelByIdOrHandle(ctx context.Context, arg GetChannelById
 		&i.ExternalIconUrl,
 		&i.ExternalSubscribersCount,
 		&i.ExternalCreatedAt,
+		&i.ExternalUploadsPlaylistID,
+		&i.FetchedAt,
+		&i.RssFetchedAt,
 	)
 	return i, err
 }
 
-const getChannelRSSFetchedAtForUpdate = `-- name: GetChannelRSSFetchedAtForUpdate :one
+const getChannelForUpdate = `-- name: GetChannelForUpdate :one
 SELECT
-    m_channel.m_channel_id,
+    m_channel.public_id,
+    m_channel.external_id,
+    m_channel.external_display_name,
+    m_channel.external_description,
+    m_channel.external_custom_id,
+    m_channel.external_icon_url,
+    m_channel.external_subscribers_count,
+    m_channel.external_created_at,
     m_channel.rss_fetched_at,
-    m_channel.external_id
+    m_channel.fetched_at,
+    m_channel.external_uploads_playlist_id
 FROM
     m_channel
 WHERE
@@ -127,31 +157,176 @@ LIMIT
 FOR UPDATE
 `
 
-type GetChannelRSSFetchedAtForUpdateRow struct {
-	MChannelID   int64
-	RssFetchedAt time.Time
-	ExternalID   string
+type GetChannelForUpdateRow struct {
+	PublicID                  uuid.UUID
+	ExternalID                string
+	ExternalDisplayName       string
+	ExternalDescription       string
+	ExternalCustomID          string
+	ExternalIconUrl           string
+	ExternalSubscribersCount  int64
+	ExternalCreatedAt         time.Time
+	RssFetchedAt              time.Time
+	FetchedAt                 time.Time
+	ExternalUploadsPlaylistID string
 }
 
-func (q *Queries) GetChannelRSSFetchedAtForUpdate(ctx context.Context, channelID uuid.UUID) (GetChannelRSSFetchedAtForUpdateRow, error) {
-	row := q.db.QueryRow(ctx, getChannelRSSFetchedAtForUpdate, channelID)
-	var i GetChannelRSSFetchedAtForUpdateRow
-	err := row.Scan(&i.MChannelID, &i.RssFetchedAt, &i.ExternalID)
+func (q *Queries) GetChannelForUpdate(ctx context.Context, channelID uuid.UUID) (GetChannelForUpdateRow, error) {
+	row := q.db.QueryRow(ctx, getChannelForUpdate, channelID)
+	var i GetChannelForUpdateRow
+	err := row.Scan(
+		&i.PublicID,
+		&i.ExternalID,
+		&i.ExternalDisplayName,
+		&i.ExternalDescription,
+		&i.ExternalCustomID,
+		&i.ExternalIconUrl,
+		&i.ExternalSubscribersCount,
+		&i.ExternalCreatedAt,
+		&i.RssFetchedAt,
+		&i.FetchedAt,
+		&i.ExternalUploadsPlaylistID,
+	)
 	return i, err
 }
 
-const getChannelSubscriptions = `-- name: GetChannelSubscriptions :many
+const insertSubscription = `-- name: InsertSubscription :one
+INSERT INTO
+    m_user_subscribing_channel (m_user_id, m_channel_id, subscribed_at)
 SELECT
-    m_user_subscribing_channel.public_id,
-    m_user_subscribing_channel.created_at,
+    (
+        SELECT
+            m_user.m_user_id
+        FROM
+            m_user
+        WHERE
+            m_user.public_id = $1
+        LIMIT
+            1
+    ) AS m_user_id,
+    (
+        SELECT
+            m_channel.m_channel_id
+        FROM
+            m_channel
+        WHERE
+            m_channel.public_id = $2
+        LIMIT
+            1
+    ),
+    $3
+RETURNING
+    m_user_subscribing_channel.m_user_subscribing_channel_id
+`
+
+type InsertSubscriptionParams struct {
+	UserPublicID uuid.UUID
+	ChannelID    uuid.UUID
+	SubscribedAt time.Time
+}
+
+func (q *Queries) InsertSubscription(ctx context.Context, arg InsertSubscriptionParams) (int64, error) {
+	row := q.db.QueryRow(ctx, insertSubscription, arg.UserPublicID, arg.ChannelID, arg.SubscribedAt)
+	var m_user_subscribing_channel_id int64
+	err := row.Scan(&m_user_subscribing_channel_id)
+	return m_user_subscribing_channel_id, err
+}
+
+const listStaleRSSChannelsForUpdate = `-- name: ListStaleRSSChannelsForUpdate :many
+SELECT
+    c.public_id,
+    c.external_id,
+    c.external_display_name,
+    c.external_description,
+    c.external_custom_id,
+    c.external_icon_url,
+    c.external_subscribers_count,
+    c.external_created_at,
+    c.external_uploads_playlist_id,
+    c.rss_fetched_at,
+    c.fetched_at
+FROM
+    m_channel c
+    INNER JOIN m_user_subscribing_channel sub ON c.m_channel_id = sub.m_channel_id
+WHERE
+    sub.m_user_id = (
+        SELECT
+            u.m_user_id
+        FROM
+            m_user u
+        WHERE
+            u.public_id = $1
+        LIMIT
+            1
+    )
+    AND c.rss_fetched_at < $2
+ORDER BY
+    c.rss_fetched_at
+LIMIT
+    $3
+FOR UPDATE
+`
+
+type ListStaleRSSChannelsForUpdateParams struct {
+	UserID     uuid.UUID
+	RssFetch   time.Time
+	QueryLimit int32
+}
+
+type ListStaleRSSChannelsForUpdateRow struct {
+	PublicID                  uuid.UUID
+	ExternalID                string
+	ExternalDisplayName       string
+	ExternalDescription       string
+	ExternalCustomID          string
+	ExternalIconUrl           string
+	ExternalSubscribersCount  int64
+	ExternalCreatedAt         time.Time
+	ExternalUploadsPlaylistID string
+	RssFetchedAt              time.Time
+	FetchedAt                 time.Time
+}
+
+func (q *Queries) ListStaleRSSChannelsForUpdate(ctx context.Context, arg ListStaleRSSChannelsForUpdateParams) ([]ListStaleRSSChannelsForUpdateRow, error) {
+	rows, err := q.db.Query(ctx, listStaleRSSChannelsForUpdate, arg.UserID, arg.RssFetch, arg.QueryLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListStaleRSSChannelsForUpdateRow
+	for rows.Next() {
+		var i ListStaleRSSChannelsForUpdateRow
+		if err := rows.Scan(
+			&i.PublicID,
+			&i.ExternalID,
+			&i.ExternalDisplayName,
+			&i.ExternalDescription,
+			&i.ExternalCustomID,
+			&i.ExternalIconUrl,
+			&i.ExternalSubscribersCount,
+			&i.ExternalCreatedAt,
+			&i.ExternalUploadsPlaylistID,
+			&i.RssFetchedAt,
+			&i.FetchedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSubscribedChannels = `-- name: ListSubscribedChannels :many
+SELECT
     m_channel.public_id AS channel_public_id,
     m_channel.external_id,
-    m_channel.external_display_name,
-    m_channel.external_description,
     m_channel.external_custom_id,
+    m_channel.external_display_name,
     m_channel.external_icon_url,
-    m_channel.external_subscribers_count,
-    m_channel.external_created_at
+    m_channel.external_subscribers_count
 FROM
     m_user_subscribing_channel
     INNER JOIN m_channel ON m_channel.m_channel_id = m_user_subscribing_channel.m_channel_id
@@ -168,54 +343,45 @@ WHERE
     )
     AND (
         $2 :: uuid IS NULL
-        OR m_user_subscribing_channel.public_id < $2 :: uuid
+        OR m_channel.public_id < $2 :: uuid
     )
 ORDER BY
-    m_user_subscribing_channel.m_user_id,
-    m_user_subscribing_channel.public_id DESC
+    m_channel.public_id DESC
 LIMIT
     $3
 `
 
-type GetChannelSubscriptionsParams struct {
+type ListSubscribedChannelsParams struct {
 	UserPublicID   uuid.UUID
 	CursorPublicID *uuid.UUID
 	QueryLimit     int32
 }
 
-type GetChannelSubscriptionsRow struct {
-	PublicID                 uuid.UUID
-	CreatedAt                time.Time
+type ListSubscribedChannelsRow struct {
 	ChannelPublicID          uuid.UUID
 	ExternalID               string
-	ExternalDisplayName      string
-	ExternalDescription      string
 	ExternalCustomID         string
+	ExternalDisplayName      string
 	ExternalIconUrl          string
 	ExternalSubscribersCount int64
-	ExternalCreatedAt        time.Time
 }
 
-func (q *Queries) GetChannelSubscriptions(ctx context.Context, arg GetChannelSubscriptionsParams) ([]GetChannelSubscriptionsRow, error) {
-	rows, err := q.db.Query(ctx, getChannelSubscriptions, arg.UserPublicID, arg.CursorPublicID, arg.QueryLimit)
+func (q *Queries) ListSubscribedChannels(ctx context.Context, arg ListSubscribedChannelsParams) ([]ListSubscribedChannelsRow, error) {
+	rows, err := q.db.Query(ctx, listSubscribedChannels, arg.UserPublicID, arg.CursorPublicID, arg.QueryLimit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetChannelSubscriptionsRow
+	var items []ListSubscribedChannelsRow
 	for rows.Next() {
-		var i GetChannelSubscriptionsRow
+		var i ListSubscribedChannelsRow
 		if err := rows.Scan(
-			&i.PublicID,
-			&i.CreatedAt,
 			&i.ChannelPublicID,
 			&i.ExternalID,
-			&i.ExternalDisplayName,
-			&i.ExternalDescription,
 			&i.ExternalCustomID,
+			&i.ExternalDisplayName,
 			&i.ExternalIconUrl,
 			&i.ExternalSubscribersCount,
-			&i.ExternalCreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -227,74 +393,7 @@ func (q *Queries) GetChannelSubscriptions(ctx context.Context, arg GetChannelSub
 	return items, nil
 }
 
-const getChannelsToFetchRSSForUpdate = `-- name: GetChannelsToFetchRSSForUpdate :many
-SELECT
-    c.external_id,
-    c.m_channel_id
-FROM
-    m_channel c
-INNER JOIN
-    m_user_subscribing_channel sub
-ON
-    c.m_channel_id = sub.m_channel_id
-WHERE
-    sub.m_user_id = (SELECT u.m_user_id FROM m_user u WHERE u.public_id = $1) AND
-    c.rss_fetched_at < $2
-ORDER BY c.rss_fetched_at
-LIMIT $3
-FOR UPDATE
-`
-
-type GetChannelsToFetchRSSForUpdateParams struct {
-	UserID     uuid.UUID
-	RssFetch   time.Time
-	QueryLimit int32
-}
-
-type GetChannelsToFetchRSSForUpdateRow struct {
-	ExternalID string
-	MChannelID int64
-}
-
-func (q *Queries) GetChannelsToFetchRSSForUpdate(ctx context.Context, arg GetChannelsToFetchRSSForUpdateParams) ([]GetChannelsToFetchRSSForUpdateRow, error) {
-	rows, err := q.db.Query(ctx, getChannelsToFetchRSSForUpdate, arg.UserID, arg.RssFetch, arg.QueryLimit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetChannelsToFetchRSSForUpdateRow
-	for rows.Next() {
-		var i GetChannelsToFetchRSSForUpdateRow
-		if err := rows.Scan(&i.ExternalID, &i.MChannelID); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const markChannelRSSAsFetched = `-- name: MarkChannelRSSAsFetched :one
-UPDATE
-    m_channel
-SET
-    rss_fetched_at = CURRENT_TIMESTAMP
-WHERE
-    m_channel_id = ANY($1::bigint[])
-RETURNING
-    public_id
-`
-
-func (q *Queries) MarkChannelRSSAsFetched(ctx context.Context, mChannelIds []int64) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, markChannelRSSAsFetched, mChannelIds)
-	var public_id uuid.UUID
-	err := row.Scan(&public_id)
-	return public_id, err
-}
-
-const saveChannel = `-- name: SaveChannel :one
+const upsertChannel = `-- name: UpsertChannel :one
 INSERT INTO
     m_channel (
         external_id,
@@ -304,10 +403,13 @@ INSERT INTO
         external_description,
         external_subscribers_count,
         external_created_at,
-        external_uploads_playlist_id
+        external_uploads_playlist_id,
+        public_id,
+        rss_fetched_at,
+        fetched_at
     )
 VALUES
-    ($1, $2, $3, $4, $5, $6, $7, $8)
+    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 ON CONFLICT (external_id) DO UPDATE SET
     external_display_name = EXCLUDED.external_display_name,
     external_custom_id = EXCLUDED.external_custom_id,
@@ -316,14 +418,14 @@ ON CONFLICT (external_id) DO UPDATE SET
     external_subscribers_count = EXCLUDED.external_subscribers_count,
     external_created_at = EXCLUDED.external_created_at,
     external_uploads_playlist_id = EXCLUDED.external_uploads_playlist_id,
-    updated_at = CURRENT_TIMESTAMP
+    updated_at = CURRENT_TIMESTAMP,
+    rss_fetched_at = EXCLUDED.rss_fetched_at,
+    fetched_at = EXCLUDED.fetched_at
 RETURNING
-    m_channel.m_channel_id,
-    m_channel.public_id,
-    m_channel.created_at
+    m_channel.m_channel_id
 `
 
-type SaveChannelParams struct {
+type UpsertChannelParams struct {
 	ExternalID                string
 	ExternalDisplayName       string
 	ExternalCustomID          string
@@ -332,16 +434,13 @@ type SaveChannelParams struct {
 	ExternalSubscribersCount  int64
 	ExternalCreatedAt         time.Time
 	ExternalUploadsPlaylistID string
+	PublicID                  uuid.UUID
+	RssFetchedAt              time.Time
+	FetchedAt                 time.Time
 }
 
-type SaveChannelRow struct {
-	MChannelID int64
-	PublicID   uuid.UUID
-	CreatedAt  time.Time
-}
-
-func (q *Queries) SaveChannel(ctx context.Context, arg SaveChannelParams) (SaveChannelRow, error) {
-	row := q.db.QueryRow(ctx, saveChannel,
+func (q *Queries) UpsertChannel(ctx context.Context, arg UpsertChannelParams) (int64, error) {
+	row := q.db.QueryRow(ctx, upsertChannel,
 		arg.ExternalID,
 		arg.ExternalDisplayName,
 		arg.ExternalCustomID,
@@ -350,48 +449,11 @@ func (q *Queries) SaveChannel(ctx context.Context, arg SaveChannelParams) (SaveC
 		arg.ExternalSubscribersCount,
 		arg.ExternalCreatedAt,
 		arg.ExternalUploadsPlaylistID,
+		arg.PublicID,
+		arg.RssFetchedAt,
+		arg.FetchedAt,
 	)
-	var i SaveChannelRow
-	err := row.Scan(&i.MChannelID, &i.PublicID, &i.CreatedAt)
-	return i, err
-}
-
-const saveChannelSubscription = `-- name: SaveChannelSubscription :one
-WITH subscriber AS (
-    SELECT
-        m_user.m_user_id
-    FROM
-        m_user
-    WHERE
-        m_user.public_id = $2
-    LIMIT
-        1
-)
-INSERT INTO
-    m_user_subscribing_channel (m_user_id, m_channel_id)
-SELECT
-    subscriber.m_user_id AS m_user_id,
-    $1 AS m_channel_id
-FROM
-    subscriber
-RETURNING
-    m_user_subscribing_channel.public_id,
-    m_user_subscribing_channel.created_at
-`
-
-type SaveChannelSubscriptionParams struct {
-	ChannelID    int64
-	UserPublicID uuid.UUID
-}
-
-type SaveChannelSubscriptionRow struct {
-	PublicID  uuid.UUID
-	CreatedAt time.Time
-}
-
-func (q *Queries) SaveChannelSubscription(ctx context.Context, arg SaveChannelSubscriptionParams) (SaveChannelSubscriptionRow, error) {
-	row := q.db.QueryRow(ctx, saveChannelSubscription, arg.ChannelID, arg.UserPublicID)
-	var i SaveChannelSubscriptionRow
-	err := row.Scan(&i.PublicID, &i.CreatedAt)
-	return i, err
+	var m_channel_id int64
+	err := row.Scan(&m_channel_id)
+	return m_channel_id, err
 }

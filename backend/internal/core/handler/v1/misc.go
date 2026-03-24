@@ -4,6 +4,6 @@ import (
 	"context"
 )
 
-func (h *APIHandler) GetHealth(c context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error) {
+func (h *APIHandler) GetHealth(ctx context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error) {
 	return GetHealth200JSONResponse{Status: "OK"}, nil
 }

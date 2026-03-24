@@ -12,283 +12,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const getChannelVideos = `-- name: GetChannelVideos :many
-SELECT
-    m_video.public_id,
-    m_video.external_id,
-    m_video.external_thumbnail_url,
-    m_video.external_title,
-    m_video.external_description,
-    m_video.external_created_at,
-    m_video.external_length_seconds,
-    COALESCE((
-        SELECT
-            t_video_watch.watch_position_seconds
-        FROM
-            t_video_watch
-        WHERE
-            t_video_watch.m_user_id = (
-                SELECT
-                    m_user.m_user_id
-                FROM
-                    m_user
-                WHERE
-                    m_user.public_id = $1
-                LIMIT 1
-            )
-            AND t_video_watch.m_video_id = m_video.m_video_id
-        ORDER BY
-            t_video_watch.m_user_id,
-            t_video_watch.m_video_id,
-            t_video_watch.watch_start_at DESC
-        LIMIT
-            1
-    ), 0)::int AS last_watch_seconds,
-    m_channel.public_id AS channel_id,
-    m_channel.external_id AS external_channel_id,
-    m_channel.external_icon_url AS external_channel_icon_url,
-    m_channel.external_display_name AS external_channel_displayname
-FROM
-    m_video
-    INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
-WHERE
-    m_channel.public_id = $2
-    AND (
-        $3 :: uuid IS NULL
-        OR (
-            m_video.external_created_at < (
-                SELECT
-                    mv.external_created_at
-                FROM
-                    m_video mv
-                WHERE
-                    mv.public_id = $3 :: uuid
-                LIMIT
-                    1
-            )
-        )
-        OR (
-            m_video.external_created_at = (
-                SELECT
-                    mv.external_created_at
-                FROM
-                    m_video mv
-                WHERE
-                    mv.public_id = $3 :: uuid
-                LIMIT
-                    1
-            )
-            AND m_video.public_id < $3 :: uuid
-        )
-    )
-ORDER BY
-    m_video.external_created_at DESC,
-    m_video.public_id DESC
-LIMIT
-    $4
-`
-
-type GetChannelVideosParams struct {
-	UserID     uuid.UUID
-	ChannelID  uuid.UUID
-	Cursor     *uuid.UUID
-	QueryLimit int32
-}
-
-type GetChannelVideosRow struct {
-	PublicID                   uuid.UUID
-	ExternalID                 string
-	ExternalThumbnailUrl       string
-	ExternalTitle              string
-	ExternalDescription        string
-	ExternalCreatedAt          time.Time
-	ExternalLengthSeconds      int
-	LastWatchSeconds           int
-	ChannelID                  uuid.UUID
-	ExternalChannelID          string
-	ExternalChannelIconUrl     string
-	ExternalChannelDisplayname string
-}
-
-func (q *Queries) GetChannelVideos(ctx context.Context, arg GetChannelVideosParams) ([]GetChannelVideosRow, error) {
-	rows, err := q.db.Query(ctx, getChannelVideos,
-		arg.UserID,
-		arg.ChannelID,
-		arg.Cursor,
-		arg.QueryLimit,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetChannelVideosRow
-	for rows.Next() {
-		var i GetChannelVideosRow
-		if err := rows.Scan(
-			&i.PublicID,
-			&i.ExternalID,
-			&i.ExternalThumbnailUrl,
-			&i.ExternalTitle,
-			&i.ExternalDescription,
-			&i.ExternalCreatedAt,
-			&i.ExternalLengthSeconds,
-			&i.LastWatchSeconds,
-			&i.ChannelID,
-			&i.ExternalChannelID,
-			&i.ExternalChannelIconUrl,
-			&i.ExternalChannelDisplayname,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getSubscribingChannelFeed = `-- name: GetSubscribingChannelFeed :many
-SELECT
-    m_video.public_id AS video_id,
-    m_video.external_id AS external_video_id,
-    m_video.external_thumbnail_url AS external_video_thumbnail_url,
-    m_video.external_title AS external_title,
-    m_video.external_description AS external_description,
-    m_video.external_created_at AS external_created_at,
-    m_video.external_length_seconds AS external_length_seconds,
-    COALESCE((
-        SELECT
-            t_video_watch.watch_position_seconds
-        FROM
-            t_video_watch
-        WHERE
-            t_video_watch.m_user_id = (
-                SELECT
-                    m_user.m_user_id
-                FROM
-                    m_user
-                WHERE
-                    m_user.public_id = $1
-            )
-            AND t_video_watch.m_video_id = m_video.m_video_id
-        ORDER BY
-            t_video_watch.m_user_id,
-            t_video_watch.m_video_id,
-            t_video_watch.watch_start_at DESC
-        LIMIT
-            1
-    ), 0)::int AS last_watch_seconds,
-    m_channel.public_id AS channel_id,
-    m_channel.external_id AS external_channel_id,
-    m_channel.external_icon_url AS external_channel_icon_url,
-    m_channel.external_display_name AS external_displayname
-FROM
-    m_video
-    INNER JOIN m_user_subscribing_channel ON m_video.m_channel_id = m_user_subscribing_channel.m_channel_id
-    INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
-WHERE
-    m_user_subscribing_channel.m_user_id = (
-        SELECT
-            m_user.m_user_id
-        FROM
-            m_user
-        WHERE
-            m_user.public_id = $1
-        LIMIT
-            1
-    )
-    AND (
-        -- 日付がカーソルより昔 or (日付がカーソルと同じ and public_idがカーソルより昔)
-        $2 :: uuid IS NULL
-        OR (
-            m_video.external_created_at < (
-                SELECT
-                    m_video.external_created_at
-                FROM
-                    m_video
-                WHERE
-                    m_video.public_id = $2 :: uuid
-                LIMIT
-                    1
-            )
-        )
-        OR (
-            m_video.external_created_at = (
-                SELECT
-                    m_video.external_created_at
-                FROM
-                    m_video
-                WHERE
-                    m_video.public_id = $2 :: uuid
-                LIMIT
-                    1
-            )
-            AND m_video.public_id < $2 :: uuid
-        )
-    )
-ORDER BY
-    m_video.external_created_at DESC,
-    m_video.public_id DESC
-LIMIT
-    $3
-`
-
-type GetSubscribingChannelFeedParams struct {
-	UserID     uuid.UUID
-	Cursor     *uuid.UUID
-	QueryLimit int32
-}
-
-type GetSubscribingChannelFeedRow struct {
-	VideoID                   uuid.UUID
-	ExternalVideoID           string
-	ExternalVideoThumbnailUrl string
-	ExternalTitle             string
-	ExternalDescription       string
-	ExternalCreatedAt         time.Time
-	ExternalLengthSeconds     int
-	LastWatchSeconds          int
-	ChannelID                 uuid.UUID
-	ExternalChannelID         string
-	ExternalChannelIconUrl    string
-	ExternalDisplayname       string
-}
-
-// ユーザーが登録しているチャンネルがだしている動画を最新順(public_id)で取得する。
-func (q *Queries) GetSubscribingChannelFeed(ctx context.Context, arg GetSubscribingChannelFeedParams) ([]GetSubscribingChannelFeedRow, error) {
-	rows, err := q.db.Query(ctx, getSubscribingChannelFeed, arg.UserID, arg.Cursor, arg.QueryLimit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetSubscribingChannelFeedRow
-	for rows.Next() {
-		var i GetSubscribingChannelFeedRow
-		if err := rows.Scan(
-			&i.VideoID,
-			&i.ExternalVideoID,
-			&i.ExternalVideoThumbnailUrl,
-			&i.ExternalTitle,
-			&i.ExternalDescription,
-			&i.ExternalCreatedAt,
-			&i.ExternalLengthSeconds,
-			&i.LastWatchSeconds,
-			&i.ChannelID,
-			&i.ExternalChannelID,
-			&i.ExternalChannelIconUrl,
-			&i.ExternalDisplayname,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getVideoDetail = `-- name: GetVideoDetail :one
 SELECT
     video.public_id AS id,
@@ -304,13 +27,11 @@ SELECT
     channel.external_subscribers_count
 FROM
     m_video video
-INNER JOIN
-    m_channel channel
-ON
-    video.m_channel_id = channel.m_channel_id
+    INNER JOIN m_channel channel ON video.m_channel_id = channel.m_channel_id
 WHERE
     video.public_id = $1
-LIMIT 1
+LIMIT
+    1
 `
 
 type GetVideoDetailRow struct {
@@ -346,7 +67,260 @@ func (q *Queries) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (GetVid
 	return i, err
 }
 
-const saveVideo = `-- name: SaveVideo :one
+const listChannelVideos = `-- name: ListChannelVideos :many
+SELECT
+    m_video.public_id,
+    m_video.external_thumbnail_url,
+    m_video.external_title,
+    m_video.external_created_at,
+    m_video.external_length_seconds,
+    COALESCE((
+        SELECT
+            t_video_watch.watch_position_seconds
+        FROM
+            t_video_watch
+        WHERE
+            t_video_watch.m_user_id = (
+                SELECT
+                    m_user.m_user_id
+                FROM
+                    m_user
+                WHERE
+                    m_user.public_id = $1
+                LIMIT
+                    1
+            )
+            AND t_video_watch.m_video_id = m_video.m_video_id
+        ORDER BY
+            t_video_watch.m_user_id,
+            t_video_watch.m_video_id,
+            t_video_watch.watch_start_at DESC
+        LIMIT
+            1
+    ), 0)::int AS last_watch_seconds
+FROM
+    m_video
+    INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
+WHERE
+    m_channel.public_id = $2
+    AND (
+        $3::uuid IS NULL
+        OR (
+            m_video.external_created_at < (
+                SELECT
+                    mv.external_created_at
+                FROM
+                    m_video mv
+                WHERE
+                    mv.public_id = $3::uuid
+                LIMIT
+                    1
+            )
+        )
+        OR (
+            m_video.external_created_at = (
+                SELECT
+                    mv.external_created_at
+                FROM
+                    m_video mv
+                WHERE
+                    mv.public_id = $3::uuid
+                LIMIT
+                    1
+            )
+            AND m_video.public_id < $3::uuid
+        )
+    )
+ORDER BY
+    m_video.external_created_at DESC,
+    m_video.public_id DESC
+LIMIT
+    $4
+`
+
+type ListChannelVideosParams struct {
+	UserID     uuid.UUID
+	ChannelID  uuid.UUID
+	Cursor     *uuid.UUID
+	QueryLimit int32
+}
+
+type ListChannelVideosRow struct {
+	PublicID              uuid.UUID
+	ExternalThumbnailUrl  string
+	ExternalTitle         string
+	ExternalCreatedAt     time.Time
+	ExternalLengthSeconds int
+	LastWatchSeconds      int
+}
+
+func (q *Queries) ListChannelVideos(ctx context.Context, arg ListChannelVideosParams) ([]ListChannelVideosRow, error) {
+	rows, err := q.db.Query(ctx, listChannelVideos,
+		arg.UserID,
+		arg.ChannelID,
+		arg.Cursor,
+		arg.QueryLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListChannelVideosRow
+	for rows.Next() {
+		var i ListChannelVideosRow
+		if err := rows.Scan(
+			&i.PublicID,
+			&i.ExternalThumbnailUrl,
+			&i.ExternalTitle,
+			&i.ExternalCreatedAt,
+			&i.ExternalLengthSeconds,
+			&i.LastWatchSeconds,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSubscriptionFeed = `-- name: ListSubscriptionFeed :many
+SELECT
+    m_video.public_id AS video_id,
+    m_video.external_thumbnail_url AS external_video_thumbnail_url,
+    m_video.external_title AS external_title,
+    m_video.external_created_at AS external_created_at,
+    m_video.external_length_seconds AS external_length_seconds,
+    COALESCE((
+        SELECT
+            t_video_watch.watch_position_seconds
+        FROM
+            t_video_watch
+        WHERE
+            t_video_watch.m_user_id = (
+                SELECT
+                    m_user.m_user_id
+                FROM
+                    m_user
+                WHERE
+                    m_user.public_id = $1
+                LIMIT
+                    1
+            )
+            AND t_video_watch.m_video_id = m_video.m_video_id
+        ORDER BY
+            t_video_watch.m_user_id,
+            t_video_watch.m_video_id,
+            t_video_watch.watch_start_at DESC
+        LIMIT
+            1
+    ), 0)::int AS last_watch_seconds,
+    m_channel.public_id AS channel_id,
+    m_channel.external_icon_url AS external_channel_icon_url,
+    m_channel.external_display_name AS external_displayname
+FROM
+    m_video
+    INNER JOIN m_user_subscribing_channel ON m_video.m_channel_id = m_user_subscribing_channel.m_channel_id
+    INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
+WHERE
+    m_user_subscribing_channel.m_user_id = (
+        SELECT
+            m_user.m_user_id
+        FROM
+            m_user
+        WHERE
+            m_user.public_id = $1
+        LIMIT
+            1
+    )
+    AND (
+        -- 日付がカーソルより昔 or (日付がカーソルと同じ and public_idがカーソルより昔)
+        $2::uuid IS NULL
+        OR (
+            m_video.external_created_at < (
+                SELECT
+                    m_video.external_created_at
+                FROM
+                    m_video
+                WHERE
+                    m_video.public_id = $2::uuid
+                LIMIT
+                    1
+            )
+        )
+        OR (
+            m_video.external_created_at = (
+                SELECT
+                    m_video.external_created_at
+                FROM
+                    m_video
+                WHERE
+                    m_video.public_id = $2::uuid
+                LIMIT
+                    1
+            )
+            AND m_video.public_id < $2::uuid
+        )
+    )
+ORDER BY
+    m_video.external_created_at DESC,
+    m_video.public_id DESC
+LIMIT
+    $3
+`
+
+type ListSubscriptionFeedParams struct {
+	UserID     uuid.UUID
+	Cursor     *uuid.UUID
+	QueryLimit int32
+}
+
+type ListSubscriptionFeedRow struct {
+	VideoID                   uuid.UUID
+	ExternalVideoThumbnailUrl string
+	ExternalTitle             string
+	ExternalCreatedAt         time.Time
+	ExternalLengthSeconds     int
+	LastWatchSeconds          int
+	ChannelID                 uuid.UUID
+	ExternalChannelIconUrl    string
+	ExternalDisplayname       string
+}
+
+// ユーザーが登録しているチャンネルがだしている動画を最新順(public_id)で取得する。
+func (q *Queries) ListSubscriptionFeed(ctx context.Context, arg ListSubscriptionFeedParams) ([]ListSubscriptionFeedRow, error) {
+	rows, err := q.db.Query(ctx, listSubscriptionFeed, arg.UserID, arg.Cursor, arg.QueryLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListSubscriptionFeedRow
+	for rows.Next() {
+		var i ListSubscriptionFeedRow
+		if err := rows.Scan(
+			&i.VideoID,
+			&i.ExternalVideoThumbnailUrl,
+			&i.ExternalTitle,
+			&i.ExternalCreatedAt,
+			&i.ExternalLengthSeconds,
+			&i.LastWatchSeconds,
+			&i.ChannelID,
+			&i.ExternalChannelIconUrl,
+			&i.ExternalDisplayname,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const upsertVideo = `-- name: UpsertVideo :one
 INSERT INTO
     m_video (
         m_channel_id,
@@ -356,22 +330,42 @@ INSERT INTO
         fetched_at,
         external_created_at,
         external_thumbnail_url,
-        external_length_seconds
+        external_length_seconds,
+        public_id
     )
-VALUES
-    ($1, $2, $3, $4, $5, $6, $7, $8)
+SELECT
+    (
+        SELECT
+            channel.m_channel_id
+        FROM
+            m_channel channel
+        WHERE
+            channel.public_id = $1
+        LIMIT
+            1
+    ),
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    $7,
+    $8,
+    $9
 ON CONFLICT (external_id) DO UPDATE SET
     external_title = EXCLUDED.external_title,
     external_description = EXCLUDED.external_description,
     external_thumbnail_url = EXCLUDED.external_thumbnail_url,
     external_length_seconds = EXCLUDED.external_length_seconds,
+    external_created_at = EXCLUDED.external_created_at,
     fetched_at = EXCLUDED.fetched_at,
     updated_at = CURRENT_TIMESTAMP
-RETURNING m_video_id
+RETURNING
+    m_video_id
 `
 
-type SaveVideoParams struct {
-	MChannelID            int64
+type UpsertVideoParams struct {
+	ChannelID             uuid.UUID
 	ExternalID            string
 	ExternalTitle         string
 	ExternalDescription   string
@@ -379,11 +373,12 @@ type SaveVideoParams struct {
 	ExternalCreatedAt     time.Time
 	ExternalThumbnailUrl  string
 	ExternalLengthSeconds int
+	ID                    uuid.UUID
 }
 
-func (q *Queries) SaveVideo(ctx context.Context, arg SaveVideoParams) (int64, error) {
-	row := q.db.QueryRow(ctx, saveVideo,
-		arg.MChannelID,
+func (q *Queries) UpsertVideo(ctx context.Context, arg UpsertVideoParams) (int64, error) {
+	row := q.db.QueryRow(ctx, upsertVideo,
+		arg.ChannelID,
 		arg.ExternalID,
 		arg.ExternalTitle,
 		arg.ExternalDescription,
@@ -391,6 +386,7 @@ func (q *Queries) SaveVideo(ctx context.Context, arg SaveVideoParams) (int64, er
 		arg.ExternalCreatedAt,
 		arg.ExternalThumbnailUrl,
 		arg.ExternalLengthSeconds,
+		arg.ID,
 	)
 	var m_video_id int64
 	err := row.Scan(&m_video_id)

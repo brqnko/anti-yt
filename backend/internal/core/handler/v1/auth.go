@@ -2,29 +2,22 @@ package v1
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/auth"
-	"github.com/brqnko/anti-yt/backend/internal/util"
-	openapi_types "github.com/oapi-codegen/runtime/types"
+	"github.com/google/uuid"
+
+	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 )
 
-func (h *APIHandler) GetAuthGoogle(c context.Context, request GetAuthGoogleRequestObject) (GetAuthGoogleResponseObject, error) {
-	url, csrf, err := h.authService.CreateAuthCode(c)
+func (h *APIHandler) GetAuthGoogle(ctx context.Context, request GetAuthGoogleRequestObject) (GetAuthGoogleResponseObject, error) {
+	url, csrf, err := h.authService.CreateAuthCode(ctx)
 	if err != nil {
-		util.LogError(c, err)
-		return GetAuthGoogle500JSONResponse{
-			InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
-	util.AddResponseCookie(c, (&http.Cookie{
+	hutil.AddResponseCookie(ctx, (&http.Cookie{
 		Name:     "csrf",
 		Value:    csrf,
 		Path:     "/",
@@ -41,71 +34,41 @@ func (h *APIHandler) GetAuthGoogle(c context.Context, request GetAuthGoogleReque
 	}, nil
 }
 
-func (h *APIHandler) GetAuthGoogleCallback(c context.Context, request GetAuthGoogleCallbackRequestObject) (GetAuthGoogleCallbackResponseObject, error) {
-	result, err := h.authService.GoogleOIDCCallback(c, auth.GoogleOIDCCallbackParams{
-		CSRF:        request.Params.Csrf,
-		State:       request.Params.State,
-		Code:        request.Params.Code,
-		IPAddress:   request.Params.XRealIP,
-		CountryCode: request.Params.CfIpcountry,
-		UserAgent:   request.Params.UserAgent,
-	})
+func (h *APIHandler) GetAuthGoogleCallback(ctx context.Context, request GetAuthGoogleCallbackRequestObject) (GetAuthGoogleCallbackResponseObject, error) {
+	resultAccessToken, resultRefreshToken, resultCSRFToken, resultRedirectPath, resultAccessTokenExpiresAt, resultRefreshTokenExpiresAt, err := h.authService.GoogleOIDCCallback(ctx,
+		request.Params.Csrf,
+		request.Params.State,
+		request.Params.Code,
+		request.Params.XRealIP,
+		request.Params.CfIpcountry,
+		"", // NOTE: googleからのリダイレクトなのでfingerpintは取得できない
+		request.Params.UserAgent,
+	)
 	if err != nil {
-		if errors.Is(err, auth.ErrInvalidCSRFOrState) {
-			return GetAuthGoogleCallback400JSONResponse{
-				BadRequestJSONResponse: BadRequestJSONResponse{
-					Detail: "CSRF is missing",
-					Title:  "CSRF is missing",
-				},
-			}, nil
-		}
-		if errors.Is(err, auth.ErrIDTokenNotFound) {
-			return GetAuthGoogleCallback400JSONResponse{
-				BadRequestJSONResponse: BadRequestJSONResponse{
-					Detail: "Id token not found",
-					Title:  "Id token not found",
-				},
-			}, nil
-		}
-		if errors.Is(err, auth.ErrInvalidCSRF) {
-			return GetAuthGoogleCallback400JSONResponse{
-				BadRequestJSONResponse: BadRequestJSONResponse{
-					Detail: "CSRF is wrong",
-					Title:  "CSRF is wrong",
-				},
-			}, nil
-		}
-
-		util.LogError(c, err)
-		return GetAuthGoogleCallback500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
-	util.AddResponseCookie(c, (&http.Cookie{
+	hutil.AddResponseCookie(ctx, (&http.Cookie{
 		Name:     "access_token",
-		Value:    result.AccessToken,
+		Value:    resultAccessToken,
 		Path:     "/",
-		Expires:  result.AccessTokenExpiresAt,
+		Expires:  resultAccessTokenExpiresAt,
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	}).String())
-	util.AddResponseCookie(c, (&http.Cookie{
+	hutil.AddResponseCookie(ctx, (&http.Cookie{
 		Name:     "refresh_token",
-		Value:    result.RefreshToken,
+		Value:    resultRefreshToken,
 		Path:     "/",
-		Expires:  result.RefreshTokenExpiresAt,
+		Expires:  resultRefreshTokenExpiresAt,
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	}).String())
-	util.AddResponseCookie(c, (&http.Cookie{
+	hutil.AddResponseCookie(ctx, (&http.Cookie{
 		Name:     "csrf_token",
-		Value:    result.CSRFToken,
+		Value:    resultCSRFToken,
 		Path:     "/",
 		Expires:  time.Now().AddDate(100, 0, 0),
 		HttpOnly: false,
@@ -115,13 +78,13 @@ func (h *APIHandler) GetAuthGoogleCallback(c context.Context, request GetAuthGoo
 
 	return GetAuthGoogleCallback302Response{
 		Headers: GetAuthGoogleCallback302ResponseHeaders{
-			Location: fmt.Sprintf("%s/%s", h.frontendURL, result.RedirectPath),
+			Location: fmt.Sprintf("%s/%s", h.frontendURL, resultRedirectPath),
 		},
 	}, nil
 }
 
-func (h *APIHandler) PostAuthLogout(c context.Context, request PostAuthLogoutRequestObject) (PostAuthLogoutResponseObject, error) {
-	refreshToken, ok := util.RefreshTokenFromContext(c)
+func (h *APIHandler) PostAuthLogout(ctx context.Context, request PostAuthLogoutRequestObject) (PostAuthLogoutResponseObject, error) {
+	refreshToken, ok := hutil.RefreshTokenFromContext(ctx)
 	if !ok {
 		return PostAuthLogout400JSONResponse{
 			BadRequestJSONResponse: BadRequestJSONResponse{
@@ -130,27 +93,16 @@ func (h *APIHandler) PostAuthLogout(c context.Context, request PostAuthLogoutReq
 			},
 		}, nil
 	}
-	accessToken, ok := util.AccessTokenFromContext(c)
+	accessToken, ok := hutil.AccessTokenFromContext(ctx)
 	if !ok {
-		return PostAuthLogout500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: "access token not found",
-				Title:  "access token not found",
-			},
-		}, nil
+		return nil, hutil.ErrUserIDNotFoundInContext
 	}
 
-	if err := h.authService.Logout(c, accessToken, refreshToken); err != nil {
-		util.LogError(c, err)
-		return PostAuthLogout500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+	if err := h.authService.Logout(ctx, accessToken, refreshToken); err != nil {
+		return nil, err
 	}
 
-	util.AddResponseCookie(c, (&http.Cookie{
+	hutil.AddResponseCookie(ctx, (&http.Cookie{
 		Name:     "refresh_token",
 		Value:    "",
 		Path:     "/",
@@ -159,7 +111,7 @@ func (h *APIHandler) PostAuthLogout(c context.Context, request PostAuthLogoutReq
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	}).String())
-	util.AddResponseCookie(c, (&http.Cookie{
+	hutil.AddResponseCookie(ctx, (&http.Cookie{
 		Name:     "csrf_token",
 		Value:    "",
 		Path:     "/",
@@ -168,7 +120,7 @@ func (h *APIHandler) PostAuthLogout(c context.Context, request PostAuthLogoutReq
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	}).String())
-	util.AddResponseCookie(c, (&http.Cookie{
+	hutil.AddResponseCookie(ctx, (&http.Cookie{
 		Name:     "access_token",
 		Value:    "",
 		Path:     "/",
@@ -181,8 +133,8 @@ func (h *APIHandler) PostAuthLogout(c context.Context, request PostAuthLogoutReq
 	return PostAuthLogout200Response{}, nil
 }
 
-func (h *APIHandler) PostAuthRefresh(c context.Context, request PostAuthRefreshRequestObject) (PostAuthRefreshResponseObject, error) {
-	refreshToken, ok := util.RefreshTokenFromContext(c)
+func (h *APIHandler) PostAuthRefresh(ctx context.Context, request PostAuthRefreshRequestObject) (PostAuthRefreshResponseObject, error) {
+	refreshToken, ok := hutil.RefreshTokenFromContext(ctx)
 	if !ok {
 		return PostAuthRefresh400JSONResponse{
 			BadRequestJSONResponse: BadRequestJSONResponse{
@@ -192,18 +144,12 @@ func (h *APIHandler) PostAuthRefresh(c context.Context, request PostAuthRefreshR
 		}, nil
 	}
 
-	newRefreshToken, newAccessToken, accessTokenExpiresAt, refreshTokenExpiresAt, err := h.authService.RefreshToken(c, refreshToken, request.Params.XRealIP, request.Params.CfIpcountry, request.Params.XDeviceFingerprint, request.Params.UserAgent)
+	newRefreshToken, newAccessToken, accessTokenExpiresAt, refreshTokenExpiresAt, err := h.authService.RefreshToken(ctx, refreshToken, request.Params.XRealIP, request.Params.CfIpcountry, request.Params.XDeviceFingerprint, request.Params.UserAgent)
 	if err != nil {
-		util.LogError(c, err)
-		return PostAuthRefresh500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
-	util.AddResponseCookie(c, (&http.Cookie{
+	hutil.AddResponseCookie(ctx, (&http.Cookie{
 		Name:     "access_token",
 		Value:    newAccessToken,
 		Path:     "/",
@@ -212,7 +158,7 @@ func (h *APIHandler) PostAuthRefresh(c context.Context, request PostAuthRefreshR
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	}).String())
-	util.AddResponseCookie(c, (&http.Cookie{
+	hutil.AddResponseCookie(ctx, (&http.Cookie{
 		Name:     "refresh_token",
 		Value:    newRefreshToken,
 		Path:     "/",
@@ -225,69 +171,56 @@ func (h *APIHandler) PostAuthRefresh(c context.Context, request PostAuthRefreshR
 	return PostAuthRefresh200Response{}, nil
 }
 
-func (h *APIHandler) GetUsersMeSessions(c context.Context, request GetUsersMeSessionsRequestObject) (GetUsersMeSessionsResponseObject, error) {
-	userID, err := util.UserIDFromContext(c)
+func (h *APIHandler) GetUsersMeSessions(ctx context.Context, request GetUsersMeSessionsRequestObject) (GetUsersMeSessionsResponseObject, error) {
+	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		return GetUsersMeSessions500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
-	sessions, err := h.authService.GetSessions(c, userID)
+	sessions, hasNext, err := h.authService.GetSessions(ctx, userID, request.Params.Cursor, int32(request.Params.Limit))
 	if err != nil {
-		util.LogError(c, err)
-		return GetUsersMeSessions500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	resp := GetUsersMeSessions200JSONResponse{
 		ItemCount: len(sessions),
 		Items: make([]struct {
-			BrowserName    string             `json:"browser_name"`
-			CityName       string             `json:"city_name"`
-			CountryCode    string             `json:"country_code"`
-			CreatedAt      time.Time          `json:"created_at"`
-			Id             openapi_types.UUID `json:"id"`
-			LastLoggedInAt time.Time          `json:"last_logged_in_at"`
+			BrowserName    string    `json:"browser_name"`
+			CityName       string    `json:"city_name"`
+			CountryCode    string    `json:"country_code"`
+			CreatedAt      time.Time `json:"created_at"`
+			DeviceType     string    `json:"device_type"`
+			Id             uuid.UUID `json:"id"`
+			IpAddress      string    `json:"ip_address"`
+			LastLoggedInAt time.Time `json:"last_logged_in_at"`
+			UserAgent      string    `json:"user_agent"`
 		}, len(sessions)),
+		HasNext: hasNext,
 	}
 
 	for i, session := range sessions {
 		resp.Items[i].BrowserName = session.BrowserName
 		resp.Items[i].CityName = session.CityName
 		resp.Items[i].CountryCode = session.CountryCode
-		resp.Items[i].CreatedAt = session.CreatedAt
+		resp.Items[i].CreatedAt = session.ActivatedAt
+		resp.Items[i].DeviceType = session.DeviceType
 		resp.Items[i].Id = session.ID
+		resp.Items[i].IpAddress = session.IpAddress
 		resp.Items[i].LastLoggedInAt = session.LastLoggedInAt
+		resp.Items[i].UserAgent = session.UserAgent
 	}
 
 	return resp, nil
 }
 
-func (h *APIHandler) DeleteUsersMeSessionsSessionId(c context.Context, request DeleteUsersMeSessionsSessionIdRequestObject) (DeleteUsersMeSessionsSessionIdResponseObject, error) {
-	if _, err := h.authService.RemoveSession(c, request.SessionId); err != nil {
-		if errors.Is(err, auth.ErrNoSuchRefreshToken) {
-			return DeleteUsersMeSessionsSessionId400JSONResponse{
-				BadRequestJSONResponse: BadRequestJSONResponse{
-					Detail: "no such refresh token",
-					Title:  "no such refresh token",
-				},
-			}, nil
-		}
-		util.LogError(c, err)
-		return DeleteUsersMeSessionsSessionId500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+func (h *APIHandler) DeleteUsersMeSessionsSessionId(ctx context.Context, request DeleteUsersMeSessionsSessionIdRequestObject) (DeleteUsersMeSessionsSessionIdResponseObject, error) {
+	userID, err := hutil.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := h.authService.RemoveSession(ctx, userID, request.SessionId); err != nil {
+		return nil, err
 	}
 
 	return DeleteUsersMeSessionsSessionId204Response{}, nil

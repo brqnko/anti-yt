@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 )
 
-var ErrIDTokenNotFound = errors.New("id token not found")
+var ErrIDTokenNotFound = util.NewDomainError("auth.id_token_not_found", "id token not found")
 
 type GoogleOIDCService interface {
 	AuthCodeURL(state string) string

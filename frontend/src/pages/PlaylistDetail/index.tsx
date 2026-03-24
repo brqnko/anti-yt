@@ -495,6 +495,11 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                   })}
                 </span>
                 <span>
+                  {t("playlists.createdAt", {
+                    time: formatTimeAgo(playlistInfo.playlist_registered_at, t),
+                  })}
+                </span>
+                <span>
                   {t("playlists.lastUpdated", {
                     time: formatTimeAgo(playlistInfo.playlist_updated_at, t),
                   })}

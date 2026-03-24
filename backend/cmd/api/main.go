@@ -44,6 +44,10 @@ type config struct {
 
 	dbPassword string
 	dbName     string
+	dbHost     string
+	dbPort     int
+	dbUser     string
+	dbSSLMode  string
 }
 
 func run(ctx context.Context) int {
@@ -72,6 +76,11 @@ func run(ctx context.Context) int {
 		fmt.Printf("invalid or missing PORT: %v\n", err)
 		return 1
 	}
+	dbPort, err := strconv.Atoi(os.Getenv("DATABASE_PORT"))
+	if err != nil {
+		fmt.Printf("invalid or missing DATABASE_PORT: %v\n", err)
+		return 1
+	}
 	cfg := config{
 		env:                    os.Getenv("ENV"),
 		oidcGoogleRedirectURL:  os.Getenv("OIDC_GOOGLE_REDIRECT_URL"),
@@ -79,6 +88,10 @@ func run(ctx context.Context) int {
 		oidcGoogleClientSecret: strings.TrimSpace(string(oidcGoogleClientSecret)),
 		dbPassword:             strings.TrimSpace(string(dbPassword)),
 		dbName:                 os.Getenv("DATABASE_NAME"),
+		dbHost:                 os.Getenv("DATABASE_HOST"),
+		dbPort:                 dbPort,
+		dbUser:                 os.Getenv("DATABASE_USER"),
+		dbSSLMode:              os.Getenv("DATABASE_SSLMODE"),
 		serverURL:              os.Getenv("SERVER_URL"),
 		frontendURL:            os.Getenv("FRONTEND_URL"),
 		youtubeDataAPIKey:      os.Getenv("YOUTUBE_DATA_API_KEY"),
@@ -100,14 +113,14 @@ func run(ctx context.Context) int {
 
 	initCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
-	if err = database_d.RunMigration(initCtx, cfg.dbPassword, cfg.dbName); err != nil {
+	if err = database_d.RunMigration(initCtx, cfg.dbUser, cfg.dbPassword, cfg.dbHost, cfg.dbPort, cfg.dbName, cfg.dbSSLMode); err != nil {
 		slog.Error("failed to run migration", "error", err)
 		return 1
 	}
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	db, err := database_d.ConnectDB(initCtx, cfg.dbPassword, cfg.dbName)
+	db, err := database_d.ConnectDB(initCtx, cfg.dbUser, cfg.dbPassword, cfg.dbHost, cfg.dbPort, cfg.dbName, cfg.dbSSLMode)
 	if err != nil {
 		slog.Error("failed to connect db", "error", err)
 		return 1
@@ -116,7 +129,7 @@ func run(ctx context.Context) int {
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	if err := sqlc.New(db).CleanupExpiredJTIBlacklist(initCtx, time.Now().UTC()); err != nil {
+	if err := sqlc.New(db).PurgeExpiredJTIBlacklist(initCtx, time.Now().UTC()); err != nil {
 		slog.Error("failed to clean up jti blacklist", "error", err)
 	}
 
@@ -153,6 +166,7 @@ func run(ctx context.Context) int {
 		r.Use(v1.SwaggerMiddleware())
 	}
 	v1.HandlerFromMux(v1.NewStrictHandler(h, []v1.StrictMiddlewareFunc{
+		middleware_d.DomainErrorMiddleware,
 		middleware_d.ResponseCookieMiddleware,
 		middleware_d.AccessTokenMiddleware(jwtService, db),
 		middleware_d.ScreenTimeMiddleware(db),

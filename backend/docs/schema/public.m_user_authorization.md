@@ -9,10 +9,10 @@
 | m_user_authorization_id | bigint |  | false | [public.m_refresh_token](public.m_refresh_token.md) |  |  |
 | issuer | varchar(256) |  | false |  |  |  |
 | sub | varchar(256) |  | false |  |  |  |
-| last_logged_in_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
+| last_logged_in_at | timestamp with time zone |  | false |  |  |  |
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
-| public_id | uuid | uuidv7() | false |  |  |  |
+| public_id | uuid |  | false |  |  |  |
 
 ## Constraints
 

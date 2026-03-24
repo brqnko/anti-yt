@@ -1,111 +1,137 @@
 package user
 
 import (
-	"errors"
 	"strings"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 )
 
 var (
-	ErrDailyScreenTimeOutOfRange = errors.New("!(0 <= value <= 24 * Hour)")
+	ErrDailyScreenTimeOutOfRange = util.NewDomainError("user.invalid_daily_screen_time", "daily screen time limit is out of range")
 
-	ErrDisplayNameTooLong  = errors.New("display name is too long")
-	ErrDisplayNameTooShort = errors.New("display name is too short")
+	ErrDisplayNameTooLong  = util.NewDomainError("user.display_name_too_long", "display name is too long")
+	ErrDisplayNameTooShort = util.NewDomainError("user.display_name_too_short", "display name is too short")
 
-	ErrLanguageCodeNotSupported = errors.New("given language code is not supported yet")
+	ErrLanguageCodeNotSupported = util.NewDomainError("user.unsupported_language_code", "language code is not supported")
 
-	ErrDailyScreenTimeLimitRangeOrder = errors.New("start >= end")
-	ErrDailyScreenTimeLimitOutOfRange = errors.New("!(0 <= value <= 24 * Hour)")
+	ErrDailyScreenTimeLimitRangeOrder = util.NewDomainError("user.invalid_screen_time_range_order", "screen time range start must be before end")
+	ErrDailyScreenTimeLimitOutOfRange = util.NewDomainError("user.invalid_screen_time_range", "daily screen time limit is out of range")
+
+	ErrInvalidLeaveReasonCode = util.NewDomainError("user.invalid_leave_reason_code", "invalid leave reason code")
 )
 
-const DailyScreenTimeLimitInfinity = 24*time.Hour + 1*time.Second
+type LeaveReasonCode int
 
-// CalcRemainingSeconds はDBから取得した1日の視聴制限秒数と今日の視聴秒数から残り秒数を計算する。
-// limitSeconds が24時間以上（無制限センチネル値）の場合は nil を返す。
-func CalcRemainingSeconds(limitSeconds, watchedSeconds int) *int {
-	if limitSeconds >= int((24 * time.Hour).Seconds()) {
-		return nil
+const (
+	LeaveReasonSelf LeaveReasonCode = 0
+)
+
+func NewLeaveReasonCode(s string) (_ LeaveReasonCode, err error) {
+	defer util.Wrap(&err, "NewLeaveReasonCode")
+
+	switch s {
+	case "self":
+		return LeaveReasonSelf, nil
+	default:
+		return 0, ErrInvalidLeaveReasonCode
 	}
-	rem := max(0, limitSeconds-watchedSeconds)
-	return &rem
 }
 
-type DailyScreenTimeLimit time.Duration
+func (l LeaveReasonCode) String() string {
+	switch l {
+	case LeaveReasonSelf:
+		return "self"
+	default:
+		return "self"
+	}
+}
 
-func NewDailyScreenTimeLimit(seconds *int) (*DailyScreenTimeLimit, error) {
+const unlimitedScreenTimeSentinel = 86401 // 24h + 1s
+
+// IsUnlimitedScreenTimeSeconds はDBから取得した視聴制限秒数が無制限を表すかを判定する。
+func IsUnlimitedScreenTimeSeconds(seconds int) bool {
+	return seconds >= int((24 * time.Hour).Seconds())
+}
+
+// CalcRemainingSeconds はDBから取得した1日の視聴制限秒数と今日の視聴秒数から残り秒数を計算する。
+// limitSeconds が無制限の場合は -1 を返す。
+func CalcRemainingSeconds(limitSeconds, watchedSeconds int) int {
+	if IsUnlimitedScreenTimeSeconds(limitSeconds) {
+		return -1
+	}
+	return max(0, limitSeconds-watchedSeconds)
+}
+
+type DailyScreenTimeLimit struct {
+	duration *time.Duration
+}
+
+func NewDailyScreenTimeLimit(seconds *int) (DailyScreenTimeLimit, error) {
 	if seconds == nil {
-		domain := DailyScreenTimeLimit(DailyScreenTimeLimitInfinity)
-		return &domain, nil
+		return DailyScreenTimeLimit{duration: nil}, nil
 	}
 
 	value := time.Duration(*seconds) * time.Second
 	if value < 0 || value >= 24*time.Hour {
-		return nil, ErrDailyScreenTimeOutOfRange
+		return DailyScreenTimeLimit{}, ErrDailyScreenTimeOutOfRange
 	}
 
-	domain := DailyScreenTimeLimit(value)
-	return &domain, nil
+	return DailyScreenTimeLimit{duration: &value}, nil
 }
 
-func (d *DailyScreenTimeLimit) IsInfinity() bool {
-	if d == nil {
-		return true
+func (d DailyScreenTimeLimit) IsUnlimited() bool {
+	return d.duration == nil
+}
+
+func (d DailyScreenTimeLimit) Seconds() int {
+	if d.duration == nil {
+		return unlimitedScreenTimeSentinel
 	}
-
-	duration := (time.Duration)(*d)
-	return duration > 24*time.Hour
+	return int(d.duration.Seconds())
 }
 
-func (d *DailyScreenTimeLimit) ToInt() *int {
-	if d == nil {
+func (d DailyScreenTimeLimit) ToIntPtr() *int {
+	if d.duration == nil {
 		return nil
 	}
-	s := (int)(time.Duration(*d).Seconds())
-	return &s
+	v := int(d.duration.Seconds())
+	return &v
 }
 
 type DisplayName string
 
-func NewDisplayName(s string) (*DisplayName, error) {
+func NewDisplayName(s string) (DisplayName, error) {
 	str := strings.TrimSpace(s)
 
 	length := len([]rune(str))
 	if length < 1 {
-		return nil, ErrDisplayNameTooShort
+		return "", ErrDisplayNameTooShort
 	}
 	if length > 29 {
-		return nil, ErrDisplayNameTooLong
+		return "", ErrDisplayNameTooLong
 	}
 
-	domain := DisplayName(str)
-	return &domain, nil
+	return DisplayName(str), nil
 }
 
-func (d *DisplayName) String() string {
-	if d == nil {
-		return ""
-	}
-	return (string)(*d)
+func (d DisplayName) String() string {
+	return string(d)
 }
 
 type LanguageCode string
 
-func NewLanguageCode(value string) (*LanguageCode, error) {
+func NewLanguageCode(value string) (LanguageCode, error) {
 	if value != "ja" {
-		return nil, ErrLanguageCodeNotSupported
+		return "", ErrLanguageCodeNotSupported
 	}
 
-	domain := LanguageCode(value)
-	return &domain, nil
+	return LanguageCode(value), nil
 }
 
-func (l *LanguageCode) String() string {
-	if l == nil {
-		return ""
-	}
-	return (string)(*l)
+func (l LanguageCode) String() string {
+	return string(l)
 }
 
 type DailyScreenTimeLimitRange struct {
@@ -113,68 +139,186 @@ type DailyScreenTimeLimitRange struct {
 	EndTimeSeconds   int
 }
 
-func NewDailyScreenTimeLimitRange(startTimeSeconds, endTimeSeconds int) (*DailyScreenTimeLimitRange, error) {
+func NewDailyScreenTimeLimitRange(startTimeSeconds, endTimeSeconds int) (DailyScreenTimeLimitRange, error) {
 	if startTimeSeconds >= endTimeSeconds {
-		return nil, ErrDailyScreenTimeLimitRangeOrder
+		return DailyScreenTimeLimitRange{}, ErrDailyScreenTimeLimitRangeOrder
 	}
 
 	if startTimeSeconds < 0 || time.Duration(startTimeSeconds)*time.Second >= 24*time.Hour {
-		return nil, ErrDailyScreenTimeLimitOutOfRange
+		return DailyScreenTimeLimitRange{}, ErrDailyScreenTimeLimitOutOfRange
 	}
 	if endTimeSeconds < 0 || time.Duration(endTimeSeconds)*time.Second >= 24*time.Hour {
-		return nil, ErrDailyScreenTimeLimitOutOfRange
+		return DailyScreenTimeLimitRange{}, ErrDailyScreenTimeLimitOutOfRange
 	}
 
-	return &DailyScreenTimeLimitRange{
+	return DailyScreenTimeLimitRange{
 		StartTimeSeconds: startTimeSeconds,
 		EndTimeSeconds:   endTimeSeconds,
 	}, nil
 }
 
-type DailyScreenTimeLimitRangeSet []*DailyScreenTimeLimitRange
+type DailyScreenTimeLimitRangeSet struct {
+	Ranges []DailyScreenTimeLimitRange
+}
 
-func NewDailyScreenTimeLimitRangeSet(limitRanges []struct{ Start, End int }) (*DailyScreenTimeLimitRangeSet, error) {
+func NewDailyScreenTimeLimitRangeSet(screenLimits []struct{ Start, End int }) (_ *DailyScreenTimeLimitRangeSet, err error) {
+	defer util.Wrap(&err, "NewDailyScreenTimeLimitRangeSet")
+
 	// NOTE: UX的に、時間範囲の重複は許容する
-	domainRanges := make([]*DailyScreenTimeLimitRange, len(limitRanges))
-	for i, r := range limitRanges {
+	ranges := make([]DailyScreenTimeLimitRange, len(screenLimits))
+	for i, r := range screenLimits {
 		domainRange, err := NewDailyScreenTimeLimitRange(r.Start, r.End)
 		if err != nil {
 			return nil, err
 		}
+		ranges[i] = domainRange
+	}
+	return &DailyScreenTimeLimitRangeSet{
+		Ranges: ranges,
+	}, nil
+}
 
-		domainRanges[i] = domainRange
+// BlockedUntil は現在時刻が許可された時間範囲外の場合、次の許可開始時刻を返す。
+// 範囲が空の場合はnil（制限なし）を返す。
+func (s *DailyScreenTimeLimitRangeSet) BlockedUntil(now time.Time) *time.Time {
+	if len(s.Ranges) == 0 {
+		return nil
 	}
 
-	d := (DailyScreenTimeLimitRangeSet)(domainRanges)
-	return &d, nil
+	nowSeconds := now.Hour()*3600 + now.Minute()*60 + now.Second()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+
+	for _, r := range s.Ranges {
+		if nowSeconds >= r.StartTimeSeconds && nowSeconds < r.EndTimeSeconds {
+			return nil
+		}
+	}
+
+	var best time.Time
+	found := false
+	for _, r := range s.Ranges {
+		if r.StartTimeSeconds > nowSeconds {
+			t := today.Add(time.Duration(r.StartTimeSeconds) * time.Second)
+			if !found || t.Before(best) {
+				best = t
+				found = true
+			}
+		}
+	}
+	if found {
+		return &best
+	}
+
+	tomorrow := today.AddDate(0, 0, 1)
+	for _, r := range s.Ranges {
+		t := tomorrow.Add(time.Duration(r.StartTimeSeconds) * time.Second)
+		if !found || t.Before(best) {
+			best = t
+			found = true
+		}
+	}
+	if found {
+		return &best
+	}
+	return nil
 }
 
 type User struct {
-	UserID               uuid.UUID
-	DisplayName          string
-	LanguageCode         string
-	JoinedAt             time.Time
-	ScreenTimeLimitRange []struct {
-		ID                       uuid.UUID
-		StartSeconds, EndSeconds int
-	}
-	ScreenTimeSeconds *int
-	RemainingSeconds  *int
+	ID              uuid.UUID
+	DisplayName     DisplayName
+	LanguageCode    LanguageCode
+	JoinedAt        time.Time
+	ScreenTimeLimit DailyScreenTimeLimit
 }
 
-func NewUser(userID uuid.UUID, displayName string, languageCode string, joinedAt time.Time,
-	screenTimeLimitRange []struct {
-		ID                       uuid.UUID
-		StartSeconds, EndSeconds int
-	}, screenTimeSeconds *int, remainingSeconds *int) *User {
+type UserOption func(*User)
 
-	return &User{
-		UserID:               userID,
-		DisplayName:          displayName,
-		LanguageCode:         languageCode,
-		JoinedAt:             joinedAt,
-		ScreenTimeLimitRange: screenTimeLimitRange,
-		ScreenTimeSeconds:    screenTimeSeconds,
-		RemainingSeconds:     remainingSeconds,
+func WithUserID(id uuid.UUID) UserOption {
+	return func(u *User) {
+		u.ID = id
 	}
+}
+
+func WithUserJoinedAt(joinedAt time.Time) UserOption {
+	return func(u *User) {
+		u.JoinedAt = joinedAt
+	}
+}
+
+func (u *User) SetDisplayName(displayName *string) (err error) {
+	defer util.Wrap(&err, "User.SetDisplayName")
+
+	if displayName == nil {
+		return nil
+	}
+	dn, err := NewDisplayName(*displayName)
+	if err != nil {
+		return err
+	}
+	u.DisplayName = dn
+	return nil
+}
+
+func (u *User) SetLanguageCode(languageCode *string) (err error) {
+	defer util.Wrap(&err, "User.SetLanguageCode")
+
+	if languageCode == nil {
+		return nil
+	}
+	lc, err := NewLanguageCode(*languageCode)
+	if err != nil {
+		return err
+	}
+	u.LanguageCode = lc
+	return nil
+}
+
+func (u *User) SetScreenTimeLimit(dailyScreenLimit *int) (err error) {
+	defer util.Wrap(&err, "User.SetScreenTimeLimit")
+
+	if dailyScreenLimit == nil {
+		return nil
+	}
+	stl, err := NewDailyScreenTimeLimit(dailyScreenLimit)
+	if err != nil {
+		return err
+	}
+	u.ScreenTimeLimit = stl
+	return nil
+}
+
+func NewUser(displayName string, languageCode string, dailyScreenLimit *int, opts ...UserOption) (_ *User, err error) {
+	defer util.Wrap(&err, "NewUser")
+
+	dn, err := NewDisplayName(displayName)
+	if err != nil {
+		return nil, err
+	}
+	lc, err := NewLanguageCode(languageCode)
+	if err != nil {
+		return nil, err
+	}
+	stl, err := NewDailyScreenTimeLimit(dailyScreenLimit)
+	if err != nil {
+		return nil, err
+	}
+
+	id, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
+	u := &User{
+		ID:              id,
+		DisplayName:     dn,
+		LanguageCode:    lc,
+		JoinedAt:        time.Now().UTC(),
+		ScreenTimeLimit: stl,
+	}
+
+	for _, opt := range opts {
+		opt(u)
+	}
+
+	return u, nil
 }

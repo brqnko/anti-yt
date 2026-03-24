@@ -12,11 +12,11 @@
 | language_code | varchar(2) |  | false |  |  |  |
 | daily_screen_time_seconds | integer |  | false |  |  |  |
 | joined_at | timestamp with time zone |  | false |  |  |  |
-| left_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
+| left_at | timestamp with time zone |  | false |  |  |  |
 | leave_reason_code | integer |  | false |  |  |  |
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
-| public_id | uuid | uuidv7() | false |  |  |  |
+| public_id | uuid |  | false |  |  |  |
 
 ## Constraints
 

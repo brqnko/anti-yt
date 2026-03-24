@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
-	"github.com/brqnko/anti-yt/backend/internal/util"
+	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 	"github.com/google/uuid"
 )
 
@@ -15,8 +15,8 @@ func RequestIDMiddleware(f v1.StrictHandlerFunc, operationID string) v1.StrictHa
 		if err != nil {
 			return writeErrorJSON(w, http.StatusInternalServerError, "internal server error", "internal server error")
 		}
-		newCtx := util.WithRequestID(ctx, requestID)
-		newCtx = util.WithRequestPath(newCtx, r.URL.Path)
+		newCtx := hutil.WithRequestID(ctx, requestID)
+		newCtx = hutil.WithRequestPath(newCtx, r.URL.Path)
 		return f(newCtx, w, r.WithContext(newCtx), request)
 	}
 }

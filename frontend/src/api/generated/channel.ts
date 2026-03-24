@@ -6,13 +6,11 @@
  * OpenAPI spec version: 1.0.0
  */
 import type {
-  GetChannelsChannelIdVideos200,
-  GetChannelsChannelIdVideosParams,
+  GetChannelsSubscribed200,
+  GetChannelsSubscribedParams,
   GetFeedChannels200,
-  GetSubscriptions200,
-  GetSubscriptionsParams,
-  PostSubscriptions201,
-  PostSubscriptionsBody
+  PostChannelsSubscribe201,
+  PostChannelsSubscribeBody
 } from './antiYtApi.schemas';
 
 import { customInstance } from '../mutator';
@@ -34,28 +32,14 @@ const getFeedChannels = (
       );
     }
   /**
- * チャンネルが投稿している動画を一覧で表示する
- * @summary Get latest channel uploads
- */
-const getChannelsChannelIdVideos = (
-    channelId: string,
-    params: GetChannelsChannelIdVideosParams,
- ) => {
-      return customInstance<GetChannelsChannelIdVideos200>(
-      {url: `/api/v1/channels/${channelId}/videos`, method: 'GET',
-        params
-    },
-      );
-    }
-  /**
  * 現在の登録チャンネル一覧を取得
- * @summary Get subscriptions
+ * @summary Get subscribed channels
  */
-const getSubscriptions = (
-    params: GetSubscriptionsParams,
+const getChannelsSubscribed = (
+    params: GetChannelsSubscribedParams,
  ) => {
-      return customInstance<GetSubscriptions200>(
-      {url: `/api/v1/subscriptions`, method: 'GET',
+      return customInstance<GetChannelsSubscribed200>(
+      {url: `/api/v1/channels/subscribed`, method: 'GET',
         params
     },
       );
@@ -64,31 +48,30 @@ const getSubscriptions = (
  * 新しいチャンネルを登録する
  * @summary Subscribe new channel
  */
-const postSubscriptions = (
-    postSubscriptionsBody: PostSubscriptionsBody,
+const postChannelsSubscribe = (
+    postChannelsSubscribeBody: PostChannelsSubscribeBody,
  ) => {
-      return customInstance<PostSubscriptions201>(
-      {url: `/api/v1/subscriptions`, method: 'POST',
+      return customInstance<PostChannelsSubscribe201>(
+      {url: `/api/v1/channels/subscribe`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: postSubscriptionsBody
+      data: postChannelsSubscribeBody
     },
       );
     }
   /**
  * 登録を解除する
- * @summary Delete subscription
+ * @summary Unsubscribe channel
  */
-const deleteSubscriptionsSubscriptionId = (
-    subscriptionId: string,
+const deleteChannelsChannelIdSubscribe = (
+    channelId: string,
  ) => {
       return customInstance<void>(
-      {url: `/api/v1/subscriptions/${subscriptionId}`, method: 'DELETE'
+      {url: `/api/v1/channels/${channelId}/subscribe`, method: 'DELETE'
     },
       );
     }
-  return {getFeedChannels,getChannelsChannelIdVideos,getSubscriptions,postSubscriptions,deleteSubscriptionsSubscriptionId}};
+  return {getFeedChannels,getChannelsSubscribed,postChannelsSubscribe,deleteChannelsChannelIdSubscribe}};
 export type GetFeedChannelsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getFeedChannels']>>>
-export type GetChannelsChannelIdVideosResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getChannelsChannelIdVideos']>>>
-export type GetSubscriptionsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getSubscriptions']>>>
-export type PostSubscriptionsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['postSubscriptions']>>>
-export type DeleteSubscriptionsSubscriptionIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['deleteSubscriptionsSubscriptionId']>>>
+export type GetChannelsSubscribedResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getChannelsSubscribed']>>>
+export type PostChannelsSubscribeResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['postChannelsSubscribe']>>>
+export type DeleteChannelsChannelIdSubscribeResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['deleteChannelsChannelIdSubscribe']>>>

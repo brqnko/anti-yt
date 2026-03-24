@@ -2,134 +2,95 @@ package v1
 
 import (
 	"context"
-	"errors"
 	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/channel"
-	"github.com/brqnko/anti-yt/backend/internal/util"
-	openapi_types "github.com/oapi-codegen/runtime/types"
+	"github.com/google/uuid"
+
+	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 )
 
-func (h *APIHandler) GetSubscriptions(c context.Context, request GetSubscriptionsRequestObject) (GetSubscriptionsResponseObject, error) {
-	channels, hasNext, err := h.channelService.GetSubscriptions(c, request.Params.Limit, request.Params.Cursor)
+func (h *APIHandler) GetChannelsSubscribed(ctx context.Context, request GetChannelsSubscribedRequestObject) (GetChannelsSubscribedResponseObject, error) {
+	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		if errors.Is(err, channel.ErrInvalidSubscriptionLimit) {
-			return GetSubscriptions400JSONResponse{BadRequestJSONResponse{
-				Detail: err.Error(),
-				Title:  "Bad Request",
-			}}, nil
-		}
+		return nil, err
+	}
 
-		util.LogError(c, err)
-		return GetSubscriptions500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+	channels, hasNext, err := h.channelService.GetSubscriptions(ctx, userID, int32(request.Params.Limit), request.Params.Cursor)
+	if err != nil {
+		return nil, err
 	}
 
 	items := make([]struct {
-		ChannelCreatedAt           time.Time          `json:"channel_created_at"`
-		ChannelCustomId            string             `json:"channel_custom_id"`
-		ChannelDescription         string             `json:"channel_description"`
-		ChannelId                  openapi_types.UUID `json:"channel_id"`
-		ChannelSubscribersCount    int                `json:"channel_subscribers_count"`
-		CreatedAt                  time.Time          `json:"created_at"`
-		ExternalChannelDisplayName string             `json:"external_channel_display_name"`
-		ExternalChannelIconUrl     string             `json:"external_channel_icon_url"`
-		ExternalChannelId          string             `json:"external_channel_id"`
-		SubscriptionId             openapi_types.UUID `json:"subscription_id"`
+		ChannelCustomId            string    `json:"channel_custom_id"`
+		ChannelId                  uuid.UUID `json:"channel_id"`
+		ChannelSubscribersCount    int       `json:"channel_subscribers_count"`
+		ExternalChannelDisplayName string    `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
+		ExternalChannelId          string    `json:"external_channel_id"`
 	}, len(channels))
 
 	for i, ch := range channels {
-		items[i].SubscriptionId = ch.SubscriptionID
-		items[i].ChannelId = ch.ChannelID
-		items[i].CreatedAt = ch.CreatedAt
-		items[i].ExternalChannelId = string(*ch.ID)
-		items[i].ExternalChannelDisplayName = ch.DisplayName
-		items[i].ChannelCustomId = string(*ch.CustomID)
-		items[i].ChannelDescription = ch.Description
-		items[i].ExternalChannelIconUrl = ch.IconURL
-		items[i].ChannelSubscribersCount = ch.SubscribersCount
-		items[i].ChannelCreatedAt = ch.ExternalChannelDetail.CreatedAt
+		items[i].ChannelId = ch.ChannelId
+		items[i].ExternalChannelId = ch.ExternalChannelId
+		items[i].ExternalChannelDisplayName = ch.ExternalChannelDisplayName
+		items[i].ChannelCustomId = ch.ChannelCustomId
+		items[i].ExternalChannelIconUrl = ch.ExternalChannelIconUrl
+		items[i].ChannelSubscribersCount = int(ch.ChannelSubscribersCount)
 	}
 
-	return GetSubscriptions200JSONResponse{
+	return GetChannelsSubscribed200JSONResponse{
 		HasNext:   hasNext,
 		ItemCount: len(channels),
 		Items:     items,
 	}, nil
 }
 
-func (h *APIHandler) PostSubscriptions(c context.Context, request PostSubscriptionsRequestObject) (PostSubscriptionsResponseObject, error) {
-	subscribed, err := h.channelService.SubscribeChannel(c, request.Body.ChannelId)
+func (h *APIHandler) PostChannelsSubscribe(ctx context.Context, request PostChannelsSubscribeRequestObject) (PostChannelsSubscribeResponseObject, error) {
+	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		if errors.Is(err, channel.ErrInvalidYouTubeURL) ||
-			errors.Is(err, channel.ErrInvalidChannelID) ||
-			errors.Is(err, channel.ErrInvalidChannelHandle) {
-			return PostSubscriptions400JSONResponse{BadRequestJSONResponse{
-				Detail: err.Error(),
-				Title:  "Bad Request",
-			}}, nil
-		}
-
-		util.LogError(c, err)
-		return PostSubscriptions500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
-	return PostSubscriptions201JSONResponse{
+	subscribed, err := h.channelService.SubscribeChannel(ctx, userID, request.Body.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	return PostChannelsSubscribe201JSONResponse{
 		Body: struct {
-			ChannelCreatedAt           time.Time          `json:"channel_created_at"`
-			ChannelCustomId            string             `json:"channel_custom_id"`
-			ChannelDescription         string             `json:"channel_description"`
-			ChannelId                  openapi_types.UUID `json:"channel_id"`
-			ChannelSubscribersCount    int                `json:"channel_subscribers_count"`
-			CreatedAt                  time.Time          `json:"created_at"`
-			ExternalChannelDisplayName string             `json:"external_channel_display_name"`
-			ExternalChannelIconUrl     string             `json:"external_channel_icon_url"`
-			ExternalChannelId          string             `json:"external_channel_id"`
-			SubscriptionId             openapi_types.UUID `json:"subscription_id"`
+			ChannelCreatedAt           time.Time `json:"channel_created_at"`
+			ChannelCustomId            string    `json:"channel_custom_id"`
+			ChannelDescription         string    `json:"channel_description"`
+			ChannelId                  uuid.UUID `json:"channel_id"`
+			ChannelSubscribersCount    int       `json:"channel_subscribers_count"`
+			ExternalChannelDisplayName string    `json:"external_channel_display_name"`
+			ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
+			ExternalChannelId          string    `json:"external_channel_id"`
 		}{
-			ChannelCreatedAt:           subscribed.ExternalChannelDetail.CreatedAt,
-			ChannelCustomId:            string(*subscribed.CustomID),
-			ChannelDescription:         subscribed.Description,
-			ChannelId:                  subscribed.ChannelID,
-			ChannelSubscribersCount:    subscribed.SubscribersCount,
-			CreatedAt:                  subscribed.CreatedAt,
-			ExternalChannelDisplayName: subscribed.DisplayName,
-			ExternalChannelIconUrl:     subscribed.IconURL,
-			ExternalChannelId:          string(*subscribed.ID),
-			SubscriptionId:             subscribed.SubscriptionID,
+			ChannelCreatedAt:           subscribed.Channel.CreatedAt,
+			ChannelCustomId:            subscribed.Channel.CustomID,
+			ChannelDescription:         subscribed.Channel.Description,
+			ChannelId:                  subscribed.ID,
+			ChannelSubscribersCount:    int(subscribed.Channel.SubscribersCount),
+			ExternalChannelDisplayName: subscribed.Channel.DisplayName,
+			ExternalChannelIconUrl:     subscribed.Channel.IconURL,
+			ExternalChannelId:          string(subscribed.Channel.ID),
 		},
-		Headers: PostSubscriptions201ResponseHeaders{
-			Location: "/api/v1/subscriptions/" + subscribed.SubscriptionID.String(),
+		Headers: PostChannelsSubscribe201ResponseHeaders{
+			Location: "/api/v1/channels/" + subscribed.ID.String() + "/subscribe",
 		},
 	}, nil
 }
 
-func (h *APIHandler) DeleteSubscriptionsSubscriptionId(c context.Context, request DeleteSubscriptionsSubscriptionIdRequestObject) (DeleteSubscriptionsSubscriptionIdResponseObject, error) {
-	if err := h.channelService.UnsubscribeChannel(c, request.SubscriptionId); err != nil {
-		if errors.Is(err, channel.ErrSubscriptionNotFound) {
-			return DeleteSubscriptionsSubscriptionId404JSONResponse{NotFoundJSONResponse{
-				Detail: "subscription not found",
-				Title:  "Not Found",
-			}}, nil
-		}
-
-		util.LogError(c, err)
-		return DeleteSubscriptionsSubscriptionId500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+func (h *APIHandler) DeleteChannelsChannelIdSubscribe(ctx context.Context, request DeleteChannelsChannelIdSubscribeRequestObject) (DeleteChannelsChannelIdSubscribeResponseObject, error) {
+	userID, err := hutil.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	return DeleteSubscriptionsSubscriptionId204Response{}, nil
+	if err := h.channelService.UnsubscribeChannel(ctx, userID, request.ChannelId); err != nil {
+		return nil, err
+	}
+
+	return DeleteChannelsChannelIdSubscribe204Response{}, nil
 }

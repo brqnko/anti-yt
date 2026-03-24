@@ -15,8 +15,8 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-func RunMigration(ctx context.Context, dbPassword, dbName string) error {
-	db, err := sql.Open("pgx", fmt.Sprintf("postgres://postgres:%s@db:5432/%s?sslmode=disable", dbPassword, dbName))
+func RunMigration(ctx context.Context, dbUser, dbPassword, dbHost string, dbPort int, dbName, dbSSLMode string) error {
+	db, err := sql.Open("pgx", fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", dbUser, dbPassword, dbHost, dbPort, dbName, dbSSLMode))
 	if err != nil {
 		return err
 	}
@@ -45,8 +45,8 @@ func RunMigration(ctx context.Context, dbPassword, dbName string) error {
 	return nil
 }
 
-func ConnectDB(ctx context.Context, dbPassword string, dbName string) (*pgxpool.Pool, error) {
-	db, err := pgxpool.New(ctx, fmt.Sprintf("postgres://postgres:%s@db:5432/%s?sslmode=disable", dbPassword, dbName))
+func ConnectDB(ctx context.Context, dbUser, dbPassword, dbHost string, dbPort int, dbName, dbSSLMode string) (*pgxpool.Pool, error) {
+	db, err := pgxpool.New(ctx, fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", dbUser, dbPassword, dbHost, dbPort, dbName, dbSSLMode))
 	if err != nil {
 		return nil, err
 	}

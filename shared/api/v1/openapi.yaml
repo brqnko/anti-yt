@@ -203,6 +203,22 @@ paths:
       summary: User session list
       description: ユーザーのセッション一覧
       operationId: getUsersMeSessions
+      parameters:
+        - name: limit
+          description: 取得する最大の数
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: cursor
+          in: query
+          schema:
+            type: string
+            format: uuid
+          required: false
       responses:
         "200":
           description: 200 OK
@@ -215,6 +231,8 @@ paths:
                     description: 総件数
                     minimum: 0
                     type: integer
+                  has_next:
+                    type: boolean
                   items:
                     type: array
                     uniqueItems: true
@@ -244,8 +262,17 @@ paths:
                           description: 国コード
                           maxLength: 2
                           minLength: 2
-                      required: [ id, created_at, last_logged_in_at, city_name, browser_name, country_code ]
-                required: [ item_count, items ]
+                        ip_address:
+                          type: string
+                          description: IPアドレス
+                        device_type:
+                          type: string
+                          description: デバイスの種類
+                        user_agent:
+                          type: string
+                          description: ユーザーエージェント
+                      required: [ id, created_at, last_logged_in_at, city_name, browser_name, country_code, ip_address, device_type, user_agent ]
+                required: [ item_count, has_next, items ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -435,7 +462,7 @@ paths:
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
-      tags: [ channel ]
+      tags: [ video ]
       summary: Get latest channel uploads
       description: チャンネルが投稿している動画を一覧で表示する
       operationId: getChannelsChannelIdVideos
@@ -514,7 +541,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/subscriptions:
+  /api/v1/channels/subscribed:
     parameters:
       - $ref: '#/components/parameters/HeaderXRealIP'
       - $ref: '#/components/parameters/HeaderCfIpCountry'
@@ -523,9 +550,9 @@ paths:
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
       tags: [ channel ]
-      summary: Get subscriptions
+      summary: Get subscribed channels
       description: 現在の登録チャンネル一覧を取得
-      operationId: getSubscriptions
+      operationId: getChannelsSubscribed
       parameters:
         - name: limit
           description: 取得する最大の数
@@ -537,7 +564,7 @@ paths:
             maximum: 50
             default: 20
         - name: cursor
-          description: 最後に取得したチャンネルID(ページネーション)
+          description: 最後に取得したchannel_id(ページネーション)
           in: query
           required: false
           schema:
@@ -564,22 +591,13 @@ paths:
                     items:
                       type: object
                       properties:
-                        subscription_id:
-                          type: string
-                          format: uuid
-                          description: 購読レコードのID
                         channel_id:
                           type: string
                           format: uuid
                           description: 登録したチャンネルID(内部)
-                        created_at:
-                          type: string
-                          format: date-time
-                          description: 登録日時
                         external_channel_id:
                           type: string
-                          pattern: "^UC[a-zA-Z0-9_-]{22}$"
-                          description: 登録したチャンネルID(ハンドル名ではない)
+                          description: 外部チャンネルID
                         external_channel_display_name:
                           type: string
                           description: 登録したチャンネルの表示名
@@ -587,9 +605,6 @@ paths:
                           type: string
                           description: チャンネルのカスタムID(ハンドル名)
                           minLength: 3
-                        channel_description:
-                          type: string
-                          description: 登録したチャンネルの説明文
                         external_channel_icon_url:
                           type: string
                           description: チャンネルのアイコンURL
@@ -598,11 +613,7 @@ paths:
                           type: integer
                           minimum: 0
                           description: チャンネルの登録者数
-                        channel_created_at:
-                          type: string
-                          format: date-time
-                          description: チャンネルの作成日
-                      required: [ subscription_id, channel_id, external_channel_id, created_at, external_channel_display_name, channel_custom_id, channel_description, external_channel_icon_url, channel_subscribers_count, channel_created_at ]
+                      required: [ channel_id, external_channel_id, external_channel_display_name, channel_custom_id, external_channel_icon_url, channel_subscribers_count ]
                 required: [ items, item_count, has_next ]
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -619,11 +630,18 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /api/v1/channels/subscribe:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     post:
       tags: [ channel ]
       summary: Subscribe new channel
       description: 新しいチャンネルを登録する
-      operationId: postSubscriptions
+      operationId: postChannelsSubscribe
       requestBody:
         required: true
         content:
@@ -648,18 +666,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  subscription_id:
-                    type: string
-                    format: uuid
-                    description: 購読レコードのID
                   channel_id:
                     type: string
                     format: uuid
                     description: 登録したチャンネルID(内部)
-                  created_at:
-                    type: string
-                    format: date-time
-                    description: 登録日時
                   external_channel_id:
                     type: string
                     pattern: "^UC[a-zA-Z0-9_-]{22}$"
@@ -686,7 +696,7 @@ paths:
                     type: string
                     format: date-time
                     description: チャンネルの作成日
-                required: [ subscription_id, channel_id, external_channel_id, created_at, external_channel_display_name, channel_custom_id, channel_description, external_channel_icon_url, channel_subscribers_count, channel_created_at ]
+                required: [ channel_id, external_channel_id, external_channel_display_name, channel_custom_id, channel_description, external_channel_icon_url, channel_subscribers_count, channel_created_at ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -702,7 +712,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/subscriptions/{subscription_id}:
+  /api/v1/channels/{channel_id}/subscribe:
     parameters:
       - $ref: '#/components/parameters/HeaderXRealIP'
       - $ref: '#/components/parameters/HeaderCfIpCountry'
@@ -711,17 +721,17 @@ paths:
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     delete:
       tags: [ channel ]
-      summary: Delete subscription
+      summary: Unsubscribe channel
       description: 登録を解除する
-      operationId: deleteSubscriptionsSubscriptionId
+      operationId: deleteChannelsChannelIdSubscribe
       parameters:
-        - name: subscription_id
+        - name: channel_id
           in: path
           required: true
           schema:
             type: string
             format: uuid
-          description: 購読レコードのID
+          description: チャンネルID
       responses:
         "204":
           description: 204 No Content
@@ -987,8 +997,6 @@ paths:
                   channel_id:
                     type: string
                     format: uuid
-                  external_channel_id:
-                    type: string
                   external_channel_display_name:
                     type: string
                   channel_custom_id:
@@ -1001,7 +1009,7 @@ paths:
                   external_channel_subscribers_count:
                     type: integer
                     minimum: 0
-                required: [ video_id, external_video_id, external_video_title, external_video_description, external_video_thumbnail_url, channel_id, external_channel_id, external_channel_display_name, channel_custom_id, external_channel_subscribers_count, external_channel_icon_url ]
+                required: [ video_id, external_video_id, external_video_title, external_video_description, external_video_thumbnail_url, channel_id, external_channel_display_name, channel_custom_id, external_channel_subscribers_count, external_channel_icon_url ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1032,7 +1040,7 @@ paths:
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     post:
-      tags: [ video ]
+      tags: [ history ]
       summary: Heartbeats
       description: 視聴時間をトラックするためのハートビート用エンドポイント。一分ごとに送られる。
       operationId: postVideosVideoIdHeartbeats
@@ -1303,9 +1311,6 @@ paths:
                           type: string
                           format: uuid
                           description: 内部ID
-                        external_video_id:
-                          type: string
-                          pattern: "^[a-zA-Z0-9_-]{11}$"
                         watch_position_seconds:
                           type: integer
                           minimum: 0
@@ -1333,18 +1338,10 @@ paths:
                           type: string
                           format: uri
                           description: チャンネルのアイコンURL
-                        external_channel_id:
-                          type: string
-                          pattern: "^UC[a-zA-Z0-9_-]{22}$"
-                          description: チャンネルのYouTube ID
                         external_channel_display_name:
                           type: string
                           description: チャンネルの表示名
-                        external_video_created_at:
-                          type: string
-                          format: date-time
-                          description: 動画の公開日時
-                      required: [ video_id, external_video_id, watch_position_seconds, watched_at, external_video_thumbnail_url, external_video_title, external_video_length_seconds, channel_id, external_channel_id, external_channel_display_name, external_channel_icon_url, external_video_created_at ]
+                      required: [ video_id, watch_position_seconds, watched_at, external_video_thumbnail_url, external_video_title, external_video_length_seconds, channel_id, external_channel_display_name, external_channel_icon_url ]
                     uniqueItems: true
                 required: [ item_count, has_next, items ]
         "400":
@@ -1499,7 +1496,7 @@ paths:
                         playlist_video_count:
                           type: integer
                           minimum: 0
-                        playlist_created_at:
+                        playlist_registered_at:
                           type: string
                           format: date-time
                         playlist_updated_at:
@@ -1508,7 +1505,7 @@ paths:
                         top_video_thumbnail_url:
                           type: string
                           format: uri
-                      required: [ playlist_id, playlist_type, playlist_visibility, playlist_title, playlist_description, playlist_video_count, playlist_created_at, playlist_updated_at ]
+                      required: [ playlist_id, playlist_type, playlist_visibility, playlist_title, playlist_description, playlist_video_count, playlist_registered_at, playlist_updated_at ]
                 required: [ item_count, has_next, items ]
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -1571,13 +1568,13 @@ paths:
                   playlist_video_count:
                     type: integer
                     minimum: 0
-                  playlist_created_at:
+                  playlist_registered_at:
                     type: string
                     format: date-time
                   playlist_updated_at:
                     type: string
                     format: date-time
-                required: [ playlist_id, playlist_type, playlist_visibility, playlist_title, playlist_description, playlist_video_count, playlist_created_at, playlist_updated_at ]
+                required: [ playlist_id, playlist_type, playlist_visibility, playlist_title, playlist_description, playlist_video_count, playlist_registered_at, playlist_updated_at ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1633,7 +1630,7 @@ paths:
                   playlist_video_count:
                     type: integer
                     minimum: 0
-                  playlist_created_at:
+                  playlist_registered_at:
                     type: string
                     format: date-time
                   playlist_updated_at:
@@ -1642,7 +1639,7 @@ paths:
                   top_video_thumbnail_url:
                     type: string
                     format: uri
-                required: [ playlist_id, playlist_title, playlist_description, playlist_type, playlist_visibility, playlist_video_count, playlist_created_at, playlist_updated_at ]
+                required: [ playlist_id, playlist_title, playlist_description, playlist_type, playlist_visibility, playlist_video_count, playlist_registered_at, playlist_updated_at ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1688,10 +1685,7 @@ paths:
                     type: string
                   playlist_description:
                     type: string
-                  playlist_updated_at:
-                    type: string
-                    format: date-time
-                required: [ playlist_id, playlist_title, playlist_description, playlist_updated_at ]
+                required: [ playlist_id, playlist_title, playlist_description ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1960,12 +1954,10 @@ components:
       properties:
         title:
           type: string
+          description: エラーコード
         detail:
           type: string
-        time:
-          type: string
-          format: date-time
-          description: 試聴を再開できる日時
+          description: エラーの詳細
       required: [ title, detail ]
 
     ProblemDetailError:
@@ -2024,11 +2016,7 @@ components:
           type: integer
           description: 毎日のスクリーン時間制限
           minimum: 0
-        daily_remaining_seconds:
-          type: integer
-          description: 今日の残りの時間（設定していない場合はなし）
-          minimum: 0
-      required: [ id, display_name, joined_at, screen_time ]
+      required: [ id, display_name, language_code, joined_at, screen_time ]
 
     SearchType:
       type: string
