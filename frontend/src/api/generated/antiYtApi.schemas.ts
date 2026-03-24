@@ -228,29 +228,16 @@ export type GetHealth200 = {
   status: string;
 };
 
-export type GetFeedChannels200ItemsItemVideosItemsItem = {
-  video_id: string;
-  external_video_id: string;
-  external_video_thumbnail_url: string;
-  external_video_title: string;
-  external_video_description: string;
-  external_video_created_at: string;
-  /** @minimum 0 */
-  external_video_length_seconds: number;
-};
-
-export type GetFeedChannels200ItemsItemVideos = {
-  /** @minimum 0 */
-  item_count: number;
-  items: GetFeedChannels200ItemsItemVideosItemsItem[];
-};
-
 export type GetFeedChannels200ItemsItem = {
   channel_id: string;
   external_channel_icon_url: string;
-  external_channel_id: string;
   external_channel_display_name: string;
-  videos?: GetFeedChannels200ItemsItemVideos;
+  /** @minLength 4 */
+  external_channel_cusom_url: string;
+  /** @minimum 0 */
+  category_code: number;
+  /** @maxLength 256 */
+  valuable_description: string;
 };
 
 export type GetFeedChannels200 = {
@@ -309,7 +296,7 @@ export type GetChannelsSubscribed200ItemsItem = {
   external_channel_display_name: string;
   /**
    * チャンネルのカスタムID(ハンドル名)
-   * @minLength 3
+   * @minLength 4
    */
   channel_custom_id: string;
   /** チャンネルのアイコンURL */
@@ -349,7 +336,7 @@ export type PostChannelsSubscribe201 = {
   external_channel_display_name: string;
   /**
    * チャンネルのカスタムID(ハンドル名)
-   * @minLength 3
+   * @minLength 4
    */
   channel_custom_id: string;
   /** 登録したチャンネルの説明文 */
@@ -456,7 +443,7 @@ export type GetVideosVideoId200 = {
   external_channel_display_name: string;
   /**
    * チャンネルのハンドル名
-   * @minLength 3
+   * @minLength 4
    */
   channel_custom_id: string;
   external_channel_icon_url: string;
