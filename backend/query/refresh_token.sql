@@ -1,6 +1,6 @@
 -- リフレッシュトークンをテーブルに保存する。
 -- m_refresh_token_idが返される。
--- name: SaveRefreshToken :one
+-- name: InsertRefreshToken :one
 INSERT INTO
     m_refresh_token (
         m_user_authorization_id,
@@ -28,7 +28,7 @@ RETURNING
 -- expires_at > current_timestamp
 -- の条件をすべて満たす場合にのみ更新されます。条件を満たさない場合は、pgx.ErrNoRowsが返されます。
 -- リフレッシュトークンに紐づくuser_authorization_idから、それに紐づくuserのpublic_idを返します。
--- name: UpdateRefreshToken :one
+-- name: RotateRefreshToken :one
 WITH updated AS (
     UPDATE
         m_refresh_token
@@ -63,32 +63,34 @@ LIMIT
     1;
 
 -- userテーブルのpublic_idから、そのリフレッシュトークンの一覧を返します。
--- name: GetRefreshTokens :many
+-- name: ListRefreshTokens :many
 SELECT
     m_refresh_token.public_id,
     m_refresh_token.activated_at,
     m_refresh_token.last_logged_in_at,
     m_refresh_token.user_agent,
-    m_refresh_token.device_fingerprint,
     m_refresh_token.ip_address,
     m_refresh_token.country_code,
     m_refresh_token.city_name,
-    m_refresh_token.token_hash,
-    m_refresh_token.expires_at
+    m_refresh_token.browser_name,
+    m_refresh_token.device_type
 FROM
     m_refresh_token
     INNER JOIN m_user ON m_user.m_user_authorization_id = m_refresh_token.m_user_authorization_id
 WHERE
-    m_user.public_id = $1
+    m_user.public_id = @user_id AND (
+        sqlc.narg('cursor')::uuid IS NULL OR
+        m_refresh_token.public_id < sqlc.narg('cursor')
+    )
 ORDER BY
-    m_refresh_token.created_at DESC
+    m_refresh_token.public_id DESC
 LIMIT
-    $2 OFFSET $3;
+    @query_limit;
 
 -- m_refresh_tokenのpublic_idから、そのレコードを削除します。
 -- 削除されたレコードに紐づくjtiをブラックリストに保存します。
 -- 削除されたレコードのpublic_idが返されます。
--- name: RemoveRefreshTokenByIDAndSaveJtiBlacklist :one
+-- name: RevokeRefreshTokenByID :one
 WITH deleted AS (
     DELETE FROM
         m_refresh_token USING m_user
@@ -122,7 +124,7 @@ LIMIT
 -- m_refresh_tokenのtoken_hashから、そのレコードを削除します。
 -- 削除されたレコードに紐づくjtiをブラックリストに保存します。
 -- 削除されたレコードのpublic_idが返されます。
--- name: RemoveRefreshTokenByTokenHashAndSaveJtiBlacklist :one
+-- name: RevokeRefreshTokenByHash :one
 WITH deleted AS (
     DELETE FROM
         m_refresh_token USING m_user
@@ -153,19 +155,10 @@ FROM
 LIMIT
     1;
 
--- jtiのブラックリストに追加する。
--- jtiに一意制約があり、重複する場合は何もしない。
--- name: SaveJTIBlacklist :exec
-INSERT INTO
-    t_jti_blacklist (jti, expires_at)
-VALUES
-    ($1, $2)
-ON CONFLICT DO NOTHING;
-
 -- jtiがブラックリストに存在するか確認する。
 -- jtiが存在しない場合はpgx.ErrNoRowsが返される。
 -- jtiが存在する場合は、そのexpires_atが返される。
--- name: IsJTIBlacklisted :one
+-- name: FindBlacklistedJTI :one
 SELECT
     expires_at
 FROM
@@ -176,7 +169,7 @@ LIMIT
     1;
 
 -- expires_atが過ぎたjtiのブラックリストを削除します。
--- name: CleanupExpiredJTIBlacklist :exec
+-- name: PurgeExpiredJTIBlacklist :exec
 DELETE FROM
     t_jti_blacklist
 WHERE

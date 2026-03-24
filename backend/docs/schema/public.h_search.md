@@ -9,7 +9,7 @@
 | h_search_id | bigint |  | false |  |  |  |
 | m_user_id | bigint |  | false |  |  |  |
 | search_keyword | varchar(256) |  | false |  |  |  |
-| searched_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
+| searched_at | timestamp with time zone |  | false |  |  |  |
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 

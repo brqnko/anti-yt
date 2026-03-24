@@ -14,11 +14,11 @@
 | external_description | varchar(1024) |  | false |  |  |  |
 | external_subscribers_count | bigint |  | false |  |  |  |
 | external_created_at | timestamp with time zone |  | false |  |  |  |
-| fetched_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
+| fetched_at | timestamp with time zone |  | false |  |  |  |
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
-| public_id | uuid | uuidv7() | false |  |  |  |
-| rss_fetched_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
+| public_id | uuid |  | false |  |  |  |
+| rss_fetched_at | timestamp with time zone |  | false |  |  |  |
 | external_uploads_playlist_id | varchar(64) |  | false |  |  |  |
 
 ## Constraints

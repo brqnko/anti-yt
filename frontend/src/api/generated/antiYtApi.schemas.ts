@@ -48,7 +48,7 @@ export interface User {
    * @minLength 2
    * @maxLength 2
    */
-  language_code?: string;
+  language_code: string;
   /** アカウント作成日 */
   joined_at: string;
   screen_time: ScreenTimeSlot[];
@@ -57,11 +57,6 @@ export interface User {
    * @minimum 0
    */
   daily_screen_seconds?: number;
-  /**
-   * 今日の残りの時間（設定していない場合はなし）
-   * @minimum 0
-   */
-  daily_remaining_seconds?: number;
 }
 
 /**
@@ -184,6 +179,16 @@ state: string;
 error?: string;
 };
 
+export type GetUsersMeSessionsParams = {
+/**
+ * 取得する最大の数
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+cursor?: string;
+};
+
 export type GetUsersMeSessions200ItemsItem = {
   /** ID */
   id: string;
@@ -207,8 +212,6 @@ export type GetUsersMeSessions200ItemsItem = {
   device_type: string;
   /** ユーザーエージェント */
   user_agent: string;
-  /** セッションの有効期限 */
-  expires_at: string;
 };
 
 export type GetUsersMeSessions200 = {
@@ -217,6 +220,7 @@ export type GetUsersMeSessions200 = {
    * @minimum 0
    */
   item_count: number;
+  has_next: boolean;
   items: GetUsersMeSessions200ItemsItem[];
 };
 
@@ -283,7 +287,7 @@ export type GetChannelsChannelIdVideos200 = {
   items: GetChannelsChannelIdVideos200ItemsItem[];
 };
 
-export type GetSubscriptionsParams = {
+export type GetChannelsSubscribedParams = {
 /**
  * 取得する最大の数
  * @minimum 1
@@ -291,22 +295,15 @@ export type GetSubscriptionsParams = {
  */
 limit?: number;
 /**
- * 最後に取得したチャンネルID(ページネーション)
+ * 最後に取得したchannel_id(ページネーション)
  */
 cursor?: string;
 };
 
-export type GetSubscriptions200ItemsItem = {
-  /** 購読レコードのID */
-  subscription_id: string;
+export type GetChannelsSubscribed200ItemsItem = {
   /** 登録したチャンネルID(内部) */
   channel_id: string;
-  /** 登録日時 */
-  created_at: string;
-  /**
-   * 登録したチャンネルID(ハンドル名ではない)
-   * @pattern ^UC[a-zA-Z0-9_-]{22}$
-   */
+  /** 外部チャンネルID */
   external_channel_id: string;
   /** 登録したチャンネルの表示名 */
   external_channel_display_name: string;
@@ -315,8 +312,6 @@ export type GetSubscriptions200ItemsItem = {
    * @minLength 3
    */
   channel_custom_id: string;
-  /** 登録したチャンネルの説明文 */
-  channel_description: string;
   /** チャンネルのアイコンURL */
   external_channel_icon_url: string;
   /**
@@ -324,11 +319,9 @@ export type GetSubscriptions200ItemsItem = {
    * @minimum 0
    */
   channel_subscribers_count: number;
-  /** チャンネルの作成日 */
-  channel_created_at: string;
 };
 
-export type GetSubscriptions200 = {
+export type GetChannelsSubscribed200 = {
   /** ページネーションで次のページがあるかどうか */
   has_next: boolean;
   /**
@@ -336,21 +329,17 @@ export type GetSubscriptions200 = {
    * @minimum 0
    */
   item_count: number;
-  items: GetSubscriptions200ItemsItem[];
+  items: GetChannelsSubscribed200ItemsItem[];
 };
 
-export type PostSubscriptionsBody = {
+export type PostChannelsSubscribeBody = {
   /** 登録するチャンネルID or ハンドル名 */
   channel_id: string;
 };
 
-export type PostSubscriptions201 = {
-  /** 購読レコードのID */
-  subscription_id: string;
+export type PostChannelsSubscribe201 = {
   /** 登録したチャンネルID(内部) */
   channel_id: string;
-  /** 登録日時 */
-  created_at: string;
   /**
    * 登録したチャンネルID(ハンドル名ではない)
    * @pattern ^UC[a-zA-Z0-9_-]{22}$
@@ -464,7 +453,6 @@ export type GetVideosVideoId200 = {
   external_video_description: string;
   external_video_thumbnail_url: string;
   channel_id: string;
-  external_channel_id: string;
   external_channel_display_name: string;
   /**
    * チャンネルのハンドル名
@@ -548,8 +536,6 @@ cursor?: string;
 export type GetHistory200ItemsItem = {
   /** 内部ID */
   video_id: string;
-  /** @pattern ^[a-zA-Z0-9_-]{11}$ */
-  external_video_id: string;
   /**
    * 視聴途中の時間
    * @minimum 0
@@ -570,15 +556,8 @@ export type GetHistory200ItemsItem = {
   channel_id: string;
   /** チャンネルのアイコンURL */
   external_channel_icon_url: string;
-  /**
-   * チャンネルのYouTube ID
-   * @pattern ^UC[a-zA-Z0-9_-]{22}$
-   */
-  external_channel_id: string;
   /** チャンネルの表示名 */
   external_channel_display_name: string;
-  /** 動画の公開日時 */
-  external_video_created_at: string;
 };
 
 export type GetHistory200 = {
@@ -644,7 +623,7 @@ export type GetPlaylists200ItemsItem = {
   playlist_description: string;
   /** @minimum 0 */
   playlist_video_count: number;
-  playlist_created_at: string;
+  playlist_registered_at: string;
   playlist_updated_at: string;
   top_video_thumbnail_url?: string;
 };
@@ -673,7 +652,7 @@ export type PostPlaylists201 = {
   playlist_description: string;
   /** @minimum 0 */
   playlist_video_count: number;
-  playlist_created_at: string;
+  playlist_registered_at: string;
   playlist_updated_at: string;
 };
 
@@ -685,7 +664,7 @@ export type GetPlaylistsPlaylistId200 = {
   playlist_visibility: PlaylistVisibility;
   /** @minimum 0 */
   playlist_video_count: number;
-  playlist_created_at: string;
+  playlist_registered_at: string;
   playlist_updated_at: string;
   top_video_thumbnail_url?: string;
 };
@@ -699,7 +678,6 @@ export type PatchPlaylistsPlaylistId200 = {
   playlist_id: string;
   playlist_title: string;
   playlist_description: string;
-  playlist_updated_at: string;
 };
 
 export type GetPlaylistsPlaylistIdVideosParams = {

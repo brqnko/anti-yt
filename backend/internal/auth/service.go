@@ -10,6 +10,7 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
+	"github.com/brqnko/anti-yt/backend/internal/user"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -21,7 +22,6 @@ var (
 	ErrInvalidCSRF        = errors.New("invalid csrf: csrf != state")
 	ErrIDTokenNotFound    = oidc.ErrIDTokenNotFound
 
-	ErrNoSuchRefreshToken = errors.New("no such refresh token")
 )
 
 type Service struct {
@@ -33,15 +33,22 @@ type Service struct {
 
 	serverURL            string
 	refreshTokenDuration time.Duration
+
+	refreshTokenQS  RefreshTokenQueryService
+	authorizationQS AuthorizationQueryService
+	userQS          user.UserQueryService
 }
 
 func NewService(db *pgxpool.Pool, oidcService oidc.GoogleOIDCService, serverURL string, jwtService jwt_d.JWTService, refreshTokenDuration time.Duration) (*Service, error) {
 	return &Service{
-		db:                   db,
-		oidcService:          oidcService,
-		jwtService:           jwtService,
-		serverURL:            serverURL,
-		refreshTokenDuration: refreshTokenDuration,
+		db:                        db,
+		oidcService:               oidcService,
+		jwtService:                jwtService,
+		serverURL:                 serverURL,
+		refreshTokenDuration:      refreshTokenDuration,
+		refreshTokenQS:  NewRefreshTokenQueryService(db),
+		authorizationQS: NewAuthorizationQueryService(db),
+		userQS:          user.NewUserQueryService(db),
 	}, nil
 }
 
@@ -123,7 +130,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 	// userテーブルに存在しない場合、登録用アクセストークンを発行する。
 
 	// userテーブルに存在するかどうか
-	userPublicID, isDeactivated, err := NewAuthorizationRepository(q).FindUserByAuthorizationID(ctx, authorizationID)
+	userPublicID, isDeactivated, err := s.userQS.FindByAuthorizationID(ctx, authorizationID)
 
 	if err == nil && !isDeactivated { // 現役で存在する場合
 		at, atExp, err := s.jwtService.SignUserAccessToken(userPublicID, refreshToken.AccessTokenJTI, s.serverURL)
@@ -219,29 +226,21 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 	return newToken, accessTokenString, signedAtExpiresAtD, newRefreshToken.ExpiresAt, nil
 }
 
-func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID) ([]RefreshToken, error) {
-	q := sqlc.New(s.db)
-
-	sessions, err := NewRefreshTokenRepository(q).GetRefreshTokens(ctx, userID, 20, 0) // TODO: ページネーション(しかもoffset式だし)
+func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (sessions []GetSessionsView, hasNext bool, err error) {
+	view, err := s.refreshTokenQS.GetSessions(ctx, userID, cursor, limit+1)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
-
-	return sessions, nil
+	if len(view) > int(limit) {
+		return view[:limit], true, nil
+	}
+	return view, false, nil
 }
 
-func (s *Service) RemoveSession(ctx context.Context, sessionID uuid.UUID) (uuid.UUID, error) {
-	userID, err := util.UserIDFromContext(ctx)
-	if err != nil {
-		return uuid.Nil, err
-	}
-
+func (s *Service) RemoveSession(ctx context.Context, userID, sessionID uuid.UUID) (uuid.UUID, error) {
 	q := sqlc.New(s.db)
 	removedPublicID, err := NewRefreshTokenRepository(q).RevokeByID(ctx, userID, sessionID, time.Now().UTC().Add(s.jwtService.TokenDuration()))
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return uuid.Nil, ErrNoSuchRefreshToken
-		}
 		return uuid.Nil, err
 	}
 

@@ -8,14 +8,15 @@
 | ---- | ---- | ------- | -------- | -------- | ------- | ------- |
 | m_playlist_id | bigint |  | false | [public.m_playlist_video](public.m_playlist_video.md) |  |  |
 | m_user_id | bigint |  | false |  |  |  |
-| visibility_code | integer | 0 | false |  |  |  |
+| visibility_code | integer |  | false |  |  |  |
 | playlist_title | varchar(128) |  | false |  |  |  |
-| playlist_code | integer | 0 | false |  |  |  |
-| video_count | integer | 0 | false |  |  |  |
+| playlist_code | integer |  | false |  |  |  |
+| video_count | integer |  | false |  |  |  |
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
-| public_id | uuid | uuidv7() | false |  |  |  |
+| public_id | uuid |  | false |  |  |  |
 | playlist_description | varchar(255) |  | false |  |  |  |
+| registered_at | timestamp with time zone |  | false |  |  |  |
 
 ## Constraints
 
@@ -28,6 +29,7 @@
 | m_playlist_playlist_description_not_null | n | NOT NULL playlist_description |
 | m_playlist_playlist_title_not_null | n | NOT NULL playlist_title |
 | m_playlist_public_id_not_null | n | NOT NULL public_id |
+| m_playlist_registered_at_not_null | n | NOT NULL registered_at |
 | m_playlist_updated_at_not_null | n | NOT NULL updated_at |
 | m_playlist_video_count_not_null | n | NOT NULL video_count |
 | m_playlist_visibility_code_not_null | n | NOT NULL visibility_code |

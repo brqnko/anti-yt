@@ -31,8 +31,8 @@
 | Name | Definition |
 | ---- | ---------- |
 | m_playlist_video_pkey | CREATE UNIQUE INDEX m_playlist_video_pkey ON public.m_playlist_video USING btree (m_playlist_video_id) |
-| uk_1_m_playlist_video | CREATE UNIQUE INDEX uk_1_m_playlist_video ON public.m_playlist_video USING btree (m_playlist_id, m_video_id) |
 | idx_1_m_playlist_video | CREATE INDEX idx_1_m_playlist_video ON public.m_playlist_video USING btree (m_playlist_id, playlist_position) |
+| uk_1_m_playlist_video | CREATE UNIQUE INDEX uk_1_m_playlist_video ON public.m_playlist_video USING btree (m_playlist_id, m_video_id, playlist_position) |
 
 ## Relations
 

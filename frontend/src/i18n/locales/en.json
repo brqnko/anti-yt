@@ -277,7 +277,8 @@
     "minutesAgo": "{{count}}m ago",
     "hoursAgo": "{{count}}h ago",
     "daysAgo": "{{count}}d ago",
-    "monthsAgo": "{{count}}mo ago"
+    "monthsAgo": "{{count}}mo ago",
+    "loadMore": "Load More"
   },
   "appearance": {
     "title": "Appearance",
@@ -381,6 +382,7 @@
     "videoCount_one": "{{count}} video",
     "videoCount_other": "{{count}} videos",
     "lastUpdated": "Last updated {{time}}",
+    "createdAt": "Created {{time}}",
     "play": "Play",
     "empty": "No playlists yet",
     "emptyDesc": "Create a playlist to organize your curated content.",

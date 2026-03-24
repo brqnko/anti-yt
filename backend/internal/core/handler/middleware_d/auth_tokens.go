@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
-	"github.com/brqnko/anti-yt/backend/internal/util"
+	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 )
 
 var (
@@ -32,10 +32,10 @@ func AuthTokensMiddleware(f v1.StrictHandlerFunc, operationID string) v1.StrictH
 
 		newCtx := ctx
 		if cookie, err := r.Cookie("access_token"); err == nil {
-			newCtx = util.WithAccessToken(newCtx, cookie.Value)
+			newCtx = hutil.WithAccessToken(newCtx, cookie.Value)
 		}
 		if cookie, err := r.Cookie("refresh_token"); err == nil {
-			newCtx = util.WithRefreshToken(newCtx, cookie.Value)
+			newCtx = hutil.WithRefreshToken(newCtx, cookie.Value)
 		}
 		return f(newCtx, w, r.WithContext(newCtx), request)
 	}

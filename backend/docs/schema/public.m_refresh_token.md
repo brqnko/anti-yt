@@ -9,7 +9,7 @@
 | m_refresh_token_id | bigint |  | false |  |  |  |
 | m_user_authorization_id | bigint |  | false |  | [public.m_user_authorization](public.m_user_authorization.md) |  |
 | token_hash | varchar(256) |  | false |  |  |  |
-| generation | integer | 1 | false |  |  |  |
+| generation | integer |  | false |  |  |  |
 | ip_address | varchar(64) |  | false |  |  |  |
 | device_fingerprint | varchar(32) |  | false |  |  |  |
 | user_agent | varchar(512) |  | false |  |  |  |
@@ -20,7 +20,7 @@
 | expires_at | timestamp with time zone |  | false |  |  |  |
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
-| public_id | uuid | uuidv7() | false |  |  |  |
+| public_id | uuid |  | false |  |  |  |
 | access_token_jti | uuid |  | false |  |  |  |
 | activated_at | timestamp with time zone |  | false |  |  |  |
 | last_logged_in_at | timestamp with time zone |  | false |  |  |  |
@@ -59,6 +59,7 @@
 | idx_1_m_refresh_token | CREATE INDEX idx_1_m_refresh_token ON public.m_refresh_token USING btree (expires_at) |
 | uk_2_m_refresh_token | CREATE UNIQUE INDEX uk_2_m_refresh_token ON public.m_refresh_token USING btree (public_id) |
 | idx_2_m_refresh_token | CREATE INDEX idx_2_m_refresh_token ON public.m_refresh_token USING btree (m_user_authorization_id, updated_at) |
+| idx_3_m_refresh_token | CREATE INDEX idx_3_m_refresh_token ON public.m_refresh_token USING btree (m_user_authorization_id, public_id) |
 
 ## Relations
 

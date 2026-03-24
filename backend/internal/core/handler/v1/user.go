@@ -3,17 +3,27 @@ package v1
 import (
 	"context"
 	"errors"
-	"log/slog"
 	"net/http"
 
+	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 	"github.com/brqnko/anti-yt/backend/internal/user"
 	"github.com/brqnko/anti-yt/backend/internal/util"
-	"github.com/google/uuid"
 )
 
-func (h *APIHandler) DeleteUsersMe(c context.Context, request DeleteUsersMeRequestObject) (DeleteUsersMeResponseObject, error) {
-	if err := h.userService.RemoveUser(c); err != nil {
-		util.LogError(c, err)
+func (h *APIHandler) DeleteUsersMe(ctx context.Context, request DeleteUsersMeRequestObject) (DeleteUsersMeResponseObject, error) {
+	userID, err := hutil.UserIDFromContext(ctx)
+	if err != nil {
+		hutil.LogError(ctx, err)
+		return DeleteUsersMe500JSONResponse{
+			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
+				Detail: internalErrorDetail,
+				Title:  internalErrorTitle,
+			},
+		}, nil
+	}
+
+	if err := h.userService.RemoveUser(ctx, userID); err != nil {
+		hutil.LogError(ctx, err)
 		return DeleteUsersMe500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Detail: internalErrorDetail,
@@ -25,10 +35,10 @@ func (h *APIHandler) DeleteUsersMe(c context.Context, request DeleteUsersMeReque
 	return DeleteUsersMe204Response{}, nil
 }
 
-func (h *APIHandler) GetUsersMeStatus(c context.Context, request GetUsersMeStatusRequestObject) (GetUsersMeStatusResponseObject, error) {
-	user, err := h.userService.GetUserStatus(c)
+func (h *APIHandler) GetUsersMeStatus(ctx context.Context, request GetUsersMeStatusRequestObject) (GetUsersMeStatusResponseObject, error) {
+	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		util.LogError(c, err)
+		hutil.LogError(ctx, err)
 		return GetUsersMeStatus500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Detail: internalErrorDetail,
@@ -37,34 +47,42 @@ func (h *APIHandler) GetUsersMeStatus(c context.Context, request GetUsersMeStatu
 		}, nil
 	}
 
-	screenTime, err := dtoToScreenTimeSlots(user.ScreenTimeLimitRange)
+	user, err := h.userService.GetUserStatus(ctx, userID)
 	if err != nil {
-		util.LogError(c, err)
+		hutil.LogError(ctx, err)
 		return GetUsersMeStatus500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Detail: internalErrorDetail,
 				Title:  internalErrorTitle,
 			},
 		}, nil
+	}
+
+	screenTime := make([]ScreenTimeSlot, len(user.ScreenTimeLimitRange))
+	for i, v := range user.ScreenTimeLimitRange {
+		screenTime[i] = ScreenTimeSlot{
+			EndTime:   v.EndTime,
+			Id:        v.ID,
+			StartTime: v.StartTime,
+		}
 	}
 
 	return GetUsersMeStatus200JSONResponse{
-		DailyRemainingSeconds: intToOptPtr(user.RemainingSeconds),
-		DailyScreenSeconds:    intToOptPtr(user.ScreenTimeSeconds),
-		DisplayName:           user.DisplayName,
-		Id:                    user.UserID,
-		JoinedAt:              user.JoinedAt,
-		LanguageCode:          &user.LanguageCode,
-		ScreenTime:            screenTime,
+		DailyScreenSeconds: user.DailyScreenSeconds,
+		DisplayName:        user.DisplayName,
+		Id:                 user.UserID,
+		JoinedAt:           user.JoinedAt,
+		LanguageCode:       user.LanguageCode,
+		ScreenTime:         screenTime,
 	}, nil
 }
 
-func (h *APIHandler) PatchUsersMeStatus(c context.Context, request PatchUsersMeStatusRequestObject) (PatchUsersMeStatusResponseObject, error) {
+func (h *APIHandler) PatchUsersMeStatus(ctx context.Context, request PatchUsersMeStatusRequestObject) (PatchUsersMeStatusResponseObject, error) {
 	var screenTimeDto *[]struct{ Start, End int }
 	if request.Body.ScreenTime != nil {
 		converted, err := screenTimeSlotsToDto(*request.Body.ScreenTime)
 		if err != nil {
-			util.LogError(c, err)
+			hutil.LogError(ctx, err)
 			return PatchUsersMeStatus500JSONResponse{
 				InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 					Detail: internalErrorDetail,
@@ -74,12 +92,9 @@ func (h *APIHandler) PatchUsersMeStatus(c context.Context, request PatchUsersMeS
 		}
 		screenTimeDto = &converted
 	}
-	u, err := h.userService.EditUser(c, request.Body.DisplayName, request.Body.LanguageCode, request.Body.DailyScreenSeconds, screenTimeDto)
+	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		if br := userDomainErrToBadRequest(err); br != nil {
-			return PatchUsersMeStatus400JSONResponse{BadRequestJSONResponse: *br}, nil
-		}
-		util.LogError(c, err)
+		hutil.LogError(ctx, err)
 		return PatchUsersMeStatus500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Detail: internalErrorDetail,
@@ -88,32 +103,33 @@ func (h *APIHandler) PatchUsersMeStatus(c context.Context, request PatchUsersMeS
 		}, nil
 	}
 
-	screenTime, err := dtoToScreenTimeSlots(u.ScreenTimeLimitRange)
+	u, err := h.userService.EditUser(ctx, userID, request.Body.DisplayName, request.Body.LanguageCode, request.Body.DailyScreenSeconds, screenTimeDto)
 	if err != nil {
-		util.LogError(c, err)
+		if br := userDomainErrToBadRequest(err); br != nil {
+			return PatchUsersMeStatus400JSONResponse{BadRequestJSONResponse: *br}, nil
+		}
+		hutil.LogError(ctx, err)
 		return PatchUsersMeStatus500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Title:  internalErrorTitle,
 				Detail: internalErrorDetail,
+				Title:  internalErrorTitle,
 			},
 		}, nil
 	}
 
 	return PatchUsersMeStatus200JSONResponse{
-		DailyRemainingSeconds: intToOptPtr(u.RemainingSeconds),
-		DailyScreenSeconds:    intToOptPtr(u.ScreenTimeSeconds),
-		DisplayName:           u.DisplayName,
-		Id:                    u.UserID,
-		JoinedAt:              u.JoinedAt,
-		LanguageCode:          &u.LanguageCode,
-		ScreenTime:            screenTime,
+		DailyScreenSeconds: u.ScreenTimeLimit.ToIntPtr(),
+		DisplayName:        u.DisplayName.String(),
+		Id:                 u.ID,
+		JoinedAt:           u.JoinedAt,
+		LanguageCode:       u.LanguageCode.String(),
 	}, nil
 }
 
-func (h *APIHandler) PostUsersMe(c context.Context, request PostUsersMeRequestObject) (PostUsersMeResponseObject, error) {
+func (h *APIHandler) PostUsersMe(ctx context.Context, request PostUsersMeRequestObject) (PostUsersMeResponseObject, error) {
 	screenTimeDto, err := screenTimeSlotsToDto(request.Body.ScreenTime)
 	if err != nil {
-		util.LogError(c, err)
+		hutil.LogError(ctx, err)
 		return PostUsersMe500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Title:  internalErrorTitle,
@@ -121,12 +137,22 @@ func (h *APIHandler) PostUsersMe(c context.Context, request PostUsersMeRequestOb
 			},
 		}, nil
 	}
-	u, newAccessToken, accessTokenExpiresAt, err := h.userService.CreateNewUser(c, request.Body.DailyScreenSeconds, screenTimeDto, request.Body.DisplayName, request.Body.LanguageCode)
+	accessToken, ok := hutil.AccessTokenFromContext(ctx)
+	if !ok {
+		return PostUsersMe500JSONResponse{
+			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
+				Detail: internalErrorDetail,
+				Title:  internalErrorTitle,
+			},
+		}, nil
+	}
+
+	u, newAccessToken, accessTokenExpiresAt, err := h.userService.CreateNewUser(ctx, accessToken, request.Body.DailyScreenSeconds, screenTimeDto, request.Body.DisplayName, request.Body.LanguageCode)
 	if err != nil {
 		if br := userDomainErrToBadRequest(err); br != nil {
 			return PostUsersMe400JSONResponse{BadRequestJSONResponse: *br}, nil
 		}
-		util.LogError(c, err)
+		hutil.LogError(ctx, err)
 		return PostUsersMe500JSONResponse{
 			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
 				Title:  internalErrorTitle,
@@ -136,7 +162,7 @@ func (h *APIHandler) PostUsersMe(c context.Context, request PostUsersMeRequestOb
 	}
 
 	// RegisterTokenからUserAccessTokenに切り替え
-	util.AddResponseCookie(c, (&http.Cookie{
+	hutil.AddResponseCookie(ctx, (&http.Cookie{
 		Name:     "access_token",
 		Value:    newAccessToken,
 		Path:     "/",
@@ -146,25 +172,12 @@ func (h *APIHandler) PostUsersMe(c context.Context, request PostUsersMeRequestOb
 		SameSite: http.SameSiteStrictMode,
 	}).String())
 
-	screenTime, err := dtoToScreenTimeSlots(u.ScreenTimeLimitRange)
-	if err != nil {
-		util.LogError(c, err)
-		return PostUsersMe500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Title:  internalErrorTitle,
-				Detail: internalErrorDetail,
-			},
-		}, nil
-	}
-
 	return PostUsersMe201JSONResponse{
-		DailyRemainingSeconds: intToOptPtr(u.RemainingSeconds),
-		DailyScreenSeconds:    intToOptPtr(u.ScreenTimeSeconds),
-		DisplayName:           u.DisplayName,
-		Id:                    u.UserID,
-		JoinedAt:              u.JoinedAt,
-		LanguageCode:          &u.LanguageCode,
-		ScreenTime:            screenTime,
+		DailyScreenSeconds: u.ScreenTimeLimit.ToIntPtr(),
+		DisplayName:        u.DisplayName.String(),
+		Id:                 u.ID,
+		JoinedAt:           u.JoinedAt,
+		LanguageCode:       u.LanguageCode.String(),
 	}, nil
 }
 
@@ -187,14 +200,6 @@ func userDomainErrToBadRequest(err error) *BadRequestJSONResponse {
 	return &BadRequestJSONResponse{Detail: detail, Title: detail}
 }
 
-// intToOptPtr は -1 を nil に変換し、それ以外はポインタを返す。
-func intToOptPtr(v int) *int {
-	if v == -1 {
-		return nil
-	}
-	return &v
-}
-
 func screenTimeSlotsToDto(slots []ScreenTimeSlot) ([]struct{ Start, End int }, error) {
 	result := make([]struct{ Start, End int }, len(slots))
 	for i, s := range slots {
@@ -209,31 +214,4 @@ func screenTimeSlotsToDto(slots []ScreenTimeSlot) ([]struct{ Start, End int }, e
 		result[i] = struct{ Start, End int }{start, end}
 	}
 	return result, nil
-}
-
-func dtoToScreenTimeSlots(screenTimeLimitRange []struct {
-	ID                       uuid.UUID
-	StartSeconds, EndSeconds int
-}) ([]ScreenTimeSlot, error) {
-	screenTime := make([]ScreenTimeSlot, len(screenTimeLimitRange))
-	for i, dto := range screenTimeLimitRange {
-		startTime, err := util.IntToHHmm(dto.StartSeconds)
-		if err != nil {
-			slog.Error("int to hh:mm", "error", err)
-			return []ScreenTimeSlot{}, err
-		}
-		endTime, err := util.IntToHHmm(dto.EndSeconds)
-		if err != nil {
-			slog.Error("int to hh:mm", "error", err)
-			return []ScreenTimeSlot{}, err
-		}
-
-		screenTime[i] = ScreenTimeSlot{
-			EndTime:   endTime,
-			Id:        dto.ID,
-			StartTime: startTime,
-		}
-	}
-
-	return screenTime, nil
 }

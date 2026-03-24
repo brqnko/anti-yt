@@ -7,7 +7,8 @@
  */
 import type {
   GetAuthGoogleCallbackParams,
-  GetUsersMeSessions200
+  GetUsersMeSessions200,
+  GetUsersMeSessionsParams
 } from './antiYtApi.schemas';
 
 import { customInstance } from '../mutator';
@@ -70,10 +71,11 @@ const postAuthLogout = (
  * @summary User session list
  */
 const getUsersMeSessions = (
-    
+    params: GetUsersMeSessionsParams,
  ) => {
       return customInstance<GetUsersMeSessions200>(
-      {url: `/api/v1/users/me/sessions`, method: 'GET'
+      {url: `/api/v1/users/me/sessions`, method: 'GET',
+        params
     },
       );
     }

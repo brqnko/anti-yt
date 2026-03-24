@@ -31,31 +31,48 @@ function formatLastActive(dateStr: string, t: (key: string, opts?: Record<string
   return t("security.monthsAgo", { count: diffMonths });
 }
 
+const PAGE_SIZE = 20;
+
 export function SecurityTab() {
   const { t } = useTranslation();
   const [sessions, setSessions] = useState<GetUsersMeSessions200ItemsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasNext, setHasNext] = useState(false);
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [revokeError, setRevokeError] = useState<string | null>(null);
 
-  const loadSessions = async () => {
+  const loadSessions = async (cursor?: string) => {
     try {
       setError(null);
       const { getUsersMeSessions } = getAuth();
-      const data = await getUsersMeSessions();
-      setSessions(data.items);
-      // TODO: 現在のセッションを正確に判定する
-      if (data.items.length > 0) {
-        setCurrentSessionId(data.items[0].id);
+      const data = await getUsersMeSessions({ limit: PAGE_SIZE, cursor });
+      if (cursor) {
+        setSessions((prev) => [...prev, ...data.items]);
+      } else {
+        setSessions(data.items);
+        // TODO: 現在のセッションを正確に判定する
+        if (data.items.length > 0) {
+          setCurrentSessionId(data.items[0].id);
+        }
       }
+      setHasNext(data.has_next);
     } catch {
       setError(t("security.loadError"));
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
+  };
+
+  const loadMore = () => {
+    if (sessions.length === 0 || !hasNext) return;
+    setIsLoadingMore(true);
+    const lastId = sessions[sessions.length - 1].id;
+    loadSessions(lastId);
   };
 
   useEffect(() => {
@@ -220,6 +237,24 @@ export function SecurityTab() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Load More */}
+      {hasNext && (
+        <div class="flex justify-center">
+          <button
+            onClick={loadMore}
+            disabled={isLoadingMore}
+            class="px-6 py-2.5 rounded-lg font-bold text-sm text-primary hover:bg-primary/10 transition-colors cursor-pointer bg-transparent border border-primary/30 disabled:opacity-50 flex items-center gap-2"
+          >
+            {isLoadingMore && (
+              <span class="material-symbols-outlined text-[18px] animate-spin">
+                progress_activity
+              </span>
+            )}
+            {t("security.loadMore")}
+          </button>
         </div>
       )}
 

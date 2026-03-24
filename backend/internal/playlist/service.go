@@ -7,9 +7,9 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/channel"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
-	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/brqnko/anti-yt/backend/internal/video"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -18,43 +18,34 @@ import (
 
 var ErrInvalidPlaylistID = errors.New("invalid playlist id or unsupported format")
 
-
 type Service struct {
-	db        *pgxpool.Pool
-	ytService youtube_d.YouTubeAPIService
+	db         *pgxpool.Pool
+	ytService  youtube_d.YouTubeAPIService
+	playlistQS PlaylistQueryService
 }
 
 func NewService(db *pgxpool.Pool, ytService youtube_d.YouTubeAPIService) (*Service, error) {
 	return &Service{
-		db:        db,
-		ytService: ytService,
+		db:         db,
+		ytService:  ytService,
+		playlistQS: NewPlaylistQueryService(db),
 	}, nil
 }
 
-func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibilityStr, playlistTypeStr string, basePlaylistUrl *string) (Playlist, error) {
-	userID, err := util.UserIDFromContext(ctx)
-	if err != nil {
-		return Playlist{}, err
-	}
-
-	pl, err := NewPlaylist(
-		uuid.Nil,
+func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, description, visibilityStr, playlistTypeStr string, basePlaylistUrl *string) (*Playlist, error) {
+	playlist, err := NewPlaylist(
 		title,
 		description,
 		visibilityStr,
 		playlistTypeStr,
-		0,
-		time.Time{},
-		"",
-		[]video.Video{},
 	)
 	if err != nil {
-		return Playlist{}, err
+		return nil, err
 	}
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return Playlist{}, err
+		return nil, err
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -63,120 +54,95 @@ func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibi
 	}()
 	q := sqlc.New(tx)
 
-	// NOTE: repeatable readなので、insertした内容はcommitするまで他のトランザクションから見れない
-	// なので、ロックなどをつける意味はない
-	row, err := q.CreatePlaylist(ctx, sqlc.CreatePlaylistParams{
-		UserPublicID:        userID,
-		PlaylistTitle:       string(pl.Title),
-		PlaylistDescription: string(pl.Description),
-		VisibilityCode:      int(pl.VisibilityCode),
-		PlaylistCode:        int(pl.PlaylistCode),
-	})
+	// NOTE: insertした内容はcommitするまで他のトランザクションから見れない(repeatable read)ので、ロックなどをつける意味はない
+	row, err := NewPlaylistRepository(q).Save(ctx, userID, playlist)
 	if err != nil {
-		return Playlist{}, fmt.Errorf("failed to createPlaylist: %w", err)
+		return nil, err
 	}
-
-	pl = pl.WithGeneratedFields(row.PublicID, row.CreatedAt)
 
 	if basePlaylistUrl == nil {
 		if err := tx.Commit(ctx); err != nil {
-			return Playlist{}, err
+			return nil, err
 		}
 
-		return pl, nil
+		return playlist, nil
 	}
 
 	// YouTubeからプレイリストをimportする
 	playlistID, err := extractPlaylistID(*basePlaylistUrl)
 	if err != nil {
-		return Playlist{}, err
+		return nil, err
 	}
 
-	// insert時に使うcopyfromはon conflictに対応していないので、コード側で重複がないことを検証する
-	var allVideoIDs []int64
-	seenVideoIDs := make(map[int64]struct{})
+	var allVideoIDs []int64 // 順序を保持するため
 	var nextPageToken string
 	for {
 		// プレイリストから動画IDのリストを取得
 		videoIDs, pageToken, err := s.ytService.FetchPlaylistVideoIDs(ctx, playlistID, nextPageToken)
 		if err != nil {
-			return Playlist{}, fmt.Errorf("failed to fetchPlaylistVideoIds: %w", err)
+			return nil, fmt.Errorf("failed to fetchPlaylistVideoIds: %w", err)
 		}
 
 		// 動画IDのリストから詳細を取得
 		videoDetails, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
 		if err != nil {
-			return Playlist{}, fmt.Errorf("failed to fetchVideoDetail: %w", err)
+			return nil, fmt.Errorf("failed to fetchVideoDetail: %w", err)
 		}
 
-		// 各動画のチャンネル詳細を取得（重複排除）
-		channelIDSet := make(map[string]struct{})
+		// チャンネル詳細を取得
+		channelIDs := make([]youtube_d.ChannelID, len(videoDetails))
+		i := 0
 		for _, vd := range videoDetails {
-			channelIDSet[vd.ChannelID] = struct{}{}
-		}
-		channelIDs := make([]string, len(channelIDSet))
-		var j int
-		for id := range channelIDSet {
-			channelIDs[j] = id
-			j++
+			channelIDs[i] = vd.ChannelID
+			i++
 		}
 		channelDetails, err := s.ytService.FetchChannelDetail(ctx, channelIDs)
 		if err != nil {
-			return Playlist{}, fmt.Errorf("failed to fetchChannelDetail: %w", err)
-		}
-
-		savedChannels := make(map[string]int64)
-
-		// NOTE: チャンネルを先に保存するので、動画があってチャンネルがないようなことは発生しない
-		// そのため、トランザクションは使用しない.
-		// どのチャンネルがどんな動画を投稿したかのデータの、プレイリストの保存の成功に関わらず蓄積されてく
-		for _, channelDetail := range channelDetails {
-			if err := sqlc.New(s.db).ClearStaleChannelCustomID(ctx, sqlc.ClearStaleChannelCustomIDParams{
-				ExternalCustomID: channelDetail.CustomID,
-				ExternalID:       channelDetail.ID,
-			}); err != nil {
-				return Playlist{}, fmt.Errorf("failed to clearStaleChannelCustomID: %w", err)
-			}
-			saveChannel, err := sqlc.New(s.db).SaveChannel(ctx, sqlc.SaveChannelParams{
-				ExternalID:                channelDetail.ID,
-				ExternalDisplayName:       channelDetail.DisplayName,
-				ExternalCustomID:          channelDetail.CustomID,
-				ExternalIconUrl:           channelDetail.IconURL,
-				ExternalDescription:       channelDetail.Description,
-				ExternalSubscribersCount:  int64(channelDetail.SubscribersCount),
-				ExternalCreatedAt:         channelDetail.CreatedAt,
-				ExternalUploadsPlaylistID: channelDetail.UploadsPlaylistID,
-			})
-			if err != nil { // NOTE: on conflict do update returningはコンフリクト時はその行を返してれる
-				return Playlist{}, err
-			}
-			savedChannels[channelDetail.ID] = saveChannel.MChannelID
+			return nil, fmt.Errorf("failed to fetchChannelDetail: %w", err)
 		}
 
 		fetchedAt := time.Now().UTC()
-		for _, vid := range videoIDs {
-			videoDetail, ok := videoDetails[vid]
-			if !ok {
-				continue
-			}
-			saveVideo, err := sqlc.New(s.db).SaveVideo(ctx, sqlc.SaveVideoParams{
-				MChannelID:            savedChannels[videoDetail.ChannelID],
-				ExternalID:            videoDetail.ID,
-				ExternalTitle:         videoDetail.Title,
-				ExternalDescription:   videoDetail.Description,
-				FetchedAt:             fetchedAt,
-				ExternalCreatedAt:     videoDetail.CreatedAt,
-				ExternalThumbnailUrl:  videoDetail.ThumbnailURL,
-				ExternalLengthSeconds: videoDetail.LengthSeconds,
-			})
+
+		// NOTE: チャンネルを先に保存するので、動画があってチャンネルがないようなことは発生しないため、トランザクションは使用しない
+		// チャンネルの詳細情報を先に保存する
+		savedChannels := make(map[youtube_d.ChannelID]uuid.UUID)
+		for _, channelDetail := range channelDetails {
+			ch, err := channel.NewChannel(fetchedAt, fetchedAt, channelDetail)
 			if err != nil {
-				return Playlist{}, fmt.Errorf("failed to saveVideo: %w", err)
+				return nil, fmt.Errorf("failed to newChannel: %w", err)
 			}
 
-			if _, exists := seenVideoIDs[saveVideo]; !exists {
-				seenVideoIDs[saveVideo] = struct{}{}
-				allVideoIDs = append(allVideoIDs, saveVideo)
+			if _, err := channel.NewChannelRepository(sqlc.New(s.db)).Save(ctx, ch); err != nil {
+				return nil, fmt.Errorf("failed to saveChannel: %w", err)
 			}
+			savedChannels[channelDetail.ID] = ch.ID
+		}
+
+		// 動画の詳細情報を保存する
+		// 動画の保存自体に順番は関係ない
+		videoIDToint64 := make(map[youtube_d.VideoID]int64)
+		for _, videoDetail := range videoDetails {
+			v, err := video.NewVideo(savedChannels[videoDetail.ChannelID], fetchedAt, videoDetail)
+			if err != nil {
+				slog.Info("failed to newVideo(createPlaylist)", "error", err)
+				continue
+			}
+
+			savedVideoID, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v)
+			if err != nil {
+				slog.Info("failed to saveVideo(createPlaylist)", "error", err)
+				continue
+			}
+			videoIDToint64[v.Video.ID] = savedVideoID
+		}
+
+		for _, vid := range videoIDs {
+			savedVideoID, ok := videoIDToint64[vid]
+			if !ok {
+				slog.Info("video not found in savedVideos(createPlaylist)", "videoID", vid)
+				continue
+			}
+			allVideoIDs = append(allVideoIDs, savedVideoID)
 		}
 
 		if pageToken == "" {
@@ -185,242 +151,152 @@ func (s *Service) CreatePlaylist(ctx context.Context, title, description, visibi
 		nextPageToken = pageToken
 	}
 
-	bulkParams := make([]sqlc.BulkInsertIntoPlaylistParams, len(allVideoIDs))
-	for i, videoID := range allVideoIDs {
-		bulkParams[i] = sqlc.BulkInsertIntoPlaylistParams{
-			MPlaylistID:      row.MPlaylistID,
-			MVideoID:         videoID,
-			PlaylistPosition: int64(i) * 1048576, // 2^20
-		}
-	}
-	if _, err := q.BulkInsertIntoPlaylist(ctx, bulkParams); err != nil {
-		return Playlist{}, fmt.Errorf("failed to bulkInsertIntoPlaylist: %w", err)
+	if err := NewPlaylistRepository(q).BulkInsertVideos(ctx, row, allVideoIDs); err != nil {
+		return nil, err
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return Playlist{}, err
+		return nil, err
 	}
 
-	return pl, nil
+	return playlist, nil
 }
 
-func (s *Service) GetPlaylists(ctx context.Context, cursor *uuid.UUID, limit int) ([]Playlist, error) {
-	userID, err := util.UserIDFromContext(ctx)
+func (s *Service) GetPlaylists(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (playlists []GetPlaylistsView, hasNext bool, err error) {
+	playlists, err = s.playlistQS.FindPlaylists(ctx, userID, cursor, limit+1)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if len(playlists) > int(limit) {
+		return playlists[:limit], true, nil
+	}
+	return playlists, false, nil
+}
+
+func (s *Service) GetPlaylistDetail(ctx context.Context, userID, playlistID uuid.UUID) (GetPlaylistDetailView, error) {
+	view, err := s.playlistQS.Find(ctx, userID, playlistID)
+	if err != nil {
+		return GetPlaylistDetailView{}, err
+	}
+	return view, nil
+}
+
+func (s *Service) DeletePlaylist(ctx context.Context, userID, playlistID uuid.UUID) error {
+	return NewPlaylistRepository(sqlc.New(s.db)).Remove(ctx, userID, playlistID)
+}
+
+func (s *Service) GetPlaylistItems(ctx context.Context, userID, playlistID uuid.UUID, videoCursor *uuid.UUID, limit int32) (items []GetPlaylistItemView, hasNext bool, err error) {
+	items, err = s.playlistQS.FindPlaylistItems(ctx, userID, playlistID, videoCursor, limit+1)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if len(items) > int(limit) {
+		return items[:limit], true, nil
+	}
+	return items, false, nil
+}
+
+func (s *Service) UpdatePlaylist(ctx context.Context, userID, playlistID uuid.UUID, newPlaylistTitle *string, newPlaylistDescription *string) (*Playlist, error) {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			slog.Error("failed to rollback", "error", err)
+		}
+	}()
+
+	q := sqlc.New(tx)
+	playlist, err := NewPlaylistRepository(q).FindForUpdate(ctx, userID, playlistID)
 	if err != nil {
 		return nil, err
 	}
 
-	q := sqlc.New(s.db)
-	rows, err := q.GetUserPlaylists(ctx, sqlc.GetUserPlaylistsParams{
-		UserID:     userID,
-		Cursor:     cursor,
-		QueryLimit: int32(limit),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to getUserPlaylists: %w", err)
+	if err := playlist.SetTitle(newPlaylistTitle); err != nil {
+		return nil, err
+	}
+	if err := playlist.SetDescription(newPlaylistDescription); err != nil {
+		return nil, err
 	}
 
-	playlists := make([]Playlist, len(rows))
-	for i, row := range rows {
-		pl, err := NewPlaylist(
-			row.PublicID,
-			row.PlaylistTitle,
-			row.PlaylistDescription,
-			VisibilityCode(row.VisibilityCode).String(),
-			PlaylistCode(row.PlaylistCode).String(),
-			int(row.VideoCount),
-			row.CreatedAt,
-			row.TopThumbnail,
-			[]video.Video{},
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to newPlaylist: %w", err)
+	if _, err := NewPlaylistRepository(q).Save(ctx, userID, playlist); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
+	return playlist, nil
+}
+
+func (s *Service) InsertVideoIntoPlaylist(ctx context.Context, userID, playlistID, videoID uuid.UUID) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			slog.Error("failed to rollback", "error", err)
 		}
-		playlists[i] = pl
-	}
+	}()
 
-	return playlists, nil
-}
-
-func (s *Service) GetPlaylistInfo(ctx context.Context, playlistID uuid.UUID) (Playlist, error) {
-	userID, err := util.UserIDFromContext(ctx)
-	if err != nil {
-		return Playlist{}, err
-	}
-
-	q := sqlc.New(s.db)
-	row, err := q.GetPlaylist(ctx, sqlc.GetPlaylistParams{
-		UserID:     userID,
-		PlaylistID: playlistID,
-	})
-	if errors.Is(err, pgx.ErrNoRows) {
-		return Playlist{}, ErrPlaylistNotFound
-	}
-	if err != nil {
-		return Playlist{}, fmt.Errorf("failed to getPlaylistInfo: %w", err)
-	}
-
-	return NewPlaylist(
-		row.PublicID,
-		row.PlaylistTitle,
-		row.PlaylistDescription,
-		VisibilityCode(row.VisibilityCode).String(),
-		PlaylistCode(row.PlaylistCode).String(),
-		int(row.VideoCount),
-		row.CreatedAt,
-		row.TopThumbnail,
-		[]video.Video{},
-	)
-}
-
-func (s *Service) DeletePlaylist(ctx context.Context, playlistID uuid.UUID) error {
-	userID, err := util.UserIDFromContext(ctx)
+	q := sqlc.New(tx)
+	playlist, err := NewPlaylistRepository(q).FindForUpdate(ctx, userID, playlistID)
 	if err != nil {
 		return err
 	}
 
-	q := sqlc.New(s.db)
-	_, err = q.DeletePlaylist(ctx, sqlc.DeletePlaylistParams{
-		UserID:     userID,
-		PlaylistID: playlistID,
-	})
-	if errors.Is(err, pgx.ErrNoRows) {
-		return ErrPlaylistNotFound
-	}
-	if err != nil {
-		return fmt.Errorf("failed to deletePlaylist: %w", err)
+	if err := NewPlaylistRepository(q).InsertVideo(ctx, userID, playlistID, videoID); err != nil {
+		return err
 	}
 
+	playlist.IncrementVideoCount()
+
+	if _, err := NewPlaylistRepository(q).Save(ctx, userID, playlist); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (s *Service) GetPlaylistItems(ctx context.Context, playlistID uuid.UUID, videoCursor *uuid.UUID, limit int) ([]video.Video, error) {
-	userID, err := util.UserIDFromContext(ctx)
+func (s *Service) RemoveVideoFromPlaylist(ctx context.Context, userID, playlistID, videoID uuid.UUID) error {
+	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	q := sqlc.New(s.db)
-	rows, err := q.GetPlaylistVideos(ctx, sqlc.GetPlaylistVideosParams{
-		UserID:     userID,
-		PlaylistID: playlistID,
-		Cursor:     videoCursor,
-		QueryLimit: int32(limit),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to getPlaylistVideos: %w", err)
-	}
-
-	videos := make([]video.Video, len(rows))
-	for i, row := range rows {
-		videos[i] = video.NewVideo(
-			row.PublicID,
-			row.ChannelID,
-			row.ExternalThumbnailUrl,
-			row.ExternalChannelIconUrl,
-			row.ExternalTitle,
-			row.ExternalChannelDisplayname,
-			row.ExternalCreatedAt,
-			row.ExternalLengthSeconds,
-			row.LastWatchSeconds,
-		)
-	}
-
-	return videos, nil
-}
-
-func (s *Service) UpdatePlaylist(ctx context.Context, playlistID uuid.UUID, newPlaylistTitle *string, newPlaylistDescription *string) (Playlist, error) {
-	userID, err := util.UserIDFromContext(ctx)
-	if err != nil {
-		return Playlist{}, err
-	}
-
-	if newPlaylistTitle != nil {
-		if _, err := NewPlaylistTitle(*newPlaylistTitle); err != nil {
-			return Playlist{}, err
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			slog.Error("failed to rollback", "error", err)
 		}
-	}
-	if newPlaylistDescription != nil {
-		if _, err := NewPlaylistDescription(*newPlaylistDescription); err != nil {
-			return Playlist{}, err
-		}
-	}
+	}()
 
-	q := sqlc.New(s.db)
-	_, err = q.UpdatePlaylist(ctx, sqlc.UpdatePlaylistParams{
-		UserID:                 userID,
-		PlaylistID:             playlistID,
-		NewPlaylistTitle:       newPlaylistTitle,
-		NewPlaylistDescription: newPlaylistDescription,
-	})
-	if errors.Is(err, pgx.ErrNoRows) {
-		return Playlist{}, ErrPlaylistNotFound
-	}
-	if err != nil {
-		return Playlist{}, fmt.Errorf("failed to updatePlaylist: %w", err)
-	}
-
-	row, err := q.GetPlaylist(ctx, sqlc.GetPlaylistParams{
-		UserID:     userID,
-		PlaylistID: playlistID,
-	})
-	if err != nil {
-		return Playlist{}, fmt.Errorf("failed to getPlaylist: %w", err)
-	}
-
-	return NewPlaylist(
-		row.PublicID,
-		row.PlaylistTitle,
-		row.PlaylistDescription,
-		VisibilityCode(row.VisibilityCode).String(),
-		PlaylistCode(row.PlaylistCode).String(),
-		int(row.VideoCount),
-		row.CreatedAt,
-		row.TopThumbnail,
-		[]video.Video{},
-	)
-}
-
-func (s *Service) InsertVideoIntoPlaylist(ctx context.Context, playlistID uuid.UUID, videoID uuid.UUID) (time.Time, error) {
-	userID, err := util.UserIDFromContext(ctx)
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	q := sqlc.New(s.db)
-	row, err := q.InsertIntoPlaylist(ctx, sqlc.InsertIntoPlaylistParams{
-		UserID:     userID,
-		PlaylistID: playlistID,
-		VideoID:    videoID,
-	})
-	if errors.Is(err, pgx.ErrNoRows) {
-		return time.Time{}, ErrPlaylistNotFound
-	}
-	if err != nil {
-		return time.Time{}, fmt.Errorf("failed to insertIntoPlaylist: %w", err)
-	}
-
-	return row.UpdatedAt, nil
-}
-
-func (s *Service) RemoveVideoFromPlaylist(ctx context.Context, playlistID uuid.UUID, videoID uuid.UUID) error {
-	userID, err := util.UserIDFromContext(ctx)
+	q := sqlc.New(tx)
+	playlist, err := NewPlaylistRepository(q).FindForUpdate(ctx, userID, playlistID)
 	if err != nil {
 		return err
 	}
 
-	q := sqlc.New(s.db)
-	_, err = q.RemoveVideoFromPlaylist(ctx, sqlc.RemoveVideoFromPlaylistParams{
-		UserID:     userID,
-		PlaylistID: playlistID,
-		VideoID:    videoID,
-	})
-	if errors.Is(err, pgx.ErrNoRows) {
-		return ErrVideoNotInPlaylist
-	}
-	if err != nil {
-		return fmt.Errorf("failed to removeVideoFromPlaylist: %w", err)
+	if err := NewPlaylistRepository(q).RemoveVideo(ctx, userID, playlistID, videoID); err != nil {
+		return err
 	}
 
+	if err := playlist.DecrementVideoCount(); err != nil {
+		return err
+	}
+
+	if _, err := NewPlaylistRepository(q).Save(ctx, userID, playlist); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
 	return nil
 }

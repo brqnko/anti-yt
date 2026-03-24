@@ -12,94 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const cleanupExpiredJTIBlacklist = `-- name: CleanupExpiredJTIBlacklist :exec
-DELETE FROM
-    t_jti_blacklist
-WHERE
-    expires_at < $1
-`
-
-// expires_atが過ぎたjtiのブラックリストを削除します。
-func (q *Queries) CleanupExpiredJTIBlacklist(ctx context.Context, expiresAt time.Time) error {
-	_, err := q.db.Exec(ctx, cleanupExpiredJTIBlacklist, expiresAt)
-	return err
-}
-
-const getRefreshTokens = `-- name: GetRefreshTokens :many
-SELECT
-    m_refresh_token.public_id,
-    m_refresh_token.activated_at,
-    m_refresh_token.last_logged_in_at,
-    m_refresh_token.user_agent,
-    m_refresh_token.device_fingerprint,
-    m_refresh_token.ip_address,
-    m_refresh_token.country_code,
-    m_refresh_token.city_name,
-    m_refresh_token.token_hash,
-    m_refresh_token.expires_at
-FROM
-    m_refresh_token
-    INNER JOIN m_user ON m_user.m_user_authorization_id = m_refresh_token.m_user_authorization_id
-WHERE
-    m_user.public_id = $1
-ORDER BY
-    m_refresh_token.created_at DESC
-LIMIT
-    $2 OFFSET $3
-`
-
-type GetRefreshTokensParams struct {
-	PublicID uuid.UUID
-	Limit    int32
-	Offset   int32
-}
-
-type GetRefreshTokensRow struct {
-	PublicID          uuid.UUID
-	ActivatedAt       time.Time
-	LastLoggedInAt    time.Time
-	UserAgent         string
-	DeviceFingerprint string
-	IpAddress         string
-	CountryCode       string
-	CityName          string
-	TokenHash         string
-	ExpiresAt         time.Time
-}
-
-// userテーブルのpublic_idから、そのリフレッシュトークンの一覧を返します。
-func (q *Queries) GetRefreshTokens(ctx context.Context, arg GetRefreshTokensParams) ([]GetRefreshTokensRow, error) {
-	rows, err := q.db.Query(ctx, getRefreshTokens, arg.PublicID, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetRefreshTokensRow
-	for rows.Next() {
-		var i GetRefreshTokensRow
-		if err := rows.Scan(
-			&i.PublicID,
-			&i.ActivatedAt,
-			&i.LastLoggedInAt,
-			&i.UserAgent,
-			&i.DeviceFingerprint,
-			&i.IpAddress,
-			&i.CountryCode,
-			&i.CityName,
-			&i.TokenHash,
-			&i.ExpiresAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const isJTIBlacklisted = `-- name: IsJTIBlacklisted :one
+const findBlacklistedJTI = `-- name: FindBlacklistedJTI :one
 SELECT
     expires_at
 FROM
@@ -113,62 +26,163 @@ LIMIT
 // jtiがブラックリストに存在するか確認する。
 // jtiが存在しない場合はpgx.ErrNoRowsが返される。
 // jtiが存在する場合は、そのexpires_atが返される。
-func (q *Queries) IsJTIBlacklisted(ctx context.Context, jti uuid.UUID) (time.Time, error) {
-	row := q.db.QueryRow(ctx, isJTIBlacklisted, jti)
+func (q *Queries) FindBlacklistedJTI(ctx context.Context, jti uuid.UUID) (time.Time, error) {
+	row := q.db.QueryRow(ctx, findBlacklistedJTI, jti)
 	var expires_at time.Time
 	err := row.Scan(&expires_at)
 	return expires_at, err
 }
 
-const removeRefreshTokenByIDAndSaveJtiBlacklist = `-- name: RemoveRefreshTokenByIDAndSaveJtiBlacklist :one
-WITH deleted AS (
-    DELETE FROM
-        m_refresh_token USING m_user
-    WHERE
-        m_user.public_id = $1
-        AND m_user.m_user_authorization_id = m_refresh_token.m_user_authorization_id
-        AND m_refresh_token.public_id = $2
-    RETURNING
-        m_refresh_token.public_id,
-        m_refresh_token.access_token_jti
-),
-inserted AS (
-    INSERT INTO
-        t_jti_blacklist (jti, expires_at)
-    SELECT
+const insertRefreshToken = `-- name: InsertRefreshToken :one
+INSERT INTO
+    m_refresh_token (
+        m_user_authorization_id,
+        token_hash,
+        ip_address,
+        device_fingerprint,
+        user_agent,
+        country_code,
+        city_name,
+        browser_name,
+        device_type,
+        expires_at,
         access_token_jti,
-        $3
-    FROM
-        deleted
-    ON CONFLICT DO NOTHING
-    RETURNING
-        jti
-)
-SELECT
-    deleted.public_id
-FROM
-    deleted
-LIMIT
-    1
+        activated_at,
+        last_logged_in_at
+    )
+VALUES
+    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+RETURNING
+    m_refresh_token_id
 `
 
-type RemoveRefreshTokenByIDAndSaveJtiBlacklistParams struct {
-	UserPublicID         uuid.UUID
-	RefreshTokenPublicID uuid.UUID
+type InsertRefreshTokenParams struct {
+	MUserAuthorizationID int64
+	TokenHash            string
+	IpAddress            string
+	DeviceFingerprint    string
+	UserAgent            string
+	CountryCode          string
+	CityName             string
+	BrowserName          string
+	DeviceType           string
 	ExpiresAt            time.Time
+	AccessTokenJti       uuid.UUID
+	ActivatedAt          time.Time
+	LastLoggedInAt       time.Time
 }
 
-// m_refresh_tokenのpublic_idから、そのレコードを削除します。
-// 削除されたレコードに紐づくjtiをブラックリストに保存します。
-// 削除されたレコードのpublic_idが返されます。
-func (q *Queries) RemoveRefreshTokenByIDAndSaveJtiBlacklist(ctx context.Context, arg RemoveRefreshTokenByIDAndSaveJtiBlacklistParams) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, removeRefreshTokenByIDAndSaveJtiBlacklist, arg.UserPublicID, arg.RefreshTokenPublicID, arg.ExpiresAt)
-	var public_id uuid.UUID
-	err := row.Scan(&public_id)
-	return public_id, err
+// リフレッシュトークンをテーブルに保存する。
+// m_refresh_token_idが返される。
+func (q *Queries) InsertRefreshToken(ctx context.Context, arg InsertRefreshTokenParams) (int64, error) {
+	row := q.db.QueryRow(ctx, insertRefreshToken,
+		arg.MUserAuthorizationID,
+		arg.TokenHash,
+		arg.IpAddress,
+		arg.DeviceFingerprint,
+		arg.UserAgent,
+		arg.CountryCode,
+		arg.CityName,
+		arg.BrowserName,
+		arg.DeviceType,
+		arg.ExpiresAt,
+		arg.AccessTokenJti,
+		arg.ActivatedAt,
+		arg.LastLoggedInAt,
+	)
+	var m_refresh_token_id int64
+	err := row.Scan(&m_refresh_token_id)
+	return m_refresh_token_id, err
 }
 
-const removeRefreshTokenByTokenHashAndSaveJtiBlacklist = `-- name: RemoveRefreshTokenByTokenHashAndSaveJtiBlacklist :one
+const listRefreshTokens = `-- name: ListRefreshTokens :many
+SELECT
+    m_refresh_token.public_id,
+    m_refresh_token.activated_at,
+    m_refresh_token.last_logged_in_at,
+    m_refresh_token.user_agent,
+    m_refresh_token.ip_address,
+    m_refresh_token.country_code,
+    m_refresh_token.city_name,
+    m_refresh_token.browser_name,
+    m_refresh_token.device_type
+FROM
+    m_refresh_token
+    INNER JOIN m_user ON m_user.m_user_authorization_id = m_refresh_token.m_user_authorization_id
+WHERE
+    m_user.public_id = $1 AND (
+        $2::uuid IS NULL OR
+        m_refresh_token.public_id < $2
+    )
+ORDER BY
+    m_refresh_token.public_id DESC
+LIMIT
+    $3
+`
+
+type ListRefreshTokensParams struct {
+	UserID     uuid.UUID
+	Cursor     *uuid.UUID
+	QueryLimit int32
+}
+
+type ListRefreshTokensRow struct {
+	PublicID       uuid.UUID
+	ActivatedAt    time.Time
+	LastLoggedInAt time.Time
+	UserAgent      string
+	IpAddress      string
+	CountryCode    string
+	CityName       string
+	BrowserName    string
+	DeviceType     string
+}
+
+// userテーブルのpublic_idから、そのリフレッシュトークンの一覧を返します。
+func (q *Queries) ListRefreshTokens(ctx context.Context, arg ListRefreshTokensParams) ([]ListRefreshTokensRow, error) {
+	rows, err := q.db.Query(ctx, listRefreshTokens, arg.UserID, arg.Cursor, arg.QueryLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListRefreshTokensRow
+	for rows.Next() {
+		var i ListRefreshTokensRow
+		if err := rows.Scan(
+			&i.PublicID,
+			&i.ActivatedAt,
+			&i.LastLoggedInAt,
+			&i.UserAgent,
+			&i.IpAddress,
+			&i.CountryCode,
+			&i.CityName,
+			&i.BrowserName,
+			&i.DeviceType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const purgeExpiredJTIBlacklist = `-- name: PurgeExpiredJTIBlacklist :exec
+DELETE FROM
+    t_jti_blacklist
+WHERE
+    expires_at < $1
+`
+
+// expires_atが過ぎたjtiのブラックリストを削除します。
+func (q *Queries) PurgeExpiredJTIBlacklist(ctx context.Context, expiresAt time.Time) error {
+	_, err := q.db.Exec(ctx, purgeExpiredJTIBlacklist, expiresAt)
+	return err
+}
+
+const revokeRefreshTokenByHash = `-- name: RevokeRefreshTokenByHash :one
 WITH deleted AS (
     DELETE FROM
         m_refresh_token USING m_user
@@ -200,7 +214,7 @@ LIMIT
     1
 `
 
-type RemoveRefreshTokenByTokenHashAndSaveJtiBlacklistParams struct {
+type RevokeRefreshTokenByHashParams struct {
 	UserPublicID uuid.UUID
 	TokenHash    string
 	ExpiresAt    time.Time
@@ -209,96 +223,62 @@ type RemoveRefreshTokenByTokenHashAndSaveJtiBlacklistParams struct {
 // m_refresh_tokenのtoken_hashから、そのレコードを削除します。
 // 削除されたレコードに紐づくjtiをブラックリストに保存します。
 // 削除されたレコードのpublic_idが返されます。
-func (q *Queries) RemoveRefreshTokenByTokenHashAndSaveJtiBlacklist(ctx context.Context, arg RemoveRefreshTokenByTokenHashAndSaveJtiBlacklistParams) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, removeRefreshTokenByTokenHashAndSaveJtiBlacklist, arg.UserPublicID, arg.TokenHash, arg.ExpiresAt)
+func (q *Queries) RevokeRefreshTokenByHash(ctx context.Context, arg RevokeRefreshTokenByHashParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, revokeRefreshTokenByHash, arg.UserPublicID, arg.TokenHash, arg.ExpiresAt)
 	var public_id uuid.UUID
 	err := row.Scan(&public_id)
 	return public_id, err
 }
 
-const saveJTIBlacklist = `-- name: SaveJTIBlacklist :exec
-INSERT INTO
-    t_jti_blacklist (jti, expires_at)
-VALUES
-    ($1, $2)
-ON CONFLICT DO NOTHING
-`
-
-type SaveJTIBlacklistParams struct {
-	Jti       uuid.UUID
-	ExpiresAt time.Time
-}
-
-// jtiのブラックリストに追加する。
-// jtiに一意制約があり、重複する場合は何もしない。
-func (q *Queries) SaveJTIBlacklist(ctx context.Context, arg SaveJTIBlacklistParams) error {
-	_, err := q.db.Exec(ctx, saveJTIBlacklist, arg.Jti, arg.ExpiresAt)
-	return err
-}
-
-const saveRefreshToken = `-- name: SaveRefreshToken :one
-INSERT INTO
-    m_refresh_token (
-        m_user_authorization_id,
-        token_hash,
-        ip_address,
-        device_fingerprint,
-        user_agent,
-        country_code,
-        city_name,
-        browser_name,
-        device_type,
-        expires_at,
+const revokeRefreshTokenByID = `-- name: RevokeRefreshTokenByID :one
+WITH deleted AS (
+    DELETE FROM
+        m_refresh_token USING m_user
+    WHERE
+        m_user.public_id = $1
+        AND m_user.m_user_authorization_id = m_refresh_token.m_user_authorization_id
+        AND m_refresh_token.public_id = $2
+    RETURNING
+        m_refresh_token.public_id,
+        m_refresh_token.access_token_jti
+),
+inserted AS (
+    INSERT INTO
+        t_jti_blacklist (jti, expires_at)
+    SELECT
         access_token_jti,
-        activated_at,
-        last_logged_in_at
-    )
-VALUES
-    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-RETURNING
-    m_refresh_token_id
+        $3
+    FROM
+        deleted
+    ON CONFLICT DO NOTHING
+    RETURNING
+        jti
+)
+SELECT
+    deleted.public_id
+FROM
+    deleted
+LIMIT
+    1
 `
 
-type SaveRefreshTokenParams struct {
-	MUserAuthorizationID int64
-	TokenHash            string
-	IpAddress            string
-	DeviceFingerprint    string
-	UserAgent            string
-	CountryCode          string
-	CityName             string
-	BrowserName          string
-	DeviceType           string
+type RevokeRefreshTokenByIDParams struct {
+	UserPublicID         uuid.UUID
+	RefreshTokenPublicID uuid.UUID
 	ExpiresAt            time.Time
-	AccessTokenJti       uuid.UUID
-	ActivatedAt          time.Time
-	LastLoggedInAt       time.Time
 }
 
-// リフレッシュトークンをテーブルに保存する。
-// m_refresh_token_idが返される。
-func (q *Queries) SaveRefreshToken(ctx context.Context, arg SaveRefreshTokenParams) (int64, error) {
-	row := q.db.QueryRow(ctx, saveRefreshToken,
-		arg.MUserAuthorizationID,
-		arg.TokenHash,
-		arg.IpAddress,
-		arg.DeviceFingerprint,
-		arg.UserAgent,
-		arg.CountryCode,
-		arg.CityName,
-		arg.BrowserName,
-		arg.DeviceType,
-		arg.ExpiresAt,
-		arg.AccessTokenJti,
-		arg.ActivatedAt,
-		arg.LastLoggedInAt,
-	)
-	var m_refresh_token_id int64
-	err := row.Scan(&m_refresh_token_id)
-	return m_refresh_token_id, err
+// m_refresh_tokenのpublic_idから、そのレコードを削除します。
+// 削除されたレコードに紐づくjtiをブラックリストに保存します。
+// 削除されたレコードのpublic_idが返されます。
+func (q *Queries) RevokeRefreshTokenByID(ctx context.Context, arg RevokeRefreshTokenByIDParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, revokeRefreshTokenByID, arg.UserPublicID, arg.RefreshTokenPublicID, arg.ExpiresAt)
+	var public_id uuid.UUID
+	err := row.Scan(&public_id)
+	return public_id, err
 }
 
-const updateRefreshToken = `-- name: UpdateRefreshToken :one
+const rotateRefreshToken = `-- name: RotateRefreshToken :one
 WITH updated AS (
     UPDATE
         m_refresh_token
@@ -333,7 +313,7 @@ LIMIT
     1
 `
 
-type UpdateRefreshTokenParams struct {
+type RotateRefreshTokenParams struct {
 	NewTokenHash         string
 	NewExpiresAt         time.Time
 	NewIpAddress         string
@@ -355,8 +335,8 @@ type UpdateRefreshTokenParams struct {
 // expires_at > current_timestamp
 // の条件をすべて満たす場合にのみ更新されます。条件を満たさない場合は、pgx.ErrNoRowsが返されます。
 // リフレッシュトークンに紐づくuser_authorization_idから、それに紐づくuserのpublic_idを返します。
-func (q *Queries) UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, updateRefreshToken,
+func (q *Queries) RotateRefreshToken(ctx context.Context, arg RotateRefreshTokenParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, rotateRefreshToken,
 		arg.NewTokenHash,
 		arg.NewExpiresAt,
 		arg.NewIpAddress,

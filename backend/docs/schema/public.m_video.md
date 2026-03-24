@@ -11,12 +11,12 @@
 | external_id | varchar(16) |  | false |  |  |  |
 | external_title | varchar(128) |  | false |  |  |  |
 | external_description | varchar(8192) |  | false |  |  |  |
-| fetched_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
+| fetched_at | timestamp with time zone |  | false |  |  |  |
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
-| public_id | uuid | uuidv7() | false |  |  |  |
-| external_created_at | timestamp with time zone | '1970-01-01 00:00:00+00'::timestamp with time zone | false |  |  |  |
-| external_thumbnail_url | varchar(128) | ''::character varying | false |  |  |  |
+| public_id | uuid |  | false |  |  |  |
+| external_created_at | timestamp with time zone |  | false |  |  |  |
+| external_thumbnail_url | varchar(128) |  | false |  |  |  |
 | external_length_seconds | integer |  | false |  |  |  |
 
 ## Constraints

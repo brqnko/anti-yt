@@ -19,48 +19,17 @@ import (
 var iso8601DurationRe = regexp.MustCompile(`PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?`)
 
 var (
-	ErrInvalidChannelID              = errors.New("invalid channel id")
-	ErrChannelNotFound               = errors.New("requested channel not found")
-	ErrInvalidChannelSnippetResponse = errors.New("channel snippet not found in response")
+	ErrInvalidChannelID = errors.New("invalid channel id")
 
 	ErrVideoIDsTooMuch = errors.New("video ids are too much")
-	ErrInvalidVideoID  = errors.New("invalid video id")
 )
 
-type ChannelDetail struct {
-	ID                string
-	DisplayName       string
-	CustomID          string
-	Description       string
-	IconURL           string
-	SubscribersCount  int
-	UploadsPlaylistID string
-	CreatedAt         time.Time
-}
-
-type RSSFeedVideo struct {
-	VideoID      string
-	Title        string
-	ThumbnailURL string
-	Description  string
-	CreatedAt    time.Time
-}
-
-type VideoDetail struct {
-	ID            string
-	ChannelID     string
-	Title         string
-	Description   string
-	ThumbnailURL  string
-	LengthSeconds int
-	CreatedAt     time.Time
-}
-
 type YouTubeAPIService interface {
-	FetchChannelDetail(ctx context.Context, channelIDs []string) (map[string]*ChannelDetail, error)
-	FetchRSSFeed(ctx context.Context, channelID string) ([]RSSFeedVideo, error)
-	FetchVideoDetail(ctx context.Context, videoIDs []string) (map[string]VideoDetail, error)
-	FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (videoIDs []string, nextPageToken string, err error)
+	FetchChannelDetail(ctx context.Context, channelIDs []ChannelID) (map[ChannelID]Channel, error)
+	FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (Channel, error)
+	FetchRSSFeed(ctx context.Context, channelID ChannelID) ([]VideoID, error)
+	FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (map[VideoID]Video, error)
+	FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (videoIDs []VideoID, nextPageToken string, err error)
 }
 
 var _ YouTubeAPIService = (*youTubeAPIServiceImpl)(nil)
@@ -71,178 +40,226 @@ type youTubeAPIServiceImpl struct {
 }
 
 // NOTE: 削除された動画などはAPIから返ってこず、また順番も保証されないのでmapで返す
-func (s *youTubeAPIServiceImpl) FetchVideoDetail(ctx context.Context, videoIDs []string) (map[string]VideoDetail, error) {
+func (s *youTubeAPIServiceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (map[VideoID]Video, error) {
 	if len(videoIDs) == 0 {
-		return map[string]VideoDetail{}, nil
+		return map[VideoID]Video{}, nil
 	}
 	if len(videoIDs) > 50 {
 		return nil, ErrVideoIDsTooMuch
 	}
-	for _, videoID := range videoIDs {
-		if len(videoID) != 11 {
-			return nil, ErrInvalidVideoID
-		}
-	}
 
+	ids := make([]string, len(videoIDs))
+	for i, id := range videoIDs {
+		ids[i] = (string)(id)
+	}
 	res, err := s.ytClient.Videos.List([]string{"snippet", "contentDetails"}).
-		Id(videoIDs...).
+		Id(ids...).
 		Context(ctx).
 		Do()
 	if err != nil {
-		return nil, fmt.Errorf("failed to Videos.List: %w", err)
+		return nil, fmt.Errorf("failed to fetchVideoDetail(ytClient.Videos.List): %w", err)
 	}
 
-	videos := make(map[string]VideoDetail, len(res.Items))
+	videos := make(map[VideoID]Video)
 	for _, item := range res.Items {
-		lengthSeconds := 0
-		if item.ContentDetails != nil {
-			matches := iso8601DurationRe.FindStringSubmatch(item.ContentDetails.Duration)
-			if matches != nil {
-				hours, _ := strconv.Atoi(matches[1])
-				minutes, _ := strconv.Atoi(matches[2])
-				seconds, _ := strconv.Atoi(matches[3])
-				lengthSeconds = hours*3600 + minutes*60 + seconds
-			}
+		if item.ContentDetails == nil {
+			slog.Info("item.ContentDetails is nil(fetchVideoDetail)")
+			continue
 		}
 
-		detail := VideoDetail{
-			ID:            item.Id,
-			LengthSeconds: lengthSeconds,
+		lengthSeconds := 0
+		matches := iso8601DurationRe.FindStringSubmatch(item.ContentDetails.Duration)
+		if matches == nil {
+			slog.Info("duration matches is nil(fetchVideoDetail)")
+			continue
 		}
-		if item.Snippet != nil {
-			detail.ChannelID = item.Snippet.ChannelId
-			detail.Title = item.Snippet.Title
-			detail.Description = item.Snippet.Description
-			if item.Snippet.Thumbnails != nil {
-				if item.Snippet.Thumbnails.Medium != nil {
-					detail.ThumbnailURL = item.Snippet.Thumbnails.Medium.Url
-				} else if item.Snippet.Thumbnails.Default != nil {
-					detail.ThumbnailURL = item.Snippet.Thumbnails.Default.Url
-				}
-			}
-			if t, err := time.Parse(time.RFC3339, item.Snippet.PublishedAt); err == nil {
-				detail.CreatedAt = t
-			}
+		hours, _ := strconv.Atoi(matches[1])
+		minutes, _ := strconv.Atoi(matches[2])
+		seconds, _ := strconv.Atoi(matches[3])
+		lengthSeconds = hours*3600 + minutes*60 + seconds
+
+		if item.Snippet == nil {
+			slog.Info("item.Snippet is nil(fetchVideoDetail)")
+			continue
 		}
-		videos[item.Id] = detail
+
+		if item.Snippet.Thumbnails == nil {
+			slog.Info("item.Snippet.Thumbnails is nil(fetchVideoDetail)")
+			continue
+		}
+		var thumbnail string
+		if item.Snippet.Thumbnails.Medium != nil {
+			thumbnail = item.Snippet.Thumbnails.Medium.Url
+		} else if item.Snippet.Thumbnails.Default != nil {
+			thumbnail = item.Snippet.Thumbnails.Default.Url
+		} else {
+			slog.Info("no valid thumbnail in item.Snippet.Thumbnails(fetchVideoDetail)")
+			continue
+		}
+
+		createdAt, err := time.Parse(time.RFC3339, item.Snippet.PublishedAt)
+		if err != nil {
+			slog.Info("failed to parse createdAt(fetchVideoDetail)")
+			continue
+		}
+
+		video, err := NewVideo(
+			item.Id,
+			item.Snippet.ChannelId,
+			item.Snippet.Title,
+			item.Snippet.Description,
+			thumbnail,
+			lengthSeconds,
+			createdAt,
+		)
+		if err != nil {
+			slog.Info("failed to newVideo(fetchVideoDetail)", "error", err)
+			continue
+		}
+		videos[video.ID] = video
 	}
 
 	return videos, nil
 }
 
-func (s *youTubeAPIServiceImpl) FetchChannelDetail(ctx context.Context, channelIDs []string) (map[string]*ChannelDetail, error) {
+func (s *youTubeAPIServiceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (Channel, error) {
+	q := s.ytClient.Channels.List([]string{"snippet", "statistics", "contentDetails"})
+	if strings.HasPrefix(channelID, "@") && len(([]rune)(channelID)) > 3 {
+		q = q.ForHandle(channelID)
+	} else if strings.HasPrefix(channelID, "UC") && len(channelID) == 24 {
+		q = q.Id(channelID)
+	} else {
+		return Channel{}, ErrInvalidChannelID
+	}
+
+	res, err := q.Context(ctx).Do()
+	if err != nil {
+		return Channel{}, fmt.Errorf("failed to Channels.List(handle=%s): %w", channelID, err)
+	}
+	if len(res.Items) == 0 {
+		return Channel{}, errors.New("len(res.Items) == 0(fetchChannelDetail)")
+	}
+	found := res.Items[0]
+
+	if found.Snippet == nil {
+		return Channel{}, errors.New("found.Snippet == nil(fetchChannelDetail)")
+	}
+
+	createdAt, err := time.Parse(time.RFC3339, found.Snippet.PublishedAt)
+	if err != nil {
+		return Channel{}, errors.New("failed to parse createdAt(fetchChannelDetail)")
+	}
+
+	if found.Snippet.Thumbnails == nil {
+		return Channel{}, errors.New("found.Snippet.Thumbnails == nil(fetchChannelDetail)")
+	}
+	iconURL := ""
+	if found.Snippet.Thumbnails.Medium != nil {
+		iconURL = found.Snippet.Thumbnails.Medium.Url
+	} else if found.Snippet.Thumbnails.Default != nil {
+		iconURL = found.Snippet.Thumbnails.Default.Url
+	} else {
+		return Channel{}, errors.New("no valid iconURL found(fetchChannelDetail)")
+	}
+
+	if found.Statistics == nil {
+		return Channel{}, errors.New("found.Statistics == nil(fetchChannelDetail)")
+	}
+	if found.ContentDetails == nil || found.ContentDetails.RelatedPlaylists == nil {
+		return Channel{}, errors.New("found.ContentDetails or found.ContentDetails.ReleatedPlaylists == nil(fetchVideoDetail)")
+	}
+
+	channel, err := NewChannel(
+		found.Id,
+		found.Snippet.Title,
+		found.Snippet.CustomUrl,
+		found.Snippet.Description,
+		iconURL,
+		found.Statistics.SubscriberCount,
+		found.ContentDetails.RelatedPlaylists.Uploads,
+		createdAt,
+	)
+	if err != nil {
+		return Channel{}, fmt.Errorf("failed to NewChannel(fetchChannelDetail): %w", err)
+	}
+
+	return channel, nil
+}
+
+func (s *youTubeAPIServiceImpl) FetchChannelDetail(ctx context.Context, channelIDs []ChannelID) (map[ChannelID]Channel, error) {
 	if len(channelIDs) == 0 {
-		return map[string]*ChannelDetail{}, nil
+		return map[ChannelID]Channel{}, nil
 	}
 
-	parts := []string{"snippet", "statistics", "contentDetails"}
-	result := make(map[string]*ChannelDetail, len(channelIDs))
+	result := make(map[ChannelID]Channel)
+	ids := make([]string, len(channelIDs))
+	for i, channelID := range channelIDs {
+		ids[i] = (string)(channelID)
+	}
+	res, err := s.ytClient.Channels.List([]string{"snippet", "statistics", "contentDetails"}).Id(ids...).Context(ctx).Do()
+	if err != nil {
+		return nil, fmt.Errorf("failed to Channels.List: %w", err)
+	}
 
-	// ハンドル(@...)はForHandleで個別にリクエスト、UC IDはまとめてリクエスト
-	var ucIDs []string
-	for _, id := range channelIDs {
-		if strings.HasPrefix(id, "@") && len([]rune(id)) > 3 {
-			res, err := s.ytClient.Channels.List(parts).ForHandle(id).Context(ctx).Do()
-			if err != nil {
-				return nil, fmt.Errorf("failed to Channels.List(handle=%s): %w", id, err)
-			}
-			if len(res.Items) == 0 {
-				continue
-			}
-			found := res.Items[0]
-			if found.Snippet == nil {
-				return nil, ErrInvalidChannelSnippetResponse
-			}
-			createdAt, err := time.Parse(time.RFC3339, found.Snippet.PublishedAt)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse: %w", err)
-			}
-			iconURL := ""
-			if found.Snippet.Thumbnails != nil {
-				if found.Snippet.Thumbnails.Medium != nil {
-					iconURL = found.Snippet.Thumbnails.Medium.Url
-				} else if found.Snippet.Thumbnails.Default != nil {
-					iconURL = found.Snippet.Thumbnails.Default.Url
-				}
-			}
-			if iconURL == "" {
-				slog.Warn("icon url not foud when fetch channel info", "channel id", id)
-			}
-			subscribersCount := 0
-			if found.Statistics != nil {
-				subscribersCount = int(found.Statistics.SubscriberCount)
-			}
-			uploadsPlaylistID := ""
-			if found.ContentDetails != nil && found.ContentDetails.RelatedPlaylists != nil {
-				uploadsPlaylistID = found.ContentDetails.RelatedPlaylists.Uploads
-			}
-			result[id] = &ChannelDetail{
-				ID:                found.Id,
-				DisplayName:       found.Snippet.Title,
-				CustomID:          found.Snippet.CustomUrl,
-				Description:       found.Snippet.Description,
-				IconURL:           iconURL,
-				SubscribersCount:  subscribersCount,
-				UploadsPlaylistID: uploadsPlaylistID,
-				CreatedAt:         createdAt,
-			}
-		} else if strings.HasPrefix(id, "UC") && len(id) == 24 {
-			ucIDs = append(ucIDs, id)
-		} else {
-			return nil, ErrInvalidChannelID
+	for _, found := range res.Items {
+		if found.Snippet == nil {
+			slog.Info("found.Snippet == nil(fetchChannelDetail)")
+			continue
 		}
-	}
 
-	if len(ucIDs) > 0 {
-		res, err := s.ytClient.Channels.List(parts).Id(ucIDs...).Context(ctx).Do()
+		createdAt, err := time.Parse(time.RFC3339, found.Snippet.PublishedAt)
 		if err != nil {
-			return nil, fmt.Errorf("failed to Channels.List: %w", err)
+			slog.Info("failed to parse createdAt", "error", err)
+			continue
 		}
-		for _, found := range res.Items {
-			if found.Snippet == nil {
-				return nil, ErrInvalidChannelSnippetResponse
-			}
-			createdAt, err := time.Parse(time.RFC3339, found.Snippet.PublishedAt)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse: %w", err)
-			}
-			iconURL := ""
-			if found.Snippet.Thumbnails != nil {
-				if found.Snippet.Thumbnails.Medium != nil {
-					iconURL = found.Snippet.Thumbnails.Medium.Url
-				} else if found.Snippet.Thumbnails.Default != nil {
-					iconURL = found.Snippet.Thumbnails.Default.Url
-				}
-			}
-			if iconURL == "" {
-				slog.Warn("icon url not foud when fetch channel info", "channel id", found.Id)
-			}
-			subscribersCount := 0
-			if found.Statistics != nil {
-				subscribersCount = int(found.Statistics.SubscriberCount)
-			}
-			uploadsPlaylistID := ""
-			if found.ContentDetails != nil && found.ContentDetails.RelatedPlaylists != nil {
-				uploadsPlaylistID = found.ContentDetails.RelatedPlaylists.Uploads
-			}
-			result[found.Id] = &ChannelDetail{
-				ID:                found.Id,
-				DisplayName:       found.Snippet.Title,
-				CustomID:          found.Snippet.CustomUrl,
-				Description:       found.Snippet.Description,
-				IconURL:           iconURL,
-				SubscribersCount:  subscribersCount,
-				UploadsPlaylistID: uploadsPlaylistID,
-				CreatedAt:         createdAt,
-			}
+
+		if found.Snippet.Thumbnails == nil {
+			slog.Info("found.Snippet.Thumbnails == nil(fetchVideoDetail)")
+			continue
 		}
+		iconURL := ""
+		if found.Snippet.Thumbnails.Medium != nil {
+			iconURL = found.Snippet.Thumbnails.Medium.Url
+		} else if found.Snippet.Thumbnails.Default != nil {
+			iconURL = found.Snippet.Thumbnails.Default.Url
+		} else {
+			slog.Info("no valid iconURL found(fetchVideoDetail)")
+			continue
+		}
+
+		if found.Statistics == nil {
+			slog.Info("found.Statistics == nil(fetchVideoDetail)")
+			continue
+		}
+
+		if found.ContentDetails == nil || found.ContentDetails.RelatedPlaylists == nil {
+			slog.Info("found.ContentDetails or found.ContentDetails.RelatedPlailits is nil(fetchVideoDetail)")
+			continue
+		}
+
+		channel, err := NewChannel(
+			found.Id,
+			found.Snippet.Title,
+			found.Snippet.CustomUrl,
+			found.Snippet.Description,
+			iconURL,
+			found.Statistics.SubscriberCount,
+			found.ContentDetails.RelatedPlaylists.Uploads,
+			createdAt,
+		)
+		if err != nil {
+			slog.Info("failed to NewChannel(fetchVideoDetail)", "error", err)
+			continue
+		}
+
+		result[channel.ID] = channel
 	}
 
 	return result, nil
 }
 
-func (s *youTubeAPIServiceImpl) FetchRSSFeed(ctx context.Context, channelID string) ([]RSSFeedVideo, error) {
-	if !strings.HasPrefix(channelID, "UC") || len(channelID) != 24 {
+func (s *youTubeAPIServiceImpl) FetchRSSFeed(ctx context.Context, channelID ChannelID) ([]VideoID, error) {
+	if !strings.HasPrefix((string)(channelID), "UC") || len(channelID) != 24 {
 		return nil, ErrInvalidChannelID
 	}
 
@@ -254,43 +271,32 @@ func (s *youTubeAPIServiceImpl) FetchRSSFeed(ctx context.Context, channelID stri
 		return nil, fmt.Errorf("failed to ParseURLWithContext(channel=%s): %w", channelID, err)
 	}
 
-	videos := make([]RSSFeedVideo, len(feed.Items))
-	for i, item := range feed.Items {
-		videos[i] = RSSFeedVideo{
-			Title: item.Title,
-		}
-
-		if item.PublishedParsed != nil {
-			videos[i].CreatedAt = *item.PublishedParsed
-		}
-
+	videos := make([]VideoID, 0, len(feed.Items))
+	for _, item := range feed.Items {
 		// yt:videoId
-		if ytExt, ok := item.Extensions["yt"]; ok {
-			if videoIDExt, ok := ytExt["videoId"]; ok && len(videoIDExt) > 0 {
-				videos[i].VideoID = videoIDExt[0].Value
-			}
+		ytExt, ok := item.Extensions["yt"]
+		if !ok {
+			slog.Info("yt extension not found(fetchRSSFeed)")
+			continue
+		}
+		videoIDExt, ok := ytExt["videoId"]
+		if !ok || len(videoIDExt) == 0 {
+			slog.Info("yt:videoId not found(fetchRSSFeed)")
+			continue
 		}
 
-		// media:group 内の thumbnail, description, statistics
-		if mediaExt, ok := item.Extensions["media"]; ok {
-			if groups, ok := mediaExt["group"]; ok && len(groups) > 0 {
-				group := groups[0]
-
-				if thumbnails, ok := group.Children["thumbnail"]; ok && len(thumbnails) > 0 {
-					videos[i].ThumbnailURL = thumbnails[0].Attrs["url"]
-				}
-
-				if descriptions, ok := group.Children["description"]; ok && len(descriptions) > 0 {
-					videos[i].Description = descriptions[0].Value
-				}
-			}
+		videoID, err := NewVideoID(videoIDExt[0].Value)
+		if err != nil {
+			slog.Info("failed to NewRSSFeedVideo(fetchRSSFeed)", "error", err)
+			continue
 		}
+		videos = append(videos, videoID)
 	}
 
 	return videos, nil
 }
 
-func (s *youTubeAPIServiceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) ([]string, string, error) {
+func (s *youTubeAPIServiceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) ([]VideoID, string, error) {
 	call := s.ytClient.PlaylistItems.List([]string{"contentDetails"}).
 		PlaylistId(playlistID).
 		MaxResults(50).
@@ -304,11 +310,18 @@ func (s *youTubeAPIServiceImpl) FetchPlaylistVideoIDs(ctx context.Context, playl
 		return nil, "", fmt.Errorf("failed to PlaylistItems.List(playlist=%s): %w", playlistID, err)
 	}
 
-	videoIDs := make([]string, 0, len(res.Items))
+	videoIDs := make([]VideoID, 0, len(res.Items))
 	for _, item := range res.Items {
-		if item.ContentDetails != nil && item.ContentDetails.VideoId != "" {
-			videoIDs = append(videoIDs, item.ContentDetails.VideoId)
+		if item.ContentDetails == nil || item.ContentDetails.VideoId == "" {
+			slog.Info("item.ContentDetails is nil or VideoId is empty(fetchPlaylistVideoIDs)")
+			continue
 		}
+		videoID, err := NewVideoID(item.ContentDetails.VideoId)
+		if err != nil {
+			slog.Info("failed to NewVideoID(fetchPlaylistVideoIDs)", "error", err)
+			continue
+		}
+		videoIDs = append(videoIDs, videoID)
 	}
 
 	return videoIDs, res.NextPageToken, nil

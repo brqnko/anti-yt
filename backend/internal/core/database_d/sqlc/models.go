@@ -63,6 +63,7 @@ type MPlaylist struct {
 	UpdatedAt           time.Time
 	PublicID            uuid.UUID
 	PlaylistDescription string
+	RegisteredAt        time.Time
 }
 
 type MPlaylistVideo struct {
@@ -134,7 +135,6 @@ type MUserSubscribingChannel struct {
 	SubscribedAt              time.Time
 	CreatedAt                 time.Time
 	UpdatedAt                 time.Time
-	PublicID                  uuid.UUID
 }
 
 type MVideo struct {

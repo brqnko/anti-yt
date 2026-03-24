@@ -2,16 +2,17 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type AuthorizationRepository interface {
-	Save(ctx context.Context, authorization Authorization) (int64, error)
-	FindUserByAuthorizationID(ctx context.Context, authorizationID int64) (userID uuid.UUID, isDeactivated bool, err error)
+	Save(ctx context.Context, authorization *Authorization) (int64, error)
 }
 
 func NewAuthorizationRepository(q sqlc.Querier) AuthorizationRepository {
@@ -24,7 +25,7 @@ type authorizationRepositoryImpl struct {
 	q sqlc.Querier
 }
 
-func (a *authorizationRepositoryImpl) Save(ctx context.Context, authorization Authorization) (int64, error) {
+func (a *authorizationRepositoryImpl) Save(ctx context.Context, authorization *Authorization) (int64, error) {
 	saveAuthorization, err := a.q.SaveAuthorization(ctx, sqlc.SaveAuthorizationParams{
 		Issuer:         authorization.Issuer,
 		Sub:            authorization.Sub,
@@ -38,22 +39,13 @@ func (a *authorizationRepositoryImpl) Save(ctx context.Context, authorization Au
 	return saveAuthorization.MUserAuthorizationID, nil
 }
 
-func (a *authorizationRepositoryImpl) FindUserByAuthorizationID(ctx context.Context, authorizationID int64) (userID uuid.UUID, isDeactivated bool, err error) {
-	row, err := a.q.GetUserIDByAuthorization(ctx, authorizationID)
-	if err != nil {
-		return uuid.Nil, false, fmt.Errorf("failed to authorizationRepository.FindUserByAuthorizationID: %w", err)
-	}
-	return row.PublicID, row.IsDeactivated, nil
-}
-
 var _ AuthorizationRepository = (*authorizationRepositoryImpl)(nil)
 
 type RefreshTokenRepository interface {
-	Save(ctx context.Context, authorizationID int64, refreshToken RefreshToken) (int64, error)
+	Save(ctx context.Context, authorizationID int64, refreshToken *RefreshToken) (int64, error)
 	RevokeByTokenHash(ctx context.Context, userID uuid.UUID, tokenHash string, jtiExpiresAt time.Time) error
-	RevokeByID(ctx context.Context, userID uuid.UUID, sessionID uuid.UUID, jtiExpiresAt time.Time) (uuid.UUID, error)
-	RotateRefreshToken(ctx context.Context, newRefreshToken RefreshToken, tokenHashForCheck string, updatedAtForCheck time.Time) (userID uuid.UUID, err error)
-	GetRefreshTokens(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]RefreshToken, error)
+	RevokeByID(ctx context.Context, userID, sessionID uuid.UUID, jtiExpiresAt time.Time) (id uuid.UUID, err error)
+	RotateRefreshToken(ctx context.Context, newRefreshToken *RefreshToken, tokenHashForCheck string, updatedAtForCheck time.Time) (userID uuid.UUID, err error)
 }
 
 type refreshTokenRepositoryImpl struct {
@@ -66,8 +58,8 @@ func NewRefreshTokenRepository(q sqlc.Querier) RefreshTokenRepository {
 	}
 }
 
-func (r *refreshTokenRepositoryImpl) Save(ctx context.Context, authorizationID int64, refreshToken RefreshToken) (int64, error) {
-	refreshTokenID, err := r.q.SaveRefreshToken(ctx, sqlc.SaveRefreshTokenParams{
+func (r *refreshTokenRepositoryImpl) Save(ctx context.Context, authorizationID int64, refreshToken *RefreshToken) (int64, error) {
+	refreshTokenID, err := r.q.InsertRefreshToken(ctx, sqlc.InsertRefreshTokenParams{
 		MUserAuthorizationID: authorizationID,
 		TokenHash:            refreshToken.TokenHash,
 		IpAddress:            refreshToken.IpAddress,
@@ -90,7 +82,7 @@ func (r *refreshTokenRepositoryImpl) Save(ctx context.Context, authorizationID i
 }
 
 func (r *refreshTokenRepositoryImpl) RevokeByTokenHash(ctx context.Context, userID uuid.UUID, tokenHash string, jtiExpiresAt time.Time) error {
-	if _, err := r.q.RemoveRefreshTokenByTokenHashAndSaveJtiBlacklist(ctx, sqlc.RemoveRefreshTokenByTokenHashAndSaveJtiBlacklistParams{
+	if _, err := r.q.RevokeRefreshTokenByHash(ctx, sqlc.RevokeRefreshTokenByHashParams{
 		UserPublicID: userID,
 		TokenHash:    tokenHash,
 		ExpiresAt:    jtiExpiresAt,
@@ -100,20 +92,23 @@ func (r *refreshTokenRepositoryImpl) RevokeByTokenHash(ctx context.Context, user
 	return nil
 }
 
-func (r *refreshTokenRepositoryImpl) RevokeByID(ctx context.Context, userID uuid.UUID, sessionID uuid.UUID, jtiExpiresAt time.Time) (uuid.UUID, error) {
-	removedPublicID, err := r.q.RemoveRefreshTokenByIDAndSaveJtiBlacklist(ctx, sqlc.RemoveRefreshTokenByIDAndSaveJtiBlacklistParams{
+func (r *refreshTokenRepositoryImpl) RevokeByID(ctx context.Context, userID, sessionID uuid.UUID, jtiExpiresAt time.Time) (uuid.UUID, error) {
+	removedPublicID, err := r.q.RevokeRefreshTokenByID(ctx, sqlc.RevokeRefreshTokenByIDParams{
 		RefreshTokenPublicID: sessionID,
 		ExpiresAt:            jtiExpiresAt,
 		UserPublicID:         userID,
 	})
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return uuid.Nil, err
+		}
 		return uuid.Nil, fmt.Errorf("failed to refreshTokenRepository.RevokeByID: %w", err)
 	}
 	return removedPublicID, nil
 }
 
-func (r *refreshTokenRepositoryImpl) RotateRefreshToken(ctx context.Context, newRefreshToken RefreshToken, tokenHashForCheck string, updatedAtForCheck time.Time) (userID uuid.UUID, err error) {
-	userID, err = r.q.UpdateRefreshToken(ctx, sqlc.UpdateRefreshTokenParams{
+func (r *refreshTokenRepositoryImpl) RotateRefreshToken(ctx context.Context, newRefreshToken *RefreshToken, tokenHashForCheck string, updatedAtForCheck time.Time) (userID uuid.UUID, err error) {
+	userID, err = r.q.RotateRefreshToken(ctx, sqlc.RotateRefreshTokenParams{
 		NewTokenHash:         newRefreshToken.TokenHash,
 		NewExpiresAt:         newRefreshToken.ExpiresAt,
 		NewIpAddress:         newRefreshToken.IpAddress,
@@ -133,39 +128,6 @@ func (r *refreshTokenRepositoryImpl) RotateRefreshToken(ctx context.Context, new
 		return uuid.Nil, fmt.Errorf("failed to refreshTokenRepository.RotateRefreshToken: %w", err)
 	}
 	return userID, nil
-}
-
-func (r *refreshTokenRepositoryImpl) GetRefreshTokens(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]RefreshToken, error) {
-	tokens, err := r.q.GetRefreshTokens(ctx, sqlc.GetRefreshTokensParams{
-		PublicID: userID,
-		Limit:    limit,
-		Offset:   offset,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to refreshTokenRepository.GetRefreshTokens: %w", err)
-	}
-
-	refreshTokens := make([]RefreshToken, len(tokens))
-	for i, token := range tokens {
-		refreshToken, err := NewRefreshToken(
-			token.UserAgent,
-			token.DeviceFingerprint,
-			token.IpAddress,
-			token.CountryCode,
-			token.CityName,
-			token.ExpiresAt,
-			WithRefreshTokenActivatedAt(token.ActivatedAt),
-			WithRefreshTokenHash(token.TokenHash),
-			WithRefreshTokenID(token.PublicID),
-			WithRefreshTokenLastLoggedInAt(token.LastLoggedInAt),
-		)
-		if err != nil {
-			return nil, err
-		}
-		refreshTokens[i] = refreshToken
-	}
-
-	return refreshTokens, nil
 }
 
 var _ RefreshTokenRepository = (*refreshTokenRepositoryImpl)(nil)

@@ -12,92 +12,91 @@ import (
 )
 
 type Querier interface {
-	BulkInsertIntoPlaylist(ctx context.Context, arg []BulkInsertIntoPlaylistParams) (int64, error)
-	// expires_atが過ぎたjtiのブラックリストを削除します。
-	CleanupExpiredJTIBlacklist(ctx context.Context, expiresAt time.Time) error
+	// m_userをh_userに移動します。
+	ArchiveUser(ctx context.Context, arg ArchiveUserParams) error
+	BulkInsertPlaylistVideos(ctx context.Context, arg []BulkInsertPlaylistVideosParams) (int64, error)
+	// NOTE: err == nilの場合はlen(param)
+	BulkInsertScreenTimeRanges(ctx context.Context, arg []BulkInsertScreenTimeRangesParams) (int64, error)
 	// NOTE: SaveChannelの前にこれをする. CTEでやろうと思ったけど、トランザクション...
 	ClearStaleChannelCustomID(ctx context.Context, arg ClearStaleChannelCustomIDParams) error
 	// m_user_authorization_idに紐づくh_userとm_userの数を数える
 	CountUsersByAuthorization(ctx context.Context, publicID uuid.UUID) (int32, error)
-	CreatePlaylist(ctx context.Context, arg CreatePlaylistParams) (CreatePlaylistRow, error)
-	DeleteChannelSubscription(ctx context.Context, arg DeleteChannelSubscriptionParams) (int64, error)
 	DeletePlaylist(ctx context.Context, arg DeletePlaylistParams) (uuid.UUID, error)
-	GetChannelByIdOrHandle(ctx context.Context, arg GetChannelByIdOrHandleParams) (GetChannelByIdOrHandleRow, error)
-	GetChannelRSSFetchedAtForUpdate(ctx context.Context, channelID uuid.UUID) (GetChannelRSSFetchedAtForUpdateRow, error)
-	GetChannelSubscriptions(ctx context.Context, arg GetChannelSubscriptionsParams) ([]GetChannelSubscriptionsRow, error)
-	GetChannelVideos(ctx context.Context, arg GetChannelVideosParams) ([]GetChannelVideosRow, error)
-	GetChannelsToFetchRSSForUpdate(ctx context.Context, arg GetChannelsToFetchRSSForUpdateParams) ([]GetChannelsToFetchRSSForUpdateRow, error)
-	GetHistory(ctx context.Context, arg GetHistoryParams) ([]GetHistoryRow, error)
-	GetPlaylist(ctx context.Context, arg GetPlaylistParams) (GetPlaylistRow, error)
-	GetPlaylistVideos(ctx context.Context, arg GetPlaylistVideosParams) ([]GetPlaylistVideosRow, error)
-	// userテーブルのpublic_idから、そのリフレッシュトークンの一覧を返します。
-	GetRefreshTokens(ctx context.Context, arg GetRefreshTokensParams) ([]GetRefreshTokensRow, error)
-	// ユーザーが登録しているチャンネルがだしている動画を最新順(public_id)で取得する。
-	GetSubscribingChannelFeed(ctx context.Context, arg GetSubscribingChannelFeedParams) ([]GetSubscribingChannelFeedRow, error)
+	DeletePlaylistVideo(ctx context.Context, arg DeletePlaylistVideoParams) (int64, error)
+	// m_user.m_user_idから、そのユーザーのスクリーン時間の範囲制限を削除する
+	DeleteScreenTimeRangesByUserID(ctx context.Context, mUserID int64) error
+	DeleteSubscription(ctx context.Context, arg DeleteSubscriptionParams) (int64, error)
+	// jtiがブラックリストに存在するか確認する。
+	// jtiが存在しない場合はpgx.ErrNoRowsが返される。
+	// jtiが存在する場合は、そのexpires_atが返される。
+	FindBlacklistedJTI(ctx context.Context, jti uuid.UUID) (time.Time, error)
+	FindChannelByExternalID(ctx context.Context, arg FindChannelByExternalIDParams) (FindChannelByExternalIDRow, error)
+	GetChannelForUpdate(ctx context.Context, channelID uuid.UUID) (GetChannelForUpdateRow, error)
 	// m_user.public_idから、そのユーザーが今日視聴していた合計時間(seconds)と設定している制限時間を返す。
 	// その日に一本も動画を視聴していない場合は0を返します。
-	GetTotalWatchSeconds(ctx context.Context, publicID uuid.UUID) (GetTotalWatchSecondsRow, error)
+	GetDailyWatchSummary(ctx context.Context, publicID uuid.UUID) (GetDailyWatchSummaryRow, error)
+	GetPlaylistForUpdate(ctx context.Context, arg GetPlaylistForUpdateParams) (GetPlaylistForUpdateRow, error)
+	GetPlaylistWithThumbnail(ctx context.Context, arg GetPlaylistWithThumbnailParams) (GetPlaylistWithThumbnailRow, error)
+	// m_user.public_idから、ユーザーをロッキングリードする。
+	GetUserForUpdate(ctx context.Context, userPublicID uuid.UUID) (GetUserForUpdateRow, error)
 	// authorization_idから、そのユーザーのpublic_idを取得する。
 	// authorization_idが存在しない場合はpgx.ErrNoRowsが返される。
 	// 退会済みの場合はtrueが返ってくる。
 	GetUserIDByAuthorization(ctx context.Context, mUserAuthorizationID int64) (GetUserIDByAuthorizationRow, error)
-	GetUserPlaylists(ctx context.Context, arg GetUserPlaylistsParams) ([]GetUserPlaylistsRow, error)
-	// m_user.public_idから、ユーザーのプロファイルを取得する。
-	GetUserProfile(ctx context.Context, userPublicID uuid.UUID) (GetUserProfileRow, error)
-	// m_user.public_idのユーザーの視聴制限範囲を取得する。
-	GetUserScreenTimeRanges(ctx context.Context, userPublicID uuid.UUID) ([]GetUserScreenTimeRangesRow, error)
-	GetUserStatisticsByWeek(ctx context.Context, arg GetUserStatisticsByWeekParams) ([]GetUserStatisticsByWeekRow, error)
+	// m_user.public_idから、ユーザーのプロファイルとスクリーン時間制限範囲を取得する。
+	GetUserProfile(ctx context.Context, userPublicID uuid.UUID) ([]GetUserProfileRow, error)
 	GetVideoDetail(ctx context.Context, videoID uuid.UUID) (GetVideoDetailRow, error)
-	Heartbeat(ctx context.Context, arg HeartbeatParams) error
-	InsertIntoPlaylist(ctx context.Context, arg InsertIntoPlaylistParams) (InsertIntoPlaylistRow, error)
-	// jtiがブラックリストに存在するか確認する。
-	// jtiが存在しない場合はpgx.ErrNoRowsが返される。
-	// jtiが存在する場合は、そのexpires_atが返される。
-	IsJTIBlacklisted(ctx context.Context, jti uuid.UUID) (time.Time, error)
-	MarkChannelRSSAsFetched(ctx context.Context, mChannelIds []int64) (uuid.UUID, error)
-	// m_refresh_tokenのpublic_idから、そのレコードを削除します。
-	// 削除されたレコードに紐づくjtiをブラックリストに保存します。
-	// 削除されたレコードのpublic_idが返されます。
-	RemoveRefreshTokenByIDAndSaveJtiBlacklist(ctx context.Context, arg RemoveRefreshTokenByIDAndSaveJtiBlacklistParams) (uuid.UUID, error)
+	InsertPlaylistVideo(ctx context.Context, arg InsertPlaylistVideoParams) error
+	// リフレッシュトークンをテーブルに保存する。
+	// m_refresh_token_idが返される。
+	InsertRefreshToken(ctx context.Context, arg InsertRefreshTokenParams) (int64, error)
+	InsertSubscription(ctx context.Context, arg InsertSubscriptionParams) (int64, error)
+	// ユーザーを作成する。
+	InsertUser(ctx context.Context, arg InsertUserParams) (int64, error)
+	ListChannelVideos(ctx context.Context, arg ListChannelVideosParams) ([]ListChannelVideosRow, error)
+	ListDailyWatchStatsByRange(ctx context.Context, arg ListDailyWatchStatsByRangeParams) ([]ListDailyWatchStatsByRangeRow, error)
+	ListPlaylistVideos(ctx context.Context, arg ListPlaylistVideosParams) ([]ListPlaylistVideosRow, error)
+	// userテーブルのpublic_idから、そのリフレッシュトークンの一覧を返します。
+	ListRefreshTokens(ctx context.Context, arg ListRefreshTokensParams) ([]ListRefreshTokensRow, error)
+	// m_user.public_idのユーザーの視聴制限範囲を取得する。
+	ListScreenTimeRanges(ctx context.Context, userPublicID uuid.UUID) ([]ListScreenTimeRangesRow, error)
+	ListStaleRSSChannelsForUpdate(ctx context.Context, arg ListStaleRSSChannelsForUpdateParams) ([]ListStaleRSSChannelsForUpdateRow, error)
+	ListSubscribedChannels(ctx context.Context, arg ListSubscribedChannelsParams) ([]ListSubscribedChannelsRow, error)
+	// ユーザーが登録しているチャンネルがだしている動画を最新順(public_id)で取得する。
+	ListSubscriptionFeed(ctx context.Context, arg ListSubscriptionFeedParams) ([]ListSubscriptionFeedRow, error)
+	ListUserPlaylists(ctx context.Context, arg ListUserPlaylistsParams) ([]ListUserPlaylistsRow, error)
+	ListWatchHistory(ctx context.Context, arg ListWatchHistoryParams) ([]ListWatchHistoryRow, error)
+	// expires_atが過ぎたjtiのブラックリストを削除します。
+	PurgeExpiredJTIBlacklist(ctx context.Context, expiresAt time.Time) error
 	// m_refresh_tokenのtoken_hashから、そのレコードを削除します。
 	// 削除されたレコードに紐づくjtiをブラックリストに保存します。
 	// 削除されたレコードのpublic_idが返されます。
-	RemoveRefreshTokenByTokenHashAndSaveJtiBlacklist(ctx context.Context, arg RemoveRefreshTokenByTokenHashAndSaveJtiBlacklistParams) (uuid.UUID, error)
-	// m_user.m_user_idから、そのユーザーのスクリーン時間の範囲制限を削除する
-	RemoveScreenTimeRangesByUserId(ctx context.Context, mUserID int64) error
-	// m_userをh_userに移動します。
-	RemoveUser(ctx context.Context, arg RemoveUserParams) error
-	RemoveVideoFromPlaylist(ctx context.Context, arg RemoveVideoFromPlaylistParams) (uuid.UUID, error)
-	// 認証テーブルにIssuerとSubを保存する
-	// IssuerとSubの組み合わせで一意制約があり、既に存在する場合は、何もしない。
-	// 重複した場合でも特にエラーは発生せず、既存のレコードが返される。
-	// 返り値は、m_user_authorization_idとpublic_id、そして新規作成されたかどうかを示すis_createdフラグ。
-	SaveAuthorization(ctx context.Context, arg SaveAuthorizationParams) (SaveAuthorizationRow, error)
-	SaveChannel(ctx context.Context, arg SaveChannelParams) (SaveChannelRow, error)
-	SaveChannelSubscription(ctx context.Context, arg SaveChannelSubscriptionParams) (SaveChannelSubscriptionRow, error)
-	// jtiのブラックリストに追加する。
-	// jtiに一意制約があり、重複する場合は何もしない。
-	SaveJTIBlacklist(ctx context.Context, arg SaveJTIBlacklistParams) error
-	// リフレッシュトークンをテーブルに保存する。
-	// m_refresh_token_idが返される。
-	SaveRefreshToken(ctx context.Context, arg SaveRefreshTokenParams) (int64, error)
-	// 新しいユーザーを挿入する。
-	SaveUser(ctx context.Context, arg SaveUserParams) (SaveUserRow, error)
-	// NOTE: err == nilの場合はlen(param)
-	SaveUserScreenTimeRanges(ctx context.Context, arg []SaveUserScreenTimeRangesParams) (int64, error)
-	SaveVideo(ctx context.Context, arg SaveVideoParams) (int64, error)
-	// トランザクションレベルのロック（ノンブロッキング）
-	TryAcquireAdvisoryXactLock(ctx context.Context, dollar_1 int64) (bool, error)
-	UpdatePlaylist(ctx context.Context, arg UpdatePlaylistParams) (uuid.UUID, error)
+	RevokeRefreshTokenByHash(ctx context.Context, arg RevokeRefreshTokenByHashParams) (uuid.UUID, error)
+	// m_refresh_tokenのpublic_idから、そのレコードを削除します。
+	// 削除されたレコードに紐づくjtiをブラックリストに保存します。
+	// 削除されたレコードのpublic_idが返されます。
+	RevokeRefreshTokenByID(ctx context.Context, arg RevokeRefreshTokenByIDParams) (uuid.UUID, error)
 	// リフレッシュトークンを更新します。
 	// token_hash = token_hash_for_check
 	// updated_at < updated_at_for_check
 	// expires_at > current_timestamp
 	// の条件をすべて満たす場合にのみ更新されます。条件を満たさない場合は、pgx.ErrNoRowsが返されます。
 	// リフレッシュトークンに紐づくuser_authorization_idから、それに紐づくuserのpublic_idを返します。
-	UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) (uuid.UUID, error)
-	// m_user.public_idから、ユーザーのプロファイルを更新する
-	UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (UpdateUserProfileRow, error)
+	RotateRefreshToken(ctx context.Context, arg RotateRefreshTokenParams) (uuid.UUID, error)
+	// 認証テーブルにIssuerとSubを保存する
+	// IssuerとSubの組み合わせで一意制約があり、既に存在する場合は、何もしない。
+	// 重複した場合でも特にエラーは発生せず、既存のレコードが返される。
+	// 返り値は、m_user_authorization_idとpublic_id、そして新規作成されたかどうかを示すis_createdフラグ。
+	SaveAuthorization(ctx context.Context, arg SaveAuthorizationParams) (SaveAuthorizationRow, error)
+	// トランザクションレベルのロック（ノンブロッキング）
+	TryAcquireAdvisoryXactLock(ctx context.Context, dollar_1 int64) (bool, error)
+	UpdatePlaylist(ctx context.Context, arg UpdatePlaylistParams) (uuid.UUID, error)
+	// ユーザーを更新する。
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
+	UpsertChannel(ctx context.Context, arg UpsertChannelParams) (int64, error)
+	UpsertPlaylist(ctx context.Context, arg UpsertPlaylistParams) (int64, error)
+	UpsertVideo(ctx context.Context, arg UpsertVideoParams) (int64, error)
+	UpsertWatchHeartbeat(ctx context.Context, arg UpsertWatchHeartbeatParams) error
 }
 
 var _ Querier = (*Queries)(nil)

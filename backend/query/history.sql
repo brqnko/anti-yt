@@ -1,8 +1,15 @@
 -- m_user.public_idから、そのユーザーが今日視聴していた合計時間(seconds)と設定している制限時間を返す。
 -- その日に一本も動画を視聴していない場合は0を返します。
--- name: GetTotalWatchSeconds :one
+-- name: GetDailyWatchSummary :one
 SELECT
-    (SELECT m_user.daily_screen_time_seconds FROM m_user WHERE m_user.public_id = @public_id)::int AS daily_limit_seconds,
+    (
+        SELECT
+            m_user.daily_screen_time_seconds
+        FROM
+            m_user
+        WHERE
+            m_user.public_id = @public_id
+    )::int AS daily_limit_seconds,
     COALESCE(
         EXTRACT(
             EPOCH
@@ -23,23 +30,21 @@ WHERE
             m_user
         WHERE
             m_user.public_id = @public_id
-        LIMIT 1
+        LIMIT
+            1
     )
     AND CURRENT_DATE <= t_video_watch.watch_start_at
     AND t_video_watch.watch_start_at < CURRENT_DATE + INTERVAL '1 day';
 
--- name: GetHistory :many
+-- name: ListWatchHistory :many
 SELECT
     m_video.public_id AS video_id,
-    m_video.external_id AS external_video_id,
     m_video.external_title AS external_video_title,
     m_video.external_thumbnail_url AS external_video_thumbnail_url,
     m_video.external_length_seconds AS external_video_length_seconds,
-    m_video.external_created_at AS external_video_created_at,
     t_video_watch.watch_position_seconds,
     t_video_watch.watch_start_at AS watched_at,
     m_channel.public_id AS channel_id,
-    m_channel.external_id AS external_channel_id,
     m_channel.external_display_name AS external_channel_display_name,
     m_channel.external_icon_url AS external_channel_icon_url
 FROM
@@ -54,7 +59,8 @@ WHERE
             m_user
         WHERE
             m_user.public_id = @user_id
-        LIMIT 1
+        LIMIT
+            1
     )
     AND (
         sqlc.narg('cursor')::uuid IS NULL
@@ -65,7 +71,7 @@ ORDER BY
 LIMIT
     @query_limit;
 
--- name: Heartbeat :exec
+-- name: UpsertWatchHeartbeat :exec
 WITH resolved_user AS (
     SELECT
         m_user_id
@@ -73,7 +79,8 @@ WITH resolved_user AS (
         m_user
     WHERE
         m_user.public_id = @user_public_id
-    LIMIT 1
+    LIMIT
+        1
 ),
 resolved_video AS (
     SELECT
@@ -82,7 +89,8 @@ resolved_video AS (
         m_video
     WHERE
         m_video.public_id = @video_public_id
-    LIMIT 1
+    LIMIT
+        1
 ),
 close_stale AS (
     -- heartbeatが途絶えた放置セッションをクローズ
@@ -95,7 +103,8 @@ close_stale AS (
         m_user_id = (SELECT m_user_id FROM resolved_user)
         AND watch_end_at > CURRENT_TIMESTAMP
         AND t_video_watch.updated_at < CURRENT_TIMESTAMP - INTERVAL '2 minutes'
-    RETURNING t_video_watch_id
+    RETURNING
+        t_video_watch_id
 ),
 latest_active AS (
     -- ユーザーの現在アクティブなレコードを取得（タイムアウトしていないもの）
@@ -108,8 +117,10 @@ latest_active AS (
         m_user_id = (SELECT m_user_id FROM resolved_user)
         AND watch_end_at > CURRENT_TIMESTAMP
         AND updated_at > CURRENT_TIMESTAMP - INTERVAL '2 minutes'
-    ORDER BY watch_start_at DESC
-    LIMIT 1
+    ORDER BY
+        watch_start_at DESC
+    LIMIT
+        1
 ),
 close_old AS (
     -- 別の動画なら終了させる
@@ -155,11 +166,12 @@ do_insert AS (
         @watch_position_seconds
     WHERE
         NOT EXISTS (SELECT 1 FROM update_same)
-    RETURNING *
+    RETURNING
+        t_video_watch_id
 )
 SELECT 1;
 
--- name: GetUserStatisticsByWeek :many
+-- name: ListDailyWatchStatsByRange :many
 SELECT
     DATE(video_watch.watch_start_at) AS watch_date,
     COUNT(DISTINCT video_watch.m_video_id) AS video_count,
@@ -174,7 +186,8 @@ WHERE
             m_user u
         WHERE
             u.public_id = @user_id
-        LIMIT 1
+        LIMIT
+            1
     )
     AND video_watch.watch_start_at BETWEEN @start_date AND @end_date
     AND video_watch.watch_end_at <= CURRENT_TIMESTAMP

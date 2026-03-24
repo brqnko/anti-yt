@@ -20,12 +20,13 @@ type Service struct {
 	db        *pgxpool.Pool
 	ytService youtube_d.YouTubeAPIService
 
+	subscriptionQS SubscriptionQueryService
+
 	rssFetchDuration time.Duration
 }
 
 var (
 	ErrInvalidSubscriptionLimit = errors.New("invalid subscription limit: out of range (should be [1..50])")
-	ErrInvalidGetUploadLimit    = errors.New("invalid get upload limit: out of range (should be [1..50])")
 	ErrSubscriptionNotFound     = errors.New("subscription not found")
 	ErrInvalidYouTubeURL        = errors.New("invalid youtube url or unsupported format")
 	ErrInvalidChannelID         = errors.New("invalid channel id")
@@ -41,22 +42,20 @@ func NewService(
 		db:               db,
 		ytService:        ytService,
 		rssFetchDuration: rssFetchDuration,
+		subscriptionQS:   NewSubscriptionQueryService(db),
 	}, nil
 }
 
-func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (SubscribedChannel, error) {
-	userID, err := util.UserIDFromContext(ctx)
+func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channelText string) (*Channel, error) {
+	// ユーザーはURLやハンドルやチャンネルIDで入力してくる
+	channelIDOrHandle, err := extractChannelIDOrHandle(channelText)
 	if err != nil {
-		return SubscribedChannel{}, err
+		return nil, err
 	}
 
-	channelID, err := extractChannelIDOrHandle(channelText)
-	if err != nil {
-		return SubscribedChannel{}, err
-	}
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return SubscribedChannel{}, fmt.Errorf("failed to begin: %w", err)
+		return nil, fmt.Errorf("failed to begin: %w", err)
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -65,136 +64,88 @@ func (s *Service) SubscribeChannel(ctx context.Context, channelText string) (Sub
 	}()
 	q := sqlc.New(tx)
 
-	acquired, err := q.TryAcquireAdvisoryXactLock(ctx, util.Sha256Int64([]byte(channelID)))
-	if err != nil {
-		return SubscribedChannel{}, fmt.Errorf("failed to tryAcquireAdvisoryXactLock: %w", err)
+	if err := util.TryAdLock(ctx, q, util.Sha256Int64([]byte(channelIDOrHandle))); err != nil {
+		return nil, err
 	}
-	if !acquired {
-		return SubscribedChannel{}, fmt.Errorf("failed to tryAcquireAdvisoryXactLock: channel lock not acquired")
-	}
-	found, err := q.GetChannelByIdOrHandle(ctx, sqlc.GetChannelByIdOrHandleParams{
-		ExternalID:       channelID,
-		ExternalCustomID: channelID,
-	})
-	if err != nil {
-		if !errors.Is(err, pgx.ErrNoRows) {
-			return SubscribedChannel{}, fmt.Errorf("failed to getChannelByIdOrHandle: %w", err)
-		}
 
-		channelDetailMap, err := s.ytService.FetchChannelDetail(ctx, []string{channelID})
+	// すでに保存されているかを確認する
+	// 保存されてない場合はfetchしてそれを使う
+	foundChannel, err := NewChannelRepository(q).FindByIdOrHandle(ctx, channelIDOrHandle)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) { // ただのDBエラー
+		return nil, err
+	}
+	if errors.Is(err, pgx.ErrNoRows) { // 保存されてない場合
+		// YouTubeからチャンネル情報を取得
+		channelDetail, err := s.ytService.FetchChannelDetailByIDOrHandle(ctx, channelIDOrHandle)
+		fetchedAt := time.Now().UTC()
 		if err != nil {
-			return SubscribedChannel{}, fmt.Errorf("failed to fetchChannelDetail: %w", err)
-		}
-		channelDetail, ok := channelDetailMap[channelID]
-		if !ok {
-			return SubscribedChannel{}, youtube_d.ErrChannelNotFound
+			return nil, fmt.Errorf("failed to fetchChannelDetail: %w", err)
 		}
 
+		// YouTubeで取得したチャンネル情報をシステムのエンティティに変換
+		channel, err := NewChannel(fetchedAt, fetchedAt, channelDetail)
+		if err != nil {
+			return nil, err
+		}
+
+		// チャンネルを保存する
 		// NOTE: fetchの結果をキャッシュするため、トランザクションの外で行う
-		if err := sqlc.New(s.db).ClearStaleChannelCustomID(ctx, sqlc.ClearStaleChannelCustomIDParams{
-			ExternalCustomID: channelDetail.CustomID,
-			ExternalID:       channelDetail.ID,
-		}); err != nil {
-			return SubscribedChannel{}, fmt.Errorf("failed to clearStaleChannelCustomID: %w", err)
-		}
-		saved, err := sqlc.New(s.db).SaveChannel(ctx, sqlc.SaveChannelParams{
-			ExternalID:                channelDetail.ID,
-			ExternalDisplayName:       channelDetail.DisplayName,
-			ExternalCustomID:          channelDetail.CustomID,
-			ExternalIconUrl:           channelDetail.IconURL,
-			ExternalDescription:       channelDetail.Description,
-			ExternalSubscribersCount:  int64(channelDetail.SubscribersCount),
-			ExternalCreatedAt:         channelDetail.CreatedAt,
-			ExternalUploadsPlaylistID: channelDetail.UploadsPlaylistID,
-		})
+		_, err = NewChannelRepository(sqlc.New(s.db)).Save(ctx, channel)
 		if err != nil {
-			return SubscribedChannel{}, fmt.Errorf("failed to saveChannel: %w", err)
+			return nil, fmt.Errorf("failed to saveChannel: %w", err)
 		}
 
-		// 新しいチャンネルは、新規ユーザーによる可能性が高い。
-		// 新規ユーザーは貴重なため、RSS Feedより確実なYouTube Data APIで動画を取得しておく。
-		uploadIDs, _, err := s.ytService.FetchPlaylistVideoIDs(ctx, channelDetail.UploadsPlaylistID, "")
+		// チャンネルの投稿動画(IDのみ)をAPIから取得する
+		// NOTE: 新しいチャンネルは、新規ユーザーによる可能性が高い. 新規ユーザーは貴重なため、RSS Feedより確実なYouTube Data APIで動画を取得しておく
+		// ちなみにYouTubeのPlaylistのIDには種類がある(ユーザーのアップロードしたリストや普通のプレイリスト、自動生成されたプレイリストなど)
+		// FetchPlaylistVideoIDsは汎用的なメソッドのためstirngを受け取っている
+		uploadIDs, _, err := s.ytService.FetchPlaylistVideoIDs(ctx, string(channel.Channel.UploadsPlaylistID), "")
 		if err != nil {
-			return SubscribedChannel{}, err
+			return nil, err
 		}
+
+		// チャンネルの投稿動画IDリストから、それぞれの動画情報を取得する
 		videoDetails, err := s.ytService.FetchVideoDetail(ctx, uploadIDs)
 		if err != nil {
-			return SubscribedChannel{}, err
+			return nil, err
 		}
 
-		fetchedAt := time.Now().UTC()
+		// 取得した情報をDBに保存する. キャッシュのためトランザクション外で行う
 		for _, vd := range videoDetails {
-			if _, err := sqlc.New(s.db).SaveVideo(ctx, sqlc.SaveVideoParams{
-				MChannelID:            saved.MChannelID,
-				ExternalID:            vd.ID,
-				ExternalTitle:         vd.Title,
-				ExternalDescription:   vd.Description,
-				FetchedAt:             fetchedAt,
-				ExternalCreatedAt:     vd.CreatedAt,
-				ExternalThumbnailUrl:  vd.ThumbnailURL,
-				ExternalLengthSeconds: vd.LengthSeconds,
-			}); err != nil {
-				return SubscribedChannel{}, fmt.Errorf("failed to saveVideo: %w", err)
+			v, err := video.NewVideo(channel.ID, fetchedAt, vd)
+			if err != nil {
+				slog.Info("failed to newVideo", "error", err)
+				continue
+			}
+
+			if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
+				slog.Info("failed to save video", "error", err)
 			}
 		}
 
-		found = sqlc.GetChannelByIdOrHandleRow{
-			PublicID:                 saved.PublicID,
-			ExternalID:               channelDetail.ID,
-			ExternalCustomID:         channelDetail.CustomID,
-			ExternalDescription:      channelDetail.Description,
-			ExternalIconUrl:          channelDetail.IconURL,
-			ExternalSubscribersCount: int64(channelDetail.SubscribersCount),
-			ExternalCreatedAt:        channelDetail.CreatedAt,
-			MChannelID:               saved.MChannelID,
-			ExternalDisplayName:      channelDetail.DisplayName,
-		}
+		foundChannel = channel
 	}
 
-	saveChannelSubscription, err := q.SaveChannelSubscription(ctx, sqlc.SaveChannelSubscriptionParams{
-		ChannelID:    found.MChannelID,
-		UserPublicID: userID,
-	})
+	subscribedChannel, err := NewSubscribedChannel(foundChannel.ID, userID)
 	if err != nil {
-		return SubscribedChannel{}, fmt.Errorf("failed to saveChannelSubscription: %w", err)
+		return nil, err
 	}
 
-	subscribed, err := NewSubscribedChannel(
-		saveChannelSubscription.PublicID,
-		found.PublicID,
-		saveChannelSubscription.CreatedAt,
-		found.ExternalID,
-		found.ExternalDisplayName,
-		found.ExternalCustomID,
-		found.ExternalDescription,
-		found.ExternalIconUrl,
-		int(found.ExternalSubscribersCount),
-		found.ExternalCreatedAt,
-	)
-	if err != nil {
-		return SubscribedChannel{}, err
+	if _, err := NewChannelRepository(q).SaveSubscription(ctx, subscribedChannel); err != nil {
+		return nil, err
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return SubscribedChannel{}, fmt.Errorf("failed to commit: %w", err)
+		return nil, fmt.Errorf("failed to commit: %w", err)
 	}
 
-	return subscribed, nil
+	return foundChannel, nil
 }
 
-func (s *Service) UnsubscribeChannel(ctx context.Context, subscriptionID uuid.UUID) error {
-	userID, err := util.UserIDFromContext(ctx)
+func (s *Service) UnsubscribeChannel(ctx context.Context, userID, channelID uuid.UUID) error {
+	rowsAffected, err := NewChannelRepository(sqlc.New(s.db)).RemoveSubscription(ctx, userID, channelID)
 	if err != nil {
 		return err
-	}
-
-	q := sqlc.New(s.db)
-	rowsAffected, err := q.DeleteChannelSubscription(ctx, sqlc.DeleteChannelSubscriptionParams{
-		SubscriptionPublicID: subscriptionID,
-		UserPublicID:         userID,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to deleteChannelSubscription: %w", err)
 	}
 	if rowsAffected == 0 {
 		return ErrSubscriptionNotFound
@@ -203,64 +154,26 @@ func (s *Service) UnsubscribeChannel(ctx context.Context, subscriptionID uuid.UU
 	return nil
 }
 
-// cursorは最後の登録チャンネルのPublicID
-func (s *Service) GetSubscriptions(ctx context.Context, limit int, cursor *uuid.UUID) (channels []SubscribedChannel, hasNext bool, err error) {
-	userID, err := util.UserIDFromContext(ctx)
+func (s *Service) GetSubscriptions(ctx context.Context, userID uuid.UUID, limit int32, cursor *uuid.UUID) (channels []GetSubscriptionsView, hasNext bool, err error) {
+	if limit < 1 || 50 < limit { // openapiもあるが一応チェック
+		return nil, false, ErrInvalidSubscriptionLimit
+	}
+
+	channels, err = s.subscriptionQS.GetSubscriptions(ctx, userID, cursor, limit+1)
 	if err != nil {
 		return nil, false, err
 	}
 
-	if limit < 1 || 50 < limit {
-		return []SubscribedChannel{}, false, ErrInvalidSubscriptionLimit
+	if len(channels) > int(limit) { // NOTE: int -> int32の変換よりもint32 -> intの方が安全
+		return channels[:limit], true, nil
 	}
-
-	q := sqlc.New(s.db)
-	subscriptions, err := q.GetChannelSubscriptions(ctx, sqlc.GetChannelSubscriptionsParams{
-		UserPublicID:   userID,
-		CursorPublicID: cursor,
-		QueryLimit:     int32(limit + 1),
-	})
-	if err != nil {
-		return nil, false, fmt.Errorf("failed to getChannelSubscriptions: %w", err)
-	}
-	res := make([]SubscribedChannel, min(len(subscriptions), limit))
-	for i, subscription := range subscriptions {
-		if i >= limit {
-			break
-		}
-		s, err := NewSubscribedChannel(
-			subscription.PublicID,
-			subscription.ChannelPublicID,
-			subscription.CreatedAt,
-			subscription.ExternalID,
-			subscription.ExternalDisplayName,
-			subscription.ExternalCustomID,
-			subscription.ExternalDescription,
-			subscription.ExternalIconUrl,
-			int(subscription.ExternalSubscribersCount),
-			subscription.ExternalCreatedAt,
-		)
-		if err != nil {
-			return nil, false, err
-		}
-		res[i] = s
-	}
-
-	return res, len(subscriptions) == limit+1, nil
+	return channels, false, nil
 }
 
-func (s *Service) GetChannelUploads(ctx context.Context, channelID uuid.UUID, cursor *uuid.UUID, limit int) (videos []video.Video, hasNext bool, err error) {
-	userID, err := util.UserIDFromContext(ctx)
-	if err != nil {
-		return nil, false, err
-	}
-	if limit < 1 || 50 < limit {
-		return nil, false, ErrInvalidGetUploadLimit
-	}
-
+func (s *Service) RefreshChannelIfStale(ctx context.Context, channelID uuid.UUID) error {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to begin: %w", err)
+		return fmt.Errorf("failed to begin: %w", err)
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -269,99 +182,55 @@ func (s *Service) GetChannelUploads(ctx context.Context, channelID uuid.UUID, cu
 	}()
 	q := sqlc.New(tx)
 
-	rssFetchedAt, err := q.GetChannelRSSFetchedAtForUpdate(ctx, channelID)
+	// ロッキングリード
+	lockedChannel, err := NewChannelRepository(q).FindForUpdate(ctx, channelID)
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to getChannelRSSFetchedAtForUpdate: %w", err)
+		return err
 	}
-	if time.Now().UTC().Sub(rssFetchedAt.RssFetchedAt) > s.rssFetchDuration {
-		rss, err := s.ytService.FetchRSSFeed(ctx, rssFetchedAt.ExternalID)
+	if lockedChannel.ShouldFetchRSSFeed(s.rssFetchDuration) {
+		// RSSから動画ID一覧を取得する
+		videoIDs, err := s.ytService.FetchRSSFeed(ctx, lockedChannel.Channel.ID)
 		if err != nil {
-			return nil, false, fmt.Errorf("failed to fetchRSSFeed: %w", err)
+			return err
 		}
 
-		videoIDs := make([]string, len(rss))
-		for i, v := range rss {
-			videoIDs[i] = v.VideoID
-		}
+		// 動画ID一覧から動画の詳細情報を取得する
 		videoDetailMap, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
 		if err != nil {
-			return nil, false, fmt.Errorf("failed to fetchVideoDetail: %w", err)
+			return fmt.Errorf("failed to fetchVideoDetail: %w", err)
 		}
 
-		now := time.Now().UTC()
-		// キャッシュはトランザクションでロールバックしたくない
-		for _, v := range rss {
-			videoDetail, ok := videoDetailMap[v.VideoID]
-			if !ok {
+		fetchedAt := time.Now().UTC()
+		for _, videoDetail := range videoDetailMap {
+			v, err := video.NewVideo(lockedChannel.ID, fetchedAt, videoDetail)
+			if err != nil {
+				slog.Info("failed to new video", "error", err)
 				continue
 			}
 
-			if _, err := sqlc.New(s.db).SaveVideo(ctx, sqlc.SaveVideoParams{
-				MChannelID:            rssFetchedAt.MChannelID,
-				ExternalID:            v.VideoID,
-				ExternalTitle:         v.Title,
-				ExternalDescription:   v.Description,
-				FetchedAt:             now,
-				ExternalCreatedAt:     v.CreatedAt,
-				ExternalThumbnailUrl:  v.ThumbnailURL,
-				ExternalLengthSeconds: videoDetail.LengthSeconds,
-			}); err != nil {
-				return nil, false, fmt.Errorf("failed to saveVideo: %w", err)
+			if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
+				slog.Info("failed to save new video", "error", err)
+				continue
 			}
 		}
 
-		if _, err := q.MarkChannelRSSAsFetched(ctx, []int64{rssFetchedAt.MChannelID}); err != nil {
-			return nil, false, fmt.Errorf("failed to markChannelRSSAsFetched: %w", err)
+		lockedChannel.MarkAsRSSFetched()
+		if _, err := NewChannelRepository(q).Save(ctx, lockedChannel); err != nil {
+			return err
 		}
-	}
-
-	getChannelVideos, err := q.GetChannelVideos(ctx, sqlc.GetChannelVideosParams{
-		UserID:     userID,
-		ChannelID:  channelID,
-		Cursor:     cursor,
-		QueryLimit: (int32)(limit + 1),
-	})
-	if err != nil {
-		return nil, false, fmt.Errorf("failed to getChannelVideos: %w", err)
-	}
-
-	videosToReturn := make([]video.Video, min(limit, len(getChannelVideos)))
-	for i, getChannelVideo := range getChannelVideos {
-		if i >= limit {
-			break
-		}
-		// NOTE: pgxはNULLが帰ってきても、0として解釈する。
-		// 0ならnilとして扱うように、コンストラクタ側で処理してます。
-		v := video.NewVideo(
-			getChannelVideo.PublicID,
-			getChannelVideo.ChannelID,
-			getChannelVideo.ExternalThumbnailUrl,
-			getChannelVideo.ExternalChannelIconUrl,
-			getChannelVideo.ExternalTitle,
-			getChannelVideo.ExternalChannelDisplayname,
-			getChannelVideo.ExternalCreatedAt,
-			getChannelVideo.ExternalLengthSeconds,
-			getChannelVideo.LastWatchSeconds,
-		)
-		videosToReturn[i] = v
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return nil, false, fmt.Errorf("failed to commit: %w", err)
+		return fmt.Errorf("failed to commit: %w", err)
 	}
 
-	return videosToReturn, len(getChannelVideos) == limit+1, nil
+	return nil
 }
 
-func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (videos []video.Video, hasNext bool, err error) {
-	userID, err := util.UserIDFromContext(ctx)
-	if err != nil {
-		return nil, false, err
-	}
-
+func (s *Service) SyncRSSFeeds(ctx context.Context, userID uuid.UUID) error {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to begin: %w", err)
+		return err
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -370,98 +239,51 @@ func (s *Service) GetFeed(ctx context.Context, cursor *uuid.UUID, limit int) (vi
 	}()
 	q := sqlc.New(tx)
 
-	forUpdates, err := q.GetChannelsToFetchRSSForUpdate(ctx, sqlc.GetChannelsToFetchRSSForUpdateParams{
-		UserID:   userID,
-		RssFetch: time.Now().UTC().Add(-s.rssFetchDuration),
-		// NOTE: YouTube RSS Feedはレートリミットが厳しい。
-		// rss_fetched_atで昇順ソートしているので、ちょっとずつ更新されていくはず
-		QueryLimit: 1,
-	})
+	// NOTE: YouTube RSS Feedはレートリミットが厳しいのでlimit=1
+	// rss_fetched_atで昇順ソートしているので、ちょっとずつ更新されていくはず
+	channels, err := NewChannelRepository(q).FindToFetchRSSForUpdate(ctx, userID, s.rssFetchDuration, 1)
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to getChannelsToFetchRSSForUpdate: %w", err)
+		return err
 	}
 
-	if len(forUpdates) != 0 {
-		for _, forUpdate := range forUpdates {
-			feed, err := s.ytService.FetchRSSFeed(ctx, forUpdate.ExternalID)
-			// TODO: チャンネルが削除されてrssの取得に失敗した場合のケースを考慮する
+	for _, ch := range channels {
+		// RSSから動画ID一覧を取得する
+		// TODO: チャンネルが削除されてrssの取得に失敗した場合のケースを考慮する
+		videoIDs, err := s.ytService.FetchRSSFeed(ctx, ch.Channel.ID)
+		if err != nil {
+			return err
+		}
+
+		// 動画ID一覧から動画の詳細情報を取得する
+		// TODO: 現在はchannels分YouTube Data APIにリクエストを投げているが、一括で取得したい
+		videoDetailMap, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
+		if err != nil {
+			return err
+		}
+
+		fetchedAt := time.Now().UTC()
+		for _, vd := range videoDetailMap {
+			v, err := video.NewVideo(ch.ID, fetchedAt, vd)
 			if err != nil {
-				return nil, false, fmt.Errorf("failed to fetchRSSFeed: %w", err)
+				slog.Info("failed to newVideo", "error", err)
+				continue
 			}
 
-			videoIDs := make([]string, len(feed))
-			for i, f := range feed {
-				videoIDs[i] = f.VideoID
-			}
-			// TODO: 現在はforUpdates分YouTube Data APIにリクエストを投げているが、一括で取得したい
-			videoDetailMap, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
-			if err != nil {
-				return nil, false, fmt.Errorf("failed to fetchVideoDetail: %w", err)
-			}
-
-			now := time.Now().UTC()
-			for _, f := range feed {
-				videoDetail, ok := videoDetailMap[f.VideoID]
-				// TODO: 削除された動画どうするか考える
-				if !ok {
-					continue
-				}
-
-				if _, err := sqlc.New(s.db).SaveVideo(ctx, sqlc.SaveVideoParams{
-					MChannelID:            forUpdate.MChannelID,
-					ExternalID:            f.VideoID,
-					ExternalTitle:         f.Title,
-					ExternalDescription:   f.Description,
-					FetchedAt:             now,
-					ExternalCreatedAt:     f.CreatedAt,
-					ExternalThumbnailUrl:  f.ThumbnailURL,
-					ExternalLengthSeconds: videoDetail.LengthSeconds,
-				}); err != nil {
-					return nil, false, fmt.Errorf("failed to saveVideo: %w", err)
-				}
+			if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
+				slog.Info("failed to save video", "error", err)
+				continue
 			}
 		}
 
-		channelIDs := make([]int64, len(forUpdates))
-		for i, u := range forUpdates {
-			channelIDs[i] = u.MChannelID
-		}
-		if _, err := q.MarkChannelRSSAsFetched(ctx, channelIDs); err != nil {
-			return nil, false, fmt.Errorf("failed to markChannelRSSAsFetched: %w", err)
+		ch.MarkAsRSSFetched()
+		if _, err := NewChannelRepository(q).Save(ctx, ch); err != nil {
+			return err
 		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return nil, false, fmt.Errorf("failed to commit: %w", err)
+		return err
 	}
 
-	res, err := sqlc.New(s.db).GetSubscribingChannelFeed(ctx, sqlc.GetSubscribingChannelFeedParams{
-		UserID:     userID,
-		Cursor:     cursor,
-		QueryLimit: (int32)(limit + 1),
-	})
-	if err != nil {
-		return nil, false, fmt.Errorf("failed to getSubscribingChannelFeed: %w", err)
-	}
-
-	videosToReturn := make([]video.Video, 0, min(len(res), limit))
-	for i, r := range res {
-		if i >= limit {
-			break
-		}
-		v := video.NewVideo(
-			r.VideoID,
-			r.ChannelID,
-			r.ExternalVideoThumbnailUrl,
-			r.ExternalChannelIconUrl,
-			r.ExternalTitle,
-			r.ExternalDisplayname,
-			r.ExternalCreatedAt,
-			r.ExternalLengthSeconds,
-			r.LastWatchSeconds,
-		)
-		videosToReturn = append(videosToReturn, v)
-	}
-
-	return videosToReturn, len(res) == limit+1, nil
+	return nil
 }

@@ -10,14 +10,14 @@
 | [public.m_refresh_token](public.m_refresh_token.md) | 18 |  | BASE TABLE |
 | [public.h_user](public.h_user.md) | 11 |  | BASE TABLE |
 | [public.m_user_screen_time_range](public.m_user_screen_time_range.md) | 7 |  | BASE TABLE |
-| [public.m_user_subscribing_channel](public.m_user_subscribing_channel.md) | 7 |  | BASE TABLE |
+| [public.m_user_subscribing_channel](public.m_user_subscribing_channel.md) | 6 |  | BASE TABLE |
 | [public.m_channel](public.m_channel.md) | 14 |  | BASE TABLE |
 | [public.m_video](public.m_video.md) | 12 |  | BASE TABLE |
 | [public.t_video_watch](public.t_video_watch.md) | 9 |  | BASE TABLE |
 | [public.h_search](public.h_search.md) | 6 |  | BASE TABLE |
 | [public.s_monthly_video_watch](public.s_monthly_video_watch.md) | 11 |  | BASE TABLE |
 | [public.w_monthly_video_watch](public.w_monthly_video_watch.md) | 10 |  | BASE TABLE |
-| [public.m_playlist](public.m_playlist.md) | 10 |  | BASE TABLE |
+| [public.m_playlist](public.m_playlist.md) | 11 |  | BASE TABLE |
 | [public.m_playlist_video](public.m_playlist_video.md) | 6 |  | BASE TABLE |
 | [public.t_jti_blacklist](public.t_jti_blacklist.md) | 2 |  | BASE TABLE |
 

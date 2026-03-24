@@ -9,12 +9,12 @@
 | t_video_watch_id | bigint |  | false |  |  |  |
 | m_user_id | bigint |  | false |  |  |  |
 | m_video_id | bigint |  | false |  |  |  |
-| watch_start_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
-| watch_end_at | timestamp with time zone | '9999-12-31 23:59:59+00'::timestamp with time zone | false |  |  |  |
-| watch_position_seconds | integer | 0 | false |  |  |  |
+| watch_start_at | timestamp with time zone |  | false |  |  |  |
+| watch_end_at | timestamp with time zone |  | false |  |  |  |
+| watch_position_seconds | integer |  | false |  |  |  |
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
-| public_id | uuid | uuidv7() | false |  |  |  |
+| public_id | uuid |  | false |  |  |  |
 
 ## Constraints
 

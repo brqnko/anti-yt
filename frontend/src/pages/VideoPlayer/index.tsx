@@ -6,6 +6,7 @@ import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getVideo } from "../../api/generated/video";
+import { getHistory } from "../../api/generated/history";
 import { getPlaylist } from "../../api/generated/playlist";
 import { formatDuration, formatSubscriberCount } from "../../utils/format";
 import { buildWatchUrl } from "../../utils/url";
@@ -312,7 +313,7 @@ function VideoPlayerContent() {
     finalHeartbeatSentRef.current = false;
 
     const sendHeartbeat = () => {
-      getVideo()
+      getHistory()
         .postVideosVideoIdHeartbeats(video.video_id, {
           current_position_seconds: Math.floor(currentTimeRef.current),
         })

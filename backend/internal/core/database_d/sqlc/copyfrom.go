@@ -9,13 +9,13 @@ import (
 	"context"
 )
 
-// iteratorForBulkInsertIntoPlaylist implements pgx.CopyFromSource.
-type iteratorForBulkInsertIntoPlaylist struct {
-	rows                 []BulkInsertIntoPlaylistParams
+// iteratorForBulkInsertPlaylistVideos implements pgx.CopyFromSource.
+type iteratorForBulkInsertPlaylistVideos struct {
+	rows                 []BulkInsertPlaylistVideosParams
 	skippedFirstNextCall bool
 }
 
-func (r *iteratorForBulkInsertIntoPlaylist) Next() bool {
+func (r *iteratorForBulkInsertPlaylistVideos) Next() bool {
 	if len(r.rows) == 0 {
 		return false
 	}
@@ -27,7 +27,7 @@ func (r *iteratorForBulkInsertIntoPlaylist) Next() bool {
 	return len(r.rows) > 0
 }
 
-func (r iteratorForBulkInsertIntoPlaylist) Values() ([]interface{}, error) {
+func (r iteratorForBulkInsertPlaylistVideos) Values() ([]interface{}, error) {
 	return []interface{}{
 		r.rows[0].MPlaylistID,
 		r.rows[0].MVideoID,
@@ -35,21 +35,21 @@ func (r iteratorForBulkInsertIntoPlaylist) Values() ([]interface{}, error) {
 	}, nil
 }
 
-func (r iteratorForBulkInsertIntoPlaylist) Err() error {
+func (r iteratorForBulkInsertPlaylistVideos) Err() error {
 	return nil
 }
 
-func (q *Queries) BulkInsertIntoPlaylist(ctx context.Context, arg []BulkInsertIntoPlaylistParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"m_playlist_video"}, []string{"m_playlist_id", "m_video_id", "playlist_position"}, &iteratorForBulkInsertIntoPlaylist{rows: arg})
+func (q *Queries) BulkInsertPlaylistVideos(ctx context.Context, arg []BulkInsertPlaylistVideosParams) (int64, error) {
+	return q.db.CopyFrom(ctx, []string{"m_playlist_video"}, []string{"m_playlist_id", "m_video_id", "playlist_position"}, &iteratorForBulkInsertPlaylistVideos{rows: arg})
 }
 
-// iteratorForSaveUserScreenTimeRanges implements pgx.CopyFromSource.
-type iteratorForSaveUserScreenTimeRanges struct {
-	rows                 []SaveUserScreenTimeRangesParams
+// iteratorForBulkInsertScreenTimeRanges implements pgx.CopyFromSource.
+type iteratorForBulkInsertScreenTimeRanges struct {
+	rows                 []BulkInsertScreenTimeRangesParams
 	skippedFirstNextCall bool
 }
 
-func (r *iteratorForSaveUserScreenTimeRanges) Next() bool {
+func (r *iteratorForBulkInsertScreenTimeRanges) Next() bool {
 	if len(r.rows) == 0 {
 		return false
 	}
@@ -61,7 +61,7 @@ func (r *iteratorForSaveUserScreenTimeRanges) Next() bool {
 	return len(r.rows) > 0
 }
 
-func (r iteratorForSaveUserScreenTimeRanges) Values() ([]interface{}, error) {
+func (r iteratorForBulkInsertScreenTimeRanges) Values() ([]interface{}, error) {
 	return []interface{}{
 		r.rows[0].MUserID,
 		r.rows[0].ScreenTimeRangeStart,
@@ -69,11 +69,11 @@ func (r iteratorForSaveUserScreenTimeRanges) Values() ([]interface{}, error) {
 	}, nil
 }
 
-func (r iteratorForSaveUserScreenTimeRanges) Err() error {
+func (r iteratorForBulkInsertScreenTimeRanges) Err() error {
 	return nil
 }
 
 // NOTE: err == nilの場合はlen(param)
-func (q *Queries) SaveUserScreenTimeRanges(ctx context.Context, arg []SaveUserScreenTimeRangesParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"m_user_screen_time_range"}, []string{"m_user_id", "screen_time_range_start", "screen_time_range_end"}, &iteratorForSaveUserScreenTimeRanges{rows: arg})
+func (q *Queries) BulkInsertScreenTimeRanges(ctx context.Context, arg []BulkInsertScreenTimeRangesParams) (int64, error) {
+	return q.db.CopyFrom(ctx, []string{"m_user_screen_time_range"}, []string{"m_user_id", "screen_time_range_start", "screen_time_range_end"}, &iteratorForBulkInsertScreenTimeRanges{rows: arg})
 }

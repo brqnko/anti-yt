@@ -1,0 +1,111 @@
+package history
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+type GetHistoryView struct {
+	VideoId                    uuid.UUID
+	ExternalVideoTitle         string
+	ExternalVideoThumbnailUrl  string
+	ExternalVideoLengthSeconds int
+	WatchPositionSeconds       int
+	WatchedAt                  time.Time
+	ChannelId                  uuid.UUID
+	ExternalChannelDisplayName string
+	ExternalChannelIconUrl     string
+}
+
+type GetStatisticsWeeklyView struct {
+	WatchDate  time.Time
+	VideoCount int
+	WatchSum   int64
+}
+
+type GetTotalWatchSecondsView struct {
+	DailyLimitSeconds int
+	TodayWatchTotal   int
+}
+
+type HistoryQueryService interface {
+	FindHistory(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetHistoryView, error)
+	FindStatisticsByWeek(ctx context.Context, userID uuid.UUID, startDate time.Time) ([]GetStatisticsWeeklyView, error)
+	FindTotalWatchSeconds(ctx context.Context, userID uuid.UUID) (GetTotalWatchSecondsView, error)
+}
+
+type historyQueryServiceImpl struct {
+	q sqlc.Querier
+}
+
+func NewHistoryQueryService(db *pgxpool.Pool) HistoryQueryService {
+	return &historyQueryServiceImpl{
+		q: sqlc.New(db),
+	}
+}
+
+func (h *historyQueryServiceImpl) FindHistory(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetHistoryView, error) {
+	rows, err := h.q.ListWatchHistory(ctx, sqlc.ListWatchHistoryParams{
+		UserID:     userID,
+		Cursor:     cursor,
+		QueryLimit: limit,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to getHistory(historyQueryService.FindHistory): %w", err)
+	}
+
+	views := make([]GetHistoryView, len(rows))
+	for i, row := range rows {
+		views[i] = GetHistoryView{
+			VideoId:                    row.VideoID,
+			ExternalVideoTitle:         row.ExternalVideoTitle,
+			ExternalVideoThumbnailUrl:  row.ExternalVideoThumbnailUrl,
+			ExternalVideoLengthSeconds: row.ExternalVideoLengthSeconds,
+			WatchPositionSeconds:       row.WatchPositionSeconds,
+			WatchedAt:                  row.WatchedAt,
+			ChannelId:                  row.ChannelID,
+			ExternalChannelDisplayName: row.ExternalChannelDisplayName,
+			ExternalChannelIconUrl:     row.ExternalChannelIconUrl,
+		}
+	}
+	return views, nil
+}
+
+func (h *historyQueryServiceImpl) FindStatisticsByWeek(ctx context.Context, userID uuid.UUID, startDate time.Time) ([]GetStatisticsWeeklyView, error) {
+	rows, err := h.q.ListDailyWatchStatsByRange(ctx, sqlc.ListDailyWatchStatsByRangeParams{
+		UserID:    userID,
+		StartDate: startDate,
+		EndDate:   startDate.Add(7 * 24 * time.Hour), // NOTE: postgresql側で+ '7 days'するとsqlcがパースエラー起こす
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to getUserStatisticsByWeek(historyQueryService.FindStatisticsByWeek): %w", err)
+	}
+
+	views := make([]GetStatisticsWeeklyView, len(rows))
+	for i, row := range rows {
+		views[i] = GetStatisticsWeeklyView{
+			WatchDate:  row.WatchDate.Time,
+			VideoCount: int(row.VideoCount),
+			WatchSum:   row.WatchSum,
+		}
+	}
+	return views, nil
+}
+
+func (h *historyQueryServiceImpl) FindTotalWatchSeconds(ctx context.Context, userID uuid.UUID) (GetTotalWatchSecondsView, error) {
+	row, err := h.q.GetDailyWatchSummary(ctx, userID)
+	if err != nil {
+		return GetTotalWatchSecondsView{}, fmt.Errorf("failed to getTotalWatchSeconds(historyQueryService.FindTotalWatchSeconds): %w", err)
+	}
+	return GetTotalWatchSecondsView{
+		DailyLimitSeconds: row.DailyLimitSeconds,
+		TodayWatchTotal:   row.TodayWatchTotal,
+	}, nil
+}
+
+var _ HistoryQueryService = (*historyQueryServiceImpl)(nil)

@@ -11,12 +11,12 @@
 | ai_summary_title | varchar(128) |  | false |  |  |  |
 | ai_summary_description | varchar(4096) |  | false |  |  |  |
 | ai_model | varchar(128) |  | false |  |  |  |
-| generated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
+| generated_at | timestamp with time zone |  | false |  |  |  |
 | target_month | date |  | false |  |  |  |
 | w_monthly_video_watch_id | bigint |  | false |  |  |  |
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
-| public_id | uuid | uuidv7() | false |  |  |  |
+| public_id | uuid |  | false |  |  |  |
 
 ## Constraints
 

@@ -1,17 +1,21 @@
--- 新しいユーザーを挿入する。
--- name: SaveUser :one
+-- ユーザーを作成する。
+-- name: InsertUser :one
 INSERT INTO
     m_user (
         m_user_authorization_id,
         display_name,
         language_code,
-        daily_screen_time_seconds
+        daily_screen_time_seconds,
+        joined_at,
+        public_id
     )
 SELECT
     m_user_authorization.m_user_authorization_id,
     @display_name,
     @language_code,
-    @daily_screen_time_seconds
+    @daily_screen_time_seconds,
+    @joined_at,
+    @public_id
 FROM
     m_user_authorization
 WHERE
@@ -19,12 +23,24 @@ WHERE
 LIMIT
     1
 RETURNING
-    m_user_id,
-    joined_at,
-    public_id;
+    m_user_id;
+
+-- ユーザーを更新する。
+-- name: UpdateUser :one
+UPDATE
+    m_user
+SET
+    display_name = @display_name,
+    language_code = @language_code,
+    daily_screen_time_seconds = @daily_screen_time_seconds,
+    updated_at = CURRENT_TIMESTAMP
+WHERE
+    m_user.public_id = @user_public_id
+RETURNING
+    m_user_id;
 
 -- NOTE: err == nilの場合はlen(param)
--- name: SaveUserScreenTimeRanges :copyfrom
+-- name: BulkInsertScreenTimeRanges :copyfrom
 INSERT INTO
     m_user_screen_time_range (
         m_user_id,
@@ -35,7 +51,7 @@ VALUES
     ($1, $2, $3);
 
 -- m_user.public_idのユーザーの視聴制限範囲を取得する。
--- name: GetUserScreenTimeRanges :many
+-- name: ListScreenTimeRanges :many
 SELECT
     m_user_screen_time_range.screen_time_range_start,
     m_user_screen_time_range.screen_time_range_end,
@@ -50,6 +66,8 @@ WHERE
             m_user
         WHERE
             m_user.public_id = @user_public_id
+        LIMIT
+            1
     )
 ORDER BY
     m_user_screen_time_range.screen_time_range_start;
@@ -93,58 +111,49 @@ SELECT
             )
     ) AS total_count;
 
--- m_user.public_idから、ユーザーのプロファイルを更新する
--- name: UpdateUserProfile :one
-UPDATE
-    m_user
-SET
-    display_name = COALESCE(
-        sqlc.narg('new_display_name'),
-        m_user.display_name
-    ),
-    daily_screen_time_seconds = COALESCE(
-        sqlc.narg('new_daily_screen_time_seconds'),
-        m_user.daily_screen_time_seconds
-    ),
-    language_code = COALESCE(
-        sqlc.narg('new_language_code'),
-        m_user.language_code
-    ),
-    updated_at = CURRENT_TIMESTAMP
-WHERE
-    m_user.public_id = @user_public_id
-RETURNING
-    m_user.m_user_id,
-    m_user.public_id,
-    m_user.joined_at,
-    m_user.display_name,
-    m_user.daily_screen_time_seconds,
-    m_user.language_code;
-
--- m_user.public_idから、ユーザーのプロファイルを取得する。
--- name: GetUserProfile :one
+-- m_user.public_idから、ユーザーをロッキングリードする。
+-- name: GetUserForUpdate :one
 SELECT
-    m_user.m_user_id,
-    m_user.joined_at,
+    m_user.public_id,
     m_user.display_name,
-    m_user.daily_screen_time_seconds,
-    m_user.language_code
+    m_user.language_code,
+    m_user.joined_at,
+    m_user.daily_screen_time_seconds
 FROM
     m_user
 WHERE
     m_user.public_id = @user_public_id
 LIMIT
-    1;
+    1
+FOR UPDATE;
+
+-- m_user.public_idから、ユーザーのプロファイルとスクリーン時間制限範囲を取得する。
+-- name: GetUserProfile :many
+SELECT
+    m_user.display_name,
+    m_user.language_code,
+    m_user.joined_at,
+    m_user.daily_screen_time_seconds,
+    m_user_screen_time_range.public_id AS screen_time_range_id,
+    m_user_screen_time_range.screen_time_range_start,
+    m_user_screen_time_range.screen_time_range_end
+FROM
+    m_user
+    LEFT JOIN m_user_screen_time_range ON m_user_screen_time_range.m_user_id = m_user.m_user_id
+WHERE
+    m_user.public_id = @user_public_id
+ORDER BY
+    m_user_screen_time_range.screen_time_range_start;
 
 -- m_user.m_user_idから、そのユーザーのスクリーン時間の範囲制限を削除する
--- name: RemoveScreenTimeRangesByUserId :exec
+-- name: DeleteScreenTimeRangesByUserID :exec
 DELETE FROM
     m_user_screen_time_range
 WHERE
     m_user_screen_time_range.m_user_id = $1;
 
 -- m_userをh_userに移動します。
--- name: RemoveUser :exec
+-- name: ArchiveUser :exec
 WITH deleted AS (
     DELETE FROM
         m_user

@@ -58,22 +58,22 @@ func WithRefreshTokenLastLoggedInAt(lastLoggedInAt time.Time) RefreshTokenOption
 	}
 }
 
-func NewRefreshToken(userAgent, deviceFingerprint, ipAddress, countryCode, cityName string, expiresAt time.Time, opts ...RefreshTokenOption) (RefreshToken, error) {
+func NewRefreshToken(userAgent, deviceFingerprint, ipAddress, countryCode, cityName string, expiresAt time.Time, opts ...RefreshTokenOption) (*RefreshToken, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
-		return RefreshToken{}, err
+		return nil, err
 	}
 
 	accessTokenJTI, err := uuid.NewV7()
 	if err != nil {
-		return RefreshToken{}, err
+		return nil, err
 	}
 
 	now := time.Now().UTC()
 	ua := user_agent.New(userAgent)
 	browserName, browserVersion := ua.Browser()
 
-	rt := RefreshToken{
+	rt := &RefreshToken{
 		ID:                id,
 		ActivatedAt:       now,
 		TokenHash:         "",
@@ -89,11 +89,11 @@ func NewRefreshToken(userAgent, deviceFingerprint, ipAddress, countryCode, cityN
 		LastLoggedInAt:    now,
 	}
 	for _, opt := range opts {
-		opt(&rt)
+		opt(rt)
 	}
 
 	if rt.TokenHash == "" {
-		return RefreshToken{}, errors.New("refresh token token hash is not set")
+		return nil, errors.New("refresh token token hash is not set")
 	}
 
 	return rt, nil
@@ -120,13 +120,13 @@ func WithAuthorizationID(id uuid.UUID) AuthorizationOption {
 	}
 }
 
-func NewAuthorization(issuer, sub string, options ...AuthorizationOption) (Authorization, error) {
+func NewAuthorization(issuer, sub string, options ...AuthorizationOption) (*Authorization, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
-		return Authorization{}, err
+		return nil, err
 	}
 
-	authorization := Authorization{
+	authorization := &Authorization{
 		ID:             id,
 		Issuer:         issuer,
 		Sub:            sub,
@@ -134,7 +134,7 @@ func NewAuthorization(issuer, sub string, options ...AuthorizationOption) (Autho
 	}
 
 	for _, opt := range options {
-		opt(&authorization)
+		opt(authorization)
 	}
 
 	return authorization, nil

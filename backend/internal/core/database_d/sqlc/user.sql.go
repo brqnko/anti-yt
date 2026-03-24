@@ -13,6 +13,62 @@ import (
 	"github.com/google/uuid"
 )
 
+const archiveUser = `-- name: ArchiveUser :exec
+WITH deleted AS (
+    DELETE FROM
+        m_user
+    WHERE
+        m_user.public_id = $2
+    RETURNING
+        m_user.m_user_id,
+        m_user.m_user_authorization_id,
+        m_user.display_name,
+        m_user.language_code,
+        m_user.daily_screen_time_seconds,
+        m_user.joined_at,
+        m_user.public_id
+)
+INSERT INTO
+    h_user (
+        h_user_id,
+        m_user_authorization_id,
+        display_name,
+        language_code,
+        daily_screen_time_seconds,
+        joined_at,
+        leave_reason_code,
+        public_id
+    )
+SELECT
+    deleted.m_user_id AS h_user_id,
+    deleted.m_user_authorization_id AS m_user_authorization_id,
+    deleted.display_name AS display_name,
+    deleted.language_code AS language_code,
+    deleted.daily_screen_time_seconds AS daily_screen_time_seconds,
+    deleted.joined_at AS joined_at,
+    $1 AS leave_reason_code,
+    deleted.public_id AS public_id
+FROM
+    deleted
+`
+
+type ArchiveUserParams struct {
+	LeaveReasonCode int
+	UserPublicID    uuid.UUID
+}
+
+// m_userをh_userに移動します。
+func (q *Queries) ArchiveUser(ctx context.Context, arg ArchiveUserParams) error {
+	_, err := q.db.Exec(ctx, archiveUser, arg.LeaveReasonCode, arg.UserPublicID)
+	return err
+}
+
+type BulkInsertScreenTimeRangesParams struct {
+	MUserID              int64
+	ScreenTimeRangeStart database_d.Seconds
+	ScreenTimeRangeEnd   database_d.Seconds
+}
+
 const countUsersByAuthorization = `-- name: CountUsersByAuthorization :one
 WITH auth AS (
     SELECT
@@ -60,44 +116,166 @@ func (q *Queries) CountUsersByAuthorization(ctx context.Context, publicID uuid.U
 	return total_count, err
 }
 
-const getUserProfile = `-- name: GetUserProfile :one
+const deleteScreenTimeRangesByUserID = `-- name: DeleteScreenTimeRangesByUserID :exec
+DELETE FROM
+    m_user_screen_time_range
+WHERE
+    m_user_screen_time_range.m_user_id = $1
+`
+
+// m_user.m_user_idから、そのユーザーのスクリーン時間の範囲制限を削除する
+func (q *Queries) DeleteScreenTimeRangesByUserID(ctx context.Context, mUserID int64) error {
+	_, err := q.db.Exec(ctx, deleteScreenTimeRangesByUserID, mUserID)
+	return err
+}
+
+const getUserForUpdate = `-- name: GetUserForUpdate :one
 SELECT
-    m_user.m_user_id,
-    m_user.joined_at,
+    m_user.public_id,
     m_user.display_name,
-    m_user.daily_screen_time_seconds,
-    m_user.language_code
+    m_user.language_code,
+    m_user.joined_at,
+    m_user.daily_screen_time_seconds
 FROM
     m_user
 WHERE
     m_user.public_id = $1
 LIMIT
     1
+FOR UPDATE
 `
 
-type GetUserProfileRow struct {
-	MUserID                int64
-	JoinedAt               time.Time
+type GetUserForUpdateRow struct {
+	PublicID               uuid.UUID
 	DisplayName            string
-	DailyScreenTimeSeconds int
 	LanguageCode           string
+	JoinedAt               time.Time
+	DailyScreenTimeSeconds int
 }
 
-// m_user.public_idから、ユーザーのプロファイルを取得する。
-func (q *Queries) GetUserProfile(ctx context.Context, userPublicID uuid.UUID) (GetUserProfileRow, error) {
-	row := q.db.QueryRow(ctx, getUserProfile, userPublicID)
-	var i GetUserProfileRow
+// m_user.public_idから、ユーザーをロッキングリードする。
+func (q *Queries) GetUserForUpdate(ctx context.Context, userPublicID uuid.UUID) (GetUserForUpdateRow, error) {
+	row := q.db.QueryRow(ctx, getUserForUpdate, userPublicID)
+	var i GetUserForUpdateRow
 	err := row.Scan(
-		&i.MUserID,
-		&i.JoinedAt,
+		&i.PublicID,
 		&i.DisplayName,
-		&i.DailyScreenTimeSeconds,
 		&i.LanguageCode,
+		&i.JoinedAt,
+		&i.DailyScreenTimeSeconds,
 	)
 	return i, err
 }
 
-const getUserScreenTimeRanges = `-- name: GetUserScreenTimeRanges :many
+const getUserProfile = `-- name: GetUserProfile :many
+SELECT
+    m_user.display_name,
+    m_user.language_code,
+    m_user.joined_at,
+    m_user.daily_screen_time_seconds,
+    m_user_screen_time_range.public_id AS screen_time_range_id,
+    m_user_screen_time_range.screen_time_range_start,
+    m_user_screen_time_range.screen_time_range_end
+FROM
+    m_user
+    LEFT JOIN m_user_screen_time_range ON m_user_screen_time_range.m_user_id = m_user.m_user_id
+WHERE
+    m_user.public_id = $1
+ORDER BY
+    m_user_screen_time_range.screen_time_range_start
+`
+
+type GetUserProfileRow struct {
+	DisplayName            string
+	LanguageCode           string
+	JoinedAt               time.Time
+	DailyScreenTimeSeconds int
+	ScreenTimeRangeID      *uuid.UUID
+	ScreenTimeRangeStart   *database_d.Seconds
+	ScreenTimeRangeEnd     *database_d.Seconds
+}
+
+// m_user.public_idから、ユーザーのプロファイルとスクリーン時間制限範囲を取得する。
+func (q *Queries) GetUserProfile(ctx context.Context, userPublicID uuid.UUID) ([]GetUserProfileRow, error) {
+	rows, err := q.db.Query(ctx, getUserProfile, userPublicID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserProfileRow
+	for rows.Next() {
+		var i GetUserProfileRow
+		if err := rows.Scan(
+			&i.DisplayName,
+			&i.LanguageCode,
+			&i.JoinedAt,
+			&i.DailyScreenTimeSeconds,
+			&i.ScreenTimeRangeID,
+			&i.ScreenTimeRangeStart,
+			&i.ScreenTimeRangeEnd,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const insertUser = `-- name: InsertUser :one
+INSERT INTO
+    m_user (
+        m_user_authorization_id,
+        display_name,
+        language_code,
+        daily_screen_time_seconds,
+        joined_at,
+        public_id
+    )
+SELECT
+    m_user_authorization.m_user_authorization_id,
+    $1,
+    $2,
+    $3,
+    $4,
+    $5
+FROM
+    m_user_authorization
+WHERE
+    m_user_authorization.public_id = $6
+LIMIT
+    1
+RETURNING
+    m_user_id
+`
+
+type InsertUserParams struct {
+	DisplayName               string
+	LanguageCode              string
+	DailyScreenTimeSeconds    int
+	JoinedAt                  time.Time
+	PublicID                  uuid.UUID
+	UserAuthorizationPublicID uuid.UUID
+}
+
+// ユーザーを作成する。
+func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (int64, error) {
+	row := q.db.QueryRow(ctx, insertUser,
+		arg.DisplayName,
+		arg.LanguageCode,
+		arg.DailyScreenTimeSeconds,
+		arg.JoinedAt,
+		arg.PublicID,
+		arg.UserAuthorizationPublicID,
+	)
+	var m_user_id int64
+	err := row.Scan(&m_user_id)
+	return m_user_id, err
+}
+
+const listScreenTimeRanges = `-- name: ListScreenTimeRanges :many
 SELECT
     m_user_screen_time_range.screen_time_range_start,
     m_user_screen_time_range.screen_time_range_end,
@@ -112,27 +290,29 @@ WHERE
             m_user
         WHERE
             m_user.public_id = $1
+        LIMIT
+            1
     )
 ORDER BY
     m_user_screen_time_range.screen_time_range_start
 `
 
-type GetUserScreenTimeRangesRow struct {
+type ListScreenTimeRangesRow struct {
 	ScreenTimeRangeStart database_d.Seconds
 	ScreenTimeRangeEnd   database_d.Seconds
 	PublicID             uuid.UUID
 }
 
 // m_user.public_idのユーザーの視聴制限範囲を取得する。
-func (q *Queries) GetUserScreenTimeRanges(ctx context.Context, userPublicID uuid.UUID) ([]GetUserScreenTimeRangesRow, error) {
-	rows, err := q.db.Query(ctx, getUserScreenTimeRanges, userPublicID)
+func (q *Queries) ListScreenTimeRanges(ctx context.Context, userPublicID uuid.UUID) ([]ListScreenTimeRangesRow, error) {
+	rows, err := q.db.Query(ctx, listScreenTimeRanges, userPublicID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetUserScreenTimeRangesRow
+	var items []ListScreenTimeRangesRow
 	for rows.Next() {
-		var i GetUserScreenTimeRangesRow
+		var i ListScreenTimeRangesRow
 		if err := rows.Scan(&i.ScreenTimeRangeStart, &i.ScreenTimeRangeEnd, &i.PublicID); err != nil {
 			return nil, err
 		}
@@ -144,186 +324,36 @@ func (q *Queries) GetUserScreenTimeRanges(ctx context.Context, userPublicID uuid
 	return items, nil
 }
 
-const removeScreenTimeRangesByUserId = `-- name: RemoveScreenTimeRangesByUserId :exec
-DELETE FROM
-    m_user_screen_time_range
-WHERE
-    m_user_screen_time_range.m_user_id = $1
-`
-
-// m_user.m_user_idから、そのユーザーのスクリーン時間の範囲制限を削除する
-func (q *Queries) RemoveScreenTimeRangesByUserId(ctx context.Context, mUserID int64) error {
-	_, err := q.db.Exec(ctx, removeScreenTimeRangesByUserId, mUserID)
-	return err
-}
-
-const removeUser = `-- name: RemoveUser :exec
-WITH deleted AS (
-    DELETE FROM
-        m_user
-    WHERE
-        m_user.public_id = $2
-    RETURNING
-        m_user.m_user_id,
-        m_user.m_user_authorization_id,
-        m_user.display_name,
-        m_user.language_code,
-        m_user.daily_screen_time_seconds,
-        m_user.joined_at,
-        m_user.public_id
-)
-INSERT INTO
-    h_user (
-        h_user_id,
-        m_user_authorization_id,
-        display_name,
-        language_code,
-        daily_screen_time_seconds,
-        joined_at,
-        leave_reason_code,
-        public_id
-    )
-SELECT
-    deleted.m_user_id AS h_user_id,
-    deleted.m_user_authorization_id AS m_user_authorization_id,
-    deleted.display_name AS display_name,
-    deleted.language_code AS language_code,
-    deleted.daily_screen_time_seconds AS daily_screen_time_seconds,
-    deleted.joined_at AS joined_at,
-    $1 AS leave_reason_code,
-    deleted.public_id AS public_id
-FROM
-    deleted
-`
-
-type RemoveUserParams struct {
-	LeaveReasonCode int
-	UserPublicID    uuid.UUID
-}
-
-// m_userをh_userに移動します。
-func (q *Queries) RemoveUser(ctx context.Context, arg RemoveUserParams) error {
-	_, err := q.db.Exec(ctx, removeUser, arg.LeaveReasonCode, arg.UserPublicID)
-	return err
-}
-
-const saveUser = `-- name: SaveUser :one
-INSERT INTO
-    m_user (
-        m_user_authorization_id,
-        display_name,
-        language_code,
-        daily_screen_time_seconds
-    )
-SELECT
-    m_user_authorization.m_user_authorization_id,
-    $1,
-    $2,
-    $3
-FROM
-    m_user_authorization
-WHERE
-    m_user_authorization.public_id = $4
-LIMIT
-    1
-RETURNING
-    m_user_id,
-    joined_at,
-    public_id
-`
-
-type SaveUserParams struct {
-	DisplayName               string
-	LanguageCode              string
-	DailyScreenTimeSeconds    int
-	UserAuthorizationPublicID uuid.UUID
-}
-
-type SaveUserRow struct {
-	MUserID  int64
-	JoinedAt time.Time
-	PublicID uuid.UUID
-}
-
-// 新しいユーザーを挿入する。
-func (q *Queries) SaveUser(ctx context.Context, arg SaveUserParams) (SaveUserRow, error) {
-	row := q.db.QueryRow(ctx, saveUser,
-		arg.DisplayName,
-		arg.LanguageCode,
-		arg.DailyScreenTimeSeconds,
-		arg.UserAuthorizationPublicID,
-	)
-	var i SaveUserRow
-	err := row.Scan(&i.MUserID, &i.JoinedAt, &i.PublicID)
-	return i, err
-}
-
-type SaveUserScreenTimeRangesParams struct {
-	MUserID              int64
-	ScreenTimeRangeStart database_d.Seconds
-	ScreenTimeRangeEnd   database_d.Seconds
-}
-
-const updateUserProfile = `-- name: UpdateUserProfile :one
+const updateUser = `-- name: UpdateUser :one
 UPDATE
     m_user
 SET
-    display_name = COALESCE(
-        $1,
-        m_user.display_name
-    ),
-    daily_screen_time_seconds = COALESCE(
-        $2,
-        m_user.daily_screen_time_seconds
-    ),
-    language_code = COALESCE(
-        $3,
-        m_user.language_code
-    ),
+    display_name = $1,
+    language_code = $2,
+    daily_screen_time_seconds = $3,
     updated_at = CURRENT_TIMESTAMP
 WHERE
     m_user.public_id = $4
 RETURNING
-    m_user.m_user_id,
-    m_user.public_id,
-    m_user.joined_at,
-    m_user.display_name,
-    m_user.daily_screen_time_seconds,
-    m_user.language_code
+    m_user_id
 `
 
-type UpdateUserProfileParams struct {
-	NewDisplayName            *string
-	NewDailyScreenTimeSeconds *int
-	NewLanguageCode           *string
-	UserPublicID              uuid.UUID
-}
-
-type UpdateUserProfileRow struct {
-	MUserID                int64
-	PublicID               uuid.UUID
-	JoinedAt               time.Time
+type UpdateUserParams struct {
 	DisplayName            string
-	DailyScreenTimeSeconds int
 	LanguageCode           string
+	DailyScreenTimeSeconds int
+	UserPublicID           uuid.UUID
 }
 
-// m_user.public_idから、ユーザーのプロファイルを更新する
-func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (UpdateUserProfileRow, error) {
-	row := q.db.QueryRow(ctx, updateUserProfile,
-		arg.NewDisplayName,
-		arg.NewDailyScreenTimeSeconds,
-		arg.NewLanguageCode,
+// ユーザーを更新する。
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error) {
+	row := q.db.QueryRow(ctx, updateUser,
+		arg.DisplayName,
+		arg.LanguageCode,
+		arg.DailyScreenTimeSeconds,
 		arg.UserPublicID,
 	)
-	var i UpdateUserProfileRow
-	err := row.Scan(
-		&i.MUserID,
-		&i.PublicID,
-		&i.JoinedAt,
-		&i.DisplayName,
-		&i.DailyScreenTimeSeconds,
-		&i.LanguageCode,
-	)
-	return i, err
+	var m_user_id int64
+	err := row.Scan(&m_user_id)
+	return m_user_id, err
 }
