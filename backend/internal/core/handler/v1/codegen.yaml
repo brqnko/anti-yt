@@ -13,3 +13,15 @@ compatibility:
 
 output-options:
   skip-fmt: false
+  type-mapping:
+    string:
+      formats:
+        uuid:
+          type: uuid.UUID
+          import: github.com/google/uuid
+        date-time:
+          type: time.Time
+          import: time
+        date:
+          type: time.Time
+          import: time

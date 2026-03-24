@@ -51,6 +51,11 @@ function PlaylistCard({ playlist }: { playlist: GetPlaylists200ItemsItem }) {
             })}
           </span>
           <span>
+            {t("playlists.createdAt", {
+              time: formatTimeAgo(playlist.playlist_registered_at, t),
+            })}
+          </span>
+          <span>
             {t("playlists.lastUpdated", {
               time: formatTimeAgo(playlist.playlist_updated_at, t),
             })}

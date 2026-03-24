@@ -9,7 +9,9 @@ import type {
   GetHistory200,
   GetHistoryParams,
   GetStatisticsWeekly200,
-  GetStatisticsWeeklyParams
+  GetStatisticsWeeklyParams,
+  PostVideosVideoIdHeartbeats200,
+  PostVideosVideoIdHeartbeatsBody
 } from './antiYtApi.schemas';
 
 import { customInstance } from '../mutator';
@@ -19,6 +21,21 @@ import { customInstance } from '../mutator';
 
   export const getHistory = () => {
 /**
+ * 視聴時間をトラックするためのハートビート用エンドポイント。一分ごとに送られる。
+ * @summary Heartbeats
+ */
+const postVideosVideoIdHeartbeats = (
+    videoId: string,
+    postVideosVideoIdHeartbeatsBody: PostVideosVideoIdHeartbeatsBody,
+ ) => {
+      return customInstance<PostVideosVideoIdHeartbeats200>(
+      {url: `/api/v1/videos/${videoId}/heartbeats`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: postVideosVideoIdHeartbeatsBody
+    },
+      );
+    }
+  /**
  * 視聴履歴を取得
  * @summary Get video history
  */
@@ -44,6 +61,7 @@ const getStatisticsWeekly = (
     },
       );
     }
-  return {getHistory,getStatisticsWeekly}};
+  return {postVideosVideoIdHeartbeats,getHistory,getStatisticsWeekly}};
+export type PostVideosVideoIdHeartbeatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getHistory>['postVideosVideoIdHeartbeats']>>>
 export type GetHistoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getHistory>['getHistory']>>>
 export type GetStatisticsWeeklyResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getHistory>['getStatisticsWeekly']>>>

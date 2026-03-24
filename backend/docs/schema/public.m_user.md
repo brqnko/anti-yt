@@ -10,11 +10,11 @@
 | m_user_authorization_id | bigint |  | false |  |  |  |
 | display_name | varchar(32) |  | false |  |  |  |
 | language_code | varchar(2) |  | false |  |  |  |
-| daily_screen_time_seconds | integer | 86401 | false |  |  |  |
-| joined_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
+| daily_screen_time_seconds | integer |  | false |  |  |  |
+| joined_at | timestamp with time zone |  | false |  |  |  |
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
-| public_id | uuid | uuidv7() | false |  |  |  |
+| public_id | uuid |  | false |  |  |  |
 
 ## Constraints
 

@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "preact/hooks";
-import { useRoute } from "preact-iso";
+import { useRoute, useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getVideo } from "../../api/generated/video";
+import { getHistory } from "../../api/generated/history";
 import { getPlaylist } from "../../api/generated/playlist";
 import { formatDuration, formatSubscriberCount } from "../../utils/format";
 import { buildWatchUrl } from "../../utils/url";
@@ -47,6 +48,7 @@ function sendBeaconHeartbeat(videoId: string, positionSeconds: number): void {
 function VideoPlayerContent() {
   const { t } = useTranslation();
   const { params } = useRoute();
+  const { route } = useLocation();
   const videoId = params.videoId;
 
   const [video, setVideo] = useState<GetVideosVideoId200 | null>(null);
@@ -105,6 +107,12 @@ function VideoPlayerContent() {
   const volumeRef = useRef(100);
   const videoIdRef = useRef<string | null>(null);
   videoIdRef.current = video?.video_id ?? null;
+
+  // Refs for auto-play next video in playlist
+  const playlistVideosRef = useRef(playlistVideos);
+  playlistVideosRef.current = playlistVideos;
+  const playlistIdRef = useRef(playlistId);
+  playlistIdRef.current = playlistId;
 
   useTitle(video?.external_video_title ?? t("videoPlayer.pageTitle"));
 
@@ -217,6 +225,23 @@ function VideoPlayerContent() {
     [addingToPlaylist, videoId],
   );
 
+  // Navigate to the next video in the playlist when the current video ends
+  const handlePlayerStateChange = useCallback(
+    (state: number) => {
+      if (state !== PlayerState.ENDED) return;
+      const plId = playlistIdRef.current;
+      const videos = playlistVideosRef.current;
+      if (!plId || videos.length === 0) return;
+
+      const currentIdx = videos.findIndex((v) => v.video_id === videoId);
+      if (currentIdx === -1 || currentIdx >= videos.length - 1) return;
+
+      const next = videos[currentIdx + 1];
+      route(buildWatchUrl(next.video_id, undefined, plId));
+    },
+    [videoId, route],
+  );
+
   const {
     isReady,
     loadError,
@@ -232,6 +257,7 @@ function VideoPlayerContent() {
   } = useYouTubePlayer({
     videoId: video?.external_video_id ?? "",
     containerId: PLAYER_CONTAINER_ID,
+    onStateChange: handlePlayerStateChange,
   });
 
   // Seek to start time from ?t= query param once player is ready
@@ -287,7 +313,7 @@ function VideoPlayerContent() {
     finalHeartbeatSentRef.current = false;
 
     const sendHeartbeat = () => {
-      getVideo()
+      getHistory()
         .postVideosVideoIdHeartbeats(video.video_id, {
           current_position_seconds: Math.floor(currentTimeRef.current),
         })
@@ -654,7 +680,7 @@ function VideoPlayerContent() {
                   <div class="flex items-center gap-4 md:gap-6">
                     {remainingSeconds !== null && (
                       <span class="text-xs opacity-70">
-                        {t("videoPlayer.remaining")}: {remainingSeconds}{t("videoPlayer.seconds")}
+                        {t("videoPlayer.remaining")}: {formatDuration(remainingSeconds)}
                       </span>
                     )}
                     <button

@@ -36,7 +36,7 @@ function ProfileContent() {
     const { getUsersMeStatus } = getUser();
     getUsersMeStatus().then((user) => {
       setDisplayName(user.display_name ?? "");
-      if (user.language_code) setLanguageCode(user.language_code);
+      setLanguageCode(user.language_code);
     }).catch(() => {});
   }, []);
   const [isSaving, setIsSaving] = useState(false);

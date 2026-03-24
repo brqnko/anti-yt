@@ -1,20 +1,17 @@
 package playlist
 
 import (
-	"errors"
 	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/video"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 )
 
 var (
-	ErrInvalidPlaylistTitle       = errors.New("invalid playlist title: must be between 1 and 128 characters")
-	ErrInvalidPlaylistDescription = errors.New("invalid playlist description: must be at most 255 characters")
-	ErrInvalidVisibilityCode      = errors.New("invalid visibility code")
-	ErrInvalidPlaylistCode        = errors.New("invalid playlist code")
-	ErrPlaylistNotFound           = errors.New("playlist not found")
-	ErrVideoNotInPlaylist         = errors.New("video not in playlist")
+	ErrInvalidPlaylistTitle       = util.NewDomainError("playlist.invalid_title", "invalid playlist title: must be between 1 and 128 characters")
+	ErrInvalidPlaylistDescription = util.NewDomainError("playlist.invalid_description", "invalid playlist description: must be at most 255 characters")
+	ErrInvalidVisibilityCode      = util.NewDomainError("playlist.invalid_visibility_code", "invalid visibility code")
+	ErrInvalidPlaylistCode        = util.NewDomainError("playlist.invalid_playlist_code", "invalid playlist code")
 )
 
 type VisibilityCode int
@@ -23,7 +20,8 @@ const (
 	VisibilityPrivate VisibilityCode = 0
 )
 
-func NewVisibilityCode(s string) (VisibilityCode, error) {
+func NewVisibilityCode(s string) (_ VisibilityCode, err error) {
+	defer util.Wrap(&err, "NewVisibilityCode")
 	switch s {
 	case "private":
 		return VisibilityPrivate, nil
@@ -43,22 +41,77 @@ func (v VisibilityCode) String() string {
 
 type PlaylistTitle string
 
-func NewPlaylistTitle(s string) (*PlaylistTitle, error) {
+func NewPlaylistTitle(s string) (_ PlaylistTitle, err error) {
+	defer util.Wrap(&err, "NewPlaylistTitle")
 	if len(s) == 0 || len(s) > 128 {
-		return nil, ErrInvalidPlaylistTitle
+		return "", ErrInvalidPlaylistTitle
 	}
-	t := PlaylistTitle(s)
-	return &t, nil
+	return PlaylistTitle(s), nil
+}
+
+func (p PlaylistTitle) String() string {
+	return string(p)
 }
 
 type PlaylistDescription string
 
-func NewPlaylistDescription(s string) (*PlaylistDescription, error) {
+func NewPlaylistDescription(s string) (_ PlaylistDescription, err error) {
+	defer util.Wrap(&err, "NewPlaylistDescription")
 	if len(s) > 255 {
-		return nil, ErrInvalidPlaylistDescription
+		return "", ErrInvalidPlaylistDescription
 	}
-	d := PlaylistDescription(s)
-	return &d, nil
+	return PlaylistDescription(s), nil
+}
+
+func (p PlaylistDescription) String() string {
+	return string(p)
+}
+
+func (p *Playlist) SetTitle(s *string) error {
+	if s == nil {
+		return nil
+	}
+	t, err := NewPlaylistTitle(*s)
+	if err != nil {
+		return err
+	}
+	p.Title = t
+	return nil
+}
+
+func (p *Playlist) SetDescription(s *string) error {
+	if s == nil {
+		return nil
+	}
+	d, err := NewPlaylistDescription(*s)
+	if err != nil {
+		return err
+	}
+	p.Description = d
+	return nil
+}
+
+var ErrNegativeVideoCount = util.NewDomainError("playlist.negative_video_count", "video count must not be negative")
+var ErrVideoCountUnderflow = util.NewDomainError("playlist.video_count_underflow", "video count is already 0")
+
+func (p *Playlist) SetVideoCount(count int) error {
+	if count < 0 {
+		return ErrNegativeVideoCount
+	}
+	p.VideoCount = count
+	return nil
+}
+
+func (p *Playlist) IncrementVideoCount() {
+	p.VideoCount++
+}
+
+func (p *Playlist) DecrementVideoCount() error {
+	if p.VideoCount <= 0 {
+		return ErrVideoCountUnderflow
+	}
+	p.VideoCount--
+	return nil
 }
 
 type PlaylistCode int
@@ -67,7 +120,8 @@ const (
 	PlaylistCodeNormal PlaylistCode = 0
 )
 
-func NewPlaylistCode(s string) (PlaylistCode, error) {
+func NewPlaylistCode(s string) (_ PlaylistCode, err error) {
+	defer util.Wrap(&err, "NewPlaylistCode")
 	switch s {
 	case "normal":
 		return PlaylistCodeNormal, nil
@@ -86,33 +140,43 @@ func (p PlaylistCode) String() string {
 }
 
 type Playlist struct {
-	ID                           uuid.UUID
-	Title                        *PlaylistTitle
-	Description                  *PlaylistDescription
-	VisibilityCode               VisibilityCode
-	PlaylistCode                 PlaylistCode
-	VideoCount           int
-	CreatedAt            time.Time
-	TopVideoThumbnailURL *string
-	Videos               []*video.Video
+	ID             uuid.UUID
+	Title          PlaylistTitle
+	Description    PlaylistDescription
+	VisibilityCode VisibilityCode
+	PlaylistCode   PlaylistCode
+	VideoCount     int
+	RegisteredAt   time.Time
 }
 
-func (p *Playlist) SetGeneratedFields(id uuid.UUID, createdAt time.Time) {
-	p.ID = id
-	p.CreatedAt = createdAt
+type PlaylistOption func(*Playlist)
+
+func WithPlaylistID(id uuid.UUID) PlaylistOption {
+	return func(p *Playlist) {
+		p.ID = id
+	}
+}
+
+func WithPlaylistRegisteredAt(registeredAt time.Time) PlaylistOption {
+	return func(p *Playlist) {
+		p.RegisteredAt = registeredAt
+	}
+}
+
+func WithPlaylistVideoCount(count int) PlaylistOption {
+	return func(p *Playlist) {
+		p.VideoCount = count
+	}
 }
 
 func NewPlaylist(
-	id uuid.UUID,
 	title string,
 	description string,
 	visibilityStr string,
 	playlistTypeStr string,
-	videoCount int,
-	createdAt time.Time,
-	topVideoThumbnailUrl *string,
-	videos []*video.Video,
-) (*Playlist, error) {
+	opts ...PlaylistOption,
+) (_ *Playlist, err error) {
+	defer util.Wrap(&err, "NewPlaylist")
 	t, err := NewPlaylistTitle(title)
 	if err != nil {
 		return nil, err
@@ -128,20 +192,29 @@ func NewPlaylist(
 		return nil, err
 	}
 
-	p, err := NewPlaylistCode(playlistTypeStr)
+	pc, err := NewPlaylistCode(playlistTypeStr)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Playlist{
-		ID:                   id,
-		Title:                t,
-		Description:          d,
-		VisibilityCode:       v,
-		PlaylistCode:         p,
-		VideoCount:           videoCount,
-		CreatedAt:            createdAt,
-		TopVideoThumbnailURL: topVideoThumbnailUrl,
-		Videos:               videos,
-	}, nil
+	id, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
+	pl := &Playlist{
+		ID:             id,
+		Title:          t,
+		Description:    d,
+		VisibilityCode: v,
+		PlaylistCode:   pc,
+		VideoCount:     0,
+		RegisteredAt:   time.Now().UTC(),
+	}
+
+	for _, opt := range opts {
+		opt(pl)
+	}
+
+	return pl, nil
 }

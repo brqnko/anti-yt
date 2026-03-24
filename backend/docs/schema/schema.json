@@ -117,14 +117,12 @@
         {
           "name": "daily_screen_time_seconds",
           "type": "integer",
-          "nullable": false,
-          "default": "86401"
+          "nullable": false
         },
         {
           "name": "joined_at",
           "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP"
+          "nullable": false
         },
         {
           "name": "created_at",
@@ -141,8 +139,7 @@
         {
           "name": "public_id",
           "type": "uuid",
-          "nullable": false,
-          "default": "uuidv7()"
+          "nullable": false
         }
       ],
       "indexes": [
@@ -296,8 +293,7 @@
         {
           "name": "last_logged_in_at",
           "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP"
+          "nullable": false
         },
         {
           "name": "created_at",
@@ -314,8 +310,7 @@
         {
           "name": "public_id",
           "type": "uuid",
-          "nullable": false,
-          "default": "uuidv7()"
+          "nullable": false
         }
       ],
       "indexes": [
@@ -450,8 +445,7 @@
         {
           "name": "generation",
           "type": "integer",
-          "nullable": false,
-          "default": "1"
+          "nullable": false
         },
         {
           "name": "ip_address",
@@ -508,12 +502,21 @@
         {
           "name": "public_id",
           "type": "uuid",
-          "nullable": false,
-          "default": "uuidv7()"
+          "nullable": false
         },
         {
           "name": "access_token_jti",
           "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "activated_at",
+          "type": "timestamp with time zone",
+          "nullable": false
+        },
+        {
+          "name": "last_logged_in_at",
+          "type": "timestamp with time zone",
           "nullable": false
         }
       ],
@@ -558,6 +561,15 @@
             "m_user_authorization_id",
             "updated_at"
           ]
+        },
+        {
+          "name": "idx_3_m_refresh_token",
+          "def": "CREATE INDEX idx_3_m_refresh_token ON public.m_refresh_token USING btree (m_user_authorization_id, public_id)",
+          "table": "public.m_refresh_token",
+          "columns": [
+            "m_user_authorization_id",
+            "public_id"
+          ]
         }
       ],
       "constraints": [
@@ -569,6 +581,16 @@
           "referenced_table": "",
           "columns": [
             "access_token_jti"
+          ]
+        },
+        {
+          "name": "m_refresh_token_activated_at_not_null",
+          "type": "n",
+          "def": "NOT NULL activated_at",
+          "table": "public.m_refresh_token",
+          "referenced_table": "",
+          "columns": [
+            "activated_at"
           ]
         },
         {
@@ -659,6 +681,16 @@
           "referenced_table": "",
           "columns": [
             "ip_address"
+          ]
+        },
+        {
+          "name": "m_refresh_token_last_logged_in_at_not_null",
+          "type": "n",
+          "def": "NOT NULL last_logged_in_at",
+          "table": "public.m_refresh_token",
+          "referenced_table": "",
+          "columns": [
+            "last_logged_in_at"
           ]
         },
         {
@@ -783,8 +815,7 @@
         {
           "name": "left_at",
           "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP"
+          "nullable": false
         },
         {
           "name": "leave_reason_code",
@@ -806,8 +837,7 @@
         {
           "name": "public_id",
           "type": "uuid",
-          "nullable": false,
-          "default": "uuidv7()"
+          "nullable": false
         }
       ],
       "indexes": [
@@ -990,8 +1020,7 @@
         {
           "name": "public_id",
           "type": "uuid",
-          "nullable": false,
-          "default": "uuidv7()"
+          "nullable": false
         }
       ],
       "indexes": [
@@ -1125,8 +1154,7 @@
         {
           "name": "subscribed_at",
           "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP"
+          "nullable": false
         },
         {
           "name": "created_at",
@@ -1139,12 +1167,6 @@
           "type": "timestamp with time zone",
           "nullable": false,
           "default": "CURRENT_TIMESTAMP"
-        },
-        {
-          "name": "public_id",
-          "type": "uuid",
-          "nullable": false,
-          "default": "uuidv7()"
         }
       ],
       "indexes": [
@@ -1166,28 +1188,11 @@
           ]
         },
         {
-          "name": "uk_2_m_user_subscribing_channel",
-          "def": "CREATE UNIQUE INDEX uk_2_m_user_subscribing_channel ON public.m_user_subscribing_channel USING btree (public_id)",
-          "table": "public.m_user_subscribing_channel",
-          "columns": [
-            "public_id"
-          ]
-        },
-        {
           "name": "idx_1_m_user_subscribing_channel",
           "def": "CREATE INDEX idx_1_m_user_subscribing_channel ON public.m_user_subscribing_channel USING btree (m_user_id)",
           "table": "public.m_user_subscribing_channel",
           "columns": [
             "m_user_id"
-          ]
-        },
-        {
-          "name": "idx_2_m_user_subscribing_channel",
-          "def": "CREATE INDEX idx_2_m_user_subscribing_channel ON public.m_user_subscribing_channel USING btree (m_user_id, public_id)",
-          "table": "public.m_user_subscribing_channel",
-          "columns": [
-            "m_user_id",
-            "public_id"
           ]
         },
         {
@@ -1238,16 +1243,6 @@
           "referenced_table": "",
           "columns": [
             "m_user_subscribing_channel_id"
-          ]
-        },
-        {
-          "name": "m_user_subscribing_channel_public_id_not_null",
-          "type": "n",
-          "def": "NOT NULL public_id",
-          "table": "public.m_user_subscribing_channel",
-          "referenced_table": "",
-          "columns": [
-            "public_id"
           ]
         },
         {
@@ -1329,8 +1324,7 @@
         {
           "name": "fetched_at",
           "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP"
+          "nullable": false
         },
         {
           "name": "created_at",
@@ -1347,14 +1341,17 @@
         {
           "name": "public_id",
           "type": "uuid",
-          "nullable": false,
-          "default": "uuidv7()"
+          "nullable": false
         },
         {
           "name": "rss_fetched_at",
           "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP"
+          "nullable": false
+        },
+        {
+          "name": "external_uploads_playlist_id",
+          "type": "varchar(64)",
+          "nullable": false
         }
       ],
       "indexes": [
@@ -1388,6 +1385,22 @@
           "table": "public.m_channel",
           "columns": [
             "external_custom_id"
+          ]
+        },
+        {
+          "name": "idx_2_m_channel",
+          "def": "CREATE INDEX idx_2_m_channel ON public.m_channel USING btree (fetched_at)",
+          "table": "public.m_channel",
+          "columns": [
+            "fetched_at"
+          ]
+        },
+        {
+          "name": "idx_1_m_channel",
+          "def": "CREATE INDEX idx_1_m_channel ON public.m_channel USING btree (rss_fetched_at)",
+          "table": "public.m_channel",
+          "columns": [
+            "rss_fetched_at"
           ]
         }
       ],
@@ -1470,6 +1483,16 @@
           "referenced_table": "",
           "columns": [
             "external_subscribers_count"
+          ]
+        },
+        {
+          "name": "m_channel_external_uploads_playlist_id_not_null",
+          "type": "n",
+          "def": "NOT NULL external_uploads_playlist_id",
+          "table": "public.m_channel",
+          "referenced_table": "",
+          "columns": [
+            "external_uploads_playlist_id"
           ]
         },
         {
@@ -1566,8 +1589,7 @@
         {
           "name": "fetched_at",
           "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP"
+          "nullable": false
         },
         {
           "name": "created_at",
@@ -1584,20 +1606,17 @@
         {
           "name": "public_id",
           "type": "uuid",
-          "nullable": false,
-          "default": "uuidv7()"
+          "nullable": false
         },
         {
           "name": "external_created_at",
           "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "'1970-01-01 00:00:00+00'::timestamp with time zone"
+          "nullable": false
         },
         {
           "name": "external_thumbnail_url",
           "type": "varchar(128)",
-          "nullable": false,
-          "default": "''::character varying"
+          "nullable": false
         },
         {
           "name": "external_length_seconds",
@@ -1813,20 +1832,17 @@
         {
           "name": "watch_start_at",
           "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP"
+          "nullable": false
         },
         {
           "name": "watch_end_at",
           "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "'9999-12-31 23:59:59+00'::timestamp with time zone"
+          "nullable": false
         },
         {
           "name": "watch_position_seconds",
           "type": "integer",
-          "nullable": false,
-          "default": "0"
+          "nullable": false
         },
         {
           "name": "created_at",
@@ -1843,8 +1859,7 @@
         {
           "name": "public_id",
           "type": "uuid",
-          "nullable": false,
-          "default": "uuidv7()"
+          "nullable": false
         }
       ],
       "indexes": [
@@ -2017,8 +2032,7 @@
         {
           "name": "searched_at",
           "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP"
+          "nullable": false
         },
         {
           "name": "created_at",
@@ -2156,8 +2170,7 @@
         {
           "name": "generated_at",
           "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP"
+          "nullable": false
         },
         {
           "name": "target_month",
@@ -2184,8 +2197,7 @@
         {
           "name": "public_id",
           "type": "uuid",
-          "nullable": false,
-          "default": "uuidv7()"
+          "nullable": false
         }
       ],
       "indexes": [
@@ -2355,8 +2367,7 @@
         {
           "name": "batch_status_code",
           "type": "integer",
-          "nullable": false,
-          "default": "1"
+          "nullable": false
         },
         {
           "name": "ai_model",
@@ -2366,14 +2377,12 @@
         {
           "name": "started_at",
           "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP"
+          "nullable": false
         },
         {
           "name": "finished_at",
           "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "'9999-12-31 23:59:59+00'::timestamp with time zone"
+          "nullable": false
         },
         {
           "name": "created_at",
@@ -2390,14 +2399,12 @@
         {
           "name": "target_month",
           "type": "date",
-          "nullable": false,
-          "default": "'1970-01-01'::date"
+          "nullable": false
         },
         {
           "name": "fail_reason",
           "type": "varchar(128)",
-          "nullable": false,
-          "default": "''::character varying"
+          "nullable": false
         }
       ],
       "indexes": [
@@ -2540,8 +2547,7 @@
         {
           "name": "visibility_code",
           "type": "integer",
-          "nullable": false,
-          "default": "0"
+          "nullable": false
         },
         {
           "name": "playlist_title",
@@ -2551,14 +2557,12 @@
         {
           "name": "playlist_code",
           "type": "integer",
-          "nullable": false,
-          "default": "0"
+          "nullable": false
         },
         {
           "name": "video_count",
           "type": "integer",
-          "nullable": false,
-          "default": "0"
+          "nullable": false
         },
         {
           "name": "created_at",
@@ -2575,12 +2579,16 @@
         {
           "name": "public_id",
           "type": "uuid",
-          "nullable": false,
-          "default": "uuidv7()"
+          "nullable": false
         },
         {
           "name": "playlist_description",
           "type": "varchar(255)",
+          "nullable": false
+        },
+        {
+          "name": "registered_at",
+          "type": "timestamp with time zone",
           "nullable": false
         }
       ],
@@ -2610,6 +2618,15 @@
             "visibility_code",
             "playlist_code",
             "created_at"
+          ]
+        },
+        {
+          "name": "idx_2_m_playlist",
+          "def": "CREATE INDEX idx_2_m_playlist ON public.m_playlist USING btree (m_user_id, public_id DESC)",
+          "table": "public.m_playlist",
+          "columns": [
+            "m_user_id",
+            "public_id"
           ]
         }
       ],
@@ -2682,6 +2699,16 @@
           "referenced_table": "",
           "columns": [
             "public_id"
+          ]
+        },
+        {
+          "name": "m_playlist_registered_at_not_null",
+          "type": "n",
+          "def": "NOT NULL registered_at",
+          "table": "public.m_playlist",
+          "referenced_table": "",
+          "columns": [
+            "registered_at"
           ]
         },
         {
@@ -2773,12 +2800,22 @@
           ]
         },
         {
-          "name": "uk_1_m_playlist_video",
-          "def": "CREATE UNIQUE INDEX uk_1_m_playlist_video ON public.m_playlist_video USING btree (m_playlist_id, m_video_id)",
+          "name": "idx_1_m_playlist_video",
+          "def": "CREATE INDEX idx_1_m_playlist_video ON public.m_playlist_video USING btree (m_playlist_id, playlist_position)",
           "table": "public.m_playlist_video",
           "columns": [
             "m_playlist_id",
-            "m_video_id"
+            "playlist_position"
+          ]
+        },
+        {
+          "name": "uk_1_m_playlist_video",
+          "def": "CREATE UNIQUE INDEX uk_1_m_playlist_video ON public.m_playlist_video USING btree (m_playlist_id, m_video_id, playlist_position)",
+          "table": "public.m_playlist_video",
+          "columns": [
+            "m_playlist_id",
+            "m_video_id",
+            "playlist_position"
           ]
         }
       ],
@@ -2841,6 +2878,19 @@
           "referenced_table": "",
           "columns": [
             "updated_at"
+          ]
+        },
+        {
+          "name": "fk_1_m_playlist_video",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (m_playlist_id) REFERENCES m_playlist(m_playlist_id) ON DELETE CASCADE",
+          "table": "public.m_playlist_video",
+          "referenced_table": "m_playlist",
+          "columns": [
+            "m_playlist_id"
+          ],
+          "referenced_columns": [
+            "m_playlist_id"
           ]
         },
         {
@@ -2935,6 +2985,19 @@
       ],
       "parent_cardinality": "exactly_one",
       "def": "FOREIGN KEY (m_user_authorization_id) REFERENCES m_user_authorization(m_user_authorization_id) ON DELETE CASCADE"
+    },
+    {
+      "table": "public.m_playlist_video",
+      "columns": [
+        "m_playlist_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "public.m_playlist",
+      "parent_columns": [
+        "m_playlist_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (m_playlist_id) REFERENCES m_playlist(m_playlist_id) ON DELETE CASCADE"
     }
   ],
   "functions": [

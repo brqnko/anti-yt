@@ -63,6 +63,7 @@ type MPlaylist struct {
 	UpdatedAt           time.Time
 	PublicID            uuid.UUID
 	PlaylistDescription string
+	RegisteredAt        time.Time
 }
 
 type MPlaylistVideo struct {
@@ -91,6 +92,8 @@ type MRefreshToken struct {
 	UpdatedAt            time.Time
 	PublicID             uuid.UUID
 	AccessTokenJti       uuid.UUID
+	ActivatedAt          time.Time
+	LastLoggedInAt       time.Time
 }
 
 type MUser struct {
@@ -132,7 +135,6 @@ type MUserSubscribingChannel struct {
 	SubscribedAt              time.Time
 	CreatedAt                 time.Time
 	UpdatedAt                 time.Time
-	PublicID                  uuid.UUID
 }
 
 type MVideo struct {

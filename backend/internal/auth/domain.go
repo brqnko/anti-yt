@@ -1,27 +1,141 @@
 package auth
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
+	"github.com/mssola/user_agent"
 )
 
-type Session struct {
-	ID             uuid.UUID
-	CreatedAt      time.Time
-	LastLoggedInAt time.Time
-	CountryCode    string
-	CityName       string
-	BrowserName    string
+type RefreshToken struct {
+	ID                uuid.UUID
+	ActivatedAt       time.Time
+	TokenHash         string
+	IpAddress         string
+	DeviceFingerprint string
+	UserAgent         string
+	CountryCode       string
+	CityName          string
+	BrowserName       string
+	DeviceType        string
+	ExpiresAt         time.Time
+	AccessTokenJTI    uuid.UUID
+	LastLoggedInAt    time.Time
 }
 
-func NewSession(id uuid.UUID, createdAt, lastLoggedInAt time.Time, countryCode, cityName, browserName string) Session {
-	return Session{
-		ID:             id,
-		CreatedAt:      createdAt,
-		LastLoggedInAt: lastLoggedInAt,
-		CountryCode:    countryCode,
-		CityName:       cityName,
-		BrowserName:    browserName,
+type RefreshTokenOption func(*RefreshToken)
+
+func WithRefreshTokenID(id uuid.UUID) RefreshTokenOption {
+	return func(rt *RefreshToken) {
+		rt.ID = id
 	}
+}
+
+func WithRefreshTokenActivatedAt(activatedAt time.Time) RefreshTokenOption {
+	return func(rt *RefreshToken) {
+		rt.ActivatedAt = activatedAt
+	}
+}
+
+func WithRefreshTokenHash(tokenHash string) RefreshTokenOption {
+	return func(rt *RefreshToken) {
+		rt.TokenHash = tokenHash
+	}
+}
+
+func WithRefreshTokenRaw(tokenRaw string) RefreshTokenOption {
+	return func(rt *RefreshToken) {
+		rt.TokenHash = util.Sha256Hex(tokenRaw)
+	}
+}
+
+func WithRefreshTokenLastLoggedInAt(lastLoggedInAt time.Time) RefreshTokenOption {
+	return func(rt *RefreshToken) {
+		rt.LastLoggedInAt = lastLoggedInAt
+	}
+}
+
+func NewRefreshToken(userAgent, deviceFingerprint, ipAddress, countryCode, cityName string, expiresAt time.Time, opts ...RefreshTokenOption) (*RefreshToken, error) {
+	id, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
+	accessTokenJTI, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now().UTC()
+	ua := user_agent.New(userAgent)
+	browserName, browserVersion := ua.Browser()
+
+	rt := &RefreshToken{
+		ID:                id,
+		ActivatedAt:       now,
+		TokenHash:         "",
+		IpAddress:         ipAddress,
+		DeviceFingerprint: deviceFingerprint,
+		UserAgent:         userAgent,
+		CountryCode:       countryCode,
+		CityName:          cityName,
+		BrowserName:       fmt.Sprintf("%s:%s", browserName, browserVersion),
+		DeviceType:        ua.OSInfo().FullName,
+		ExpiresAt:         expiresAt,
+		AccessTokenJTI:    accessTokenJTI,
+		LastLoggedInAt:    now,
+	}
+	for _, opt := range opts {
+		opt(rt)
+	}
+
+	if rt.TokenHash == "" {
+		return nil, errors.New("refresh token token hash is not set")
+	}
+
+	return rt, nil
+}
+
+type Authorization struct {
+	ID             uuid.UUID
+	Issuer         string
+	Sub            string
+	LastLoggedInAt time.Time
+}
+
+type AuthorizationOption func(*Authorization)
+
+func WithLastLoggedInAt(lastLoggedInAt time.Time) AuthorizationOption {
+	return func(a *Authorization) {
+		a.LastLoggedInAt = lastLoggedInAt
+	}
+}
+
+func WithAuthorizationID(id uuid.UUID) AuthorizationOption {
+	return func(a *Authorization) {
+		a.ID = id
+	}
+}
+
+func NewAuthorization(issuer, sub string, options ...AuthorizationOption) (*Authorization, error) {
+	id, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
+	authorization := &Authorization{
+		ID:             id,
+		Issuer:         issuer,
+		Sub:            sub,
+		LastLoggedInAt: time.Now().UTC(),
+	}
+
+	for _, opt := range options {
+		opt(authorization)
+	}
+
+	return authorization, nil
 }

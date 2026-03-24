@@ -8,7 +8,7 @@ import { AddPlaylistDialog } from "./AddPlaylistDialog";
 import { getChannel } from "../api/generated/channel";
 import { getPlaylist } from "../api/generated/playlist";
 import type {
-  GetSubscriptions200ItemsItem,
+  GetChannelsSubscribed200ItemsItem,
   GetPlaylists200ItemsItem,
 } from "../api/generated/antiYtApi.schemas";
 
@@ -29,7 +29,7 @@ export function DashboardLayout({
 }) {
   const { t } = useTranslation();
   const { url } = useLocation();
-  const [subscriptions, setSubscriptions] = useState<GetSubscriptions200ItemsItem[]>([]);
+  const [subscriptions, setSubscriptions] = useState<GetChannelsSubscribed200ItemsItem[]>([]);
   const [playlists, setPlaylists] = useState<GetPlaylists200ItemsItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showAddChannel, setShowAddChannel] = useState(false);
@@ -63,7 +63,7 @@ export function DashboardLayout({
     const load = async () => {
       try {
         const [subsRes, playlistRes] = await Promise.allSettled([
-          getChannel().getSubscriptions({ limit: 10 }),
+          getChannel().getChannelsSubscribed({ limit: 10 }),
           getPlaylist().getPlaylists({ limit: 10 }),
         ]);
         if (subsRes.status === "fulfilled") setSubscriptions(subsRes.value.items);

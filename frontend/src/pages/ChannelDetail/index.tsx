@@ -6,6 +6,7 @@ import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getChannel } from "../../api/generated/channel";
+import { getVideo } from "../../api/generated/video";
 import { formatSubscriberCount } from "../../utils/format";
 import { VideoCard } from "../../components/VideoCard";
 import type {
@@ -62,7 +63,6 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
   const [channelInfo, setChannelInfo] = useState<ChannelInfo | null>(null);
   const [videos, setVideos] = useState<GetChannelsChannelIdVideos200ItemsItem[]>([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isToggling, setIsToggling] = useState(false);
   const [hasNextVideos, setHasNextVideos] = useState(false);
@@ -75,8 +75,8 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     const load = async () => {
       try {
         const [subsRes, videosRes] = await Promise.allSettled([
-          getChannel().getSubscriptions({ limit: 50 }),
-          getChannel().getChannelsChannelIdVideos(channelId, {}),
+          getChannel().getChannelsSubscribed({ limit: 50 }),
+          getVideo().getChannelsChannelIdVideos(channelId, {}),
         ]);
 
         if (subsRes.status === "fulfilled") {
@@ -86,13 +86,11 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
               channel_id: found.channel_id,
               external_channel_id: found.external_channel_id,
               display_name: found.external_channel_display_name,
-              description: found.channel_description,
               icon_url: found.external_channel_icon_url,
               subscribers_count: found.channel_subscribers_count,
               custom_id: found.channel_custom_id,
             });
             setIsSubscribed(true);
-            setSubscriptionId(found.subscription_id);
           }
         }
 
@@ -113,7 +111,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     if (isLoadingMore || !hasNextVideos) return;
     setIsLoadingMore(true);
     try {
-      const res = await getChannel().getChannelsChannelIdVideos(channelId, { cursor: cursorRef.current });
+      const res = await getVideo().getChannelsChannelIdVideos(channelId, { cursor: cursorRef.current });
       setVideos(prev => [...prev, ...res.items]);
       setHasNextVideos(res.has_next);
       const lastItem = res.items[res.items.length - 1];
@@ -129,12 +127,11 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     if (isToggling || !channelInfo) return;
     setIsToggling(true);
     try {
-      if (isSubscribed && subscriptionId) {
-        await getChannel().deleteSubscriptionsSubscriptionId(subscriptionId);
+      if (isSubscribed) {
+        await getChannel().deleteChannelsChannelIdSubscribe(channelInfo.channel_id);
         setIsSubscribed(false);
-        setSubscriptionId(null);
       } else {
-        const result = await getChannel().postSubscriptions({
+        const result = await getChannel().postChannelsSubscribe({
           channel_id: channelInfo.external_channel_id,
         });
         setChannelInfo({
@@ -146,7 +143,6 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
           subscribers_count: result.channel_subscribers_count,
           custom_id: result.channel_custom_id,
         });
-        setSubscriptionId(result.subscription_id);
         setIsSubscribed(true);
       }
     } catch {

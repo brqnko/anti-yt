@@ -13,101 +13,16 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const getHistory = `-- name: GetHistory :many
+const getDailyWatchSummary = `-- name: GetDailyWatchSummary :one
 SELECT
-    m_video.public_id AS video_id,
-    m_video.external_id AS external_video_id,
-    m_video.external_title AS external_video_title,
-    m_video.external_thumbnail_url AS external_video_thumbnail_url,
-    m_video.external_length_seconds AS external_video_length_seconds,
-    m_video.external_created_at AS external_video_created_at,
-    t_video_watch.watch_position_seconds,
-    t_video_watch.watch_start_at AS watched_at,
-    m_channel.public_id AS channel_id,
-    m_channel.external_id AS external_channel_id,
-    m_channel.external_display_name AS external_channel_display_name,
-    m_channel.external_icon_url AS external_channel_icon_url
-FROM
-    t_video_watch
-    INNER JOIN m_video ON m_video.m_video_id = t_video_watch.m_video_id
-    INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
-WHERE
-    t_video_watch.m_user_id = (
+    (
         SELECT
-            m_user.m_user_id
+            m_user.daily_screen_time_seconds
         FROM
             m_user
         WHERE
             m_user.public_id = $1
-        LIMIT 1
-    )
-    AND (
-        $2::uuid IS NULL
-        OR t_video_watch.public_id < $2::uuid
-    )
-ORDER BY
-    t_video_watch.public_id DESC
-LIMIT
-    $3
-`
-
-type GetHistoryParams struct {
-	UserID     uuid.UUID
-	Cursor     *uuid.UUID
-	QueryLimit int32
-}
-
-type GetHistoryRow struct {
-	VideoID                    uuid.UUID
-	ExternalVideoID            string
-	ExternalVideoTitle         string
-	ExternalVideoThumbnailUrl  string
-	ExternalVideoLengthSeconds int
-	ExternalVideoCreatedAt     time.Time
-	WatchPositionSeconds       int
-	WatchedAt                  time.Time
-	ChannelID                  uuid.UUID
-	ExternalChannelID          string
-	ExternalChannelDisplayName string
-	ExternalChannelIconUrl     string
-}
-
-func (q *Queries) GetHistory(ctx context.Context, arg GetHistoryParams) ([]GetHistoryRow, error) {
-	rows, err := q.db.Query(ctx, getHistory, arg.UserID, arg.Cursor, arg.QueryLimit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetHistoryRow
-	for rows.Next() {
-		var i GetHistoryRow
-		if err := rows.Scan(
-			&i.VideoID,
-			&i.ExternalVideoID,
-			&i.ExternalVideoTitle,
-			&i.ExternalVideoThumbnailUrl,
-			&i.ExternalVideoLengthSeconds,
-			&i.ExternalVideoCreatedAt,
-			&i.WatchPositionSeconds,
-			&i.WatchedAt,
-			&i.ChannelID,
-			&i.ExternalChannelID,
-			&i.ExternalChannelDisplayName,
-			&i.ExternalChannelIconUrl,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getTotalWatchSeconds = `-- name: GetTotalWatchSeconds :one
-SELECT
-    (SELECT m_user.daily_screen_time_seconds FROM m_user WHERE m_user.public_id = $1)::int AS daily_limit_seconds,
+    )::int AS daily_limit_seconds,
     COALESCE(
         EXTRACT(
             EPOCH
@@ -128,27 +43,28 @@ WHERE
             m_user
         WHERE
             m_user.public_id = $1
-        LIMIT 1
+        LIMIT
+            1
     )
     AND CURRENT_DATE <= t_video_watch.watch_start_at
     AND t_video_watch.watch_start_at < CURRENT_DATE + INTERVAL '1 day'
 `
 
-type GetTotalWatchSecondsRow struct {
+type GetDailyWatchSummaryRow struct {
 	DailyLimitSeconds int
 	TodayWatchTotal   int
 }
 
 // m_user.public_idから、そのユーザーが今日視聴していた合計時間(seconds)と設定している制限時間を返す。
 // その日に一本も動画を視聴していない場合は0を返します。
-func (q *Queries) GetTotalWatchSeconds(ctx context.Context, publicID uuid.UUID) (GetTotalWatchSecondsRow, error) {
-	row := q.db.QueryRow(ctx, getTotalWatchSeconds, publicID)
-	var i GetTotalWatchSecondsRow
+func (q *Queries) GetDailyWatchSummary(ctx context.Context, publicID uuid.UUID) (GetDailyWatchSummaryRow, error) {
+	row := q.db.QueryRow(ctx, getDailyWatchSummary, publicID)
+	var i GetDailyWatchSummaryRow
 	err := row.Scan(&i.DailyLimitSeconds, &i.TodayWatchTotal)
 	return i, err
 }
 
-const getUserStatisticsByWeek = `-- name: GetUserStatisticsByWeek :many
+const listDailyWatchStatsByRange = `-- name: ListDailyWatchStatsByRange :many
 SELECT
     DATE(video_watch.watch_start_at) AS watch_date,
     COUNT(DISTINCT video_watch.m_video_id) AS video_count,
@@ -163,7 +79,8 @@ WHERE
             m_user u
         WHERE
             u.public_id = $1
-        LIMIT 1
+        LIMIT
+            1
     )
     AND video_watch.watch_start_at BETWEEN $2 AND $3
     AND video_watch.watch_end_at <= CURRENT_TIMESTAMP
@@ -171,27 +88,27 @@ GROUP BY
     DATE(video_watch.watch_start_at)
 `
 
-type GetUserStatisticsByWeekParams struct {
+type ListDailyWatchStatsByRangeParams struct {
 	UserID    uuid.UUID
 	StartDate time.Time
 	EndDate   time.Time
 }
 
-type GetUserStatisticsByWeekRow struct {
+type ListDailyWatchStatsByRangeRow struct {
 	WatchDate  pgtype.Date
 	VideoCount int64
 	WatchSum   int64
 }
 
-func (q *Queries) GetUserStatisticsByWeek(ctx context.Context, arg GetUserStatisticsByWeekParams) ([]GetUserStatisticsByWeekRow, error) {
-	rows, err := q.db.Query(ctx, getUserStatisticsByWeek, arg.UserID, arg.StartDate, arg.EndDate)
+func (q *Queries) ListDailyWatchStatsByRange(ctx context.Context, arg ListDailyWatchStatsByRangeParams) ([]ListDailyWatchStatsByRangeRow, error) {
+	rows, err := q.db.Query(ctx, listDailyWatchStatsByRange, arg.UserID, arg.StartDate, arg.EndDate)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetUserStatisticsByWeekRow
+	var items []ListDailyWatchStatsByRangeRow
 	for rows.Next() {
-		var i GetUserStatisticsByWeekRow
+		var i ListDailyWatchStatsByRangeRow
 		if err := rows.Scan(&i.WatchDate, &i.VideoCount, &i.WatchSum); err != nil {
 			return nil, err
 		}
@@ -203,7 +120,91 @@ func (q *Queries) GetUserStatisticsByWeek(ctx context.Context, arg GetUserStatis
 	return items, nil
 }
 
-const heartbeat = `-- name: Heartbeat :exec
+const listWatchHistory = `-- name: ListWatchHistory :many
+SELECT
+    m_video.public_id AS video_id,
+    m_video.external_title AS external_video_title,
+    m_video.external_thumbnail_url AS external_video_thumbnail_url,
+    m_video.external_length_seconds AS external_video_length_seconds,
+    t_video_watch.watch_position_seconds,
+    t_video_watch.watch_start_at AS watched_at,
+    m_channel.public_id AS channel_id,
+    m_channel.external_display_name AS external_channel_display_name,
+    m_channel.external_icon_url AS external_channel_icon_url
+FROM
+    t_video_watch
+    INNER JOIN m_video ON m_video.m_video_id = t_video_watch.m_video_id
+    INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
+WHERE
+    t_video_watch.m_user_id = (
+        SELECT
+            m_user.m_user_id
+        FROM
+            m_user
+        WHERE
+            m_user.public_id = $1
+        LIMIT
+            1
+    )
+    AND (
+        $2::uuid IS NULL
+        OR t_video_watch.public_id < $2::uuid
+    )
+ORDER BY
+    t_video_watch.public_id DESC
+LIMIT
+    $3
+`
+
+type ListWatchHistoryParams struct {
+	UserID     uuid.UUID
+	Cursor     *uuid.UUID
+	QueryLimit int32
+}
+
+type ListWatchHistoryRow struct {
+	VideoID                    uuid.UUID
+	ExternalVideoTitle         string
+	ExternalVideoThumbnailUrl  string
+	ExternalVideoLengthSeconds int
+	WatchPositionSeconds       int
+	WatchedAt                  time.Time
+	ChannelID                  uuid.UUID
+	ExternalChannelDisplayName string
+	ExternalChannelIconUrl     string
+}
+
+func (q *Queries) ListWatchHistory(ctx context.Context, arg ListWatchHistoryParams) ([]ListWatchHistoryRow, error) {
+	rows, err := q.db.Query(ctx, listWatchHistory, arg.UserID, arg.Cursor, arg.QueryLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListWatchHistoryRow
+	for rows.Next() {
+		var i ListWatchHistoryRow
+		if err := rows.Scan(
+			&i.VideoID,
+			&i.ExternalVideoTitle,
+			&i.ExternalVideoThumbnailUrl,
+			&i.ExternalVideoLengthSeconds,
+			&i.WatchPositionSeconds,
+			&i.WatchedAt,
+			&i.ChannelID,
+			&i.ExternalChannelDisplayName,
+			&i.ExternalChannelIconUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const upsertWatchHeartbeat = `-- name: UpsertWatchHeartbeat :exec
 WITH resolved_user AS (
     SELECT
         m_user_id
@@ -211,7 +212,8 @@ WITH resolved_user AS (
         m_user
     WHERE
         m_user.public_id = $1
-    LIMIT 1
+    LIMIT
+        1
 ),
 resolved_video AS (
     SELECT
@@ -220,7 +222,8 @@ resolved_video AS (
         m_video
     WHERE
         m_video.public_id = $2
-    LIMIT 1
+    LIMIT
+        1
 ),
 close_stale AS (
     -- heartbeatが途絶えた放置セッションをクローズ
@@ -233,7 +236,8 @@ close_stale AS (
         m_user_id = (SELECT m_user_id FROM resolved_user)
         AND watch_end_at > CURRENT_TIMESTAMP
         AND t_video_watch.updated_at < CURRENT_TIMESTAMP - INTERVAL '2 minutes'
-    RETURNING t_video_watch_id
+    RETURNING
+        t_video_watch_id
 ),
 latest_active AS (
     -- ユーザーの現在アクティブなレコードを取得（タイムアウトしていないもの）
@@ -246,8 +250,10 @@ latest_active AS (
         m_user_id = (SELECT m_user_id FROM resolved_user)
         AND watch_end_at > CURRENT_TIMESTAMP
         AND updated_at > CURRENT_TIMESTAMP - INTERVAL '2 minutes'
-    ORDER BY watch_start_at DESC
-    LIMIT 1
+    ORDER BY
+        watch_start_at DESC
+    LIMIT
+        1
 ),
 close_old AS (
     -- 別の動画なら終了させる
@@ -293,18 +299,19 @@ do_insert AS (
         $3
     WHERE
         NOT EXISTS (SELECT 1 FROM update_same)
-    RETURNING t_video_watch_id, m_user_id, m_video_id, watch_start_at, watch_end_at, watch_position_seconds, created_at, updated_at, public_id
+    RETURNING
+        t_video_watch_id
 )
 SELECT 1
 `
 
-type HeartbeatParams struct {
+type UpsertWatchHeartbeatParams struct {
 	UserPublicID         uuid.UUID
 	VideoPublicID        uuid.UUID
 	WatchPositionSeconds int
 }
 
-func (q *Queries) Heartbeat(ctx context.Context, arg HeartbeatParams) error {
-	_, err := q.db.Exec(ctx, heartbeat, arg.UserPublicID, arg.VideoPublicID, arg.WatchPositionSeconds)
+func (q *Queries) UpsertWatchHeartbeat(ctx context.Context, arg UpsertWatchHeartbeatParams) error {
+	_, err := q.db.Exec(ctx, upsertWatchHeartbeat, arg.UserPublicID, arg.VideoPublicID, arg.WatchPositionSeconds)
 	return err
 }

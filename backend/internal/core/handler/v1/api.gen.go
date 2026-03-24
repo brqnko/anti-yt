@@ -20,9 +20,9 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/oapi-codegen/runtime"
 	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 const (
@@ -125,7 +125,7 @@ type ScreenTimeSlot struct {
 	EndTime string `json:"end_time"`
 
 	// Id スロットID
-	Id openapi_types.UUID `json:"id"`
+	Id uuid.UUID `json:"id"`
 
 	// StartTime 開始時刻 (HH:mm形式)
 	StartTime string `json:"start_time"`
@@ -136,9 +136,6 @@ type SearchType string
 
 // User defines model for User.
 type User struct {
-	// DailyRemainingSeconds 今日の残りの時間（設定していない場合はなし）
-	DailyRemainingSeconds *int `json:"daily_remaining_seconds,omitempty"`
-
 	// DailyScreenSeconds 毎日のスクリーン時間制限
 	DailyScreenSeconds *int `json:"daily_screen_seconds,omitempty"`
 
@@ -146,13 +143,13 @@ type User struct {
 	DisplayName string `json:"display_name"`
 
 	// Id ユーザーID
-	Id openapi_types.UUID `json:"id"`
+	Id uuid.UUID `json:"id"`
 
 	// JoinedAt アカウント作成日
 	JoinedAt time.Time `json:"joined_at"`
 
 	// LanguageCode アカウントの言語コード
-	LanguageCode *string          `json:"language_code,omitempty"`
+	LanguageCode string           `json:"language_code"`
 	ScreenTime   []ScreenTimeSlot `json:"screen_time"`
 }
 
@@ -277,11 +274,71 @@ type PostAuthRefreshParams struct {
 	CsrfToken CookieCSRFToken `form:"csrf_token" json:"csrf_token"`
 }
 
+// PostChannelsSubscribeJSONBody defines parameters for PostChannelsSubscribe.
+type PostChannelsSubscribeJSONBody struct {
+	// ChannelId 登録するチャンネルID or ハンドル名
+	ChannelId string `json:"channel_id"`
+}
+
+// PostChannelsSubscribeParams defines parameters for PostChannelsSubscribe.
+type PostChannelsSubscribeParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
+// GetChannelsSubscribedParams defines parameters for GetChannelsSubscribed.
+type GetChannelsSubscribedParams struct {
+	// Limit 取得する最大の数
+	Limit int `form:"limit" json:"limit"`
+
+	// Cursor 最後に取得したchannel_id(ページネーション)
+	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
+// DeleteChannelsChannelIdSubscribeParams defines parameters for DeleteChannelsChannelIdSubscribe.
+type DeleteChannelsChannelIdSubscribeParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+}
+
 // GetChannelsChannelIdVideosParams defines parameters for GetChannelsChannelIdVideos.
 type GetChannelsChannelIdVideosParams struct {
 	// Limit 取得する最大の数
-	Limit  int                 `form:"limit" json:"limit"`
-	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit  int        `form:"limit" json:"limit"`
+	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -303,7 +360,7 @@ type GetFeedParams struct {
 	Limit int `form:"limit" json:"limit"`
 
 	// Cursor 最後に取得した動画ID(ページネーション)
-	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -341,7 +398,7 @@ type GetHistoryParams struct {
 	Limit int `form:"limit" json:"limit"`
 
 	// Cursor 最後に取得した動画内部ID(ページネーション)
-	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -363,7 +420,7 @@ type GetPlaylistsParams struct {
 	Limit int `form:"limit" json:"limit"`
 
 	// Cursor ページネーション
-	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -465,7 +522,7 @@ type PatchPlaylistsPlaylistIdParams struct {
 
 // DeletePlaylistsPlaylistIdVideosParams defines parameters for DeletePlaylistsPlaylistIdVideos.
 type DeletePlaylistsPlaylistIdVideosParams struct {
-	VideoId openapi_types.UUID `form:"video_id" json:"video_id"`
+	VideoId uuid.UUID `form:"video_id" json:"video_id"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -487,7 +544,7 @@ type GetPlaylistsPlaylistIdVideosParams struct {
 	Limit int `form:"limit" json:"limit"`
 
 	// Cursor 最後に取得した動画ID(ページネーション)
-	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -505,7 +562,7 @@ type GetPlaylistsPlaylistIdVideosParams struct {
 
 // PostPlaylistsPlaylistIdVideosJSONBody defines parameters for PostPlaylistsPlaylistIdVideos.
 type PostPlaylistsPlaylistIdVideosJSONBody struct {
-	VideoId openapi_types.UUID `json:"video_id"`
+	VideoId uuid.UUID `json:"video_id"`
 }
 
 // PostPlaylistsPlaylistIdVideosParams defines parameters for PostPlaylistsPlaylistIdVideos.
@@ -555,68 +612,8 @@ type GetSearchParams struct {
 // GetStatisticsWeeklyParams defines parameters for GetStatisticsWeekly.
 type GetStatisticsWeeklyParams struct {
 	// TargetWeek 対象週の開始日(月曜日)
-	TargetWeek openapi_types.Date `form:"target_week" json:"target_week"`
+	TargetWeek time.Time `form:"target_week" json:"target_week"`
 
-	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
-	XRealIP HeaderXRealIP `json:"X-Real-IP"`
-
-	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
-	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
-
-	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
-	CfRay HeaderCfRay `json:"Cf-Ray"`
-
-	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-}
-
-// GetSubscriptionsParams defines parameters for GetSubscriptions.
-type GetSubscriptionsParams struct {
-	// Limit 取得する最大の数
-	Limit int `form:"limit" json:"limit"`
-
-	// Cursor 最後に取得したチャンネルID(ページネーション)
-	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
-
-	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
-	XRealIP HeaderXRealIP `json:"X-Real-IP"`
-
-	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
-	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
-
-	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
-	CfRay HeaderCfRay `json:"Cf-Ray"`
-
-	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-}
-
-// PostSubscriptionsJSONBody defines parameters for PostSubscriptions.
-type PostSubscriptionsJSONBody struct {
-	// ChannelId 登録するチャンネルID or ハンドル名
-	ChannelId string `json:"channel_id"`
-}
-
-// PostSubscriptionsParams defines parameters for PostSubscriptions.
-type PostSubscriptionsParams struct {
-	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
-	XRealIP HeaderXRealIP `json:"X-Real-IP"`
-
-	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
-	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
-
-	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
-	CfRay HeaderCfRay `json:"Cf-Ray"`
-
-	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-}
-
-// DeleteSubscriptionsSubscriptionIdParams defines parameters for DeleteSubscriptionsSubscriptionId.
-type DeleteSubscriptionsSubscriptionIdParams struct {
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
 
@@ -723,6 +720,10 @@ type PatchUsersMeStatusParams struct {
 
 // GetUsersMeSessionsParams defines parameters for GetUsersMeSessions.
 type GetUsersMeSessionsParams struct {
+	// Limit 取得する最大の数
+	Limit  int        `form:"limit" json:"limit"`
+	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
 
@@ -807,6 +808,9 @@ type GetHealthParams struct {
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
 }
 
+// PostChannelsSubscribeJSONRequestBody defines body for PostChannelsSubscribe for application/json ContentType.
+type PostChannelsSubscribeJSONRequestBody PostChannelsSubscribeJSONBody
+
 // PostPlaylistsJSONRequestBody defines body for PostPlaylists for application/json ContentType.
 type PostPlaylistsJSONRequestBody PostPlaylistsJSONBody
 
@@ -815,9 +819,6 @@ type PatchPlaylistsPlaylistIdJSONRequestBody PatchPlaylistsPlaylistIdJSONBody
 
 // PostPlaylistsPlaylistIdVideosJSONRequestBody defines body for PostPlaylistsPlaylistIdVideos for application/json ContentType.
 type PostPlaylistsPlaylistIdVideosJSONRequestBody PostPlaylistsPlaylistIdVideosJSONBody
-
-// PostSubscriptionsJSONRequestBody defines body for PostSubscriptions for application/json ContentType.
-type PostSubscriptionsJSONRequestBody PostSubscriptionsJSONBody
 
 // PostUsersMeJSONRequestBody defines body for PostUsersMe for application/json ContentType.
 type PostUsersMeJSONRequestBody PostUsersMeJSONBody
@@ -842,9 +843,18 @@ type ServerInterface interface {
 	// Refresh access token
 	// (POST /api/v1/auth/refresh)
 	PostAuthRefresh(w http.ResponseWriter, r *http.Request, params PostAuthRefreshParams)
+	// Subscribe new channel
+	// (POST /api/v1/channels/subscribe)
+	PostChannelsSubscribe(w http.ResponseWriter, r *http.Request, params PostChannelsSubscribeParams)
+	// Get subscribed channels
+	// (GET /api/v1/channels/subscribed)
+	GetChannelsSubscribed(w http.ResponseWriter, r *http.Request, params GetChannelsSubscribedParams)
+	// Unsubscribe channel
+	// (DELETE /api/v1/channels/{channel_id}/subscribe)
+	DeleteChannelsChannelIdSubscribe(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params DeleteChannelsChannelIdSubscribeParams)
 	// Get latest channel uploads
 	// (GET /api/v1/channels/{channel_id}/videos)
-	GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request, channelId openapi_types.UUID, params GetChannelsChannelIdVideosParams)
+	GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params GetChannelsChannelIdVideosParams)
 	// Get latest videos
 	// (GET /api/v1/feed)
 	GetFeed(w http.ResponseWriter, r *http.Request, params GetFeedParams)
@@ -862,37 +872,28 @@ type ServerInterface interface {
 	PostPlaylists(w http.ResponseWriter, r *http.Request, params PostPlaylistsParams)
 	// Delete playlist
 	// (DELETE /api/v1/playlists/{playlist_id})
-	DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdParams)
+	DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params DeletePlaylistsPlaylistIdParams)
 	// Get playlist info
 	// (GET /api/v1/playlists/{playlist_id})
-	GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params GetPlaylistsPlaylistIdParams)
+	GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params GetPlaylistsPlaylistIdParams)
 	// Patch playlist
 	// (PATCH /api/v1/playlists/{playlist_id})
-	PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params PatchPlaylistsPlaylistIdParams)
+	PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params PatchPlaylistsPlaylistIdParams)
 	// Remove a video from playlist
 	// (DELETE /api/v1/playlists/{playlist_id}/videos)
-	DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdVideosParams)
+	DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params DeletePlaylistsPlaylistIdVideosParams)
 	// Get playlist videos
 	// (GET /api/v1/playlists/{playlist_id}/videos)
-	GetPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params GetPlaylistsPlaylistIdVideosParams)
+	GetPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params GetPlaylistsPlaylistIdVideosParams)
 	// Insert a new video into playlist
 	// (POST /api/v1/playlists/{playlist_id}/videos)
-	PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params PostPlaylistsPlaylistIdVideosParams)
+	PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params PostPlaylistsPlaylistIdVideosParams)
 	// Get search result
 	// (GET /api/v1/search)
 	GetSearch(w http.ResponseWriter, r *http.Request, params GetSearchParams)
 	// Get User Statistics by week
 	// (GET /api/v1/statistics/weekly)
 	GetStatisticsWeekly(w http.ResponseWriter, r *http.Request, params GetStatisticsWeeklyParams)
-	// Get subscriptions
-	// (GET /api/v1/subscriptions)
-	GetSubscriptions(w http.ResponseWriter, r *http.Request, params GetSubscriptionsParams)
-	// Subscribe new channel
-	// (POST /api/v1/subscriptions)
-	PostSubscriptions(w http.ResponseWriter, r *http.Request, params PostSubscriptionsParams)
-	// Delete subscription
-	// (DELETE /api/v1/subscriptions/{subscription_id})
-	DeleteSubscriptionsSubscriptionId(w http.ResponseWriter, r *http.Request, subscriptionId openapi_types.UUID, params DeleteSubscriptionsSubscriptionIdParams)
 	// Create a new account
 	// (POST /api/v1/users)
 	PostUsersMe(w http.ResponseWriter, r *http.Request, params PostUsersMeParams)
@@ -910,13 +911,13 @@ type ServerInterface interface {
 	GetUsersMeSessions(w http.ResponseWriter, r *http.Request, params GetUsersMeSessionsParams)
 	// Delete session
 	// (DELETE /api/v1/users/me/sessions/{session_id})
-	DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID, params DeleteUsersMeSessionsSessionIdParams)
+	DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId uuid.UUID, params DeleteUsersMeSessionsSessionIdParams)
 	// Get video detail
 	// (GET /api/v1/videos/{video_id})
-	GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId openapi_types.UUID, params GetVideosVideoIdParams)
+	GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params GetVideosVideoIdParams)
 	// Heartbeats
 	// (POST /api/v1/videos/{video_id}/heartbeats)
-	PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, videoId openapi_types.UUID, params PostVideosVideoIdHeartbeatsParams)
+	PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdHeartbeatsParams)
 	// Health check
 	// (GET /health)
 	GetHealth(w http.ResponseWriter, r *http.Request, params GetHealthParams)
@@ -950,9 +951,27 @@ func (_ Unimplemented) PostAuthRefresh(w http.ResponseWriter, r *http.Request, p
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Subscribe new channel
+// (POST /api/v1/channels/subscribe)
+func (_ Unimplemented) PostChannelsSubscribe(w http.ResponseWriter, r *http.Request, params PostChannelsSubscribeParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get subscribed channels
+// (GET /api/v1/channels/subscribed)
+func (_ Unimplemented) GetChannelsSubscribed(w http.ResponseWriter, r *http.Request, params GetChannelsSubscribedParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Unsubscribe channel
+// (DELETE /api/v1/channels/{channel_id}/subscribe)
+func (_ Unimplemented) DeleteChannelsChannelIdSubscribe(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params DeleteChannelsChannelIdSubscribeParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Get latest channel uploads
 // (GET /api/v1/channels/{channel_id}/videos)
-func (_ Unimplemented) GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request, channelId openapi_types.UUID, params GetChannelsChannelIdVideosParams) {
+func (_ Unimplemented) GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params GetChannelsChannelIdVideosParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -988,37 +1007,37 @@ func (_ Unimplemented) PostPlaylists(w http.ResponseWriter, r *http.Request, par
 
 // Delete playlist
 // (DELETE /api/v1/playlists/{playlist_id})
-func (_ Unimplemented) DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdParams) {
+func (_ Unimplemented) DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params DeletePlaylistsPlaylistIdParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Get playlist info
 // (GET /api/v1/playlists/{playlist_id})
-func (_ Unimplemented) GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params GetPlaylistsPlaylistIdParams) {
+func (_ Unimplemented) GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params GetPlaylistsPlaylistIdParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Patch playlist
 // (PATCH /api/v1/playlists/{playlist_id})
-func (_ Unimplemented) PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params PatchPlaylistsPlaylistIdParams) {
+func (_ Unimplemented) PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params PatchPlaylistsPlaylistIdParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Remove a video from playlist
 // (DELETE /api/v1/playlists/{playlist_id}/videos)
-func (_ Unimplemented) DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdVideosParams) {
+func (_ Unimplemented) DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params DeletePlaylistsPlaylistIdVideosParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Get playlist videos
 // (GET /api/v1/playlists/{playlist_id}/videos)
-func (_ Unimplemented) GetPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params GetPlaylistsPlaylistIdVideosParams) {
+func (_ Unimplemented) GetPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params GetPlaylistsPlaylistIdVideosParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Insert a new video into playlist
 // (POST /api/v1/playlists/{playlist_id}/videos)
-func (_ Unimplemented) PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params PostPlaylistsPlaylistIdVideosParams) {
+func (_ Unimplemented) PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params PostPlaylistsPlaylistIdVideosParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1031,24 +1050,6 @@ func (_ Unimplemented) GetSearch(w http.ResponseWriter, r *http.Request, params 
 // Get User Statistics by week
 // (GET /api/v1/statistics/weekly)
 func (_ Unimplemented) GetStatisticsWeekly(w http.ResponseWriter, r *http.Request, params GetStatisticsWeeklyParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Get subscriptions
-// (GET /api/v1/subscriptions)
-func (_ Unimplemented) GetSubscriptions(w http.ResponseWriter, r *http.Request, params GetSubscriptionsParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Subscribe new channel
-// (POST /api/v1/subscriptions)
-func (_ Unimplemented) PostSubscriptions(w http.ResponseWriter, r *http.Request, params PostSubscriptionsParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Delete subscription
-// (DELETE /api/v1/subscriptions/{subscription_id})
-func (_ Unimplemented) DeleteSubscriptionsSubscriptionId(w http.ResponseWriter, r *http.Request, subscriptionId openapi_types.UUID, params DeleteSubscriptionsSubscriptionIdParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1084,19 +1085,19 @@ func (_ Unimplemented) GetUsersMeSessions(w http.ResponseWriter, r *http.Request
 
 // Delete session
 // (DELETE /api/v1/users/me/sessions/{session_id})
-func (_ Unimplemented) DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID, params DeleteUsersMeSessionsSessionIdParams) {
+func (_ Unimplemented) DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId uuid.UUID, params DeleteUsersMeSessionsSessionIdParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Get video detail
 // (GET /api/v1/videos/{video_id})
-func (_ Unimplemented) GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId openapi_types.UUID, params GetVideosVideoIdParams) {
+func (_ Unimplemented) GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params GetVideosVideoIdParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Heartbeats
 // (POST /api/v1/videos/{video_id}/heartbeats)
-func (_ Unimplemented) PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, videoId openapi_types.UUID, params PostVideosVideoIdHeartbeatsParams) {
+func (_ Unimplemented) PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdHeartbeatsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1716,13 +1717,471 @@ func (siw *ServerInterfaceWrapper) PostAuthRefresh(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
+// PostChannelsSubscribe operation middleware
+func (siw *ServerInterfaceWrapper) PostChannelsSubscribe(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PostChannelsSubscribeParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "ipv4"})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
+		}
+
+		params.XRealIP = XRealIP
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "iso-3166-1-alpha-2"})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
+		}
+
+		params.CfIpcountry = CfIpcountry
+
+	} else {
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
+		}
+
+		params.CfRay = CfRay
+
+	} else {
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
+		}
+
+		params.UserAgent = UserAgent
+
+	} else {
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostChannelsSubscribe(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetChannelsSubscribed operation middleware
+func (siw *ServerInterfaceWrapper) GetChannelsSubscribed(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetChannelsSubscribedParams
+
+	// ------------- Required query parameter "limit" -------------
+
+	if paramValue := r.URL.Query().Get("limit"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		return
+	}
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		return
+	}
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "ipv4"})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
+		}
+
+		params.XRealIP = XRealIP
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "iso-3166-1-alpha-2"})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
+		}
+
+		params.CfIpcountry = CfIpcountry
+
+	} else {
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
+		}
+
+		params.CfRay = CfRay
+
+	} else {
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
+		}
+
+		params.UserAgent = UserAgent
+
+	} else {
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetChannelsSubscribed(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteChannelsChannelIdSubscribe operation middleware
+func (siw *ServerInterfaceWrapper) DeleteChannelsChannelIdSubscribe(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "channel_id" -------------
+	var channelId uuid.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "channel_id", chi.URLParam(r, "channel_id"), &channelId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "channel_id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DeleteChannelsChannelIdSubscribeParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "ipv4"})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
+		}
+
+		params.XRealIP = XRealIP
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "iso-3166-1-alpha-2"})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
+		}
+
+		params.CfIpcountry = CfIpcountry
+
+	} else {
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
+		}
+
+		params.CfRay = CfRay
+
+	} else {
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
+		}
+
+		params.UserAgent = UserAgent
+
+	} else {
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteChannelsChannelIdSubscribe(w, r, channelId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetChannelsChannelIdVideos operation middleware
 func (siw *ServerInterfaceWrapper) GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
 	// ------------- Path parameter "channel_id" -------------
-	var channelId openapi_types.UUID
+	var channelId uuid.UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "channel_id", chi.URLParam(r, "channel_id"), &channelId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -2675,7 +3134,7 @@ func (siw *ServerInterfaceWrapper) DeletePlaylistsPlaylistId(w http.ResponseWrit
 	var err error
 
 	// ------------- Path parameter "playlist_id" -------------
-	var playlistId openapi_types.UUID
+	var playlistId uuid.UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -2826,7 +3285,7 @@ func (siw *ServerInterfaceWrapper) GetPlaylistsPlaylistId(w http.ResponseWriter,
 	var err error
 
 	// ------------- Path parameter "playlist_id" -------------
-	var playlistId openapi_types.UUID
+	var playlistId uuid.UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -2977,7 +3436,7 @@ func (siw *ServerInterfaceWrapper) PatchPlaylistsPlaylistId(w http.ResponseWrite
 	var err error
 
 	// ------------- Path parameter "playlist_id" -------------
-	var playlistId openapi_types.UUID
+	var playlistId uuid.UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -3128,7 +3587,7 @@ func (siw *ServerInterfaceWrapper) DeletePlaylistsPlaylistIdVideos(w http.Respon
 	var err error
 
 	// ------------- Path parameter "playlist_id" -------------
-	var playlistId openapi_types.UUID
+	var playlistId uuid.UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -3294,7 +3753,7 @@ func (siw *ServerInterfaceWrapper) GetPlaylistsPlaylistIdVideos(w http.ResponseW
 	var err error
 
 	// ------------- Path parameter "playlist_id" -------------
-	var playlistId openapi_types.UUID
+	var playlistId uuid.UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -3468,7 +3927,7 @@ func (siw *ServerInterfaceWrapper) PostPlaylistsPlaylistIdVideos(w http.Response
 	var err error
 
 	// ------------- Path parameter "playlist_id" -------------
-	var playlistId openapi_types.UUID
+	var playlistId uuid.UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -3956,464 +4415,6 @@ func (siw *ServerInterfaceWrapper) GetStatisticsWeekly(w http.ResponseWriter, r 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetStatisticsWeekly(w, r, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// GetSubscriptions operation middleware
-func (siw *ServerInterfaceWrapper) GetSubscriptions(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	ctx := r.Context()
-
-	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
-
-	r = r.WithContext(ctx)
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetSubscriptionsParams
-
-	// ------------- Required query parameter "limit" -------------
-
-	if paramValue := r.URL.Query().Get("limit"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
-		return
-	}
-
-	err = runtime.BindQueryParameterWithOptions("form", true, true, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "cursor" -------------
-
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
-		return
-	}
-
-	headers := r.Header
-
-	// ------------- Required header parameter "X-Real-IP" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
-		var XRealIP HeaderXRealIP
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "ipv4"})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
-			return
-		}
-
-		params.XRealIP = XRealIP
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "Cf-Ipcountry" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
-		var CfIpcountry HeaderCfIpCountry
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "iso-3166-1-alpha-2"})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
-			return
-		}
-
-		params.CfIpcountry = CfIpcountry
-
-	} else {
-		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "Cf-Ray" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
-		var CfRay HeaderCfRay
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
-			return
-		}
-
-		params.CfRay = CfRay
-
-	} else {
-		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "User-Agent" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
-		var UserAgent HeaderUserAgent
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
-			return
-		}
-
-		params.UserAgent = UserAgent
-
-	} else {
-		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetSubscriptions(w, r, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// PostSubscriptions operation middleware
-func (siw *ServerInterfaceWrapper) PostSubscriptions(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	ctx := r.Context()
-
-	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
-
-	r = r.WithContext(ctx)
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params PostSubscriptionsParams
-
-	headers := r.Header
-
-	// ------------- Required header parameter "X-Real-IP" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
-		var XRealIP HeaderXRealIP
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "ipv4"})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
-			return
-		}
-
-		params.XRealIP = XRealIP
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "Cf-Ipcountry" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
-		var CfIpcountry HeaderCfIpCountry
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "iso-3166-1-alpha-2"})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
-			return
-		}
-
-		params.CfIpcountry = CfIpcountry
-
-	} else {
-		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "Cf-Ray" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
-		var CfRay HeaderCfRay
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
-			return
-		}
-
-		params.CfRay = CfRay
-
-	} else {
-		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "User-Agent" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
-		var UserAgent HeaderUserAgent
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
-			return
-		}
-
-		params.UserAgent = UserAgent
-
-	} else {
-		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostSubscriptions(w, r, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// DeleteSubscriptionsSubscriptionId operation middleware
-func (siw *ServerInterfaceWrapper) DeleteSubscriptionsSubscriptionId(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "subscription_id" -------------
-	var subscriptionId openapi_types.UUID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "subscription_id", chi.URLParam(r, "subscription_id"), &subscriptionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscription_id", Err: err})
-		return
-	}
-
-	ctx := r.Context()
-
-	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
-
-	r = r.WithContext(ctx)
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params DeleteSubscriptionsSubscriptionIdParams
-
-	headers := r.Header
-
-	// ------------- Required header parameter "X-Real-IP" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
-		var XRealIP HeaderXRealIP
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "ipv4"})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
-			return
-		}
-
-		params.XRealIP = XRealIP
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "Cf-Ipcountry" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
-		var CfIpcountry HeaderCfIpCountry
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "iso-3166-1-alpha-2"})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
-			return
-		}
-
-		params.CfIpcountry = CfIpcountry
-
-	} else {
-		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "Cf-Ray" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
-		var CfRay HeaderCfRay
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
-			return
-		}
-
-		params.CfRay = CfRay
-
-	} else {
-		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "User-Agent" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
-		var UserAgent HeaderUserAgent
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
-			return
-		}
-
-		params.UserAgent = UserAgent
-
-	} else {
-		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DeleteSubscriptionsSubscriptionId(w, r, subscriptionId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -5005,6 +5006,29 @@ func (siw *ServerInterfaceWrapper) GetUsersMeSessions(w http.ResponseWriter, r *
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetUsersMeSessionsParams
 
+	// ------------- Required query parameter "limit" -------------
+
+	if paramValue := r.URL.Query().Get("limit"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		return
+	}
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		return
+	}
+
 	headers := r.Header
 
 	// ------------- Required header parameter "X-Real-IP" -------------
@@ -5139,7 +5163,7 @@ func (siw *ServerInterfaceWrapper) DeleteUsersMeSessionsSessionId(w http.Respons
 	var err error
 
 	// ------------- Path parameter "session_id" -------------
-	var sessionId openapi_types.UUID
+	var sessionId uuid.UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "session_id", chi.URLParam(r, "session_id"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -5290,7 +5314,7 @@ func (siw *ServerInterfaceWrapper) GetVideosVideoId(w http.ResponseWriter, r *ht
 	var err error
 
 	// ------------- Path parameter "video_id" -------------
-	var videoId openapi_types.UUID
+	var videoId uuid.UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "video_id", chi.URLParam(r, "video_id"), &videoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -5441,7 +5465,7 @@ func (siw *ServerInterfaceWrapper) PostVideosVideoIdHeartbeats(w http.ResponseWr
 	var err error
 
 	// ------------- Path parameter "video_id" -------------
-	var videoId openapi_types.UUID
+	var videoId uuid.UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "video_id", chi.URLParam(r, "video_id"), &videoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -5848,6 +5872,15 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/api/v1/auth/refresh", wrapper.PostAuthRefresh)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/channels/subscribe", wrapper.PostChannelsSubscribe)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/channels/subscribed", wrapper.GetChannelsSubscribed)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/api/v1/channels/{channel_id}/subscribe", wrapper.DeleteChannelsChannelIdSubscribe)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/channels/{channel_id}/videos", wrapper.GetChannelsChannelIdVideos)
 	})
 	r.Group(func(r chi.Router) {
@@ -5888,15 +5921,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/statistics/weekly", wrapper.GetStatisticsWeekly)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/subscriptions", wrapper.GetSubscriptions)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/subscriptions", wrapper.PostSubscriptions)
-	})
-	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/api/v1/subscriptions/{subscription_id}", wrapper.DeleteSubscriptionsSubscriptionId)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/api/v1/users", wrapper.PostUsersMe)
@@ -6279,8 +6303,312 @@ func (response PostAuthRefresh500JSONResponse) VisitPostAuthRefreshResponse(w ht
 	return json.NewEncoder(w).Encode(response)
 }
 
+type PostChannelsSubscribeRequestObject struct {
+	Params PostChannelsSubscribeParams
+	Body   *PostChannelsSubscribeJSONRequestBody
+}
+
+type PostChannelsSubscribeResponseObject interface {
+	VisitPostChannelsSubscribeResponse(w http.ResponseWriter) error
+}
+
+type PostChannelsSubscribe201ResponseHeaders struct {
+	Location string
+}
+
+type PostChannelsSubscribe201JSONResponse struct {
+	Body struct {
+		// ChannelCreatedAt チャンネルの作成日
+		ChannelCreatedAt time.Time `json:"channel_created_at"`
+
+		// ChannelCustomId チャンネルのカスタムID(ハンドル名)
+		ChannelCustomId string `json:"channel_custom_id"`
+
+		// ChannelDescription 登録したチャンネルの説明文
+		ChannelDescription string `json:"channel_description"`
+
+		// ChannelId 登録したチャンネルID(内部)
+		ChannelId uuid.UUID `json:"channel_id"`
+
+		// ChannelSubscribersCount チャンネルの登録者数
+		ChannelSubscribersCount int `json:"channel_subscribers_count"`
+
+		// ExternalChannelDisplayName 登録したチャンネルの表示名
+		ExternalChannelDisplayName string `json:"external_channel_display_name"`
+
+		// ExternalChannelIconUrl チャンネルのアイコンURL
+		ExternalChannelIconUrl string `json:"external_channel_icon_url"`
+
+		// ExternalChannelId 登録したチャンネルID(ハンドル名ではない)
+		ExternalChannelId string `json:"external_channel_id"`
+	}
+	Headers PostChannelsSubscribe201ResponseHeaders
+}
+
+func (response PostChannelsSubscribe201JSONResponse) VisitPostChannelsSubscribeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Location", fmt.Sprint(response.Headers.Location))
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type PostChannelsSubscribe400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PostChannelsSubscribe400JSONResponse) VisitPostChannelsSubscribeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostChannelsSubscribe401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PostChannelsSubscribe401JSONResponse) VisitPostChannelsSubscribeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostChannelsSubscribe403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response PostChannelsSubscribe403JSONResponse) VisitPostChannelsSubscribeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostChannelsSubscribe404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PostChannelsSubscribe404JSONResponse) VisitPostChannelsSubscribeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostChannelsSubscribe413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response PostChannelsSubscribe413JSONResponse) VisitPostChannelsSubscribeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostChannelsSubscribe429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response PostChannelsSubscribe429JSONResponse) VisitPostChannelsSubscribeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostChannelsSubscribe500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response PostChannelsSubscribe500JSONResponse) VisitPostChannelsSubscribeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsSubscribedRequestObject struct {
+	Params GetChannelsSubscribedParams
+}
+
+type GetChannelsSubscribedResponseObject interface {
+	VisitGetChannelsSubscribedResponse(w http.ResponseWriter) error
+}
+
+type GetChannelsSubscribed200JSONResponse struct {
+	// HasNext ページネーションで次のページがあるかどうか
+	HasNext bool `json:"has_next"`
+
+	// ItemCount レスポンスの総件数
+	ItemCount int `json:"item_count"`
+	Items     []struct {
+		// ChannelCustomId チャンネルのカスタムID(ハンドル名)
+		ChannelCustomId string `json:"channel_custom_id"`
+
+		// ChannelId 登録したチャンネルID(内部)
+		ChannelId uuid.UUID `json:"channel_id"`
+
+		// ChannelSubscribersCount チャンネルの登録者数
+		ChannelSubscribersCount int `json:"channel_subscribers_count"`
+
+		// ExternalChannelDisplayName 登録したチャンネルの表示名
+		ExternalChannelDisplayName string `json:"external_channel_display_name"`
+
+		// ExternalChannelIconUrl チャンネルのアイコンURL
+		ExternalChannelIconUrl string `json:"external_channel_icon_url"`
+
+		// ExternalChannelId 外部チャンネルID
+		ExternalChannelId string `json:"external_channel_id"`
+	} `json:"items"`
+}
+
+func (response GetChannelsSubscribed200JSONResponse) VisitGetChannelsSubscribedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsSubscribed400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetChannelsSubscribed400JSONResponse) VisitGetChannelsSubscribedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsSubscribed401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetChannelsSubscribed401JSONResponse) VisitGetChannelsSubscribedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsSubscribed403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetChannelsSubscribed403JSONResponse) VisitGetChannelsSubscribedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsSubscribed404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetChannelsSubscribed404JSONResponse) VisitGetChannelsSubscribedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsSubscribed413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetChannelsSubscribed413JSONResponse) VisitGetChannelsSubscribedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsSubscribed429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetChannelsSubscribed429JSONResponse) VisitGetChannelsSubscribedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetChannelsSubscribed500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetChannelsSubscribed500JSONResponse) VisitGetChannelsSubscribedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteChannelsChannelIdSubscribeRequestObject struct {
+	ChannelId uuid.UUID `json:"channel_id"`
+	Params    DeleteChannelsChannelIdSubscribeParams
+}
+
+type DeleteChannelsChannelIdSubscribeResponseObject interface {
+	VisitDeleteChannelsChannelIdSubscribeResponse(w http.ResponseWriter) error
+}
+
+type DeleteChannelsChannelIdSubscribe204Response struct {
+}
+
+func (response DeleteChannelsChannelIdSubscribe204Response) VisitDeleteChannelsChannelIdSubscribeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteChannelsChannelIdSubscribe400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response DeleteChannelsChannelIdSubscribe400JSONResponse) VisitDeleteChannelsChannelIdSubscribeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteChannelsChannelIdSubscribe401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteChannelsChannelIdSubscribe401JSONResponse) VisitDeleteChannelsChannelIdSubscribeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteChannelsChannelIdSubscribe403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeleteChannelsChannelIdSubscribe403JSONResponse) VisitDeleteChannelsChannelIdSubscribeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteChannelsChannelIdSubscribe404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteChannelsChannelIdSubscribe404JSONResponse) VisitDeleteChannelsChannelIdSubscribeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteChannelsChannelIdSubscribe413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response DeleteChannelsChannelIdSubscribe413JSONResponse) VisitDeleteChannelsChannelIdSubscribeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteChannelsChannelIdSubscribe429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response DeleteChannelsChannelIdSubscribe429JSONResponse) VisitDeleteChannelsChannelIdSubscribeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteChannelsChannelIdSubscribe500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response DeleteChannelsChannelIdSubscribe500JSONResponse) VisitDeleteChannelsChannelIdSubscribeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type GetChannelsChannelIdVideosRequestObject struct {
-	ChannelId openapi_types.UUID `json:"channel_id"`
+	ChannelId uuid.UUID `json:"channel_id"`
 	Params    GetChannelsChannelIdVideosParams
 }
 
@@ -6292,12 +6620,12 @@ type GetChannelsChannelIdVideos200JSONResponse struct {
 	HasNext   bool `json:"has_next"`
 	ItemCount int  `json:"item_count"`
 	Items     []struct {
-		ExternalVideoCreatedAt     time.Time          `json:"external_video_created_at"`
-		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
-		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
-		ExternalVideoTitle         string             `json:"external_video_title"`
-		LastWatchSeconds           *int               `json:"last_watch_seconds,omitempty"`
-		VideoId                    openapi_types.UUID `json:"video_id"`
+		ExternalVideoCreatedAt     time.Time `json:"external_video_created_at"`
+		ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string    `json:"external_video_title"`
+		LastWatchSeconds           *int      `json:"last_watch_seconds,omitempty"`
+		VideoId                    uuid.UUID `json:"video_id"`
 	} `json:"items"`
 }
 
@@ -6385,15 +6713,15 @@ type GetFeed200JSONResponse struct {
 	HasNext   bool `json:"has_next"`
 	ItemCount int  `json:"item_count"`
 	Items     []struct {
-		ChannelId                  openapi_types.UUID `json:"channel_id"`
-		ExternalChannelDisplayName string             `json:"external_channel_display_name"`
-		ExternalChannelIconUrl     string             `json:"external_channel_icon_url"`
-		ExternalVideoCreatedAt     time.Time          `json:"external_video_created_at"`
-		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
-		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
-		ExternalVideoTitle         string             `json:"external_video_title"`
-		LastWatchSeconds           *int               `json:"last_watch_seconds,omitempty"`
-		VideoId                    openapi_types.UUID `json:"video_id"`
+		ChannelId                  uuid.UUID `json:"channel_id"`
+		ExternalChannelDisplayName string    `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
+		ExternalVideoCreatedAt     time.Time `json:"external_video_created_at"`
+		ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string    `json:"external_video_title"`
+		LastWatchSeconds           *int      `json:"last_watch_seconds,omitempty"`
+		VideoId                    uuid.UUID `json:"video_id"`
 	} `json:"items"`
 }
 
@@ -6480,20 +6808,20 @@ type GetFeedChannelsResponseObject interface {
 type GetFeedChannels200JSONResponse struct {
 	ItemCount int `json:"item_count"`
 	Items     []struct {
-		ChannelId                  openapi_types.UUID `json:"channel_id"`
-		ExternalChannelDisplayName string             `json:"external_channel_display_name"`
-		ExternalChannelIconUrl     string             `json:"external_channel_icon_url"`
-		ExternalChannelId          string             `json:"external_channel_id"`
+		ChannelId                  uuid.UUID `json:"channel_id"`
+		ExternalChannelDisplayName string    `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
+		ExternalChannelId          string    `json:"external_channel_id"`
 		Videos                     *struct {
 			ItemCount int `json:"item_count"`
 			Items     []struct {
-				ExternalVideoCreatedAt     time.Time          `json:"external_video_created_at"`
-				ExternalVideoDescription   string             `json:"external_video_description"`
-				ExternalVideoId            string             `json:"external_video_id"`
-				ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
-				ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
-				ExternalVideoTitle         string             `json:"external_video_title"`
-				VideoId                    openapi_types.UUID `json:"video_id"`
+				ExternalVideoCreatedAt     time.Time `json:"external_video_created_at"`
+				ExternalVideoDescription   string    `json:"external_video_description"`
+				ExternalVideoId            string    `json:"external_video_id"`
+				ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
+				ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
+				ExternalVideoTitle         string    `json:"external_video_title"`
+				VideoId                    uuid.UUID `json:"video_id"`
 			} `json:"items"`
 		} `json:"videos,omitempty"`
 	} `json:"items"`
@@ -6587,20 +6915,13 @@ type GetHistory200JSONResponse struct {
 	ItemCount int `json:"item_count"`
 	Items     []struct {
 		// ChannelId チャンネルの内部ID
-		ChannelId openapi_types.UUID `json:"channel_id"`
+		ChannelId uuid.UUID `json:"channel_id"`
 
 		// ExternalChannelDisplayName チャンネルの表示名
 		ExternalChannelDisplayName string `json:"external_channel_display_name"`
 
 		// ExternalChannelIconUrl チャンネルのアイコンURL
 		ExternalChannelIconUrl string `json:"external_channel_icon_url"`
-
-		// ExternalChannelId チャンネルのYouTube ID
-		ExternalChannelId string `json:"external_channel_id"`
-
-		// ExternalVideoCreatedAt 動画の公開日時
-		ExternalVideoCreatedAt time.Time `json:"external_video_created_at"`
-		ExternalVideoId        string    `json:"external_video_id"`
 
 		// ExternalVideoLengthSeconds 動画の長さ(秒数)
 		ExternalVideoLengthSeconds int `json:"external_video_length_seconds"`
@@ -6612,7 +6933,7 @@ type GetHistory200JSONResponse struct {
 		ExternalVideoTitle string `json:"external_video_title"`
 
 		// VideoId 内部ID
-		VideoId openapi_types.UUID `json:"video_id"`
+		VideoId uuid.UUID `json:"video_id"`
 
 		// WatchPositionSeconds 視聴途中の時間
 		WatchPositionSeconds int `json:"watch_position_seconds"`
@@ -6706,10 +7027,10 @@ type GetPlaylists200JSONResponse struct {
 	HasNext   bool `json:"has_next"`
 	ItemCount int  `json:"item_count"`
 	Items     []struct {
-		PlaylistCreatedAt   time.Time          `json:"playlist_created_at"`
-		PlaylistDescription string             `json:"playlist_description"`
-		PlaylistId          openapi_types.UUID `json:"playlist_id"`
-		PlaylistTitle       string             `json:"playlist_title"`
+		PlaylistDescription  string    `json:"playlist_description"`
+		PlaylistId           uuid.UUID `json:"playlist_id"`
+		PlaylistRegisteredAt time.Time `json:"playlist_registered_at"`
+		PlaylistTitle        string    `json:"playlist_title"`
 
 		// PlaylistType プレイリストのタイプ
 		PlaylistType       PlaylistType `json:"playlist_type"`
@@ -6804,10 +7125,10 @@ type PostPlaylistsResponseObject interface {
 }
 
 type PostPlaylists201JSONResponse struct {
-	PlaylistCreatedAt   time.Time          `json:"playlist_created_at"`
-	PlaylistDescription string             `json:"playlist_description"`
-	PlaylistId          openapi_types.UUID `json:"playlist_id"`
-	PlaylistTitle       string             `json:"playlist_title"`
+	PlaylistDescription  string    `json:"playlist_description"`
+	PlaylistId           uuid.UUID `json:"playlist_id"`
+	PlaylistRegisteredAt time.Time `json:"playlist_registered_at"`
+	PlaylistTitle        string    `json:"playlist_title"`
 
 	// PlaylistType プレイリストのタイプ
 	PlaylistType       PlaylistType `json:"playlist_type"`
@@ -6891,7 +7212,7 @@ func (response PostPlaylists500JSONResponse) VisitPostPlaylistsResponse(w http.R
 }
 
 type DeletePlaylistsPlaylistIdRequestObject struct {
-	PlaylistId openapi_types.UUID `json:"playlist_id"`
+	PlaylistId uuid.UUID `json:"playlist_id"`
 	Params     DeletePlaylistsPlaylistIdParams
 }
 
@@ -6973,7 +7294,7 @@ func (response DeletePlaylistsPlaylistId500JSONResponse) VisitDeletePlaylistsPla
 }
 
 type GetPlaylistsPlaylistIdRequestObject struct {
-	PlaylistId openapi_types.UUID `json:"playlist_id"`
+	PlaylistId uuid.UUID `json:"playlist_id"`
 	Params     GetPlaylistsPlaylistIdParams
 }
 
@@ -6982,10 +7303,10 @@ type GetPlaylistsPlaylistIdResponseObject interface {
 }
 
 type GetPlaylistsPlaylistId200JSONResponse struct {
-	PlaylistCreatedAt   time.Time          `json:"playlist_created_at"`
-	PlaylistDescription string             `json:"playlist_description"`
-	PlaylistId          openapi_types.UUID `json:"playlist_id"`
-	PlaylistTitle       string             `json:"playlist_title"`
+	PlaylistDescription  string    `json:"playlist_description"`
+	PlaylistId           uuid.UUID `json:"playlist_id"`
+	PlaylistRegisteredAt time.Time `json:"playlist_registered_at"`
+	PlaylistTitle        string    `json:"playlist_title"`
 
 	// PlaylistType プレイリストのタイプ
 	PlaylistType       PlaylistType `json:"playlist_type"`
@@ -7070,7 +7391,7 @@ func (response GetPlaylistsPlaylistId500JSONResponse) VisitGetPlaylistsPlaylistI
 }
 
 type PatchPlaylistsPlaylistIdRequestObject struct {
-	PlaylistId openapi_types.UUID `json:"playlist_id"`
+	PlaylistId uuid.UUID `json:"playlist_id"`
 	Params     PatchPlaylistsPlaylistIdParams
 	Body       *PatchPlaylistsPlaylistIdJSONRequestBody
 }
@@ -7080,10 +7401,9 @@ type PatchPlaylistsPlaylistIdResponseObject interface {
 }
 
 type PatchPlaylistsPlaylistId200JSONResponse struct {
-	PlaylistDescription string             `json:"playlist_description"`
-	PlaylistId          openapi_types.UUID `json:"playlist_id"`
-	PlaylistTitle       string             `json:"playlist_title"`
-	PlaylistUpdatedAt   time.Time          `json:"playlist_updated_at"`
+	PlaylistDescription string    `json:"playlist_description"`
+	PlaylistId          uuid.UUID `json:"playlist_id"`
+	PlaylistTitle       string    `json:"playlist_title"`
 }
 
 func (response PatchPlaylistsPlaylistId200JSONResponse) VisitPatchPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
@@ -7159,7 +7479,7 @@ func (response PatchPlaylistsPlaylistId500JSONResponse) VisitPatchPlaylistsPlayl
 }
 
 type DeletePlaylistsPlaylistIdVideosRequestObject struct {
-	PlaylistId openapi_types.UUID `json:"playlist_id"`
+	PlaylistId uuid.UUID `json:"playlist_id"`
 	Params     DeletePlaylistsPlaylistIdVideosParams
 }
 
@@ -7241,7 +7561,7 @@ func (response DeletePlaylistsPlaylistIdVideos500JSONResponse) VisitDeletePlayli
 }
 
 type GetPlaylistsPlaylistIdVideosRequestObject struct {
-	PlaylistId openapi_types.UUID `json:"playlist_id"`
+	PlaylistId uuid.UUID `json:"playlist_id"`
 	Params     GetPlaylistsPlaylistIdVideosParams
 }
 
@@ -7253,15 +7573,15 @@ type GetPlaylistsPlaylistIdVideos200JSONResponse struct {
 	HasNext   bool `json:"has_next"`
 	ItemCount int  `json:"item_count"`
 	Items     []struct {
-		ChannelId                  openapi_types.UUID `json:"channel_id"`
-		ExternalChannelDisplayName string             `json:"external_channel_display_name"`
-		ExternalChannelIconUrl     string             `json:"external_channel_icon_url"`
-		ExternalVideoCreatedAt     time.Time          `json:"external_video_created_at"`
-		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
-		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
-		ExternalVideoTitle         string             `json:"external_video_title"`
-		LastWatchSeconds           *int               `json:"last_watch_seconds,omitempty"`
-		VideoId                    openapi_types.UUID `json:"video_id"`
+		ChannelId                  uuid.UUID `json:"channel_id"`
+		ExternalChannelDisplayName string    `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
+		ExternalVideoCreatedAt     time.Time `json:"external_video_created_at"`
+		ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string    `json:"external_video_title"`
+		LastWatchSeconds           *int      `json:"last_watch_seconds,omitempty"`
+		VideoId                    uuid.UUID `json:"video_id"`
 	} `json:"items"`
 }
 
@@ -7338,7 +7658,7 @@ func (response GetPlaylistsPlaylistIdVideos500JSONResponse) VisitGetPlaylistsPla
 }
 
 type PostPlaylistsPlaylistIdVideosRequestObject struct {
-	PlaylistId openapi_types.UUID `json:"playlist_id"`
+	PlaylistId uuid.UUID `json:"playlist_id"`
 	Params     PostPlaylistsPlaylistIdVideosParams
 	Body       *PostPlaylistsPlaylistIdVideosJSONRequestBody
 }
@@ -7348,9 +7668,9 @@ type PostPlaylistsPlaylistIdVideosResponseObject interface {
 }
 
 type PostPlaylistsPlaylistIdVideos201JSONResponse struct {
-	InsertedAt time.Time          `json:"inserted_at"`
-	PlaylistId openapi_types.UUID `json:"playlist_id"`
-	VideoId    openapi_types.UUID `json:"video_id"`
+	InsertedAt time.Time `json:"inserted_at"`
+	PlaylistId uuid.UUID `json:"playlist_id"`
+	VideoId    uuid.UUID `json:"video_id"`
 }
 
 func (response PostPlaylistsPlaylistIdVideos201JSONResponse) VisitPostPlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
@@ -7437,21 +7757,21 @@ type GetSearch200JSONResponse struct {
 	HasNext   bool `json:"has_next"`
 	ItemCount int  `json:"item_count"`
 	Items     []struct {
-		ChannelId                  openapi_types.UUID `json:"channel_id"`
-		ExternalChannelDisplayName string             `json:"external_channel_display_name"`
-		ExternalChannelIconUrl     string             `json:"external_channel_icon_url"`
-		ExternalChannelId          string             `json:"external_channel_id"`
-		ExternalVideoCreatedAt     time.Time          `json:"external_video_created_at"`
-		ExternalVideoDescription   string             `json:"external_video_description"`
-		ExternalVideoId            string             `json:"external_video_id"`
-		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
-		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
-		ExternalVideoTitle         string             `json:"external_video_title"`
-		LastWatchSeconds           *int               `json:"last_watch_seconds,omitempty"`
+		ChannelId                  uuid.UUID `json:"channel_id"`
+		ExternalChannelDisplayName string    `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
+		ExternalChannelId          string    `json:"external_channel_id"`
+		ExternalVideoCreatedAt     time.Time `json:"external_video_created_at"`
+		ExternalVideoDescription   string    `json:"external_video_description"`
+		ExternalVideoId            string    `json:"external_video_id"`
+		ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string    `json:"external_video_title"`
+		LastWatchSeconds           *int      `json:"last_watch_seconds,omitempty"`
 
 		// ResourceType リソースのタイプ
-		ResourceType ResourceType       `json:"resource_type"`
-		VideoId      openapi_types.UUID `json:"video_id"`
+		ResourceType ResourceType `json:"resource_type"`
+		VideoId      uuid.UUID    `json:"video_id"`
 	} `json:"items"`
 }
 
@@ -7542,7 +7862,7 @@ type GetStatisticsWeekly200JSONResponse struct {
 	// ItemCount 総件数
 	ItemCount int `json:"item_count"`
 	Items     []struct {
-		TargetDay openapi_types.Date `json:"target_day"`
+		TargetDay time.Time `json:"target_day"`
 
 		// VideoWatchCount その日に動画を視聴した回数
 		VideoWatchCount   int `json:"video_watch_count"`
@@ -7550,7 +7870,7 @@ type GetStatisticsWeekly200JSONResponse struct {
 	} `json:"items"`
 
 	// TargetWeek 対象週の開始日(月曜日)
-	TargetWeek openapi_types.Date `json:"target_week"`
+	TargetWeek time.Time `json:"target_week"`
 }
 
 func (response GetStatisticsWeekly200JSONResponse) VisitGetStatisticsWeeklyResponse(w http.ResponseWriter) error {
@@ -7619,328 +7939,6 @@ type GetStatisticsWeekly500JSONResponse struct {
 }
 
 func (response GetStatisticsWeekly500JSONResponse) VisitGetStatisticsWeeklyResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(500)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetSubscriptionsRequestObject struct {
-	Params GetSubscriptionsParams
-}
-
-type GetSubscriptionsResponseObject interface {
-	VisitGetSubscriptionsResponse(w http.ResponseWriter) error
-}
-
-type GetSubscriptions200JSONResponse struct {
-	// HasNext ページネーションで次のページがあるかどうか
-	HasNext bool `json:"has_next"`
-
-	// ItemCount レスポンスの総件数
-	ItemCount int `json:"item_count"`
-	Items     []struct {
-		// ChannelCreatedAt チャンネルの作成日
-		ChannelCreatedAt time.Time `json:"channel_created_at"`
-
-		// ChannelCustomId チャンネルのカスタムID(ハンドル名)
-		ChannelCustomId string `json:"channel_custom_id"`
-
-		// ChannelDescription 登録したチャンネルの説明文
-		ChannelDescription string `json:"channel_description"`
-
-		// ChannelId 登録したチャンネルID(内部)
-		ChannelId openapi_types.UUID `json:"channel_id"`
-
-		// ChannelSubscribersCount チャンネルの登録者数
-		ChannelSubscribersCount int `json:"channel_subscribers_count"`
-
-		// CreatedAt 登録日時
-		CreatedAt time.Time `json:"created_at"`
-
-		// ExternalChannelDisplayName 登録したチャンネルの表示名
-		ExternalChannelDisplayName string `json:"external_channel_display_name"`
-
-		// ExternalChannelIconUrl チャンネルのアイコンURL
-		ExternalChannelIconUrl string `json:"external_channel_icon_url"`
-
-		// ExternalChannelId 登録したチャンネルID(ハンドル名ではない)
-		ExternalChannelId string `json:"external_channel_id"`
-
-		// SubscriptionId 購読レコードのID
-		SubscriptionId openapi_types.UUID `json:"subscription_id"`
-	} `json:"items"`
-}
-
-func (response GetSubscriptions200JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetSubscriptions400JSONResponse struct{ BadRequestJSONResponse }
-
-func (response GetSubscriptions400JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(400)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetSubscriptions401JSONResponse struct{ UnauthorizedJSONResponse }
-
-func (response GetSubscriptions401JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(401)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetSubscriptions403JSONResponse struct{ ForbiddenJSONResponse }
-
-func (response GetSubscriptions403JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(403)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetSubscriptions404JSONResponse struct{ NotFoundJSONResponse }
-
-func (response GetSubscriptions404JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(404)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetSubscriptions413JSONResponse struct{ PayloadTooLargeJSONResponse }
-
-func (response GetSubscriptions413JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(413)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetSubscriptions429JSONResponse struct{ TooManyRequestsJSONResponse }
-
-func (response GetSubscriptions429JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(429)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetSubscriptions500JSONResponse struct {
-	InternalServerErrorJSONResponse
-}
-
-func (response GetSubscriptions500JSONResponse) VisitGetSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(500)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type PostSubscriptionsRequestObject struct {
-	Params PostSubscriptionsParams
-	Body   *PostSubscriptionsJSONRequestBody
-}
-
-type PostSubscriptionsResponseObject interface {
-	VisitPostSubscriptionsResponse(w http.ResponseWriter) error
-}
-
-type PostSubscriptions201ResponseHeaders struct {
-	Location string
-}
-
-type PostSubscriptions201JSONResponse struct {
-	Body struct {
-		// ChannelCreatedAt チャンネルの作成日
-		ChannelCreatedAt time.Time `json:"channel_created_at"`
-
-		// ChannelCustomId チャンネルのカスタムID(ハンドル名)
-		ChannelCustomId string `json:"channel_custom_id"`
-
-		// ChannelDescription 登録したチャンネルの説明文
-		ChannelDescription string `json:"channel_description"`
-
-		// ChannelId 登録したチャンネルID(内部)
-		ChannelId openapi_types.UUID `json:"channel_id"`
-
-		// ChannelSubscribersCount チャンネルの登録者数
-		ChannelSubscribersCount int `json:"channel_subscribers_count"`
-
-		// CreatedAt 登録日時
-		CreatedAt time.Time `json:"created_at"`
-
-		// ExternalChannelDisplayName 登録したチャンネルの表示名
-		ExternalChannelDisplayName string `json:"external_channel_display_name"`
-
-		// ExternalChannelIconUrl チャンネルのアイコンURL
-		ExternalChannelIconUrl string `json:"external_channel_icon_url"`
-
-		// ExternalChannelId 登録したチャンネルID(ハンドル名ではない)
-		ExternalChannelId string `json:"external_channel_id"`
-
-		// SubscriptionId 購読レコードのID
-		SubscriptionId openapi_types.UUID `json:"subscription_id"`
-	}
-	Headers PostSubscriptions201ResponseHeaders
-}
-
-func (response PostSubscriptions201JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Location", fmt.Sprint(response.Headers.Location))
-	w.WriteHeader(201)
-
-	return json.NewEncoder(w).Encode(response.Body)
-}
-
-type PostSubscriptions400JSONResponse struct{ BadRequestJSONResponse }
-
-func (response PostSubscriptions400JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(400)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type PostSubscriptions401JSONResponse struct{ UnauthorizedJSONResponse }
-
-func (response PostSubscriptions401JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(401)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type PostSubscriptions403JSONResponse struct{ ForbiddenJSONResponse }
-
-func (response PostSubscriptions403JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(403)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type PostSubscriptions404JSONResponse struct{ NotFoundJSONResponse }
-
-func (response PostSubscriptions404JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(404)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type PostSubscriptions413JSONResponse struct{ PayloadTooLargeJSONResponse }
-
-func (response PostSubscriptions413JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(413)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type PostSubscriptions429JSONResponse struct{ TooManyRequestsJSONResponse }
-
-func (response PostSubscriptions429JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(429)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type PostSubscriptions500JSONResponse struct {
-	InternalServerErrorJSONResponse
-}
-
-func (response PostSubscriptions500JSONResponse) VisitPostSubscriptionsResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(500)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type DeleteSubscriptionsSubscriptionIdRequestObject struct {
-	SubscriptionId openapi_types.UUID `json:"subscription_id"`
-	Params         DeleteSubscriptionsSubscriptionIdParams
-}
-
-type DeleteSubscriptionsSubscriptionIdResponseObject interface {
-	VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error
-}
-
-type DeleteSubscriptionsSubscriptionId204Response struct {
-}
-
-func (response DeleteSubscriptionsSubscriptionId204Response) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
-	w.WriteHeader(204)
-	return nil
-}
-
-type DeleteSubscriptionsSubscriptionId400JSONResponse struct{ BadRequestJSONResponse }
-
-func (response DeleteSubscriptionsSubscriptionId400JSONResponse) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(400)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type DeleteSubscriptionsSubscriptionId401JSONResponse struct{ UnauthorizedJSONResponse }
-
-func (response DeleteSubscriptionsSubscriptionId401JSONResponse) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(401)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type DeleteSubscriptionsSubscriptionId403JSONResponse struct{ ForbiddenJSONResponse }
-
-func (response DeleteSubscriptionsSubscriptionId403JSONResponse) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(403)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type DeleteSubscriptionsSubscriptionId404JSONResponse struct{ NotFoundJSONResponse }
-
-func (response DeleteSubscriptionsSubscriptionId404JSONResponse) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(404)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type DeleteSubscriptionsSubscriptionId413JSONResponse struct{ PayloadTooLargeJSONResponse }
-
-func (response DeleteSubscriptionsSubscriptionId413JSONResponse) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(413)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type DeleteSubscriptionsSubscriptionId429JSONResponse struct{ TooManyRequestsJSONResponse }
-
-func (response DeleteSubscriptionsSubscriptionId429JSONResponse) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(429)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type DeleteSubscriptionsSubscriptionId500JSONResponse struct {
-	InternalServerErrorJSONResponse
-}
-
-func (response DeleteSubscriptionsSubscriptionId500JSONResponse) VisitDeleteSubscriptionsSubscriptionIdResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(500)
 
@@ -8285,6 +8283,8 @@ type GetUsersMeSessionsResponseObject interface {
 }
 
 type GetUsersMeSessions200JSONResponse struct {
+	HasNext bool `json:"has_next"`
+
 	// ItemCount 総件数
 	ItemCount int `json:"item_count"`
 	Items     []struct {
@@ -8300,11 +8300,20 @@ type GetUsersMeSessions200JSONResponse struct {
 		// CreatedAt ログイン時刻
 		CreatedAt time.Time `json:"created_at"`
 
+		// DeviceType デバイスの種類
+		DeviceType string `json:"device_type"`
+
 		// Id ID
-		Id openapi_types.UUID `json:"id"`
+		Id uuid.UUID `json:"id"`
+
+		// IpAddress IPアドレス
+		IpAddress string `json:"ip_address"`
 
 		// LastLoggedInAt 最終ログイン時刻
 		LastLoggedInAt time.Time `json:"last_logged_in_at"`
+
+		// UserAgent ユーザーエージェント
+		UserAgent string `json:"user_agent"`
 	} `json:"items"`
 }
 
@@ -8381,7 +8390,7 @@ func (response GetUsersMeSessions500JSONResponse) VisitGetUsersMeSessionsRespons
 }
 
 type DeleteUsersMeSessionsSessionIdRequestObject struct {
-	SessionId openapi_types.UUID `json:"session_id"`
+	SessionId uuid.UUID `json:"session_id"`
 	Params    DeleteUsersMeSessionsSessionIdParams
 }
 
@@ -8463,7 +8472,7 @@ func (response DeleteUsersMeSessionsSessionId500JSONResponse) VisitDeleteUsersMe
 }
 
 type GetVideosVideoIdRequestObject struct {
-	VideoId openapi_types.UUID `json:"video_id"`
+	VideoId uuid.UUID `json:"video_id"`
 	Params  GetVideosVideoIdParams
 }
 
@@ -8473,17 +8482,16 @@ type GetVideosVideoIdResponseObject interface {
 
 type GetVideosVideoId200JSONResponse struct {
 	// ChannelCustomId チャンネルのハンドル名
-	ChannelCustomId                 string             `json:"channel_custom_id"`
-	ChannelId                       openapi_types.UUID `json:"channel_id"`
-	ExternalChannelDisplayName      string             `json:"external_channel_display_name"`
-	ExternalChannelIconUrl          string             `json:"external_channel_icon_url"`
-	ExternalChannelId               string             `json:"external_channel_id"`
-	ExternalChannelSubscribersCount int                `json:"external_channel_subscribers_count"`
-	ExternalVideoDescription        string             `json:"external_video_description"`
-	ExternalVideoId                 string             `json:"external_video_id"`
-	ExternalVideoThumbnailUrl       string             `json:"external_video_thumbnail_url"`
-	ExternalVideoTitle              string             `json:"external_video_title"`
-	VideoId                         openapi_types.UUID `json:"video_id"`
+	ChannelCustomId                 string    `json:"channel_custom_id"`
+	ChannelId                       uuid.UUID `json:"channel_id"`
+	ExternalChannelDisplayName      string    `json:"external_channel_display_name"`
+	ExternalChannelIconUrl          string    `json:"external_channel_icon_url"`
+	ExternalChannelSubscribersCount int       `json:"external_channel_subscribers_count"`
+	ExternalVideoDescription        string    `json:"external_video_description"`
+	ExternalVideoId                 string    `json:"external_video_id"`
+	ExternalVideoThumbnailUrl       string    `json:"external_video_thumbnail_url"`
+	ExternalVideoTitle              string    `json:"external_video_title"`
+	VideoId                         uuid.UUID `json:"video_id"`
 }
 
 func (response GetVideosVideoId200JSONResponse) VisitGetVideosVideoIdResponse(w http.ResponseWriter) error {
@@ -8559,7 +8567,7 @@ func (response GetVideosVideoId500JSONResponse) VisitGetVideosVideoIdResponse(w 
 }
 
 type PostVideosVideoIdHeartbeatsRequestObject struct {
-	VideoId openapi_types.UUID `json:"video_id"`
+	VideoId uuid.UUID `json:"video_id"`
 	Params  PostVideosVideoIdHeartbeatsParams
 	Body    *PostVideosVideoIdHeartbeatsJSONRequestBody
 }
@@ -8725,6 +8733,15 @@ type StrictServerInterface interface {
 	// Refresh access token
 	// (POST /api/v1/auth/refresh)
 	PostAuthRefresh(ctx context.Context, request PostAuthRefreshRequestObject) (PostAuthRefreshResponseObject, error)
+	// Subscribe new channel
+	// (POST /api/v1/channels/subscribe)
+	PostChannelsSubscribe(ctx context.Context, request PostChannelsSubscribeRequestObject) (PostChannelsSubscribeResponseObject, error)
+	// Get subscribed channels
+	// (GET /api/v1/channels/subscribed)
+	GetChannelsSubscribed(ctx context.Context, request GetChannelsSubscribedRequestObject) (GetChannelsSubscribedResponseObject, error)
+	// Unsubscribe channel
+	// (DELETE /api/v1/channels/{channel_id}/subscribe)
+	DeleteChannelsChannelIdSubscribe(ctx context.Context, request DeleteChannelsChannelIdSubscribeRequestObject) (DeleteChannelsChannelIdSubscribeResponseObject, error)
 	// Get latest channel uploads
 	// (GET /api/v1/channels/{channel_id}/videos)
 	GetChannelsChannelIdVideos(ctx context.Context, request GetChannelsChannelIdVideosRequestObject) (GetChannelsChannelIdVideosResponseObject, error)
@@ -8767,15 +8784,6 @@ type StrictServerInterface interface {
 	// Get User Statistics by week
 	// (GET /api/v1/statistics/weekly)
 	GetStatisticsWeekly(ctx context.Context, request GetStatisticsWeeklyRequestObject) (GetStatisticsWeeklyResponseObject, error)
-	// Get subscriptions
-	// (GET /api/v1/subscriptions)
-	GetSubscriptions(ctx context.Context, request GetSubscriptionsRequestObject) (GetSubscriptionsResponseObject, error)
-	// Subscribe new channel
-	// (POST /api/v1/subscriptions)
-	PostSubscriptions(ctx context.Context, request PostSubscriptionsRequestObject) (PostSubscriptionsResponseObject, error)
-	// Delete subscription
-	// (DELETE /api/v1/subscriptions/{subscription_id})
-	DeleteSubscriptionsSubscriptionId(ctx context.Context, request DeleteSubscriptionsSubscriptionIdRequestObject) (DeleteSubscriptionsSubscriptionIdResponseObject, error)
 	// Create a new account
 	// (POST /api/v1/users)
 	PostUsersMe(ctx context.Context, request PostUsersMeRequestObject) (PostUsersMeResponseObject, error)
@@ -8938,8 +8946,94 @@ func (sh *strictHandler) PostAuthRefresh(w http.ResponseWriter, r *http.Request,
 	}
 }
 
+// PostChannelsSubscribe operation middleware
+func (sh *strictHandler) PostChannelsSubscribe(w http.ResponseWriter, r *http.Request, params PostChannelsSubscribeParams) {
+	var request PostChannelsSubscribeRequestObject
+
+	request.Params = params
+
+	var body PostChannelsSubscribeJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostChannelsSubscribe(ctx, request.(PostChannelsSubscribeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostChannelsSubscribe")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostChannelsSubscribeResponseObject); ok {
+		if err := validResponse.VisitPostChannelsSubscribeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetChannelsSubscribed operation middleware
+func (sh *strictHandler) GetChannelsSubscribed(w http.ResponseWriter, r *http.Request, params GetChannelsSubscribedParams) {
+	var request GetChannelsSubscribedRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetChannelsSubscribed(ctx, request.(GetChannelsSubscribedRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetChannelsSubscribed")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetChannelsSubscribedResponseObject); ok {
+		if err := validResponse.VisitGetChannelsSubscribedResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteChannelsChannelIdSubscribe operation middleware
+func (sh *strictHandler) DeleteChannelsChannelIdSubscribe(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params DeleteChannelsChannelIdSubscribeParams) {
+	var request DeleteChannelsChannelIdSubscribeRequestObject
+
+	request.ChannelId = channelId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteChannelsChannelIdSubscribe(ctx, request.(DeleteChannelsChannelIdSubscribeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteChannelsChannelIdSubscribe")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteChannelsChannelIdSubscribeResponseObject); ok {
+		if err := validResponse.VisitDeleteChannelsChannelIdSubscribeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetChannelsChannelIdVideos operation middleware
-func (sh *strictHandler) GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request, channelId openapi_types.UUID, params GetChannelsChannelIdVideosParams) {
+func (sh *strictHandler) GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params GetChannelsChannelIdVideosParams) {
 	var request GetChannelsChannelIdVideosRequestObject
 
 	request.ChannelId = channelId
@@ -9106,7 +9200,7 @@ func (sh *strictHandler) PostPlaylists(w http.ResponseWriter, r *http.Request, p
 }
 
 // DeletePlaylistsPlaylistId operation middleware
-func (sh *strictHandler) DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdParams) {
+func (sh *strictHandler) DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params DeletePlaylistsPlaylistIdParams) {
 	var request DeletePlaylistsPlaylistIdRequestObject
 
 	request.PlaylistId = playlistId
@@ -9133,7 +9227,7 @@ func (sh *strictHandler) DeletePlaylistsPlaylistId(w http.ResponseWriter, r *htt
 }
 
 // GetPlaylistsPlaylistId operation middleware
-func (sh *strictHandler) GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params GetPlaylistsPlaylistIdParams) {
+func (sh *strictHandler) GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params GetPlaylistsPlaylistIdParams) {
 	var request GetPlaylistsPlaylistIdRequestObject
 
 	request.PlaylistId = playlistId
@@ -9160,7 +9254,7 @@ func (sh *strictHandler) GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.R
 }
 
 // PatchPlaylistsPlaylistId operation middleware
-func (sh *strictHandler) PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params PatchPlaylistsPlaylistIdParams) {
+func (sh *strictHandler) PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params PatchPlaylistsPlaylistIdParams) {
 	var request PatchPlaylistsPlaylistIdRequestObject
 
 	request.PlaylistId = playlistId
@@ -9197,7 +9291,7 @@ func (sh *strictHandler) PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http
 }
 
 // DeletePlaylistsPlaylistIdVideos operation middleware
-func (sh *strictHandler) DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params DeletePlaylistsPlaylistIdVideosParams) {
+func (sh *strictHandler) DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params DeletePlaylistsPlaylistIdVideosParams) {
 	var request DeletePlaylistsPlaylistIdVideosRequestObject
 
 	request.PlaylistId = playlistId
@@ -9224,7 +9318,7 @@ func (sh *strictHandler) DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, 
 }
 
 // GetPlaylistsPlaylistIdVideos operation middleware
-func (sh *strictHandler) GetPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params GetPlaylistsPlaylistIdVideosParams) {
+func (sh *strictHandler) GetPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params GetPlaylistsPlaylistIdVideosParams) {
 	var request GetPlaylistsPlaylistIdVideosRequestObject
 
 	request.PlaylistId = playlistId
@@ -9251,7 +9345,7 @@ func (sh *strictHandler) GetPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *
 }
 
 // PostPlaylistsPlaylistIdVideos operation middleware
-func (sh *strictHandler) PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId openapi_types.UUID, params PostPlaylistsPlaylistIdVideosParams) {
+func (sh *strictHandler) PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params PostPlaylistsPlaylistIdVideosParams) {
 	var request PostPlaylistsPlaylistIdVideosRequestObject
 
 	request.PlaylistId = playlistId
@@ -9332,92 +9426,6 @@ func (sh *strictHandler) GetStatisticsWeekly(w http.ResponseWriter, r *http.Requ
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetStatisticsWeeklyResponseObject); ok {
 		if err := validResponse.VisitGetStatisticsWeeklyResponse(w); err != nil {
-			sh.options.ResponseErrorHandlerFunc(w, r, err)
-		}
-	} else if response != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
-	}
-}
-
-// GetSubscriptions operation middleware
-func (sh *strictHandler) GetSubscriptions(w http.ResponseWriter, r *http.Request, params GetSubscriptionsParams) {
-	var request GetSubscriptionsRequestObject
-
-	request.Params = params
-
-	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.GetSubscriptions(ctx, request.(GetSubscriptionsRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetSubscriptions")
-	}
-
-	response, err := handler(r.Context(), w, r, request)
-
-	if err != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(GetSubscriptionsResponseObject); ok {
-		if err := validResponse.VisitGetSubscriptionsResponse(w); err != nil {
-			sh.options.ResponseErrorHandlerFunc(w, r, err)
-		}
-	} else if response != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
-	}
-}
-
-// PostSubscriptions operation middleware
-func (sh *strictHandler) PostSubscriptions(w http.ResponseWriter, r *http.Request, params PostSubscriptionsParams) {
-	var request PostSubscriptionsRequestObject
-
-	request.Params = params
-
-	var body PostSubscriptionsJSONRequestBody
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
-		return
-	}
-	request.Body = &body
-
-	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.PostSubscriptions(ctx, request.(PostSubscriptionsRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostSubscriptions")
-	}
-
-	response, err := handler(r.Context(), w, r, request)
-
-	if err != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(PostSubscriptionsResponseObject); ok {
-		if err := validResponse.VisitPostSubscriptionsResponse(w); err != nil {
-			sh.options.ResponseErrorHandlerFunc(w, r, err)
-		}
-	} else if response != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
-	}
-}
-
-// DeleteSubscriptionsSubscriptionId operation middleware
-func (sh *strictHandler) DeleteSubscriptionsSubscriptionId(w http.ResponseWriter, r *http.Request, subscriptionId openapi_types.UUID, params DeleteSubscriptionsSubscriptionIdParams) {
-	var request DeleteSubscriptionsSubscriptionIdRequestObject
-
-	request.SubscriptionId = subscriptionId
-	request.Params = params
-
-	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.DeleteSubscriptionsSubscriptionId(ctx, request.(DeleteSubscriptionsSubscriptionIdRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "DeleteSubscriptionsSubscriptionId")
-	}
-
-	response, err := handler(r.Context(), w, r, request)
-
-	if err != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(DeleteSubscriptionsSubscriptionIdResponseObject); ok {
-		if err := validResponse.VisitDeleteSubscriptionsSubscriptionIdResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -9573,7 +9581,7 @@ func (sh *strictHandler) GetUsersMeSessions(w http.ResponseWriter, r *http.Reque
 }
 
 // DeleteUsersMeSessionsSessionId operation middleware
-func (sh *strictHandler) DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID, params DeleteUsersMeSessionsSessionIdParams) {
+func (sh *strictHandler) DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId uuid.UUID, params DeleteUsersMeSessionsSessionIdParams) {
 	var request DeleteUsersMeSessionsSessionIdRequestObject
 
 	request.SessionId = sessionId
@@ -9600,7 +9608,7 @@ func (sh *strictHandler) DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r
 }
 
 // GetVideosVideoId operation middleware
-func (sh *strictHandler) GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId openapi_types.UUID, params GetVideosVideoIdParams) {
+func (sh *strictHandler) GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params GetVideosVideoIdParams) {
 	var request GetVideosVideoIdRequestObject
 
 	request.VideoId = videoId
@@ -9627,7 +9635,7 @@ func (sh *strictHandler) GetVideosVideoId(w http.ResponseWriter, r *http.Request
 }
 
 // PostVideosVideoIdHeartbeats operation middleware
-func (sh *strictHandler) PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, videoId openapi_types.UUID, params PostVideosVideoIdHeartbeatsParams) {
+func (sh *strictHandler) PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdHeartbeatsParams) {
 	var request PostVideosVideoIdHeartbeatsRequestObject
 
 	request.VideoId = videoId
@@ -9689,99 +9697,98 @@ func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request, param
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"WcjRnP1fAAAA//8l8+ViHcoAAA==",
+	"H4sIAAAAAAAC/+xd/3PTxrb/VzR6d+bBjN04Cb1zm99oeC3u5RYG6L2dx+R5FHuTqJUlV5KhuTzPRBJQ",
+	"pwlNLg1JKekXuEBMQhx4QAtNgD9mI9v5qf/Cm92VZFlefXFw0hj0C8S2tF/Onj3ncz67e/Yim5XyBUkE",
+	"oqqwQxfZAidzeaACGX8alqTPeTB85vQHZ6XPgYi+ygElK/MFlZdEdohFPzHktwTLo2+y+BU2wYpcHqDP",
+	"ijyWUa0nZPBFkZdBjh1S5SJIsEp2AuQ5VKw6WUBPK6rMi+NsqZRgjwMuB+SWunEFE/j7ZgVfJlEVyfAq",
+	"AlruW/tYujAsFUVVnqSUIEjF3JjAyQBqs7U7y+ZXv0FtCWo/QX0DGvehfgfqt6HxGBplqFXNmy+g/hga",
+	"W9CY/n2rnD5zkhns//Ofk/0MJxQmuOTA71vTtgy9XRweS6YLWasdQV0ck+Q8p7JDLK9ISVJ80iqeTbB5",
+	"7ssTQBxXJ9ihgQSb50XXJ38JnOaC+26sov7qFag/Jz3dfjZVuzTXWP/OLN811+d/3yqj740HqO/6r0gg",
+	"+sP6QiW4v6jW3ejLMXCez4IPeHEcyAWZF1Vfvfk0SZ5Nuh/eTZWfKEA+Og5IVa1iomoCNBbxl/eg/gs0",
+	"NvFPS1iMj2wRrUDjcc24bP78yE9EqNIkqXU3bf70NOCE9KmILTarP+18fxNq1fQp/PU0Gk39OR7ZJWis",
+	"Q30d6r/Wn87WFx6hx39+Ys6XA8b30ySqPpk+Fdh28CWXLwjo+YHU4Dupd/r7B9/pf+9dNuFS88L5I5Tp",
+	"W0LFKgVJVAA2Y+9zudPgiyJQ8BBlJVG1RosrFAQ+y6G+932mSNjINBvwJxmMsUPsf/Q1TWQf+VXpOyVL",
+	"owLIHwMqxwv/JcuSTOptleaRVIp5n8sxdu2lBPuBJI/yuRwxaF1pilNiQDMGmWa9pQSbFlUgi5xwBsjn",
+	"gUze21/JvJtKMXYrGNIMxno4wX4sqR9IRTG376N1hPlYUhlSdynBnuImBYnLnZWkE5w8Dva7Of2DjNUC",
+	"5qwkMaQNpQR7VpL+xomTllIp+92sgfdwc1ATGKcNpQT7icgV1QlJ5v8J9n/k+pmW6tEjVhGoBs8UQThH",
+	"lgpAVnliIHK4eIrBTLAqnwftZrJx/15DewL1a+aVqzuLM1BbgdpVqM/Ulu7WbuhuE5XjVJDEhSRohasC",
+	"oNvppl08Zz2WsJs54pQkjX4GstisnBK4SYFX1LP4hzarjsz0A2TVkZux/DTUX+FvltgEC8RiHtUkoma7",
+	"a2i21a7h77zCj/ICr05GrMe8/GBncaa+ccm8+X+uqgoyf55TAb2u9lHvbMy6JdbTQJGKchb4iXUV6i+w",
+	"037uI9DzfA5IbILNTnCiCOiSPZOVARDP8nlwRpCoKOI5dsurGD0+rt3Qdxa/hVq1UXlkzm2Qj+azDTbh",
+	"kRAQcxm6+taf6tu/Xand0M3yJnPo+PGhfN58cdvcmjuMCuFUZJfZIfZ/Dp1LJftHzqWS743878C5VHJw",
+	"5PDQuVTyXfLVn2gqzefoHTDWoWFAo5w+5p4dxSKfo5WiqJys+jR+Z3HGXJnZg8Z71AO3zNWQRFOgNFU5",
+	"Azg5O0FXlNqd5fqT26+hIgjuUaYAxwuTGQWrT0YBWUnMKZTKN76pLd3FlVP0yCz/snNjnsXxAJ9HLUo5",
+	"9fOiCsYBdsk5XikI3GSGILj2iXAPz4Jf0L9atXGrUr/zmzl/lW0JMwajqourtGjq8pnEiyCX4aiT5zbU",
+	"1xDaxmh2+8VyrTxfW7ob2UYLnDhe5MZBJivlQGj5eFpONVZ/dIK9zgIv5LbwcNq6z6sgr4R5SY8FKTnF",
+	"crKMA6miyH9RBGlSFgLaVGVvGWRvz91Sbm1l+2xA3QDZosyrk2dQE4GLTfjognq0iDrvleRH/zjLHM1m",
+	"gaKQuJzhRWbYZhOo3AKHn3bYBbvPBf6vYJLABF4ck9pr4kSVT06qDFfgWcdbeL49D2SFPN3/TuqdFJKp",
+	"VAAi+nGIReHIILE2E7hrfVyB7zvf34cgSN+4JI0T/zMOKBr5If6ZOZk+NoxwAwqfHmKj8FiS6zc2d2aR",
+	"l0TTHOOldA69ArDMyJusJ7oZTA20VzKYGmBkkONlNB4JKwLDj5+QCBBrxWC0JiJdXr3aqGzVFzZ3frgN",
+	"tWfYdkzhxj7ApqRMi75KCRT4+Oms0/Y+V1iGX+kPf6UV5KGXBsNfagl9jqSOhL/hBCDohf4IVXgjBfTe",
+	"wHvh73mhfCmBIqPw92gBnHvWsUPnRhKsUsznOXmyqXNIeEBULSiOxo4bV9D0Rz+wI6VEC/93jt6K5iN9",
+	"rWRCKRHxBTet1sFLp7kOHm+yMiXUL8oE7ctygjDKZT8PmalkGphzG45JR7h/bglq/zLnFqE+gyk/LXjS",
+	"Dtt1tYmYXuUM1KfrN35r3JqF2nWoz0LtJ08jbKP4RRFgVtDmW4mt7oASojGj5sbL+vpifaHiU4uiIuje",
+	"pWqCqOPXqwPqFWjch8aWTzcAnjhBRY7svbElNt+2sTPIwBoGpgHvQmPZGezYzPaMmT1qCQ8PPTMs5QDj",
+	"mv9vp80VpHGpqHqXmN6U7kZ9pX15AlmYgqTQIhcLGd7GwUUZajegPtPmZU5JCnYzJ4h8PeZqgGh5a8ED",
+	"qRRz8q9sbD/+OPvhWAxn2DxWwTt9ZDAmA2Uinj+dzJ9VaFzHC4+OOy1jYmEDL0Jeqy9UoHYJavdqiw/x",
+	"yu0lPNk2oL5pkZfuhy0whiYhnNJ95+Fpa6B2Z9aby90RROJdnW8DK/Hs7yn0YKkOQ2gNxqE1fC2DxRgq",
+	"fUpxFA3xKIjtQ3T70Jz1hgaNf2P+7io01vBkR5A8wOMOW5I/4wiexClAUd+XcpMdLX+1crrWmGZoxKi7",
+	"WZ5Gp48xksxAYw5/Mw2NNUK/BlPcrsooJF7JG3uV2uxLfxd6mpUBp/qxt56h0aqdE7hOPUVFlfIZOuPs",
+	"rQZzus+h/goaP6ePHfII9nA4sW3X2lKR34DiXUNtbWisPqh9901t8augXgXpCaXY9LFD5pXLO0blcBRe",
+	"3a7EsS+yksH7kKKIkLSiMXW5dv1h6PoC+JLYyowjt8AFhxDBudYf2vrUVhOflcRMURaiqcVtvDfmMTQe",
+	"f3L6RIsMZT5adR0PmEf58GLzBtRWoXbJs+T1yfA5LvnPo8n/TiXfyyRHLg4MlP7UiRGgNzdsdGhTjD4B",
+	"gqQfpG0JmrGgWywv2OlnhskrUYiZ4MGMKZcDETI5PpcRwQXGXjVt4iRnHTUYKuV8ad/63EtzueJYMM+E",
+	"3H421bi3gingRfPlEo32bUMHuTDal5RFPHttecq8swK1KrGbNN5S4PO8GrLZdYwrCio7NJDC64/E9L6b",
+	"ctnh/nY73M6gosa8nIXamt1CZKKatuEQNL7HUdIzLJzm7sXDfvR0UVY8lGuIF/KLanaJOiY4JSOCL6ke",
+	"jN4VqK3UHtzCGzftB7RZqOmY+Z+B2n2oXYHaTLPlo5IkAA7PSV4FeX+P+QCHmT/gAPM50rdf57Y3f4ni",
+	"Lp1VYecPH2z1h2CeGJO8AZjEvLO4Y1TahuqPghO7Aw60jTodb43AP7XM5UTTjERDITHlclDQw4dAZZoY",
+	"wIYPChU/JGIuxcOl0BDVxebcLrUyUTkgANXfUurXGiv/3rlxx4dnOYbftrGU9X8656ZcAjEVzXRhSFLg",
+	"1AkXInFbpghHayKjlCM07vUI87HEDFvQJTYIB8AgfCI6OhsYTMTGoGNjgHe2Kr5xVhuUma19fb1eeYUh",
+	"1D28HDNjzlyvL2xC/ZoVdmkrBEj52AxX8OUYjL+TVrSN397ZgsQBDu8OfFAWFkS9XmDkwEismx7uORqf",
+	"7ClCwAGRe/t1xKiCvK5OFPOjIscLNtyPDN6t933OOiRYgVPUzAVOzXbQOFImCQdCtbwFJTtvhvTQpwOJ",
+	"gJEJE3m3QH47uLf1KQb5vQfyBU4Fimq7dKZYQG1043xy7iJ27IGOfQwEEKUeB+4iQCzv3U5W1Jan8Lpr",
+	"NQKN+gF404hTgmYwt9bDtOneeuhWTiqUDgwl6Toj2zr0vjF+2AP8QOcKQ8AEhRYMAxo+7GMMRGIgsgdA",
+	"5Lwdhsb4o0P84bALvkCktjxdv/k11FY7X6tFIGO4SQJ30WW+hU6xtZltzzX5oL2TVPcdtGcHV9jjPn3v",
+	"Fa+/FwxA91gBn81Ef7yn9nXPHS2OUrBLBwun+9epGHMccMwRL2vuFnBM8IoqkXR/VKjRuLfY0J6Yj+7W",
+	"1p8EAovjVkFvIIFBduv0Oo3x5u/+irbtyx7NKJuvOtwS1SPboPwgmWemkqVIrbpz/VeoXT9UX7lWu/7w",
+	"cPRtZD7QzXtk/Sk0fka90u9AY21XPXHQnU8H7CxEZWis0YpzY0BPER3oCqGOCpLCo5f95Uos6s7Uwvaz",
+	"dWT7cFqiUKni0n1OjVjWGZdlljcjnhTxh7M+PWlpRJcArkcJE2xHG+f8J1BMTcUwsR0mYp1jJhykYmNF",
+	"+5sYKwZixYKVEjFoi0tLYrT2/Igehsp/W8spp65eBZR+CCte8rL1KJRqch6MyAM6z8tgnFdUIHfIhDnv",
+	"+/NFzUeszIeB2VzdWUrdLxcLuY5pOudli/2JNhaut9x5TKO02pX5FHlPqbA7Ms7jVd1j6hUnvblt45Kg",
+	"a5CPiHzVgj4eMXKIkUM7cii43JGNGuzvYtiwuywEbbmT9WvktHtAIgI3LOhOAoJRTgGZpiGgx6h3cOT9",
+	"A05OVjYvG1RsEy127dz57bUzej3P4Gfeo5rqAMNPM5TdzckQI5GeQyI9DyeCT+3HHv8AeHwyGPi8vePk",
+	"qX6fFhz3XXTpZCnwXNj0c7P6PdWXoAh5+uuww2KON7T/SOfY+FxWb+ocGdEQfUv4ZHAIUCT05S2ovyL3",
+	"K3XCvAQpVSp2unH4383w//XR4n766zg4P4jBOYOvP4gWoFNOQ7aq5msdh4zDfyTb7ESnrspxUvVfKzs3",
+	"r/gRAahoPzfVDU6gezF6KVIIe7C9acTrpXZj2WNr21vWFs+8146JXAfl/UIjmnWYgfq0cz4eX0VBAqS5",
+	"6NFR4Nl4z4Kca0NEnCbjrdP00yAvnQcMZ+0ZGJOl/B7EZmtkZx3R6s7XxsMVOz49Gp8ejU+PxqdH49Oj",
+	"MbrsrVi+7fxoHM0f3MV8B5ZTQU5t9pV5+W6UVX0KoOlORN8FU7v3q9G8qAB517xwRAiwe0m0ziiXC3K3",
+	"O17v7EHDm8YDyHB4xZMEPLyoStEDfQVfBu1/Xp3cB61fw1cKXaHFNOQ66bAAxrlYuv50vvbjMtSq5D7n",
+	"N2O/b2hePde92hv4rsfV2uJX5vqSWV7yqcX+6N99V47r/kRHTWhe7U29MhMPqL1g418/Jwgnx3z3zDk3",
+	"PjdvG0fuyBkzK6tEHMD9sZkO4iwE+x89ykCRinIWRFqKPm09bC9F73noGSUdeveD1MCsCV2PYL1jEEe0",
+	"MbCiZF/HrouRgYI8VpwPqaMjZ4rKqbyi8lml7wIAnwv+iQp2ph5BbQFqFUy1txxDqz991KiUI2+AOuPU",
+	"+Q9SZRirvvGy8egWrr+6szhjrszUlu4eqi2XazeXa0t3/VhqFemomkHdikZQ5Mgd5HtLXXN8xlFfb0eP",
+	"pqG2BvUy1Gd2ph7tLH5rJYfQX5rz/4JatXFPqz+5RHOEQZkBupcHwJJojpuMIDfbBxKv65e1QPsBatXa",
+	"0l2orTkcB+m1tUZx88coLXdXFdHBe/yCq2+0ltOr2JVDSrRo5tAutD1MY6k9s+ZBnJDnjXB6yBMwTUPK",
+	"jE4y1gDHZ647coBFxbrBL5ZRpwfM9Nv4hq97+OxW83QZlYFGjVL+1r1rbXMcL0xmlKwMQEAqkNrGN9i3",
+	"VPE9ZBv4Bu8taDwmOUEItRXqW8JS0rRAIXc+mpDbzQROHC9y4yCTlXK0gj3i1aqNylRj9UeckWYLGtMs",
+	"ZtPsGgZa6hug1GcJC/MDbh8fSAvhd87yeXBGkHYVb7lr9cjSK4K9WAAI6hzSyZg+753jQoQ+57I2erE9",
+	"HTLhrXQ5Nup9+cBLozzzyzoNNKWfPXnsJHMyfWwY7x4KOBzkNmnxDrSePRCEhvE/Feaon1olQi519TqA",
+	"yrpZ/R4vxQTfK2SpD8JwxdfOFLw7MxdD+oME6YeLsgxE1VZIRzHa9DFGqhHPQvhNzdrNJxjF+h9+aJ+c",
+	"MWh9w0ErhQJp5QxLsY1+uy92xIcYm8wLzThTMGifAhSFl8ToSd30TWgYzvYGsms9CEHY5ffO5vSe31S+",
+	"Vwz7qCxdUIDsa7YXoXEfWVf9F6hVzfmr5jQ18W2WV31Nf6t2Qa26/WKuNj1FLYb4fx9bb958sWuz3rqB",
+	"wdvLdag/JDmBOkq4iownQgfOgr233K+gMY9z+uL0yJXqzq0fqYsplES10VLU8oUMl8vJQKG49fQp5ByN",
+	"aZKomU34bFIQpPFxkMvwIlU2teWp+lP9NSSErFKGGwdimB3SK9ZmK32F+PLQdQayZcG9ut/eIbdqJlq1",
+	"3aNuLcJsHdmWXsR7AmI/7fHTyEFbTpfx7K5EMoxjqAgrIm7g0nfR+iss347Xt9g5doIJNBu/WP+nc5Gu",
+	"Vm42KT4/+hazd5YaxFO8oylOzv70XbS3EpZ8YxPndK2T7L9x/3H9ycMI23zICRP8b7czHNk7DbNFRZXy",
+	"Ee+lgMYc/jgNjbVIXEePbR1WiqNIAKNAVqJunt6PPcFvwNViu7g7zLvptqNrF9rVO9Jwd3ZfQwxie+M2",
+	"hRxQOV6Isq/V53YW1x0rFBzVlSwc8RnOYPfaNwE4WR0FnErbahSP20Hc50R2oZJFF3zwtgyN+zi82SCY",
+	"B2o/QV2zgcUWfuBb8kd9oYIJFII2frDzW5fhlL79bMosX7F3Uq/tTGlQn4b6LCpwSqfunWoBUsebmtSt",
+	"ZaksWXiMcLWSs+htXrlaX/hp+8XV+ovq71tlcnXV71vTIQSo9/ZKv4pH9mE5hrY0J4M8x4u8OO4vgu3N",
+	"r8nqXK06A/WvLf2Y0uuXbkHtkvnzE3O+DLWNI6kU1GYbrxaccQ2RS+yde8g7t0zC9g23yBVMAE5Q/U/s",
+	"Hj2VxjezbUFj3r7L5zsUp+jPUeSir1iWxj7SS7MNHwL1OKmlq1NBIWtbofnorOf2AVm+0UoFskUZZ409",
+	"N+JRMUGdYLITIOve1Z3nlWzMbtDgV6ssL7LDkvQ5Dz66oB4tonl4bgS5egVLnwa7TkhZTpiQFJUhz7AJ",
+	"Fser7ISqFob6+gT796G/pP6SwrjBGpM24LB6tVHZaiI1TEhRjrPjoy/bm4vNJ/Hg0g6+t1AZriVT6wre",
+	"9lcIiPSgRWrRzSWf5tN4MZtSKL4GsfmYbfBoxXqzlLTnjUFj9v8BAAD//ymjpdYuyAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

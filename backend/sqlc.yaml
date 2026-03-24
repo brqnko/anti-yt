@@ -13,6 +13,7 @@ sql:
         package: "sqlc"
         out: "internal/core/database_d/sqlc"
         sql_package: "pgx/v5"
+        emit_interface: true
         overrides:
           - db_type: "timestamptz"
             go_type: "time.Time"

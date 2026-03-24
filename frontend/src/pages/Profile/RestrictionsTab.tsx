@@ -6,7 +6,7 @@ import { AddChannelDialog } from "../../components/AddChannelDialog";
 import { TimeRangeSlider } from "../../components/TimeRangeSlider";
 import { formatTime, parseTimeToMinutes } from "../../utils/format";
 import type { TimeRange } from "../../types/time-range";
-import type { GetSubscriptions200ItemsItem } from "../../api/generated/antiYtApi.schemas";
+import type { GetChannelsSubscribed200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 
 function RemoveChannelDialog({
   open,
@@ -15,7 +15,7 @@ function RemoveChannelDialog({
   onConfirm,
 }: {
   open: boolean;
-  channel: GetSubscriptions200ItemsItem | null;
+  channel: GetChannelsSubscribed200ItemsItem | null;
   onClose: () => void;
   onConfirm: () => Promise<void>;
 }) {
@@ -148,13 +148,13 @@ export function RestrictionsTab() {
   const [saveError, setSaveError] = useState(false);
 
   // Whitelist (subscriptions)
-  const [channels, setChannels] = useState<GetSubscriptions200ItemsItem[]>([]);
+  const [channels, setChannels] = useState<GetChannelsSubscribed200ItemsItem[]>([]);
   const [channelSearch, setChannelSearch] = useState("");
   const [showAddChannel, setShowAddChannel] = useState(false);
 
   useEffect(() => {
-    const { getSubscriptions } = getChannel();
-    getSubscriptions({ limit: 50 })
+    const { getChannelsSubscribed } = getChannel();
+    getChannelsSubscribed({ limit: 50 })
       .then((res) => setChannels(res.items))
       .catch(() => {});
   }, []);
@@ -212,12 +212,12 @@ export function RestrictionsTab() {
 
   const isTimeInvalid = !isUnlimited && hours === 0 && minutes === 0;
 
-  const [removeTarget, setRemoveTarget] = useState<GetSubscriptions200ItemsItem | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<GetChannelsSubscribed200ItemsItem | null>(null);
 
-  const handleUnsubscribe = async (subscriptionId: string) => {
-    const { deleteSubscriptionsSubscriptionId } = getChannel();
-    await deleteSubscriptionsSubscriptionId(subscriptionId);
-    setChannels(channels.filter((ch) => ch.subscription_id !== subscriptionId));
+  const handleUnsubscribe = async (channelId: string) => {
+    const { deleteChannelsChannelIdSubscribe } = getChannel();
+    await deleteChannelsChannelIdSubscribe(channelId);
+    setChannels(channels.filter((ch) => ch.channel_id !== channelId));
   };
 
   return (
@@ -451,7 +451,7 @@ export function RestrictionsTab() {
         open={removeTarget !== null}
         channel={removeTarget}
         onClose={() => setRemoveTarget(null)}
-        onConfirm={() => handleUnsubscribe(removeTarget!.subscription_id)}
+        onConfirm={() => handleUnsubscribe(removeTarget!.channel_id)}
       />
     </>
   );

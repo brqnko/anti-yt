@@ -6,13 +6,13 @@
  * OpenAPI spec version: 1.0.0
  */
 import type {
+  GetChannelsChannelIdVideos200,
+  GetChannelsChannelIdVideosParams,
   GetFeed200,
   GetFeedParams,
   GetSearch200,
   GetSearchParams,
-  GetVideosVideoId200,
-  PostVideosVideoIdHeartbeats200,
-  PostVideosVideoIdHeartbeatsBody
+  GetVideosVideoId200
 } from './antiYtApi.schemas';
 
 import { customInstance } from '../mutator';
@@ -22,6 +22,20 @@ import { customInstance } from '../mutator';
 
   export const getVideo = () => {
 /**
+ * チャンネルが投稿している動画を一覧で表示する
+ * @summary Get latest channel uploads
+ */
+const getChannelsChannelIdVideos = (
+    channelId: string,
+    params: GetChannelsChannelIdVideosParams,
+ ) => {
+      return customInstance<GetChannelsChannelIdVideos200>(
+      {url: `/api/v1/channels/${channelId}/videos`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
  * 検索を行う
  * @summary Get search result
  */
@@ -59,23 +73,8 @@ const getVideosVideoId = (
     },
       );
     }
-  /**
- * 視聴時間をトラックするためのハートビート用エンドポイント。一分ごとに送られる。
- * @summary Heartbeats
- */
-const postVideosVideoIdHeartbeats = (
-    videoId: string,
-    postVideosVideoIdHeartbeatsBody: PostVideosVideoIdHeartbeatsBody,
- ) => {
-      return customInstance<PostVideosVideoIdHeartbeats200>(
-      {url: `/api/v1/videos/${videoId}/heartbeats`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: postVideosVideoIdHeartbeatsBody
-    },
-      );
-    }
-  return {getSearch,getFeed,getVideosVideoId,postVideosVideoIdHeartbeats}};
+  return {getChannelsChannelIdVideos,getSearch,getFeed,getVideosVideoId}};
+export type GetChannelsChannelIdVideosResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getVideo>['getChannelsChannelIdVideos']>>>
 export type GetSearchResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getVideo>['getSearch']>>>
 export type GetFeedResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getVideo>['getFeed']>>>
 export type GetVideosVideoIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getVideo>['getVideosVideoId']>>>
-export type PostVideosVideoIdHeartbeatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getVideo>['postVideosVideoIdHeartbeats']>>>

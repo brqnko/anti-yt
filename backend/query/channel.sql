@@ -1,4 +1,4 @@
--- name: GetChannelByIdOrHandle :one
+-- name: FindChannelByExternalID :one
 SELECT
     m_channel.m_channel_id,
     m_channel.public_id,
@@ -8,7 +8,10 @@ SELECT
     m_channel.external_description,
     m_channel.external_icon_url,
     m_channel.external_subscribers_count,
-    m_channel.external_created_at
+    m_channel.external_created_at,
+    m_channel.external_uploads_playlist_id,
+    m_channel.fetched_at,
+    m_channel.rss_fetched_at
 FROM
     m_channel
 WHERE
@@ -19,12 +22,15 @@ LIMIT
 
 -- NOTE: SaveChannelの前にこれをする. CTEでやろうと思ったけど、トランザクション...
 -- name: ClearStaleChannelCustomID :exec
-UPDATE m_channel
-SET external_custom_id = '@' || external_id
-WHERE external_custom_id = @external_custom_id
-  AND external_id != @external_id;
+UPDATE
+    m_channel
+SET
+    external_custom_id = '@' || external_id
+WHERE
+    external_custom_id = @external_custom_id
+    AND external_id != @external_id;
 
--- name: SaveChannel :one
+-- name: UpsertChannel :one
 INSERT INTO
     m_channel (
         external_id,
@@ -34,10 +40,13 @@ INSERT INTO
         external_description,
         external_subscribers_count,
         external_created_at,
-        external_uploads_playlist_id
+        external_uploads_playlist_id,
+        public_id,
+        rss_fetched_at,
+        fetched_at
     )
 VALUES
-    ($1, $2, $3, $4, $5, $6, $7, $8)
+    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 ON CONFLICT (external_id) DO UPDATE SET
     external_display_name = EXCLUDED.external_display_name,
     external_custom_id = EXCLUDED.external_custom_id,
@@ -46,46 +55,48 @@ ON CONFLICT (external_id) DO UPDATE SET
     external_subscribers_count = EXCLUDED.external_subscribers_count,
     external_created_at = EXCLUDED.external_created_at,
     external_uploads_playlist_id = EXCLUDED.external_uploads_playlist_id,
-    updated_at = CURRENT_TIMESTAMP
+    updated_at = CURRENT_TIMESTAMP,
+    rss_fetched_at = EXCLUDED.rss_fetched_at,
+    fetched_at = EXCLUDED.fetched_at
 RETURNING
-    m_channel.m_channel_id,
-    m_channel.public_id,
-    m_channel.created_at;
+    m_channel.m_channel_id;
 
--- name: SaveChannelSubscription :one
-WITH subscriber AS (
-    SELECT
-        m_user.m_user_id
-    FROM
-        m_user
-    WHERE
-        m_user.public_id = @user_public_id
-    LIMIT
-        1
-)
+-- name: InsertSubscription :one
 INSERT INTO
-    m_user_subscribing_channel (m_user_id, m_channel_id)
+    m_user_subscribing_channel (m_user_id, m_channel_id, subscribed_at)
 SELECT
-    subscriber.m_user_id AS m_user_id,
-    @channel_id AS m_channel_id
-FROM
-    subscriber
+    (
+        SELECT
+            m_user.m_user_id
+        FROM
+            m_user
+        WHERE
+            m_user.public_id = @user_public_id
+        LIMIT
+            1
+    ) AS m_user_id,
+    (
+        SELECT
+            m_channel.m_channel_id
+        FROM
+            m_channel
+        WHERE
+            m_channel.public_id = @channel_id
+        LIMIT
+            1
+    ),
+    @subscribed_at
 RETURNING
-    m_user_subscribing_channel.public_id,
-    m_user_subscribing_channel.created_at;
+    m_user_subscribing_channel.m_user_subscribing_channel_id;
 
--- name: GetChannelSubscriptions :many
+-- name: ListSubscribedChannels :many
 SELECT
-    m_user_subscribing_channel.public_id,
-    m_user_subscribing_channel.created_at,
     m_channel.public_id AS channel_public_id,
     m_channel.external_id,
-    m_channel.external_display_name,
-    m_channel.external_description,
     m_channel.external_custom_id,
+    m_channel.external_display_name,
     m_channel.external_icon_url,
-    m_channel.external_subscribers_count,
-    m_channel.external_created_at
+    m_channel.external_subscribers_count
 FROM
     m_user_subscribing_channel
     INNER JOIN m_channel ON m_channel.m_channel_id = m_user_subscribing_channel.m_channel_id
@@ -102,20 +113,18 @@ WHERE
     )
     AND (
         sqlc.narg('cursor_public_id') :: uuid IS NULL
-        OR m_user_subscribing_channel.public_id < sqlc.narg('cursor_public_id') :: uuid
+        OR m_channel.public_id < sqlc.narg('cursor_public_id') :: uuid
     )
 ORDER BY
-    m_user_subscribing_channel.m_user_id,
-    m_user_subscribing_channel.public_id DESC
+    m_channel.public_id DESC
 LIMIT
     @query_limit;
 
--- name: DeleteChannelSubscription :execrows
+-- name: DeleteSubscription :execrows
 DELETE FROM
     m_user_subscribing_channel
 WHERE
-    m_user_subscribing_channel.public_id = @subscription_public_id
-    AND m_user_subscribing_channel.m_user_id = (
+    m_user_subscribing_channel.m_user_id = (
         SELECT
             m_user.m_user_id
         FROM
@@ -124,13 +133,31 @@ WHERE
             m_user.public_id = @user_public_id
         LIMIT
             1
+    )
+    AND m_user_subscribing_channel.m_channel_id = (
+        SELECT
+            c.m_channel_id
+        FROM
+            m_channel c
+        WHERE
+            c.public_id = @channel_id
+        LIMIT
+            1
     );
 
--- name: GetChannelRSSFetchedAtForUpdate :one
+-- name: GetChannelForUpdate :one
 SELECT
-    m_channel.m_channel_id,
+    m_channel.public_id,
+    m_channel.external_id,
+    m_channel.external_display_name,
+    m_channel.external_description,
+    m_channel.external_custom_id,
+    m_channel.external_icon_url,
+    m_channel.external_subscribers_count,
+    m_channel.external_created_at,
     m_channel.rss_fetched_at,
-    m_channel.external_id
+    m_channel.fetched_at,
+    m_channel.external_uploads_playlist_id
 FROM
     m_channel
 WHERE
@@ -139,29 +166,36 @@ LIMIT
     1
 FOR UPDATE;
 
--- name: GetChannelsToFetchRSSForUpdate :many
+-- name: ListStaleRSSChannelsForUpdate :many
 SELECT
+    c.public_id,
     c.external_id,
-    c.m_channel_id
+    c.external_display_name,
+    c.external_description,
+    c.external_custom_id,
+    c.external_icon_url,
+    c.external_subscribers_count,
+    c.external_created_at,
+    c.external_uploads_playlist_id,
+    c.rss_fetched_at,
+    c.fetched_at
 FROM
     m_channel c
-INNER JOIN
-    m_user_subscribing_channel sub
-ON
-    c.m_channel_id = sub.m_channel_id
+    INNER JOIN m_user_subscribing_channel sub ON c.m_channel_id = sub.m_channel_id
 WHERE
-    sub.m_user_id = (SELECT u.m_user_id FROM m_user u WHERE u.public_id = @user_id) AND
-    c.rss_fetched_at < @rss_fetch
-ORDER BY c.rss_fetched_at
-LIMIT @query_limit
+    sub.m_user_id = (
+        SELECT
+            u.m_user_id
+        FROM
+            m_user u
+        WHERE
+            u.public_id = @user_id
+        LIMIT
+            1
+    )
+    AND c.rss_fetched_at < @rss_fetch
+ORDER BY
+    c.rss_fetched_at
+LIMIT
+    @query_limit
 FOR UPDATE;
-
--- name: MarkChannelRSSAsFetched :one
-UPDATE
-    m_channel
-SET
-    rss_fetched_at = CURRENT_TIMESTAMP
-WHERE
-    m_channel_id = ANY(@m_channel_ids::bigint[])
-RETURNING
-    public_id;

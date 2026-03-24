@@ -18,7 +18,7 @@ import (
 var _ StrictServerInterface = (*APIHandler)(nil)
 
 const (
-	internalErrorTitle  = "internal Server Error"
+	internalErrorTitle  = "Internal Server Error"
 	internalErrorDetail = "Something went wrong!"
 )
 
@@ -50,7 +50,7 @@ func NewAPIHandler(
 		return nil, err
 	}
 
-	userService, err := user.NewService(db, jwtService)
+	userService, err := user.NewService(db, jwtService, serverURL)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func NewAPIHandler(
 		return nil, err
 	}
 
-	videoService, err := video.NewService(db, ytService)
+	videoService, err := video.NewService(db, ytService, channelService)
 	if err != nil {
 		return nil, err
 	}

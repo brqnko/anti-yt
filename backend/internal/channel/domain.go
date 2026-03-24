@@ -1,99 +1,79 @@
 package channel
 
 import (
-	"errors"
-	"strings"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/google/uuid"
 )
 
-var (
-	ErrChannelCustomIDTooShort           = errors.New("the channel custom id(handle) is too short(<=3)")
-	ErrChannelCustomIDShouldStartsWithAt = errors.New("the channel custom id should starts with @")
-
-	ErrChannelIDShouldStartsWithUC = errors.New("the channel id should starts with UC")
-	ErrInvalidChannelIDLength      = errors.New("invalid channel id length (should be 24)")
-)
-
-type ChannelCustomID string
-
-func NewChannelCustomID(id string) (*ChannelCustomID, error) {
-	if !strings.HasPrefix(id, "@") {
-		return nil, ErrChannelCustomIDShouldStartsWithAt
-	}
-	if len([]rune(id)) <= 3 {
-		return nil, ErrChannelCustomIDTooShort
-	}
-
-	c := ChannelCustomID(id)
-	return &c, nil
-}
-
-type ChannelID string
-
-func NewChannelID(id string) (*ChannelID, error) {
-	if !strings.HasPrefix(id, "UC") {
-		return nil, ErrChannelIDShouldStartsWithUC
-	}
-	if len(id) != 24 {
-		return nil, ErrInvalidChannelIDLength
-	}
-
-	c := ChannelID(id)
-	return &c, nil
-}
-
-type ExternalChannelDetail struct {
-	ID               *ChannelID
-	DisplayName      string
-	CustomID         *ChannelCustomID
-	Description      string
-	IconURL          string
-	SubscribersCount int
-	CreatedAt        time.Time
-}
-
 type SubscribedChannel struct {
-	SubscriptionID uuid.UUID
-	ChannelID      uuid.UUID
-	CreatedAt      time.Time
-	ExternalChannelDetail
+	SubscribedAt time.Time
+	SubscriberID uuid.UUID
+	ChannelID    uuid.UUID
 }
 
-func NewSubscribedChannel(
-	subscriptionID uuid.UUID,
-	channelID uuid.UUID,
-	createdAt time.Time,
-	extID,
-	extDisplayname,
-	extCustomID,
-	extDescription,
-	extIconURL string,
-	extSubscribersCnt int,
-	extCreatedAt time.Time,
-) (*SubscribedChannel, error) {
-	chID, err := NewChannelID(extID)
-	if err != nil {
-		return nil, err
+type SubscribedChannelOption func(*SubscribedChannel)
+
+func WithSubscribedChannelSubscribedAt(subscribedAt time.Time) SubscribedChannelOption {
+	return func(sc *SubscribedChannel) {
+		sc.SubscribedAt = subscribedAt
 	}
-	channelCustomID, err := NewChannelCustomID(extCustomID)
+}
+
+func NewSubscribedChannel(channelID, subscriberID uuid.UUID, opts ...SubscribedChannelOption) (*SubscribedChannel, error) {
+	sc := &SubscribedChannel{
+		SubscribedAt: time.Now(),
+		ChannelID:    channelID,
+		SubscriberID: subscriberID,
+	}
+
+	for _, opt := range opts {
+		opt(sc)
+	}
+
+	return sc, nil
+}
+
+type Channel struct {
+	ID           uuid.UUID
+	FetchedAt    time.Time
+	RSSFetchedAt time.Time
+	Channel      youtube_d.Channel
+}
+
+type ChannelOption func(*Channel)
+
+func WithChannelID(id uuid.UUID) ChannelOption {
+	return func(c *Channel) {
+		c.ID = id
+	}
+}
+
+func NewChannel(fetchedAt, rssFetchedAt time.Time, channel youtube_d.Channel, opts ...ChannelOption) (*Channel, error) {
+	id, err := uuid.NewV7()
 	if err != nil {
 		return nil, err
 	}
 
-	return &SubscribedChannel{
-		SubscriptionID: subscriptionID,
-		ChannelID:      channelID,
-		CreatedAt:      createdAt,
-		ExternalChannelDetail: ExternalChannelDetail{
-			ID:               chID,
-			DisplayName:      extDisplayname,
-			CustomID:         channelCustomID,
-			Description:      extDescription,
-			IconURL:          extIconURL,
-			SubscribersCount: extSubscribersCnt,
-			CreatedAt:        extCreatedAt,
-		},
-	}, nil
+	c := &Channel{
+		ID:           id,
+		FetchedAt:    fetchedAt,
+		RSSFetchedAt: rssFetchedAt,
+		Channel:      channel,
+	}
+
+	for _, opt := range opts {
+		opt(c)
+	}
+
+	return c, nil
+}
+
+func (c *Channel) ShouldFetchRSSFeed(fetchDuration time.Duration) bool {
+	return time.Now().UTC().Sub(c.RSSFetchedAt) > fetchDuration
+}
+
+func (c *Channel) MarkAsRSSFetched() {
+	c.RSSFetchedAt = time.Now().UTC()
 }

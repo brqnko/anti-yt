@@ -8,14 +8,14 @@
 | ---- | ---- | ------- | -------- | -------- | ------- | ------- |
 | w_monthly_video_watch_id | bigint |  | false |  |  |  |
 | m_user_id | bigint |  | false |  |  |  |
-| batch_status_code | integer | 1 | false |  |  |  |
+| batch_status_code | integer |  | false |  |  |  |
 | ai_model | varchar(128) |  | false |  |  |  |
-| started_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
-| finished_at | timestamp with time zone | '9999-12-31 23:59:59+00'::timestamp with time zone | false |  |  |  |
+| started_at | timestamp with time zone |  | false |  |  |  |
+| finished_at | timestamp with time zone |  | false |  |  |  |
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
-| target_month | date | '1970-01-01'::date | false |  |  |  |
-| fail_reason | varchar(128) | ''::character varying | false |  |  |  |
+| target_month | date |  | false |  |  |  |
+| fail_reason | varchar(128) |  | false |  |  |  |
 
 ## Constraints
 
