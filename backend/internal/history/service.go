@@ -32,10 +32,10 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 		return nil, err
 	}
 
-	remaining := user.CalcRemainingSeconds(watchStats.DailyLimitSeconds, watchStats.TodayWatchTotal)
-	if remaining < 0 {
+	if user.IsUnlimitedScreenTimeSeconds(watchStats.DailyLimitSeconds) {
 		return nil, nil
 	}
+	remaining := max(0, watchStats.DailyLimitSeconds-watchStats.TodayWatchTotal)
 	return &remaining, nil
 }
 

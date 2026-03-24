@@ -60,14 +60,6 @@ func IsUnlimitedScreenTimeSeconds(seconds int) bool {
 	return seconds >= int((24 * time.Hour).Seconds())
 }
 
-// CalcRemainingSeconds はDBから取得した1日の視聴制限秒数と今日の視聴秒数から残り秒数を計算する。
-// limitSeconds が無制限の場合は -1 を返す。
-func CalcRemainingSeconds(limitSeconds, watchedSeconds int) int {
-	if IsUnlimitedScreenTimeSeconds(limitSeconds) {
-		return -1
-	}
-	return max(0, limitSeconds-watchedSeconds)
-}
 
 type DailyScreenTimeLimit struct {
 	duration *time.Duration
