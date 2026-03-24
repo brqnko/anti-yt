@@ -20,16 +20,16 @@ var ErrInvalidPlaylistID = util.NewDomainError("playlist.invalid_playlist_id", "
 
 type Service struct {
 	db         *pgxpool.Pool
-	ytService  youtube_d.YouTubeAPIService
+	ytService  youtube_d.Service
 	playlistQS PlaylistQueryService
 }
 
-func NewService(db *pgxpool.Pool, ytService youtube_d.YouTubeAPIService) (*Service, error) {
+func NewService(db *pgxpool.Pool, ytService youtube_d.Service) *Service {
 	return &Service{
 		db:         db,
 		ytService:  ytService,
 		playlistQS: NewPlaylistQueryService(db),
-	}, nil
+	}
 }
 
 func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, description, visibilityStr, playlistTypeStr string, basePlaylistUrl *string) (_ *Playlist, err error) {

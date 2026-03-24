@@ -11,11 +11,11 @@ import { useColorMode, type ColorMode } from "../../hooks/useColorMode";
 import { RestrictionsTab } from "./RestrictionsTab";
 import { SecurityTab } from "./SecurityTab";
 
-const SETTINGS_SIDEBAR_KEY = "settings-sidebar-open";
+const SIDEBAR_STORAGE_KEY = "sidebar-open";
 
-function getStoredSettingsSidebarState(): boolean {
+function getStoredSidebarState(): boolean {
   try {
-    const stored = localStorage.getItem(SETTINGS_SIDEBAR_KEY);
+    const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
     if (stored !== null) return stored === "true";
   } catch {}
   return true;
@@ -28,12 +28,12 @@ function ProfileContent() {
   const { logout } = useAuth();
   const { mode, setMode } = useColorMode();
 
-  const [sidebarOpen, setSidebarOpen] = useState(getStoredSettingsSidebarState);
+  const [sidebarOpen, setSidebarOpen] = useState(getStoredSidebarState);
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((v) => {
       const next = !v;
-      try { localStorage.setItem(SETTINGS_SIDEBAR_KEY, String(next)); } catch {}
+      try { localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next)); } catch {}
       return next;
     });
   }, []);
@@ -112,7 +112,7 @@ function ProfileContent() {
     <div class="relative flex h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
       <DashboardHeader sidebarOpen={sidebarOpen} onToggleSidebar={toggleSidebar} />
 
-      <div class="flex flex-1 w-full overflow-hidden">
+      <div class="flex flex-1 w-full max-w-[1600px] mx-auto overflow-hidden">
         {/* Mobile backdrop */}
         {sidebarOpen && (
           <div

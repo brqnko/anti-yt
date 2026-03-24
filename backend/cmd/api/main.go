@@ -18,6 +18,7 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/core/handler/admin"
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/middleware_d"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
@@ -39,6 +40,7 @@ type config struct {
 	serverURL              string
 	frontendURL            string
 	youtubeDataAPIKey      string
+	adminAPIKey            string
 
 	port int
 
@@ -95,6 +97,7 @@ func run(ctx context.Context) int {
 		serverURL:              os.Getenv("SERVER_URL"),
 		frontendURL:            os.Getenv("FRONTEND_URL"),
 		youtubeDataAPIKey:      os.Getenv("YOUTUBE_DATA_API_KEY"),
+		adminAPIKey:            os.Getenv("ADMIN_API_KEY"),
 		port:                   port,
 	}
 	clear(dbPassword)
@@ -151,12 +154,6 @@ func run(ctx context.Context) int {
 		return 1
 	}
 
-	h, err := v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour, ytService, 1*time.Hour)
-	if err != nil {
-		slog.Error("failed to create handler", "error", err)
-		return 1
-	}
-
 	r := chi.NewRouter()
 	// NOTE: RateLimit, gzip, loggerはLB(pingora, nginx等)で行う。各リクエストへのレートリミットはHandlerが行う
 	r.Use(middleware.Recoverer)
@@ -165,15 +162,18 @@ func run(ctx context.Context) int {
 		r.Use(middleware_d.RandomLag)
 		r.Use(v1.SwaggerMiddleware())
 	}
-	v1.HandlerFromMux(v1.NewStrictHandler(h, []v1.StrictMiddlewareFunc{
-		middleware_d.DomainErrorMiddleware,
-		middleware_d.ResponseCookieMiddleware,
-		middleware_d.AccessTokenMiddleware(jwtService, db),
-		middleware_d.ScreenTimeMiddleware(db),
-		middleware_d.CsrfMiddleware,
-		middleware_d.AuthTokensMiddleware,
-		middleware_d.RequestIDMiddleware,
-	}), r)
+	admin.HandleAdminEndpoints(r, db, cfg.adminAPIKey)
+	v1.HandlerFromMux(v1.NewStrictHandler(
+		v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour, ytService, 1*time.Hour),
+		[]v1.StrictMiddlewareFunc{
+			middleware_d.DomainErrorMiddleware,
+			middleware_d.ResponseCookieMiddleware,
+			middleware_d.AccessTokenMiddleware(jwtService, db),
+			middleware_d.ScreenTimeMiddleware(db),
+			middleware_d.CsrfMiddleware,
+			middleware_d.AuthTokensMiddleware,
+			middleware_d.RequestIDMiddleware,
+		}), r)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.port),

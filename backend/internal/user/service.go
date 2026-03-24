@@ -26,13 +26,13 @@ type Service struct {
 	userQS UserQueryService
 }
 
-func NewService(db *pgxpool.Pool, jwtService jwt_d.JWTService, serverURL string) (*Service, error) {
+func NewService(db *pgxpool.Pool, jwtService jwt_d.JWTService, serverURL string) *Service {
 	return &Service{
 		db:         db,
 		jwtService: jwtService,
 		serverURL:  serverURL,
 		userQS:     NewUserQueryService(db),
-	}, nil
+	}
 }
 
 func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailyScreenLimit *int, screenLimits []struct{ Start, End int }, displayName string, languageCode string) (_ *User, _ string, _ time.Time, err error) {

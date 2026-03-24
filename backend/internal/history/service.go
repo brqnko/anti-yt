@@ -15,11 +15,11 @@ type Service struct {
 	historyQS HistoryQueryService
 }
 
-func NewService(db *pgxpool.Pool) (*Service, error) {
+func NewService(db *pgxpool.Pool) *Service {
 	return &Service{
 		db:        db,
 		historyQS: NewHistoryQueryService(db),
-	}, nil
+	}
 }
 
 func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, positionSeconds int) (*int, error) {

@@ -17,10 +17,10 @@ import (
 
 type Service struct {
 	db        *pgxpool.Pool
-	ytService youtube_d.YouTubeAPIService
+	ytService youtube_d.Service
 
-	subscriptionQS     SubscriptionQueryService
-	valuableChannelQS  ValuableChannelQueryService
+	subscriptionQS    SubscriptionQueryService
+	valuableChannelQS ValuableChannelQueryService
 
 	rssFetchDuration time.Duration
 }
@@ -34,16 +34,16 @@ var (
 
 func NewService(
 	db *pgxpool.Pool,
-	ytService youtube_d.YouTubeAPIService,
+	ytService youtube_d.Service,
 	rssFetchDuration time.Duration,
-) (*Service, error) {
+) *Service {
 	return &Service{
 		db:                db,
 		ytService:         ytService,
 		rssFetchDuration:  rssFetchDuration,
 		subscriptionQS:    NewSubscriptionQueryService(db),
 		valuableChannelQS: NewValuableChannelQueryService(db),
-	}, nil
+	}
 }
 
 func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channelText string) (_ *Channel, err error) {

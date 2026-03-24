@@ -37,7 +37,7 @@ type Service struct {
 	userQS          user.UserQueryService
 }
 
-func NewService(db *pgxpool.Pool, oidcService oidc.GoogleOIDCService, serverURL string, jwtService jwt_d.JWTService, refreshTokenDuration time.Duration) (*Service, error) {
+func NewService(db *pgxpool.Pool, oidcService oidc.GoogleOIDCService, serverURL string, jwtService jwt_d.JWTService, refreshTokenDuration time.Duration) *Service {
 	return &Service{
 		db:                        db,
 		oidcService:               oidcService,
@@ -47,7 +47,7 @@ func NewService(db *pgxpool.Pool, oidcService oidc.GoogleOIDCService, serverURL 
 		refreshTokenQS:  NewRefreshTokenQueryService(db),
 		authorizationQS: NewAuthorizationQueryService(db),
 		userQS:          user.NewUserQueryService(db),
-	}, nil
+	}
 }
 
 func (s *Service) CreateAuthCode(ctx context.Context) (redirectURL, csrf string, err error) {

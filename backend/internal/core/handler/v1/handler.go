@@ -42,50 +42,22 @@ func NewAPIHandler(
 	serverURL, frontendURL string,
 	jwtService jwt_d.JWTService,
 	refreshTokenDuration time.Duration,
-	ytService youtube_d.YouTubeAPIService,
+	ytService youtube_d.Service,
 	rssFetchDuration time.Duration,
-) (*APIHandler, error) {
-	authService, err := auth.NewService(db, oidcService, serverURL, jwtService, refreshTokenDuration)
-	if err != nil {
-		return nil, err
-	}
-
-	userService, err := user.NewService(db, jwtService, serverURL)
-	if err != nil {
-		return nil, err
-	}
-
-	channelService, err := channel.NewService(db, ytService, rssFetchDuration)
-	if err != nil {
-		return nil, err
-	}
-
-	videoService, err := video.NewService(db, ytService, channelService)
-	if err != nil {
-		return nil, err
-	}
-
-	playlistService, err := playlist.NewService(db, ytService)
-	if err != nil {
-		return nil, err
-	}
-
-	historyService, err := history.NewService(db)
-	if err != nil {
-		return nil, err
-	}
+) *APIHandler {
+	channelService := channel.NewService(db, ytService, rssFetchDuration)
 
 	return &APIHandler{
 		db: db,
 
-		authService:     authService,
-		userService:     userService,
+		authService:     auth.NewService(db, oidcService, serverURL, jwtService, refreshTokenDuration),
+		userService:     user.NewService(db, jwtService, serverURL),
 		channelService:  channelService,
-		videoService:    videoService,
-		playlistService: playlistService,
-		historyService:  historyService,
+		videoService:    video.NewService(db, ytService, channelService),
+		playlistService: playlist.NewService(db, ytService),
+		historyService:  history.NewService(db),
 
 		serverURL:   serverURL,
 		frontendURL: frontendURL,
-	}, nil
+	}
 }

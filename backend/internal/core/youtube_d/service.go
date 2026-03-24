@@ -25,7 +25,7 @@ var (
 	ErrVideoIDsTooMuch = util.NewDomainError("youtube.video_ids_too_much", "video ids are too much")
 )
 
-type YouTubeAPIService interface {
+type Service interface {
 	FetchChannelDetail(ctx context.Context, channelIDs []ChannelID) (map[ChannelID]Channel, error)
 	FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (Channel, error)
 	FetchRSSFeed(ctx context.Context, channelID ChannelID) ([]VideoID, error)
@@ -33,7 +33,7 @@ type YouTubeAPIService interface {
 	FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (videoIDs []VideoID, nextPageToken string, err error)
 }
 
-var _ YouTubeAPIService = (*youTubeAPIServiceImpl)(nil)
+var _ Service = (*youTubeAPIServiceImpl)(nil)
 
 type youTubeAPIServiceImpl struct {
 	ytClient   *youtube.Service
@@ -333,7 +333,7 @@ func (s *youTubeAPIServiceImpl) FetchPlaylistVideoIDs(ctx context.Context, playl
 	return videoIDs, res.NextPageToken, nil
 }
 
-func NewYouTubeAPIServiceImpl(ctx context.Context, apiKey string) (_ YouTubeAPIService, err error) {
+func NewYouTubeAPIServiceImpl(ctx context.Context, apiKey string) (_ Service, err error) {
 	defer util.Wrap(&err, "NewYouTubeAPIServiceImpl")
 	ytClient, err := youtube.NewService(ctx, option.WithAPIKey(apiKey))
 	if err != nil {

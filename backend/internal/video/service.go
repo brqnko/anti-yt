@@ -20,19 +20,19 @@ type ChannelUploadRefresher interface {
 
 type Service struct {
 	db        *pgxpool.Pool
-	ytService youtube_d.YouTubeAPIService
+	ytService youtube_d.Service
 
-	videoQS            VideoQueryService
-	channelRefresher   ChannelUploadRefresher
+	videoQS          VideoQueryService
+	channelRefresher ChannelUploadRefresher
 }
 
-func NewService(db *pgxpool.Pool, ytService youtube_d.YouTubeAPIService, channelRefresher ChannelUploadRefresher) (*Service, error) {
+func NewService(db *pgxpool.Pool, ytService youtube_d.Service, channelRefresher ChannelUploadRefresher) *Service {
 	return &Service{
 		db:               db,
 		ytService:        ytService,
 		videoQS:          NewVideoQueryService(db),
 		channelRefresher: channelRefresher,
-	}, nil
+	}
 }
 
 func (s *Service) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (GetVideoDetailView, error) {
