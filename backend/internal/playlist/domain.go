@@ -16,27 +16,33 @@ var (
 
 type VisibilityCode int
 
-const (
-	VisibilityPrivate VisibilityCode = 0
-)
+var visibilityCodeMap = []struct {
+	code VisibilityCode
+	str  string
+}{
+	{code: 0, str: "private"},
+}
 
 func NewVisibilityCode(s string) (_ VisibilityCode, err error) {
 	defer util.Wrap(&err, "NewVisibilityCode")
-	switch s {
-	case "private":
-		return VisibilityPrivate, nil
-	default:
-		return 0, ErrInvalidVisibilityCode
+
+	for _, c := range visibilityCodeMap {
+		if s == c.str {
+			return c.code, nil
+		}
 	}
+
+	return 0, ErrInvalidVisibilityCode
 }
 
 func (v VisibilityCode) String() string {
-	switch v {
-	case VisibilityPrivate:
-		return "private"
-	default:
-		return "private"
+	for _, c := range visibilityCodeMap {
+		if c.code == v {
+			return c.str
+		}
 	}
+
+	return "private"
 }
 
 type PlaylistTitle string
@@ -116,27 +122,33 @@ func (p *Playlist) DecrementVideoCount() error {
 
 type PlaylistCode int
 
-const (
-	PlaylistCodeNormal PlaylistCode = 0
-)
+var playlistCodeMap = []struct {
+	code PlaylistCode
+	str  string
+}{
+	{code: 0, str: "normal"},
+}
 
 func NewPlaylistCode(s string) (_ PlaylistCode, err error) {
 	defer util.Wrap(&err, "NewPlaylistCode")
-	switch s {
-	case "normal":
-		return PlaylistCodeNormal, nil
-	default:
-		return 0, ErrInvalidPlaylistCode
+
+	for _, c := range playlistCodeMap {
+		if s == c.str {
+			return c.code, nil
+		}
 	}
+
+	return 0, ErrInvalidPlaylistCode
 }
 
 func (p PlaylistCode) String() string {
-	switch p {
-	case PlaylistCodeNormal:
-		return "normal"
-	default:
-		return "normal"
+	for _, c := range playlistCodeMap {
+		if c.code == p {
+			return c.str
+		}
 	}
+
+	return "normal"
 }
 
 type Playlist struct {

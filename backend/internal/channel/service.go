@@ -19,7 +19,8 @@ type Service struct {
 	db        *pgxpool.Pool
 	ytService youtube_d.YouTubeAPIService
 
-	subscriptionQS SubscriptionQueryService
+	subscriptionQS     SubscriptionQueryService
+	valuableChannelQS  ValuableChannelQueryService
 
 	rssFetchDuration time.Duration
 }
@@ -37,10 +38,11 @@ func NewService(
 	rssFetchDuration time.Duration,
 ) (*Service, error) {
 	return &Service{
-		db:               db,
-		ytService:        ytService,
-		rssFetchDuration: rssFetchDuration,
-		subscriptionQS:   NewSubscriptionQueryService(db),
+		db:                db,
+		ytService:         ytService,
+		rssFetchDuration:  rssFetchDuration,
+		subscriptionQS:    NewSubscriptionQueryService(db),
+		valuableChannelQS: NewValuableChannelQueryService(db),
 	}, nil
 }
 
@@ -288,4 +290,15 @@ func (s *Service) SyncRSSFeeds(ctx context.Context, userID uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (s *Service) GetChannelFeeds(ctx context.Context) (channels []GetValuableChannelView, err error) {
+	defer util.Wrap(&err, "Service.GetChannelFeeds")
+
+	channels, err = s.valuableChannelQS.GetValuableChannels(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return channels, nil
 }

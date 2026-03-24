@@ -56,7 +56,9 @@ type Channel struct {
 	CreatedAt         time.Time
 }
 
-func NewChannel(id, displayName, customID, description, iconURL string, subscribersCount uint64, uploadsPlaylistID string, createdAt time.Time) (Channel, error) {
+func NewChannel(id, displayName, customID, description, iconURL string, subscribersCount uint64, uploadsPlaylistID string, createdAt time.Time) (_ Channel, err error) {
+	defer util.Wrap(&err, "NewChannel")
+
 	channelID, err := NewChannelID(id)
 	if err != nil {
 		return Channel{}, err
@@ -103,7 +105,9 @@ type Video struct {
 	CreatedAt     time.Time
 }
 
-func NewVideo(id, channelID, title, description, thumbnailURL string, lengthSeconds int, createdAt time.Time) (Video, error) {
+func NewVideo(id, channelID, title, description, thumbnailURL string, lengthSeconds int, createdAt time.Time) (_ Video, err error) {
+	defer util.Wrap(&err, "NewVideo")
+
 	videoID, err := NewVideoID(id)
 	if err != nil {
 		return Video{}, err

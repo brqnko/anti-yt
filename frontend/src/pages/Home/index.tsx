@@ -274,7 +274,7 @@ export default function Home() {
               {isAuthenticated ? (
                 <a
                   href="/dashboard"
-                  class="flex w-full sm:w-auto items-center justify-center rounded-xl bg-primary px-8 py-4 text-base font-bold text-charcoal hover:bg-[#b8a37e] transition-all shadow-lg hover:shadow-xl no-underline cursor-pointer"
+                  class="flex w-full sm:w-auto items-center justify-center rounded-xl bg-primary px-8 py-4 text-base font-bold text-white hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl no-underline cursor-pointer"
                 >
                   {t("home.dashboard")}
                 </a>

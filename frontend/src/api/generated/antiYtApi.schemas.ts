@@ -21,8 +21,6 @@ export interface ProblemDetailError {
  * スクリーン時間の許可時間帯
  */
 export interface ScreenTimeSlot {
-  /** スロットID */
-  id: string;
   /**
    * 開始時刻 (HH:mm形式)
    * @pattern ^([0-1][0-9]|2[0-3]):[0-5][0-9]$

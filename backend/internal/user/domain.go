@@ -24,28 +24,33 @@ var (
 
 type LeaveReasonCode int
 
-const (
-	LeaveReasonSelf LeaveReasonCode = 0
-)
+var leaveReasonCodeMap = []struct {
+	code LeaveReasonCode
+	str  string
+}{
+	{code: 0, str: "self"},
+}
 
 func NewLeaveReasonCode(s string) (_ LeaveReasonCode, err error) {
 	defer util.Wrap(&err, "NewLeaveReasonCode")
 
-	switch s {
-	case "self":
-		return LeaveReasonSelf, nil
-	default:
-		return 0, ErrInvalidLeaveReasonCode
+	for _, c := range leaveReasonCodeMap {
+		if s == c.str {
+			return c.code, nil
+		}
 	}
+
+	return 0, ErrInvalidLeaveReasonCode
 }
 
 func (l LeaveReasonCode) String() string {
-	switch l {
-	case LeaveReasonSelf:
-		return "self"
-	default:
-		return "self"
+	for _, c := range leaveReasonCodeMap {
+		if c.code == l {
+			return c.str
+		}
 	}
+
+	return "self"
 }
 
 const unlimitedScreenTimeSentinel = 86401 // 24h + 1s
@@ -122,12 +127,21 @@ func (d DisplayName) String() string {
 
 type LanguageCode string
 
+var languageCodeMap = []struct {
+	code LanguageCode
+	str  string
+}{
+	{code: "ja", str: "ja"},
+}
+
 func NewLanguageCode(value string) (LanguageCode, error) {
-	if value != "ja" {
-		return "", ErrLanguageCodeNotSupported
+	for _, c := range languageCodeMap {
+		if value == c.str {
+			return c.code, nil
+		}
 	}
 
-	return LanguageCode(value), nil
+	return "", ErrLanguageCodeNotSupported
 }
 
 func (l LanguageCode) String() string {
@@ -135,11 +149,12 @@ func (l LanguageCode) String() string {
 }
 
 type DailyScreenTimeLimitRange struct {
+	ID               uuid.UUID
 	StartTimeSeconds int
 	EndTimeSeconds   int
 }
 
-func NewDailyScreenTimeLimitRange(startTimeSeconds, endTimeSeconds int) (DailyScreenTimeLimitRange, error) {
+func NewDailyScreenTimeLimitRange(startTimeSeconds, endTimeSeconds int) (_ DailyScreenTimeLimitRange, err error) {
 	if startTimeSeconds >= endTimeSeconds {
 		return DailyScreenTimeLimitRange{}, ErrDailyScreenTimeLimitRangeOrder
 	}
@@ -151,7 +166,13 @@ func NewDailyScreenTimeLimitRange(startTimeSeconds, endTimeSeconds int) (DailySc
 		return DailyScreenTimeLimitRange{}, ErrDailyScreenTimeLimitOutOfRange
 	}
 
+	id, err := uuid.NewV7()
+	if err != nil {
+		return DailyScreenTimeLimitRange{}, err
+	}
+
 	return DailyScreenTimeLimitRange{
+		ID:               id,
 		StartTimeSeconds: startTimeSeconds,
 		EndTimeSeconds:   endTimeSeconds,
 	}, nil

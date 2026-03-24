@@ -165,7 +165,7 @@ func (s *Service) GetUserStatus(ctx context.Context, userID uuid.UUID) (UserStat
 }
 
 func (s *Service) RemoveUser(ctx context.Context, userID uuid.UUID) error {
-	if err := NewUserRepository(sqlc.New(s.db)).Remove(ctx, userID, LeaveReasonSelf); err != nil {
+	if err := NewUserRepository(sqlc.New(s.db)).Remove(ctx, userID, LeaveReasonCode(0)); err != nil {
 		return err
 	}
 

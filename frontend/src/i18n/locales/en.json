@@ -427,6 +427,33 @@
       "error": "Failed to remove. Please try again."
     }
   },
+  "explore": {
+    "pageTitle": "Explore Channels",
+    "title": "Explore Valuable Channels",
+    "allCategories": "All Categories",
+    "allCategoriesDesc": "Explore a curated mix of all valuable channels.",
+    "addToWhitelist": "Add to Whitelist",
+    "added": "Added",
+    "adding": "Adding...",
+    "noChannels": "No channels found",
+    "loadError": "Failed to load channels",
+    "retry": "Retry",
+    "categories": {
+      "unknown": "Other",
+      "education": "Education",
+      "technology": "Technology",
+      "economy": "Economy",
+      "politics": "Politics",
+      "music": "Music"
+    },
+    "categoryDescriptions": {
+      "education": "Expand your understanding of the world.",
+      "technology": "Keep up with the latest innovations and tech.",
+      "economy": "Learn about finance and economic trends.",
+      "politics": "Stay informed about political developments.",
+      "music": "Theory, composition, and appreciation."
+    }
+  },
   "apiErrors": {
     "channel.invalid_youtube_url": "Invalid YouTube URL or unsupported format.",
     "channel.invalid_channel_id": "Invalid channel ID.",

@@ -4,7 +4,12 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
+)
+
+var (
+	ErrInvalidValuableDescription = util.NewDomainError("valuable_channel.invalid_valuable_reason", "invalid valuable description")
 )
 
 type SubscribedChannel struct {
@@ -50,7 +55,9 @@ func WithChannelID(id uuid.UUID) ChannelOption {
 	}
 }
 
-func NewChannel(fetchedAt, rssFetchedAt time.Time, channel youtube_d.Channel, opts ...ChannelOption) (*Channel, error) {
+func NewChannel(fetchedAt, rssFetchedAt time.Time, channel youtube_d.Channel, opts ...ChannelOption) (_ *Channel, err error) {
+	defer util.Wrap(&err, "NewChannel")
+
 	id, err := uuid.NewV7()
 	if err != nil {
 		return nil, err
@@ -76,4 +83,100 @@ func (c *Channel) ShouldFetchRSSFeed(fetchDuration time.Duration) bool {
 
 func (c *Channel) MarkAsRSSFetched() {
 	c.RSSFetchedAt = time.Now().UTC()
+}
+
+type ValuableDescription string
+
+func NewValuableDescription(description string) (ValuableDescription, error) {
+	if len(description) >= 256 {
+		return "", ErrInvalidValuableDescription
+	}
+
+	return ValuableDescription(description), nil
+}
+
+func (v ValuableDescription) String() string {
+	return string(v)
+}
+
+type ValuableCategoryCode int
+
+var (
+	ErrInvalidValuableCategoryCode = util.NewDomainError("valuable_channel.invalid_valuable_category_code", "invalid valuable category code")
+
+	valuableCategoryCodeMap = []struct {
+		code ValuableCategoryCode
+		str  string
+	}{
+		{
+			code: 0,
+			str:  "unknown",
+		},
+		{
+			code: 1,
+			str:  "education",
+		},
+		{
+			code: 2,
+			str:  "technology",
+		},
+		{
+			code: 3,
+			str:  "economy",
+		},
+		{
+			code: 4,
+			str:  "politics",
+		},
+		{
+			code: 5,
+			str:  "music",
+		},
+	}
+)
+
+func NewValuableCategoryCode(str string) (ValuableCategoryCode, error) {
+	for _, c := range valuableCategoryCodeMap {
+		if str == c.str {
+			return c.code, nil
+		}
+	}
+
+	return -1, ErrInvalidValuableCategoryCode
+}
+
+func (v ValuableCategoryCode) String() string {
+	for _, c := range valuableCategoryCodeMap {
+		if c.code == v {
+			return c.str
+		}
+	}
+
+	return "unknown"
+}
+
+type ValuableChannel struct {
+	ChannelID           uuid.UUID
+	ValuableReasonCode  ValuableCategoryCode
+	ValuableDescription ValuableDescription
+}
+
+// これEntityでいいのかな...?
+func NewValuableChannel(channelID uuid.UUID, reasonCode, valuableDescription string) (_ *ValuableChannel, err error) {
+	defer util.Wrap(&err, "NewValuableChannel")
+	rc, err := NewValuableCategoryCode(reasonCode)
+	if err != nil {
+		return nil, err
+	}
+
+	description, err := NewValuableDescription(valuableDescription)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ValuableChannel{
+		ChannelID:           channelID,
+		ValuableReasonCode:  rc,
+		ValuableDescription: description,
+	}, nil
 }

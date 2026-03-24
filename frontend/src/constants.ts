@@ -12,3 +12,5 @@ export const languages = [
   { code: "ja", label: "日本語" },
   { code: "en", label: "English" },
 ];
+
+export const REPORT_FORM_URL = "https://forms.gle/PLACEHOLDER";

@@ -809,7 +809,7 @@ function VideoPlayerContent() {
                 />
               </div>
               <div class="p-4 bg-background-light dark:bg-background-dark/50 border-t border-border-light dark:border-border-dark flex items-center justify-end">
-                <button class="bg-primary text-charcoal px-5 py-2 rounded-xl font-bold text-sm tracking-wide hover:opacity-90 transition-opacity border-none cursor-pointer">
+                <button class="bg-primary text-white px-5 py-2 rounded-xl font-bold text-sm tracking-wide hover:opacity-90 transition-opacity border-none cursor-pointer">
                   {t("videoPlayer.saveNote")}
                 </button>
               </div>

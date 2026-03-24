@@ -131,7 +131,7 @@ function EditPlaylistDialog({
             {t("playlistDetail.editDialog.cancel")}
           </button>
           <button
-            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-charcoal hover:bg-primary/80 transition-colors cursor-pointer border-none disabled:opacity-50"
+            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors cursor-pointer border-none disabled:opacity-50"
             onClick={handleSave}
             disabled={!title.trim() || isSaving}
           >
@@ -409,7 +409,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
               {t("playlistDetail.notFoundDesc")}
             </p>
             <a
-              class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-charcoal rounded-lg font-medium text-sm hover:bg-primary/80 transition-colors no-underline"
+              class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
               href="/playlists"
             >
               <span class="material-symbols-outlined text-[18px]">

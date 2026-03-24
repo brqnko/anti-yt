@@ -36,7 +36,6 @@ func (h *APIHandler) GetUsersMeStatus(ctx context.Context, request GetUsersMeSta
 	for i, v := range user.ScreenTimeLimitRange {
 		screenTime[i] = ScreenTimeSlot{
 			EndTime:   v.EndTime,
-			Id:        v.ID,
 			StartTime: v.StartTime,
 		}
 	}

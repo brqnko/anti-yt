@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -57,3 +58,50 @@ func (c *subscriptionQueryServiceImpl) GetSubscriptions(ctx context.Context, use
 }
 
 var _ SubscriptionQueryService = (*subscriptionQueryServiceImpl)(nil)
+
+type GetValuableChannelView struct {
+	ChannelId                  uuid.UUID
+	ExternalChannelCustomUrl   string
+	ExternalChannelDisplayName string
+	ExternalChannelIconUrl     string
+	CategoryCode               int
+	ValuableDescription        string
+}
+
+type ValuableChannelQueryService interface {
+	GetValuableChannels(ctx context.Context) ([]GetValuableChannelView, error)
+}
+
+type valuableChannelQueryServiceImpl struct {
+	q sqlc.Querier
+}
+
+func NewValuableChannelQueryService(db *pgxpool.Pool) ValuableChannelQueryService {
+	return &valuableChannelQueryServiceImpl{
+		q: sqlc.New(db),
+	}
+}
+
+func (v *valuableChannelQueryServiceImpl) GetValuableChannels(ctx context.Context) (_ []GetValuableChannelView, err error) {
+	defer util.Wrap(&err, "valuableChannelQueryService.GetValuableChannels")
+
+	rows, err := v.q.ListValuableChannels(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	views := make([]GetValuableChannelView, len(rows))
+	for i, row := range rows {
+		views[i] = GetValuableChannelView{
+			ChannelId:                  row.ChannelPublicID,
+			ExternalChannelCustomUrl:   row.ExternalCustomID,
+			ExternalChannelDisplayName: row.ExternalDisplayName,
+			ExternalChannelIconUrl:     row.ExternalIconUrl,
+			CategoryCode:               row.CategoryCode,
+			ValuableDescription:        row.ValuableDescription,
+		}
+	}
+	return views, nil
+}
+
+var _ ValuableChannelQueryService = (*valuableChannelQueryServiceImpl)(nil)

@@ -59,7 +59,6 @@ function AnalyticsContent() {
   const dailyLimitHours = dailyLimitSeconds != null ? dailyLimitSeconds / 3600 : null;
 
   const dailyBars = useMemo(() => {
-    if (items.length === 0 && !isLoading) return [];
     const days = getLast7Days();
     const todayStr = toDateStr(new Date());
     return days.map((date) => {
@@ -120,7 +119,7 @@ function AnalyticsContent() {
   }, [dismissTooltip]);
 
   useEffect(() => {
-    if (!isLoading && items.length > 0) {
+    if (!isLoading) {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => setBarsReady(true));
       });

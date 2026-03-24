@@ -64,6 +64,8 @@ func (r *refreshTokenRepositoryImpl) Save(ctx context.Context, authorizationID i
 	refreshTokenID, err := r.q.InsertRefreshToken(ctx, sqlc.InsertRefreshTokenParams{
 		MUserAuthorizationID: authorizationID,
 		TokenHash:            refreshToken.TokenHash,
+		Generation:           1,
+		PublicID:             refreshToken.ID,
 		IpAddress:            refreshToken.IpAddress,
 		DeviceFingerprint:    refreshToken.DeviceFingerprint,
 		UserAgent:            refreshToken.UserAgent,

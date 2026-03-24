@@ -116,7 +116,7 @@ export default function Register() {
             {!error.apiDetail && <div class="mb-4" />}
             <button
               type="button"
-              class="w-full px-6 py-3 bg-primary hover:bg-[#b8a37e] text-charcoal font-bold rounded-xl transition-all cursor-pointer"
+              class="w-full px-6 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all cursor-pointer border-none"
               onClick={() => setError(null)}
             >
               {t("register.error.close")}

@@ -22,7 +22,6 @@ type UserStatusView struct {
 }
 
 type ScreenTimeLimitRangeView struct {
-	ID        uuid.UUID
 	StartTime string
 	EndTime   string
 }
@@ -55,7 +54,7 @@ func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (_ Us
 
 	// rangeが0件の場合はNULL行1行のみ返る
 	var ranges []ScreenTimeLimitRangeView
-	if first.ScreenTimeRangeID != nil {
+	if first.ScreenTimeRangeStart != nil {
 		ranges = make([]ScreenTimeLimitRangeView, len(rows))
 		for i, row := range rows {
 			startTime, err := util.IntToHHmm(int(*row.ScreenTimeRangeStart))
@@ -67,7 +66,6 @@ func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (_ Us
 				return UserStatusView{}, err
 			}
 			ranges[i] = ScreenTimeLimitRangeView{
-				ID:        *row.ScreenTimeRangeID,
 				StartTime: startTime,
 				EndTime:   endTime,
 			}

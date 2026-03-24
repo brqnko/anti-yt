@@ -137,7 +137,7 @@ function PlaylistsContent() {
           </div>
           <div class="flex flex-wrap items-center gap-3">
             <button
-              class="flex items-center gap-2 h-12 px-6 rounded-lg bg-primary hover:bg-primary/80 text-charcoal font-bold shadow-sm hover:shadow-md transition-all cursor-pointer border-none"
+              class="flex items-center gap-2 h-12 px-6 rounded-lg bg-primary hover:bg-primary/90 text-white font-bold shadow-sm hover:shadow-md transition-all cursor-pointer border-none"
               onClick={() => setShowAddPlaylist(true)}
             >
               <span class="material-symbols-outlined">add</span>
@@ -183,7 +183,7 @@ function PlaylistsContent() {
             <p class="text-lg font-medium">{t("playlists.empty")}</p>
             <p class="text-sm mt-1">{t("playlists.emptyDesc")}</p>
             <button
-              class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-charcoal rounded-lg font-medium text-sm hover:bg-primary/80 transition-colors cursor-pointer border-none"
+              class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer border-none"
               onClick={() => setShowAddPlaylist(true)}
             >
               <span class="material-symbols-outlined text-[18px]">add</span>

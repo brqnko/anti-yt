@@ -65,6 +65,7 @@ type Querier interface {
 	// ユーザーが登録しているチャンネルがだしている動画を最新順(public_id)で取得する。
 	ListSubscriptionFeed(ctx context.Context, arg ListSubscriptionFeedParams) ([]ListSubscriptionFeedRow, error)
 	ListUserPlaylists(ctx context.Context, arg ListUserPlaylistsParams) ([]ListUserPlaylistsRow, error)
+	ListValuableChannels(ctx context.Context) ([]ListValuableChannelsRow, error)
 	ListWatchHistory(ctx context.Context, arg ListWatchHistoryParams) ([]ListWatchHistoryRow, error)
 	// expires_atが過ぎたjtiのブラックリストを削除します。
 	PurgeExpiredJTIBlacklist(ctx context.Context, expiresAt time.Time) error

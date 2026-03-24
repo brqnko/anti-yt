@@ -426,6 +426,33 @@
       "error": "削除に失敗しました。再度お試しください。"
     }
   },
+  "explore": {
+    "pageTitle": "チャンネルを探す",
+    "title": "有益なチャンネルを探す",
+    "allCategories": "すべてのカテゴリ",
+    "allCategoriesDesc": "厳選された有益なチャンネルを探索しましょう。",
+    "addToWhitelist": "ホワイトリストに追加",
+    "added": "追加済み",
+    "adding": "追加中...",
+    "noChannels": "チャンネルが見つかりません",
+    "loadError": "チャンネルの読み込みに失敗しました",
+    "retry": "再試行",
+    "categories": {
+      "unknown": "その他",
+      "education": "教育",
+      "technology": "テクノロジー",
+      "economy": "経済",
+      "politics": "政治",
+      "music": "音楽"
+    },
+    "categoryDescriptions": {
+      "education": "世界への理解を深めましょう。",
+      "technology": "最新のイノベーションとテクノロジーをキャッチアップ。",
+      "economy": "金融・経済のトレンドを学びましょう。",
+      "politics": "政治の動向を把握しましょう。",
+      "music": "理論、作曲、そして鑑賞。"
+    }
+  },
   "apiErrors": {
     "channel.invalid_youtube_url": "無効なYouTube URLまたはサポートされていない形式です。",
     "channel.invalid_channel_id": "無効なチャンネルIDです。",
