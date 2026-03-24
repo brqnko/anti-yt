@@ -4,19 +4,22 @@ import (
 	"strings"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
 var (
-	ErrChannelIDEmpty              = util.NewDomainError("youtube.channel_id_empty", "channel ID must not be empty")
-	ErrChannelIDInvalidPrefix      = util.NewDomainError("youtube.channel_id_invalid_prefix", "channel ID must start with 'UC'")
-	ErrChannelUploadsPlaylistEmpty = util.NewDomainError("youtube.channel_uploads_playlist_empty", "channel uploads playlist ID must not be empty")
-	ErrVideoIDEmpty                = util.NewDomainError("youtube.video_id_empty", "video ID must not be empty")
+	ErrChannelIDEmpty              = core.NewDomainError("youtube.channel_id_empty", "channel ID must not be empty")
+	ErrChannelIDInvalidPrefix      = core.NewDomainError("youtube.channel_id_invalid_prefix", "channel ID must start with 'UC'")
+	ErrChannelUploadsPlaylistEmpty = core.NewDomainError("youtube.channel_uploads_playlist_empty", "channel uploads playlist ID must not be empty")
+	ErrVideoIDEmpty                = core.NewDomainError("youtube.video_id_empty", "video ID must not be empty")
 )
 
 type ChannelID string
 
-func NewChannelID(id string) (ChannelID, error) {
+func NewChannelID(id string) (_ ChannelID, err error) {
+	defer util.Wrap(&err, "NewChannelID")
+
 	id = strings.TrimSpace(id)
 	if id == "" {
 		return "", ErrChannelIDEmpty
@@ -33,7 +36,9 @@ func (c ChannelID) String() string {
 
 type ChannelUploadsPlaylistID string
 
-func NewChannelUploadsPlaylistID(id string) (ChannelUploadsPlaylistID, error) {
+func NewChannelUploadsPlaylistID(id string) (_ ChannelUploadsPlaylistID, err error) {
+	defer util.Wrap(&err, "NewChannelUploadsPlaylistID")
+
 	id = strings.TrimSpace(id)
 	if id == "" {
 		return "", ErrChannelUploadsPlaylistEmpty
@@ -56,7 +61,9 @@ type Channel struct {
 	CreatedAt         time.Time
 }
 
-func NewChannel(id, displayName, customID, description, iconURL string, subscribersCount uint64, uploadsPlaylistID string, createdAt time.Time) (Channel, error) {
+func NewChannel(id, displayName, customID, description, iconURL string, subscribersCount uint64, uploadsPlaylistID string, createdAt time.Time) (_ Channel, err error) {
+	defer util.Wrap(&err, "NewChannel")
+
 	channelID, err := NewChannelID(id)
 	if err != nil {
 		return Channel{}, err
@@ -81,7 +88,9 @@ func NewChannel(id, displayName, customID, description, iconURL string, subscrib
 
 type VideoID string
 
-func NewVideoID(id string) (VideoID, error) {
+func NewVideoID(id string) (_ VideoID, err error) {
+	defer util.Wrap(&err, "NewVideoID")
+
 	id = strings.TrimSpace(id)
 	if id == "" {
 		return "", ErrVideoIDEmpty
@@ -103,7 +112,9 @@ type Video struct {
 	CreatedAt     time.Time
 }
 
-func NewVideo(id, channelID, title, description, thumbnailURL string, lengthSeconds int, createdAt time.Time) (Video, error) {
+func NewVideo(id, channelID, title, description, thumbnailURL string, lengthSeconds int, createdAt time.Time) (_ Video, err error) {
+	defer util.Wrap(&err, "NewVideo")
+
 	videoID, err := NewVideoID(id)
 	if err != nil {
 		return Video{}, err

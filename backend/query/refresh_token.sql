@@ -5,6 +5,8 @@ INSERT INTO
     m_refresh_token (
         m_user_authorization_id,
         token_hash,
+        generation,
+        public_id,
         ip_address,
         device_fingerprint,
         user_agent,
@@ -18,7 +20,7 @@ INSERT INTO
         last_logged_in_at
     )
 VALUES
-    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 RETURNING
     m_refresh_token_id;
 

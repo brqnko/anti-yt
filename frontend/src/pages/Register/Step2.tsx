@@ -208,7 +208,7 @@ export default function Step2({
               <button
                 type="submit"
                 disabled={!canSubmit}
-                class="bg-primary hover:bg-[#b8a37e] text-charcoal px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border-none"
               >
                 <span>{t("register.submit")}</span>
                 <span class="material-symbols-outlined text-lg">check</span>

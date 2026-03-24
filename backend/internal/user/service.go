@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -15,24 +16,24 @@ import (
 )
 
 var (
-	ErrInvalidAuthorizationIDRegistered = util.NewDomainError("user.already_registered", "invalid authorization id: already registered")
+	ErrInvalidAuthorizationIDRegistered = core.NewDomainError("user.already_registered", "invalid authorization id: already registered")
 )
 
 type Service struct {
 	db         *pgxpool.Pool
-	jwtService jwt_d.JWTService
+	jwtService jwt_d.Service
 	serverURL  string
 
 	userQS UserQueryService
 }
 
-func NewService(db *pgxpool.Pool, jwtService jwt_d.JWTService, serverURL string) (*Service, error) {
+func NewService(db *pgxpool.Pool, jwtService jwt_d.Service, serverURL string) *Service {
 	return &Service{
 		db:         db,
 		jwtService: jwtService,
 		serverURL:  serverURL,
 		userQS:     NewUserQueryService(db),
-	}, nil
+	}
 }
 
 func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailyScreenLimit *int, screenLimits []struct{ Start, End int }, displayName string, languageCode string) (_ *User, _ string, _ time.Time, err error) {
@@ -156,7 +157,9 @@ func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName
 	return u, nil
 }
 
-func (s *Service) GetUserStatus(ctx context.Context, userID uuid.UUID) (UserStatusView, error) {
+func (s *Service) GetUserStatus(ctx context.Context, userID uuid.UUID) (_ UserStatusView, err error) {
+	defer util.Wrap(&err, "Service.GetUserStatus")
+
 	view, err := s.userQS.Find(ctx, userID)
 	if err != nil {
 		return UserStatusView{}, err
@@ -164,8 +167,10 @@ func (s *Service) GetUserStatus(ctx context.Context, userID uuid.UUID) (UserStat
 	return view, nil
 }
 
-func (s *Service) RemoveUser(ctx context.Context, userID uuid.UUID) error {
-	if err := NewUserRepository(sqlc.New(s.db)).Remove(ctx, userID, LeaveReasonSelf); err != nil {
+func (s *Service) RemoveUser(ctx context.Context, userID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "Service.RemoveUser")
+
+	if err := NewUserRepository(sqlc.New(s.db)).Remove(ctx, userID, LeaveReasonCode(0)); err != nil {
 		return err
 	}
 

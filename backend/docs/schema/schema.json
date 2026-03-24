@@ -554,15 +554,6 @@
           ]
         },
         {
-          "name": "idx_2_m_refresh_token",
-          "def": "CREATE INDEX idx_2_m_refresh_token ON public.m_refresh_token USING btree (m_user_authorization_id, updated_at)",
-          "table": "public.m_refresh_token",
-          "columns": [
-            "m_user_authorization_id",
-            "updated_at"
-          ]
-        },
-        {
           "name": "idx_3_m_refresh_token",
           "def": "CREATE INDEX idx_3_m_refresh_token ON public.m_refresh_token USING btree (m_user_authorization_id, public_id)",
           "table": "public.m_refresh_token",
@@ -1188,14 +1179,6 @@
           ]
         },
         {
-          "name": "idx_1_m_user_subscribing_channel",
-          "def": "CREATE INDEX idx_1_m_user_subscribing_channel ON public.m_user_subscribing_channel USING btree (m_user_id)",
-          "table": "public.m_user_subscribing_channel",
-          "columns": [
-            "m_user_id"
-          ]
-        },
-        {
           "name": "idx_3_m_user_subscribing_channel",
           "def": "CREATE INDEX idx_3_m_user_subscribing_channel ON public.m_user_subscribing_channel USING btree (m_channel_id)",
           "table": "public.m_user_subscribing_channel",
@@ -1385,14 +1368,6 @@
           "table": "public.m_channel",
           "columns": [
             "external_custom_id"
-          ]
-        },
-        {
-          "name": "idx_2_m_channel",
-          "def": "CREATE INDEX idx_2_m_channel ON public.m_channel USING btree (fetched_at)",
-          "table": "public.m_channel",
-          "columns": [
-            "fetched_at"
           ]
         },
         {
@@ -1634,14 +1609,6 @@
           ]
         },
         {
-          "name": "idx_1_m_video",
-          "def": "CREATE INDEX idx_1_m_video ON public.m_video USING btree (m_channel_id)",
-          "table": "public.m_video",
-          "columns": [
-            "m_channel_id"
-          ]
-        },
-        {
           "name": "uk_1_m_video",
           "def": "CREATE UNIQUE INDEX uk_1_m_video ON public.m_video USING btree (public_id)",
           "table": "public.m_video",
@@ -1655,15 +1622,6 @@
           "table": "public.m_video",
           "columns": [
             "external_id"
-          ]
-        },
-        {
-          "name": "idx_2_m_video",
-          "def": "CREATE INDEX idx_2_m_video ON public.m_video USING btree (m_channel_id, public_id)",
-          "table": "public.m_video",
-          "columns": [
-            "m_channel_id",
-            "public_id"
           ]
         },
         {
@@ -1880,14 +1838,6 @@
           ]
         },
         {
-          "name": "idx_1_t_video_watch",
-          "def": "CREATE INDEX idx_1_t_video_watch ON public.t_video_watch USING btree (m_user_id)",
-          "table": "public.t_video_watch",
-          "columns": [
-            "m_user_id"
-          ]
-        },
-        {
           "name": "idx_2_t_video_watch",
           "def": "CREATE INDEX idx_2_t_video_watch ON public.t_video_watch USING btree (m_user_id, watch_start_at)",
           "table": "public.t_video_watch",
@@ -2006,134 +1956,6 @@
           "referenced_table": "",
           "columns": [
             "t_video_watch_id"
-          ]
-        }
-      ]
-    },
-    {
-      "name": "public.h_search",
-      "type": "BASE TABLE",
-      "columns": [
-        {
-          "name": "h_search_id",
-          "type": "bigint",
-          "nullable": false
-        },
-        {
-          "name": "m_user_id",
-          "type": "bigint",
-          "nullable": false
-        },
-        {
-          "name": "search_keyword",
-          "type": "varchar(256)",
-          "nullable": false
-        },
-        {
-          "name": "searched_at",
-          "type": "timestamp with time zone",
-          "nullable": false
-        },
-        {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP"
-        },
-        {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP"
-        }
-      ],
-      "indexes": [
-        {
-          "name": "h_search_pkey",
-          "def": "CREATE UNIQUE INDEX h_search_pkey ON public.h_search USING btree (h_search_id)",
-          "table": "public.h_search",
-          "columns": [
-            "h_search_id"
-          ]
-        },
-        {
-          "name": "idx_1_h_search",
-          "def": "CREATE INDEX idx_1_h_search ON public.h_search USING btree (m_user_id)",
-          "table": "public.h_search",
-          "columns": [
-            "m_user_id"
-          ]
-        }
-      ],
-      "constraints": [
-        {
-          "name": "h_search_created_at_not_null",
-          "type": "n",
-          "def": "NOT NULL created_at",
-          "table": "public.h_search",
-          "referenced_table": "",
-          "columns": [
-            "created_at"
-          ]
-        },
-        {
-          "name": "h_search_h_search_id_not_null",
-          "type": "n",
-          "def": "NOT NULL h_search_id",
-          "table": "public.h_search",
-          "referenced_table": "",
-          "columns": [
-            "h_search_id"
-          ]
-        },
-        {
-          "name": "h_search_m_user_id_not_null",
-          "type": "n",
-          "def": "NOT NULL m_user_id",
-          "table": "public.h_search",
-          "referenced_table": "",
-          "columns": [
-            "m_user_id"
-          ]
-        },
-        {
-          "name": "h_search_search_keyword_not_null",
-          "type": "n",
-          "def": "NOT NULL search_keyword",
-          "table": "public.h_search",
-          "referenced_table": "",
-          "columns": [
-            "search_keyword"
-          ]
-        },
-        {
-          "name": "h_search_searched_at_not_null",
-          "type": "n",
-          "def": "NOT NULL searched_at",
-          "table": "public.h_search",
-          "referenced_table": "",
-          "columns": [
-            "searched_at"
-          ]
-        },
-        {
-          "name": "h_search_updated_at_not_null",
-          "type": "n",
-          "def": "NOT NULL updated_at",
-          "table": "public.h_search",
-          "referenced_table": "",
-          "columns": [
-            "updated_at"
-          ]
-        },
-        {
-          "name": "h_search_pkey",
-          "type": "PRIMARY KEY",
-          "def": "PRIMARY KEY (h_search_id)",
-          "table": "public.h_search",
-          "referenced_table": "",
-          "columns": [
-            "h_search_id"
           ]
         }
       ]
@@ -2610,17 +2432,6 @@
           ]
         },
         {
-          "name": "idx_1_m_playlist",
-          "def": "CREATE INDEX idx_1_m_playlist ON public.m_playlist USING btree (m_user_id, visibility_code, playlist_code, created_at)",
-          "table": "public.m_playlist",
-          "columns": [
-            "m_user_id",
-            "visibility_code",
-            "playlist_code",
-            "created_at"
-          ]
-        },
-        {
           "name": "idx_2_m_playlist",
           "def": "CREATE INDEX idx_2_m_playlist ON public.m_playlist USING btree (m_user_id, public_id DESC)",
           "table": "public.m_playlist",
@@ -2967,6 +2778,134 @@
           "referenced_table": "",
           "columns": [
             "jti"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "public.m_valuable_channel",
+      "type": "BASE TABLE",
+      "columns": [
+        {
+          "name": "m_valuable_channel_id",
+          "type": "bigint",
+          "nullable": false
+        },
+        {
+          "name": "m_channel_id",
+          "type": "bigint",
+          "nullable": false
+        },
+        {
+          "name": "category_code",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "valuable_description",
+          "type": "varchar(256)",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "m_valuable_channel_pkey",
+          "def": "CREATE UNIQUE INDEX m_valuable_channel_pkey ON public.m_valuable_channel USING btree (m_valuable_channel_id)",
+          "table": "public.m_valuable_channel",
+          "columns": [
+            "m_valuable_channel_id"
+          ]
+        },
+        {
+          "name": "uk_1_m_valuable_channel",
+          "def": "CREATE INDEX uk_1_m_valuable_channel ON public.m_valuable_channel USING btree (m_channel_id)",
+          "table": "public.m_valuable_channel",
+          "columns": [
+            "m_channel_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "m_valuable_channel_category_code_not_null",
+          "type": "n",
+          "def": "NOT NULL category_code",
+          "table": "public.m_valuable_channel",
+          "referenced_table": "",
+          "columns": [
+            "category_code"
+          ]
+        },
+        {
+          "name": "m_valuable_channel_created_at_not_null",
+          "type": "n",
+          "def": "NOT NULL created_at",
+          "table": "public.m_valuable_channel",
+          "referenced_table": "",
+          "columns": [
+            "created_at"
+          ]
+        },
+        {
+          "name": "m_valuable_channel_m_channel_id_not_null",
+          "type": "n",
+          "def": "NOT NULL m_channel_id",
+          "table": "public.m_valuable_channel",
+          "referenced_table": "",
+          "columns": [
+            "m_channel_id"
+          ]
+        },
+        {
+          "name": "m_valuable_channel_m_valuable_channel_id_not_null",
+          "type": "n",
+          "def": "NOT NULL m_valuable_channel_id",
+          "table": "public.m_valuable_channel",
+          "referenced_table": "",
+          "columns": [
+            "m_valuable_channel_id"
+          ]
+        },
+        {
+          "name": "m_valuable_channel_updated_at_not_null",
+          "type": "n",
+          "def": "NOT NULL updated_at",
+          "table": "public.m_valuable_channel",
+          "referenced_table": "",
+          "columns": [
+            "updated_at"
+          ]
+        },
+        {
+          "name": "m_valuable_channel_valuable_description_not_null",
+          "type": "n",
+          "def": "NOT NULL valuable_description",
+          "table": "public.m_valuable_channel",
+          "referenced_table": "",
+          "columns": [
+            "valuable_description"
+          ]
+        },
+        {
+          "name": "m_valuable_channel_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (m_valuable_channel_id)",
+          "table": "public.m_valuable_channel",
+          "referenced_table": "",
+          "columns": [
+            "m_valuable_channel_id"
           ]
         }
       ]

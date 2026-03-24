@@ -54,8 +54,7 @@ VALUES
 -- name: ListScreenTimeRanges :many
 SELECT
     m_user_screen_time_range.screen_time_range_start,
-    m_user_screen_time_range.screen_time_range_end,
-    m_user_screen_time_range.public_id
+    m_user_screen_time_range.screen_time_range_end
 FROM
     m_user_screen_time_range
 WHERE
@@ -134,7 +133,6 @@ SELECT
     m_user.language_code,
     m_user.joined_at,
     m_user.daily_screen_time_seconds,
-    m_user_screen_time_range.public_id AS screen_time_range_id,
     m_user_screen_time_range.screen_time_range_start,
     m_user_screen_time_range.screen_time_range_end
 FROM
@@ -176,6 +174,7 @@ INSERT INTO
         language_code,
         daily_screen_time_seconds,
         joined_at,
+        left_at,
         leave_reason_code,
         public_id
     )
@@ -186,6 +185,7 @@ SELECT
     deleted.language_code AS language_code,
     deleted.daily_screen_time_seconds AS daily_screen_time_seconds,
     deleted.joined_at AS joined_at,
+    CURRENT_TIMESTAMP AS left_at,
     @leave_reason_code AS leave_reason_code,
     deleted.public_id AS public_id
 FROM

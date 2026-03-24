@@ -8,7 +8,7 @@ RUN apk add --no-cache \
     go \
     nodejs npm \
     nginx \
-    sudo curl wget bash unzip
+    sudo curl wget bash unzip jq
 
 ENV GOPATH=/root/go
 ENV PATH="/usr/local/go/bin:${PATH}"

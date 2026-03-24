@@ -2,6 +2,7 @@ import { useState, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { getUser } from "../../api/generated/user";
 import { getChannel } from "../../api/generated/channel";
+import { getApiErrorCode } from "../../utils/api-error";
 import { AddChannelDialog } from "../../components/AddChannelDialog";
 import { TimeRangeSlider } from "../../components/TimeRangeSlider";
 import { formatTime, parseTimeToMinutes } from "../../utils/format";
@@ -145,7 +146,7 @@ export function RestrictionsTab() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveFading, setSaveFading] = useState(false);
-  const [saveError, setSaveError] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Whitelist (subscriptions)
   const [channels, setChannels] = useState<GetChannelsSubscribed200ItemsItem[]>([]);
@@ -183,7 +184,7 @@ export function RestrictionsTab() {
   const handleSave = async () => {
     setIsSaving(true);
     setSaveSuccess(false);
-    setSaveError(false);
+    setSaveError(null);
     try {
       const { patchUsersMeStatus } = getUser();
       await patchUsersMeStatus({
@@ -198,8 +199,9 @@ export function RestrictionsTab() {
       setSaveFading(false);
       setTimeout(() => setSaveFading(true), 2500);
       setTimeout(() => { setSaveSuccess(false); setSaveFading(false); }, 3000);
-    } catch {
-      setSaveError(true);
+    } catch (err) {
+      const code = getApiErrorCode(err);
+      setSaveError(code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : t("restrictions.saveError"));
     } finally {
       setIsSaving(false);
     }
@@ -275,27 +277,32 @@ export function RestrictionsTab() {
 
               {/* Daily Cap Limit */}
               <div class="flex flex-col gap-4">
-                <div class="flex justify-between items-center flex-wrap gap-2">
-                  <label class="text-base font-semibold">
-                    {t("restrictions.dailyCapLimit")}
-                  </label>
+                <label class="text-base font-semibold">
+                  {t("restrictions.dailyCapLimit")}
+                </label>
+                <div class="flex flex-wrap gap-4 items-center">
+                  {/* Unlimited toggle */}
                   <button
                     type="button"
+                    role="switch"
+                    aria-checked={isUnlimited}
                     onClick={() => setIsUnlimited(!isUnlimited)}
-                    class={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all cursor-pointer border ${
-                      isUnlimited
-                        ? "bg-primary/10 text-primary border-primary/30"
-                        : "bg-transparent text-text-muted-light dark:text-text-muted-dark border-border-light dark:border-border-dark hover:border-primary/50"
+                    class={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors cursor-pointer border-none ${
+                      isUnlimited ? "bg-primary" : "bg-gray-300 dark:bg-gray-600"
                     }`}
                   >
-                    <span class="material-symbols-outlined text-[18px]">
-                      {isUnlimited ? "all_inclusive" : "timer"}
-                    </span>
-                    {t("restrictions.unlimited")}
+                    <span
+                      class={`inline-block size-5 rounded-full bg-white shadow-sm transition-transform ${
+                        isUnlimited ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
                   </button>
-                </div>
-                {!isUnlimited && (
-                  <div class="flex flex-wrap gap-4 items-center">
+                  <span class="text-sm font-medium text-text-muted-light dark:text-text-muted-dark">
+                    {t("restrictions.unlimited")}
+                  </span>
+
+                  <div class="w-px h-6 bg-border-light dark:bg-border-dark" />
+                  <div class={`flex flex-wrap gap-4 items-center transition-opacity ${isUnlimited ? "opacity-40 pointer-events-none" : ""}`}>
                     <div class="relative">
                       <input
                         type="number"
@@ -303,6 +310,7 @@ export function RestrictionsTab() {
                         min={0}
                         max={23}
                         value={hours}
+                        disabled={isUnlimited}
                         onInput={(e) =>
                           clampHours(
                             parseInt((e.target as HTMLInputElement).value),
@@ -323,6 +331,7 @@ export function RestrictionsTab() {
                         min={0}
                         max={59}
                         value={minutes}
+                        disabled={isUnlimited}
                         onInput={(e) =>
                           clampMinutes(
                             parseInt((e.target as HTMLInputElement).value),
@@ -334,7 +343,7 @@ export function RestrictionsTab() {
                       </span>
                     </div>
                   </div>
-                )}
+                </div>
                 {!isUnlimited && isTimeInvalid && (
                   <p class="text-sm text-red-500">
                     {t("restrictions.zeroTimeError")}
@@ -358,7 +367,7 @@ export function RestrictionsTab() {
                       <span class="material-symbols-outlined text-[18px]">
                         error
                       </span>
-                      {t("restrictions.saveError")}
+                      {saveError}
                     </span>
                   )}
                 </div>

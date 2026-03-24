@@ -4,16 +4,16 @@ import (
 	"context"
 	"errors"
 
-	"github.com/brqnko/anti-yt/backend/internal/util"
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 )
 
-var ErrIDTokenNotFound = util.NewDomainError("auth.id_token_not_found", "id token not found")
+var ErrIDTokenNotFound = core.NewDomainError("auth.id_token_not_found", "id token not found")
 
 type GoogleOIDCService interface {
 	AuthCodeURL(state string) string
-	ExchangeAndVerify(ctx context.Context, code string) (sub string, err error)
+	ExchangeAndVerify(ctx context.Context, code string) (_ string, err error)
 }
 
 type googleOIDCService struct {

@@ -291,11 +291,17 @@ do_insert AS (
         t_video_watch (
             m_user_id,
             m_video_id,
+            public_id,
+            watch_start_at,
+            watch_end_at,
             watch_position_seconds
         )
     SELECT
         (SELECT m_user_id FROM resolved_user),
         (SELECT m_video_id FROM resolved_video),
+        $4,
+        $5,
+        $6,
         $3
     WHERE
         NOT EXISTS (SELECT 1 FROM update_same)
@@ -309,9 +315,19 @@ type UpsertWatchHeartbeatParams struct {
 	UserPublicID         uuid.UUID
 	VideoPublicID        uuid.UUID
 	WatchPositionSeconds int
+	PublicID             uuid.UUID
+	WatchStartAt         time.Time
+	WatchEndAt           time.Time
 }
 
 func (q *Queries) UpsertWatchHeartbeat(ctx context.Context, arg UpsertWatchHeartbeatParams) error {
-	_, err := q.db.Exec(ctx, upsertWatchHeartbeat, arg.UserPublicID, arg.VideoPublicID, arg.WatchPositionSeconds)
+	_, err := q.db.Exec(ctx, upsertWatchHeartbeat,
+		arg.UserPublicID,
+		arg.VideoPublicID,
+		arg.WatchPositionSeconds,
+		arg.PublicID,
+		arg.WatchStartAt,
+		arg.WatchEndAt,
+	)
 	return err
 }

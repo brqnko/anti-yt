@@ -52,6 +52,13 @@ export function DashboardLayout({
     }
   }, [url]);
 
+  const refreshSubscriptions = useCallback(async () => {
+    try {
+      const res = await getChannel().getChannelsSubscribed({ limit: 10 });
+      setSubscriptions(res.items);
+    } catch {}
+  }, []);
+
   const refreshPlaylists = useCallback(async () => {
     try {
       const res = await getPlaylist().getPlaylists({ limit: 10 });
@@ -73,6 +80,19 @@ export function DashboardLayout({
       }
     };
     load();
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { type, data } = (e as CustomEvent).detail;
+      if (type === "added") {
+        setSubscriptions((prev) => [...prev, data]);
+      } else if (type === "removed") {
+        setSubscriptions((prev) => prev.filter((s) => s.channel_id !== data));
+      }
+    };
+    window.addEventListener("channel-changed", handler);
+    return () => window.removeEventListener("channel-changed", handler);
   }, []);
 
   useEffect(() => {

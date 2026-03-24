@@ -26,6 +26,7 @@ type Querier interface {
 	// m_user.m_user_idから、そのユーザーのスクリーン時間の範囲制限を削除する
 	DeleteScreenTimeRangesByUserID(ctx context.Context, mUserID int64) error
 	DeleteSubscription(ctx context.Context, arg DeleteSubscriptionParams) (int64, error)
+	DeleteValuableChannel(ctx context.Context, channelPublicID uuid.UUID) error
 	// jtiがブラックリストに存在するか確認する。
 	// jtiが存在しない場合はpgx.ErrNoRowsが返される。
 	// jtiが存在する場合は、そのexpires_atが返される。
@@ -45,6 +46,7 @@ type Querier interface {
 	GetUserIDByAuthorization(ctx context.Context, mUserAuthorizationID int64) (GetUserIDByAuthorizationRow, error)
 	// m_user.public_idから、ユーザーのプロファイルとスクリーン時間制限範囲を取得する。
 	GetUserProfile(ctx context.Context, userPublicID uuid.UUID) ([]GetUserProfileRow, error)
+	GetValuableChannelForUpdate(ctx context.Context, channelPublicID uuid.UUID) (GetValuableChannelForUpdateRow, error)
 	GetVideoDetail(ctx context.Context, videoID uuid.UUID) (GetVideoDetailRow, error)
 	InsertPlaylistVideo(ctx context.Context, arg InsertPlaylistVideoParams) error
 	// リフレッシュトークンをテーブルに保存する。
@@ -65,6 +67,7 @@ type Querier interface {
 	// ユーザーが登録しているチャンネルがだしている動画を最新順(public_id)で取得する。
 	ListSubscriptionFeed(ctx context.Context, arg ListSubscriptionFeedParams) ([]ListSubscriptionFeedRow, error)
 	ListUserPlaylists(ctx context.Context, arg ListUserPlaylistsParams) ([]ListUserPlaylistsRow, error)
+	ListValuableChannels(ctx context.Context) ([]ListValuableChannelsRow, error)
 	ListWatchHistory(ctx context.Context, arg ListWatchHistoryParams) ([]ListWatchHistoryRow, error)
 	// expires_atが過ぎたjtiのブラックリストを削除します。
 	PurgeExpiredJTIBlacklist(ctx context.Context, expiresAt time.Time) error
@@ -95,6 +98,7 @@ type Querier interface {
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
 	UpsertChannel(ctx context.Context, arg UpsertChannelParams) (int64, error)
 	UpsertPlaylist(ctx context.Context, arg UpsertPlaylistParams) (int64, error)
+	UpsertValuableChannel(ctx context.Context, arg UpsertValuableChannelParams) (int64, error)
 	UpsertVideo(ctx context.Context, arg UpsertVideoParams) (int64, error)
 	UpsertWatchHeartbeat(ctx context.Context, arg UpsertWatchHeartbeatParams) error
 }

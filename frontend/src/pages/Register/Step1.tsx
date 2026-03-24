@@ -117,7 +117,7 @@ export default function Step1({ displayName, setDisplayName, languageCode, setLa
             <button
               type="submit"
               disabled={!isNameValid}
-              class="w-full sm:w-auto px-8 py-3.5 bg-primary hover:bg-[#b8a37e] text-charcoal font-bold rounded-xl transition-all flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              class="w-full sm:w-auto px-8 py-3.5 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border-none"
             >
               <span>{t("register.continue")}</span>
               <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">

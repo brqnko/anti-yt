@@ -7,7 +7,7 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
-	"github.com/brqnko/anti-yt/backend/internal/util"
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -22,7 +22,7 @@ func DomainErrorMiddleware(f v1.StrictHandlerFunc, operationID string) v1.Strict
 			return writeErrorJSON(w, http.StatusNotFound, "Not Found", "resource not found")
 		}
 
-		var domainErr *util.DomainError
+		var domainErr *core.DomainError
 		if errors.As(err, &domainErr) {
 			return writeErrorJSON(w, http.StatusBadRequest, domainErr.Code(), domainErr.Error())
 		}

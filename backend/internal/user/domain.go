@@ -4,48 +4,54 @@ import (
 	"strings"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 )
 
 var (
-	ErrDailyScreenTimeOutOfRange = util.NewDomainError("user.invalid_daily_screen_time", "daily screen time limit is out of range")
+	ErrDailyScreenTimeOutOfRange = core.NewDomainError("user.invalid_daily_screen_time", "daily screen time limit is out of range")
 
-	ErrDisplayNameTooLong  = util.NewDomainError("user.display_name_too_long", "display name is too long")
-	ErrDisplayNameTooShort = util.NewDomainError("user.display_name_too_short", "display name is too short")
+	ErrDisplayNameTooLong  = core.NewDomainError("user.display_name_too_long", "display name is too long")
+	ErrDisplayNameTooShort = core.NewDomainError("user.display_name_too_short", "display name is too short")
 
-	ErrLanguageCodeNotSupported = util.NewDomainError("user.unsupported_language_code", "language code is not supported")
+	ErrLanguageCodeNotSupported = core.NewDomainError("user.unsupported_language_code", "language code is not supported")
 
-	ErrDailyScreenTimeLimitRangeOrder = util.NewDomainError("user.invalid_screen_time_range_order", "screen time range start must be before end")
-	ErrDailyScreenTimeLimitOutOfRange = util.NewDomainError("user.invalid_screen_time_range", "daily screen time limit is out of range")
+	ErrDailyScreenTimeLimitRangeOrder = core.NewDomainError("user.invalid_screen_time_range_order", "screen time range start must be before end")
+	ErrDailyScreenTimeLimitOutOfRange = core.NewDomainError("user.invalid_screen_time_range", "daily screen time limit is out of range")
 
-	ErrInvalidLeaveReasonCode = util.NewDomainError("user.invalid_leave_reason_code", "invalid leave reason code")
+	ErrInvalidLeaveReasonCode = core.NewDomainError("user.invalid_leave_reason_code", "invalid leave reason code")
 )
 
 type LeaveReasonCode int
 
-const (
-	LeaveReasonSelf LeaveReasonCode = 0
-)
+var leaveReasonCodeMap = []struct {
+	code LeaveReasonCode
+	str  string
+}{
+	{code: 0, str: "self"},
+}
 
 func NewLeaveReasonCode(s string) (_ LeaveReasonCode, err error) {
 	defer util.Wrap(&err, "NewLeaveReasonCode")
 
-	switch s {
-	case "self":
-		return LeaveReasonSelf, nil
-	default:
-		return 0, ErrInvalidLeaveReasonCode
+	for _, c := range leaveReasonCodeMap {
+		if s == c.str {
+			return c.code, nil
+		}
 	}
+
+	return 0, ErrInvalidLeaveReasonCode
 }
 
 func (l LeaveReasonCode) String() string {
-	switch l {
-	case LeaveReasonSelf:
-		return "self"
-	default:
-		return "self"
+	for _, c := range leaveReasonCodeMap {
+		if c.code == l {
+			return c.str
+		}
 	}
+
+	return "self"
 }
 
 const unlimitedScreenTimeSentinel = 86401 // 24h + 1s
@@ -55,20 +61,14 @@ func IsUnlimitedScreenTimeSeconds(seconds int) bool {
 	return seconds >= int((24 * time.Hour).Seconds())
 }
 
-// CalcRemainingSeconds はDBから取得した1日の視聴制限秒数と今日の視聴秒数から残り秒数を計算する。
-// limitSeconds が無制限の場合は -1 を返す。
-func CalcRemainingSeconds(limitSeconds, watchedSeconds int) int {
-	if IsUnlimitedScreenTimeSeconds(limitSeconds) {
-		return -1
-	}
-	return max(0, limitSeconds-watchedSeconds)
-}
 
 type DailyScreenTimeLimit struct {
 	duration *time.Duration
 }
 
-func NewDailyScreenTimeLimit(seconds *int) (DailyScreenTimeLimit, error) {
+func NewDailyScreenTimeLimit(seconds *int) (_ DailyScreenTimeLimit, err error) {
+	defer util.Wrap(&err, "NewDailyScreenTimeLimit")
+
 	if seconds == nil {
 		return DailyScreenTimeLimit{duration: nil}, nil
 	}
@@ -102,7 +102,9 @@ func (d DailyScreenTimeLimit) ToIntPtr() *int {
 
 type DisplayName string
 
-func NewDisplayName(s string) (DisplayName, error) {
+func NewDisplayName(s string) (_ DisplayName, err error) {
+	defer util.Wrap(&err, "NewDisplayName")
+
 	str := strings.TrimSpace(s)
 
 	length := len([]rune(str))
@@ -122,12 +124,23 @@ func (d DisplayName) String() string {
 
 type LanguageCode string
 
-func NewLanguageCode(value string) (LanguageCode, error) {
-	if value != "ja" {
-		return "", ErrLanguageCodeNotSupported
+var languageCodeMap = []struct {
+	code LanguageCode
+	str  string
+}{
+	{code: "ja", str: "ja"},
+}
+
+func NewLanguageCode(value string) (_ LanguageCode, err error) {
+	defer util.Wrap(&err, "NewLanguageCode")
+
+	for _, c := range languageCodeMap {
+		if value == c.str {
+			return c.code, nil
+		}
 	}
 
-	return LanguageCode(value), nil
+	return "", ErrLanguageCodeNotSupported
 }
 
 func (l LanguageCode) String() string {
@@ -135,11 +148,14 @@ func (l LanguageCode) String() string {
 }
 
 type DailyScreenTimeLimitRange struct {
+	ID               uuid.UUID
 	StartTimeSeconds int
 	EndTimeSeconds   int
 }
 
-func NewDailyScreenTimeLimitRange(startTimeSeconds, endTimeSeconds int) (DailyScreenTimeLimitRange, error) {
+func NewDailyScreenTimeLimitRange(startTimeSeconds, endTimeSeconds int) (_ DailyScreenTimeLimitRange, err error) {
+	defer util.Wrap(&err, "NewDailyScreenTimeLimitRange")
+
 	if startTimeSeconds >= endTimeSeconds {
 		return DailyScreenTimeLimitRange{}, ErrDailyScreenTimeLimitRangeOrder
 	}
@@ -151,7 +167,13 @@ func NewDailyScreenTimeLimitRange(startTimeSeconds, endTimeSeconds int) (DailySc
 		return DailyScreenTimeLimitRange{}, ErrDailyScreenTimeLimitOutOfRange
 	}
 
+	id, err := uuid.NewV7()
+	if err != nil {
+		return DailyScreenTimeLimitRange{}, err
+	}
+
 	return DailyScreenTimeLimitRange{
+		ID:               id,
 		StartTimeSeconds: startTimeSeconds,
 		EndTimeSeconds:   endTimeSeconds,
 	}, nil

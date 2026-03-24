@@ -427,6 +427,55 @@
       "error": "Failed to remove. Please try again."
     }
   },
+  "explore": {
+    "pageTitle": "Explore Channels",
+    "title": "Explore Valuable Channels",
+    "allCategories": "All Categories",
+    "allCategoriesDesc": "Explore a curated mix of all valuable channels.",
+    "addToWhitelist": "Add to Whitelist",
+    "removeFromWhitelist": "Remove from Whitelist",
+    "added": "Added",
+    "adding": "Adding...",
+    "removing": "Removing...",
+    "noChannels": "No channels found",
+    "loadError": "Failed to load channels",
+    "retry": "Retry",
+    "categories": {
+      "unknown": "Other",
+      "education": "Education",
+      "technology": "Technology",
+      "economy": "Economy",
+      "politics": "Politics",
+      "music": "Music"
+    },
+    "categoryDescriptions": {
+      "education": "Expand your understanding of the world.",
+      "technology": "Keep up with the latest innovations and tech.",
+      "economy": "Learn about finance and economic trends.",
+      "politics": "Stay informed about political developments.",
+      "music": "Theory, composition, and appreciation."
+    }
+  },
+  "apiErrors": {
+    "channel.invalid_youtube_url": "Invalid YouTube URL or unsupported format.",
+    "channel.invalid_channel_id": "Invalid channel ID.",
+    "channel.invalid_channel_handle": "Invalid channel handle.",
+    "channel.invalid_subscription_limit": "Subscription limit reached.",
+    "user.display_name_too_long": "Display name is too long.",
+    "user.display_name_too_short": "Display name is too short.",
+    "user.invalid_daily_screen_time": "Daily screen time limit is out of range.",
+    "user.unsupported_language_code": "Unsupported language code.",
+    "user.invalid_screen_time_range_order": "Start time must be before end time.",
+    "user.invalid_screen_time_range": "Screen time range is invalid.",
+    "user.already_registered": "This account is already registered.",
+    "user.invalid_leave_reason_code": "Invalid leave reason code.",
+    "playlist.invalid_title": "Playlist title must be between 1 and 128 characters.",
+    "playlist.invalid_description": "Playlist description must be at most 255 characters.",
+    "playlist.invalid_visibility_code": "Invalid visibility setting.",
+    "playlist.invalid_playlist_code": "Invalid playlist code.",
+    "playlist.invalid_playlist_id": "Invalid playlist ID or unsupported format.",
+    "fallback": "An error occurred. Please try again."
+  },
   "home": {
     "heroTitle1": "Break the",
     "heroTitle2": "YouTube Cycle",

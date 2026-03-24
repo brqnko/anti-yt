@@ -21,6 +21,7 @@ const Analytics = lazy(() => import("./pages/Analytics/index.jsx"));
 const History = lazy(() => import("./pages/History/index.jsx"));
 const Playlists = lazy(() => import("./pages/Playlists/index.jsx"));
 const PlaylistDetail = lazy(() => import("./pages/PlaylistDetail/index.jsx"));
+const Explore = lazy(() => import("./pages/Explore/index.jsx"));
 const NotFound = lazy(() => import("./pages/_404.jsx"));
 import "./style.css";
 
@@ -29,6 +30,7 @@ function AppContent() {
     <Router>
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/channels" component={Explore} />
       <Route path="/channels/:channelId" component={ChannelDetail} />
       <Route path="/watch/:videoId" component={VideoPlayer} />
       <Route path="/analytics" component={Analytics} />
