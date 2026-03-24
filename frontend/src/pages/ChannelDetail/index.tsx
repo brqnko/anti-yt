@@ -9,19 +9,11 @@ import { getChannel } from "../../api/generated/channel";
 import { formatSubscriberCount } from "../../utils/format";
 import { VideoCard } from "../../components/VideoCard";
 import type {
+  GetChannelsChannelId200,
   GetChannelsChannelIdVideos200ItemsItem,
 } from "../../api/generated/antiYtApi.schemas";
+import { PAGE_SIZES } from "../../constants";
 import { Linkify } from "../../components/Linkify";
-
-interface ChannelInfo {
-  channel_id: string;
-  external_channel_id: string;
-  display_name: string;
-  description?: string;
-  icon_url: string;
-  subscribers_count?: number;
-  custom_id?: string;
-}
 
 function ExpandableDescription({ description }: { description: string }) {
   const { t } = useTranslation();
@@ -59,7 +51,7 @@ function ExpandableDescription({ description }: { description: string }) {
 function ChannelDetailContent({ channelId }: { channelId: string }) {
   const { t } = useTranslation();
 
-  const [channelInfo, setChannelInfo] = useState<ChannelInfo | null>(null);
+  const [channelInfo, setChannelInfo] = useState<GetChannelsChannelId200 | null>(null);
   const [videos, setVideos] = useState<GetChannelsChannelIdVideos200ItemsItem[]>([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -68,27 +60,24 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const cursorRef = useRef<string | undefined>(undefined);
 
-  useTitle(channelInfo?.display_name ?? t("channelDetail.pageTitle"));
+  useTitle(channelInfo?.external_channel_display_name ?? t("channelDetail.pageTitle"));
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [subsRes, videosRes] = await Promise.allSettled([
+        const [channelRes, subsRes, videosRes] = await Promise.allSettled([
+          getChannel().getChannelsChannelId(channelId),
           getChannel().getChannelsSubscribed({ limit: 50 }),
-          getChannel().getChannelsChannelIdVideos(channelId, { limit: 30 }),
+          getChannel().getChannelsChannelIdVideos(channelId, { limit: PAGE_SIZES.CHANNEL_VIDEOS }),
         ]);
+
+        if (channelRes.status === "fulfilled") {
+          setChannelInfo(channelRes.value);
+        }
 
         if (subsRes.status === "fulfilled") {
           const found = subsRes.value.items.find(s => s.channel_id === channelId);
           if (found) {
-            setChannelInfo({
-              channel_id: found.channel_id,
-              external_channel_id: found.external_channel_id,
-              display_name: found.external_channel_display_name,
-              icon_url: found.external_channel_icon_url,
-              subscribers_count: found.channel_subscribers_count,
-              custom_id: found.channel_custom_id,
-            });
             setIsSubscribed(true);
           }
         }
@@ -110,7 +99,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     if (isLoadingMore || !hasNextVideos) return;
     setIsLoadingMore(true);
     try {
-      const res = await getChannel().getChannelsChannelIdVideos(channelId, { limit: 30, cursor: cursorRef.current });
+      const res = await getChannel().getChannelsChannelIdVideos(channelId, { limit: PAGE_SIZES.CHANNEL_VIDEOS, cursor: cursorRef.current });
       setVideos(prev => [...prev, ...res.items]);
       setHasNextVideos(res.has_next);
       const lastItem = res.items[res.items.length - 1];
@@ -129,22 +118,11 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       if (isSubscribed) {
         await getChannel().deleteChannelsChannelIdSubscribe(channelInfo.channel_id);
         setIsSubscribed(false);
-        window.dispatchEvent(new CustomEvent("channel-changed", { detail: { type: "removed", data: channelInfo.channel_id } }));
       } else {
-        const result = await getChannel().postChannelsSubscribe({
-          channel_id: channelInfo.external_channel_id,
-        });
-        setChannelInfo({
-          channel_id: result.channel_id,
-          external_channel_id: result.external_channel_id,
-          display_name: result.external_channel_display_name,
-          description: result.channel_description,
-          icon_url: result.external_channel_icon_url,
-          subscribers_count: result.channel_subscribers_count,
-          custom_id: result.channel_custom_id,
+        await getChannel().postChannelsSubscribe({
+          channel_id: channelInfo.external_channel_custom_id,
         });
         setIsSubscribed(true);
-        window.dispatchEvent(new CustomEvent("channel-changed", { detail: { type: "added", data: result } }));
       }
     } catch {
       // silently fail
@@ -191,8 +169,8 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
             <div class="shrink-0">
               <div class="size-24 md:size-28 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden shadow-md border-2 border-border-light dark:border-border-dark">
                 <img
-                  src={channelInfo.icon_url}
-                  alt={channelInfo.display_name}
+                  src={channelInfo.external_channel_icon_url}
+                  alt={channelInfo.external_channel_display_name}
                   class="w-full h-full object-cover"
                 />
               </div>
@@ -200,15 +178,13 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
 
             {/* Channel Text Info */}
             <div class="flex-1 min-w-0">
-              <h1 class="text-2xl md:text-3xl font-bold mb-1">{channelInfo.display_name}</h1>
+              <h1 class="text-2xl md:text-3xl font-bold mb-1">{channelInfo.external_channel_display_name}</h1>
               <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-muted-light dark:text-text-muted-dark">
-                {channelInfo.subscribers_count != null && (
-                  <span>
-                    {formatSubscriberCount(channelInfo.subscribers_count)} {t("channelDetail.subscribers")}
-                  </span>
-                )}
-                {channelInfo.custom_id && (
-                  <span>{channelInfo.custom_id}</span>
+                <span>
+                  {formatSubscriberCount(channelInfo.external_channel_subscribers_count)} {t("channelDetail.subscribers")}
+                </span>
+                {channelInfo.external_channel_custom_id && (
+                  <span>{channelInfo.external_channel_custom_id}</span>
                 )}
               </div>
             </div>
@@ -244,8 +220,8 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
           </div>
 
           {/* Description */}
-          {channelInfo.description != null && (
-            <ExpandableDescription description={channelInfo.description} />
+          {channelInfo.external_channel_description && (
+            <ExpandableDescription description={channelInfo.external_channel_description} />
           )}
         </div>
 

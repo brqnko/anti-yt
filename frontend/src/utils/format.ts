@@ -1,3 +1,34 @@
+// ── UTC date utilities ──
+
+/** Format a Date as YYYY-MM-DD in UTC. */
+export function toUTCDateStr(d: Date): string {
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+}
+
+/** Get today's date at 00:00 UTC as a Date object. */
+export function todayUTC(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+}
+
+/** Return the N dates ending today in UTC. */
+export function getLastNDaysUTC(n: number): Date[] {
+  const today = todayUTC().getTime();
+  return Array.from({ length: n }, (_, i) => new Date(today + (i - n + 1) * 86400000));
+}
+
+/** Extract YYYY-MM-DD from an ISO timestamp string (e.g. "2026-03-25T00:00:00Z" → "2026-03-25"). */
+export function isoToDateStr(iso: string): string {
+  return iso.slice(0, 10);
+}
+
+/** Format a UTC Date as a local display label (e.g. "3/25"). */
+export function formatUTCDateLabel(d: Date): string {
+  return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+}
+
+// ── Duration / time formatting ──
+
 export function formatDuration(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600);
   const m = Math.floor((totalSeconds % 3600) / 60);

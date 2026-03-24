@@ -82,24 +82,11 @@ export function DashboardLayout({
     load();
   }, []);
 
+  // URLが変わるたびにサイドバーのデータを再取得する
   useEffect(() => {
-    const handler = (e: Event) => {
-      const { type, data } = (e as CustomEvent).detail;
-      if (type === "added") {
-        setSubscriptions((prev) => [...prev, data]);
-      } else if (type === "removed") {
-        setSubscriptions((prev) => prev.filter((s) => s.channel_id !== data));
-      }
-    };
-    window.addEventListener("channel-changed", handler);
-    return () => window.removeEventListener("channel-changed", handler);
-  }, []);
-
-  useEffect(() => {
-    const handler = () => refreshPlaylists();
-    window.addEventListener("playlist-changed", handler);
-    return () => window.removeEventListener("playlist-changed", handler);
-  }, [refreshPlaylists]);
+    refreshSubscriptions();
+    refreshPlaylists();
+  }, [url, refreshSubscriptions, refreshPlaylists]);
 
   return (
     <div class="relative flex h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
@@ -284,12 +271,12 @@ export function DashboardLayout({
       <AddChannelDialog
         open={showAddChannel}
         onClose={() => setShowAddChannel(false)}
-        onAdded={(sub) => setSubscriptions((prev) => [...prev, sub])}
+        onAdded={() => refreshSubscriptions()}
       />
       <AddPlaylistDialog
         open={showAddPlaylist}
         onClose={() => setShowAddPlaylist(false)}
-        onAdded={(pl) => setPlaylists((prev) => [...prev, pl])}
+        onAdded={() => refreshPlaylists()}
       />
     </div>
   );

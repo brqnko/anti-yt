@@ -135,6 +135,45 @@ func (q *Queries) FindChannelByExternalID(ctx context.Context, arg FindChannelBy
 	return i, err
 }
 
+const getChannelByPublicID = `-- name: GetChannelByPublicID :one
+SELECT
+    m_channel.public_id,
+    m_channel.external_custom_id,
+    m_channel.external_display_name,
+    m_channel.external_description,
+    m_channel.external_icon_url,
+    m_channel.external_subscribers_count
+FROM
+    m_channel
+WHERE
+    m_channel.public_id = $1
+LIMIT
+    1
+`
+
+type GetChannelByPublicIDRow struct {
+	PublicID                 uuid.UUID
+	ExternalCustomID         string
+	ExternalDisplayName      string
+	ExternalDescription      string
+	ExternalIconUrl          string
+	ExternalSubscribersCount int64
+}
+
+func (q *Queries) GetChannelByPublicID(ctx context.Context, channelID uuid.UUID) (GetChannelByPublicIDRow, error) {
+	row := q.db.QueryRow(ctx, getChannelByPublicID, channelID)
+	var i GetChannelByPublicIDRow
+	err := row.Scan(
+		&i.PublicID,
+		&i.ExternalCustomID,
+		&i.ExternalDisplayName,
+		&i.ExternalDescription,
+		&i.ExternalIconUrl,
+		&i.ExternalSubscribersCount,
+	)
+	return i, err
+}
+
 const getChannelForUpdate = `-- name: GetChannelForUpdate :one
 SELECT
     m_channel.public_id,
@@ -422,7 +461,8 @@ ON CONFLICT (external_id) DO UPDATE SET
     rss_fetched_at = EXCLUDED.rss_fetched_at,
     fetched_at = EXCLUDED.fetched_at
 RETURNING
-    m_channel.m_channel_id
+    m_channel.m_channel_id,
+    m_channel.public_id
 `
 
 type UpsertChannelParams struct {
@@ -439,7 +479,12 @@ type UpsertChannelParams struct {
 	FetchedAt                 time.Time
 }
 
-func (q *Queries) UpsertChannel(ctx context.Context, arg UpsertChannelParams) (int64, error) {
+type UpsertChannelRow struct {
+	MChannelID int64
+	PublicID   uuid.UUID
+}
+
+func (q *Queries) UpsertChannel(ctx context.Context, arg UpsertChannelParams) (UpsertChannelRow, error) {
 	row := q.db.QueryRow(ctx, upsertChannel,
 		arg.ExternalID,
 		arg.ExternalDisplayName,
@@ -453,7 +498,7 @@ func (q *Queries) UpsertChannel(ctx context.Context, arg UpsertChannelParams) (i
 		arg.RssFetchedAt,
 		arg.FetchedAt,
 	)
-	var m_channel_id int64
-	err := row.Scan(&m_channel_id)
-	return m_channel_id, err
+	var i UpsertChannelRow
+	err := row.Scan(&i.MChannelID, &i.PublicID)
+	return i, err
 }

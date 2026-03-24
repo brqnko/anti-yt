@@ -50,28 +50,13 @@ function ExploreContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(-1);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [subscribingIds, setSubscribingIds] = useState<Set<string>>(new Set());
-  const [subscribedIds, setSubscribedIds] = useState<Set<string>>(new Set());
 
   const loadChannels = useCallback(async () => {
     setIsLoading(true);
     setError(false);
     try {
-      const [feedRes, subsRes] = await Promise.allSettled([
-        getChannel().getFeedChannels(),
-        getChannel().getChannelsSubscribed({ limit: 50 }),
-      ]);
-      if (feedRes.status === "fulfilled") {
-        setChannels(feedRes.value.items);
-      } else {
-        setError(true);
-      }
-      if (subsRes.status === "fulfilled") {
-        setSubscribedIds(
-          new Set(subsRes.value.items.map((s) => s.channel_id)),
-        );
-      }
+      const res = await getChannel().getFeedChannels();
+      setChannels(res.items);
     } catch {
       setError(true);
     } finally {
@@ -84,62 +69,9 @@ function ExploreContent() {
   }, [loadChannels]);
 
   const filteredChannels = useMemo(() => {
-    let result = channels;
-    if (selectedCategory >= 0) {
-      result = result.filter((ch) => ch.category_code === selectedCategory);
-    }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (ch) =>
-          ch.external_channel_display_name.toLowerCase().includes(q) ||
-          ch.valuable_description.toLowerCase().includes(q),
-      );
-    }
-    return result;
-  }, [channels, selectedCategory, searchQuery]);
-
-  const handleSubscribe = async (channelCustomUrl: string, channelId: string) => {
-    if (subscribedIds.has(channelId) || subscribingIds.has(channelId)) return;
-    setSubscribingIds((prev) => new Set(prev).add(channelId));
-    try {
-      const result = await getChannel().postChannelsSubscribe({
-        channel_id: channelCustomUrl,
-      });
-      setSubscribedIds((prev) => new Set(prev).add(channelId));
-      window.dispatchEvent(new CustomEvent("channel-changed", { detail: { type: "added", data: result } }));
-    } catch {
-      // ignore
-    } finally {
-      setSubscribingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(channelId);
-        return next;
-      });
-    }
-  };
-
-  const handleUnsubscribe = async (channelId: string) => {
-    if (!subscribedIds.has(channelId) || subscribingIds.has(channelId)) return;
-    setSubscribingIds((prev) => new Set(prev).add(channelId));
-    try {
-      await getChannel().deleteChannelsChannelIdSubscribe(channelId);
-      setSubscribedIds((prev) => {
-        const next = new Set(prev);
-        next.delete(channelId);
-        return next;
-      });
-      window.dispatchEvent(new CustomEvent("channel-changed", { detail: { type: "removed", data: channelId } }));
-    } catch {
-      // ignore
-    } finally {
-      setSubscribingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(channelId);
-        return next;
-      });
-    }
-  };
+    if (selectedCategory < 0) return channels;
+    return channels.filter((ch) => ch.category_code === selectedCategory);
+  }, [channels, selectedCategory]);
 
   return (
     <DashboardLayout>
@@ -156,9 +88,7 @@ function ExploreContent() {
               {/* Category pills */}
               <div class="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2">
                 {CATEGORY_CODES.map((cat) => {
-                  const isActive =
-                    cat.code === selectedCategory ||
-                    (cat.code === -1 && selectedCategory === -1);
+                  const isActive = cat.code === selectedCategory;
                   return (
                     <button
                       key={cat.code}
@@ -208,73 +138,36 @@ function ExploreContent() {
               <section class="flex flex-col gap-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                   {filteredChannels.map((ch) => {
-                    const isSubscribed = subscribedIds.has(ch.channel_id);
-                    const isSubscribing = subscribingIds.has(ch.channel_id);
                     const categoryKey =
                       CATEGORY_KEY_MAP[ch.category_code] ?? "unknown";
 
                     return (
-                      <div
+                      <a
                         key={ch.channel_id}
-                        class="bg-card-light dark:bg-card-dark p-5 rounded-xl border border-border-light dark:border-border-dark hover:border-primary/50 dark:hover:border-primary/50 transition-colors flex flex-col gap-4 group"
+                        href={`/channels/${ch.channel_id}`}
+                        class="bg-card-light dark:bg-card-dark p-5 rounded-xl border border-border-light dark:border-border-dark hover:border-primary/50 dark:hover:border-primary/50 transition-colors flex flex-col gap-4 no-underline"
                       >
-                        <div class="flex items-start justify-between">
-                          <div class="flex items-center gap-3">
-                            <a href={`/channels/${ch.channel_id}`}>
-                              <img
-                                alt={ch.external_channel_display_name}
-                                class="size-12 rounded-full object-cover bg-gray-100"
-                                src={ch.external_channel_icon_url}
-                              />
-                            </a>
-                            <div>
-                              <a
-                                href={`/channels/${ch.channel_id}`}
-                                class="font-bold text-charcoal dark:text-white text-base leading-snug no-underline hover:underline"
-                              >
-                                {ch.external_channel_display_name}
-                              </a>
-                              <span
-                                class={`text-xs font-medium px-2 py-0.5 rounded-full ${getCategoryBadgeClasses(ch.category_code)}`}
-                              >
-                                {t(`explore.categories.${categoryKey}`)}
-                              </span>
-                            </div>
+                        <div class="flex items-center gap-3">
+                          <img
+                            alt={ch.external_channel_display_name}
+                            class="size-12 rounded-full object-cover bg-gray-100"
+                            src={ch.external_channel_icon_url}
+                          />
+                          <div>
+                            <p class="font-bold text-charcoal dark:text-white text-base leading-snug">
+                              {ch.external_channel_display_name}
+                            </p>
+                            <span
+                              class={`text-xs font-medium px-2 py-0.5 rounded-full ${getCategoryBadgeClasses(ch.category_code)}`}
+                            >
+                              {t(`explore.categories.${categoryKey}`)}
+                            </span>
                           </div>
                         </div>
                         <p class="text-text-muted-light dark:text-text-muted-dark text-sm leading-relaxed line-clamp-2">
                           {ch.valuable_description}
                         </p>
-                        {isSubscribed ? (
-                          <button
-                            class="mt-auto w-full py-2 px-4 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400 transition-all text-sm font-bold flex items-center justify-center gap-2 border-none cursor-pointer group/unsub disabled:opacity-50"
-                            onClick={() => handleUnsubscribe(ch.channel_id)}
-                            disabled={isSubscribing}
-                          >
-                            <span class="group-hover/unsub:hidden">
-                              {isSubscribing ? t("explore.removing") : t("explore.added")}
-                            </span>
-                            <span class="hidden group-hover/unsub:inline">
-                              {isSubscribing ? t("explore.removing") : t("explore.removeFromWhitelist")}
-                            </span>
-                          </button>
-                        ) : (
-                          <button
-                            class="mt-auto w-full py-2 px-4 rounded-lg border border-primary text-primary hover:bg-primary hover:text-white transition-all text-sm font-bold flex items-center justify-center gap-2 cursor-pointer bg-transparent disabled:opacity-50"
-                            onClick={() =>
-                              handleSubscribe(
-                                ch.external_channel_cusom_url,
-                                ch.channel_id,
-                              )
-                            }
-                            disabled={isSubscribing}
-                          >
-                            {isSubscribing
-                              ? t("explore.adding")
-                              : t("explore.addToWhitelist")}
-                          </button>
-                        )}
-                      </div>
+                      </a>
                     );
                   })}
                 </div>

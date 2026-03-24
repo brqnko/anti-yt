@@ -32,6 +32,7 @@ type Querier interface {
 	// jtiが存在する場合は、そのexpires_atが返される。
 	FindBlacklistedJTI(ctx context.Context, jti uuid.UUID) (time.Time, error)
 	FindChannelByExternalID(ctx context.Context, arg FindChannelByExternalIDParams) (FindChannelByExternalIDRow, error)
+	GetChannelByPublicID(ctx context.Context, channelID uuid.UUID) (GetChannelByPublicIDRow, error)
 	GetChannelForUpdate(ctx context.Context, channelID uuid.UUID) (GetChannelForUpdateRow, error)
 	// m_user.public_idから、そのユーザーが今日視聴していた合計時間(seconds)と設定している制限時間を返す。
 	// その日に一本も動画を視聴していない場合は0を返します。
@@ -96,7 +97,7 @@ type Querier interface {
 	UpdatePlaylist(ctx context.Context, arg UpdatePlaylistParams) (uuid.UUID, error)
 	// ユーザーを更新する。
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
-	UpsertChannel(ctx context.Context, arg UpsertChannelParams) (int64, error)
+	UpsertChannel(ctx context.Context, arg UpsertChannelParams) (UpsertChannelRow, error)
 	UpsertPlaylist(ctx context.Context, arg UpsertPlaylistParams) (int64, error)
 	UpsertValuableChannel(ctx context.Context, arg UpsertValuableChannelParams) (int64, error)
 	UpsertVideo(ctx context.Context, arg UpsertVideoParams) (int64, error)

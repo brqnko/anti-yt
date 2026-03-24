@@ -59,7 +59,8 @@ ON CONFLICT (external_id) DO UPDATE SET
     rss_fetched_at = EXCLUDED.rss_fetched_at,
     fetched_at = EXCLUDED.fetched_at
 RETURNING
-    m_channel.m_channel_id;
+    m_channel.m_channel_id,
+    m_channel.public_id;
 
 -- name: InsertSubscription :one
 INSERT INTO
@@ -144,6 +145,21 @@ WHERE
         LIMIT
             1
     );
+
+-- name: GetChannelByPublicID :one
+SELECT
+    m_channel.public_id,
+    m_channel.external_custom_id,
+    m_channel.external_display_name,
+    m_channel.external_description,
+    m_channel.external_icon_url,
+    m_channel.external_subscribers_count
+FROM
+    m_channel
+WHERE
+    m_channel.public_id = @channel_id
+LIMIT
+    1;
 
 -- name: GetChannelForUpdate :one
 SELECT

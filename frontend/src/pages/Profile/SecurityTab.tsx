@@ -176,7 +176,7 @@ export function SecurityTab() {
                 <p class="text-text-muted-light dark:text-text-muted-dark text-xs font-bold uppercase tracking-wider">
                   {t("security.ipAddress")}
                 </p>
-                <p class="text-sm font-medium leading-relaxed font-mono">
+                <p class="text-sm font-medium leading-relaxed ">
                   {currentSession.ip_address}
                 </p>
               </div>
@@ -184,7 +184,7 @@ export function SecurityTab() {
                 <p class="text-text-muted-light dark:text-text-muted-dark text-xs font-bold uppercase tracking-wider">
                   {t("security.userAgent")}
                 </p>
-                <p class="text-sm font-medium leading-relaxed font-mono break-all">
+                <p class="text-sm font-medium leading-relaxed  break-all">
                   {currentSession.user_agent}
                 </p>
               </div>
@@ -220,7 +220,7 @@ export function SecurityTab() {
                       <span class="size-1 rounded-full bg-text-muted-light dark:bg-text-muted-dark" />
                       <span>{session.city_name}, {session.country_code}</span>
                       <span class="size-1 rounded-full bg-text-muted-light dark:bg-text-muted-dark" />
-                      <span class="font-mono">{session.ip_address}</span>
+                      <span class="">{session.ip_address}</span>
                       <span class="size-1 rounded-full bg-text-muted-light dark:bg-text-muted-dark" />
                       <span>{formatLastActive(session.last_logged_in_at, t)}</span>
                     </div>
