@@ -32,6 +32,7 @@ type Service interface {
 	FetchRSSFeed(ctx context.Context, channelID ChannelID) ([]VideoID, error)
 	FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (map[VideoID]Video, error)
 	FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error)
+	SearchVideoIDs(ctx context.Context, query string, pageToken string) (_ []VideoID, _ string, err error)
 }
 
 var _ Service = (*serviceImpl)(nil)
@@ -331,6 +332,40 @@ func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID stri
 		videoID, err := NewVideoID(item.ContentDetails.VideoId)
 		if err != nil {
 			slog.Info("failed to NewVideoID(fetchPlaylistVideoIDs)", "error", err)
+			continue
+		}
+		videoIDs = append(videoIDs, videoID)
+	}
+
+	return videoIDs, res.NextPageToken, nil
+}
+
+func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToken string) (_ []VideoID, _ string, err error) {
+	defer util.Wrap(&err, "youTubeAPIService.SearchVideoIDs")
+
+	call := s.ytClient.Search.List([]string{"id"}).
+		Q(query).
+		Type("video").
+		MaxResults(50).
+		Context(ctx)
+	if pageToken != "" {
+		call = call.PageToken(pageToken)
+	}
+
+	res, err := call.Do()
+	if err != nil {
+		return nil, "", err
+	}
+
+	videoIDs := make([]VideoID, 0, len(res.Items))
+	for _, item := range res.Items {
+		if item.Id == nil || item.Id.VideoId == "" {
+			slog.Info("item.Id is nil or VideoId is empty(searchVideoIDs)")
+			continue
+		}
+		videoID, err := NewVideoID(item.Id.VideoId)
+		if err != nil {
+			slog.Info("failed to NewVideoID(searchVideoIDs)", "error", err)
 			continue
 		}
 		videoIDs = append(videoIDs, videoID)

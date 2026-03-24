@@ -7,6 +7,7 @@ import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
 import { getChannel } from "../../api/generated/channel";
+import { PAGE_SIZES } from "../../constants";
 import type { GetFeed200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 
 function DashboardContent() {
@@ -22,7 +23,7 @@ function DashboardContent() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const feedRes = await getChannel().getFeed({ limit: 12 });
+        const feedRes = await getChannel().getFeed({ limit: PAGE_SIZES.FEED });
         setFeedVideos(feedRes.items);
         setHasNext(feedRes.has_next);
         const lastItem = feedRes.items[feedRes.items.length - 1];

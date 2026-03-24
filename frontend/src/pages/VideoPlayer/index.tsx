@@ -6,11 +6,10 @@ import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getVideo } from "../../api/generated/video";
-import { getHistory } from "../../api/generated/history";
 import { getPlaylist } from "../../api/generated/playlist";
 import { formatDuration, formatSubscriberCount } from "../../utils/format";
 import { buildWatchUrl } from "../../utils/url";
-import { getCookie } from "../../utils/cookie";
+import { PAGE_SIZES } from "../../constants";
 import type {
   GetVideosVideoId200,
   GetPlaylists200ItemsItem,
@@ -18,32 +17,10 @@ import type {
   GetPlaylistsPlaylistIdVideos200ItemsItem,
 } from "../../api/generated/antiYtApi.schemas";
 import { useYouTubePlayer, PlayerState } from "./useYouTubePlayer";
+import { useHeartbeat } from "./useHeartbeat";
 import { Linkify } from "../../components/Linkify";
 
 const PLAYER_CONTAINER_ID = "yt-player";
-const HEARTBEAT_INTERVAL_MS = 60_000;
-const HEARTBEAT_DEBOUNCE_MS = 2_000;
-
-/** Fire-and-forget heartbeat that survives page unload / navigation. */
-function sendBeaconHeartbeat(videoId: string, positionSeconds: number): void {
-  const url = `/api/v1/videos/${encodeURIComponent(videoId)}/heartbeats`;
-  const body = JSON.stringify({ current_position_seconds: positionSeconds });
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  const csrfToken = getCookie("csrf_token");
-  if (csrfToken) headers["x-csrf-token"] = csrfToken;
-
-  try {
-    fetch(url, {
-      method: "POST",
-      headers,
-      body,
-      credentials: "include",
-      keepalive: true,
-    });
-  } catch {
-    // best-effort — ignore failures on teardown
-  }
-}
 
 function VideoPlayerContent() {
   const { t } = useTranslation();
@@ -64,7 +41,6 @@ function VideoPlayerContent() {
       : null,
   );
   const [noteText, setNoteText] = useState("");
-  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(false);
@@ -73,11 +49,6 @@ function VideoPlayerContent() {
 
   const playerWrapperRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
-  const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const heartbeatDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const heartbeatFailCountRef = useRef(0);
-  const finalHeartbeatSentRef = useRef(false);
-  const lastFinalSentAtRef = useRef(0);
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const descRef = useRef<HTMLDivElement>(null);
   const [descOverflows, setDescOverflows] = useState(false);
@@ -105,8 +76,6 @@ function VideoPlayerContent() {
   const currentTimeRef = useRef(0);
   const durationRef = useRef(0);
   const volumeRef = useRef(100);
-  const videoIdRef = useRef<string | null>(null);
-  videoIdRef.current = video?.video_id ?? null;
 
   // Refs for auto-play next video in playlist
   const playlistVideosRef = useRef(playlistVideos);
@@ -133,7 +102,7 @@ function VideoPlayerContent() {
     setPlaylistLoading(true);
     Promise.allSettled([
       getPlaylist().getPlaylistsPlaylistId(playlistId),
-      getPlaylist().getPlaylistsPlaylistIdVideos(playlistId, { limit: 20 }),
+      getPlaylist().getPlaylistsPlaylistIdVideos(playlistId, { limit: PAGE_SIZES.PLAYLIST_VIDEOS }),
     ]).then(([infoRes, videosRes]) => {
       if (infoRes.status === "fulfilled") {
         setPlaylistInfo(infoRes.value);
@@ -152,7 +121,7 @@ function VideoPlayerContent() {
     setPlaylistLoadingMore(true);
     try {
       const res = await getPlaylist().getPlaylistsPlaylistIdVideos(playlistId, {
-        limit: 20,
+        limit: PAGE_SIZES.PLAYLIST_VIDEOS,
         cursor: playlistCursorRef.current,
       });
       setPlaylistVideos((prev) => [...prev, ...res.items]);
@@ -273,87 +242,12 @@ function VideoPlayerContent() {
   durationRef.current = duration;
   volumeRef.current = volume;
 
-  // Send a final heartbeat via keepalive fetch (survives unload). Guarded to fire at most once per pause/unload.
-  const sendFinalHeartbeat = useCallback(() => {
-    if (finalHeartbeatSentRef.current) return;
-    const now = Date.now();
-    if (now - lastFinalSentAtRef.current < 10_000) return;
-    const vid = videoIdRef.current;
-    if (vid) {
-      finalHeartbeatSentRef.current = true;
-      lastFinalSentAtRef.current = now;
-      sendBeaconHeartbeat(vid, Math.floor(currentTimeRef.current));
-    }
-  }, []);
-
-  // Send final heartbeat on tab close / hard navigation while playing
-  useEffect(() => {
-    if (!video || playerState !== PlayerState.PLAYING) return;
-
-    const handler = () => sendFinalHeartbeat();
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [video, playerState, sendFinalHeartbeat]);
-
-  // Heartbeat for watch time tracking (with debounce on play start)
-  useEffect(() => {
-    if (!video || playerState !== PlayerState.PLAYING) {
-      if (heartbeatDebounceRef.current) {
-        clearTimeout(heartbeatDebounceRef.current);
-        heartbeatDebounceRef.current = null;
-      }
-      if (heartbeatRef.current) {
-        clearInterval(heartbeatRef.current);
-        heartbeatRef.current = null;
-      }
-      return;
-    }
-
-    // Reset guard — playback resumed, allow a new final heartbeat on next pause/unload
-    finalHeartbeatSentRef.current = false;
-
-    const sendHeartbeat = () => {
-      getHistory()
-        .postVideosVideoIdHeartbeats(video.video_id, {
-          current_position_seconds: Math.floor(currentTimeRef.current),
-        })
-        .then((res) => {
-          heartbeatFailCountRef.current = 0;
-          const remaining = res.daily_remaining_seconds ?? null;
-          setRemainingSeconds(remaining);
-          if (remaining !== null && remaining <= 0) {
-            togglePlay();
-          }
-        })
-        .catch((err: unknown) => {
-          const status = (err as { response?: { status?: number } })?.response?.status;
-          console.warn(`[heartbeat] request failed (status=${status ?? "unknown"})`);
-          heartbeatFailCountRef.current += 1;
-          if (heartbeatFailCountRef.current >= 3) {
-            console.warn("[heartbeat] 3 consecutive failures — pausing playback");
-            togglePlay();
-          }
-        });
-    };
-
-    // Debounce: wait before sending first heartbeat to avoid bursts from rapid pause/play
-    heartbeatDebounceRef.current = setTimeout(() => {
-      sendHeartbeat();
-      heartbeatRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
-    }, HEARTBEAT_DEBOUNCE_MS);
-
-    return () => {
-      if (heartbeatDebounceRef.current) {
-        clearTimeout(heartbeatDebounceRef.current);
-        heartbeatDebounceRef.current = null;
-      }
-      if (heartbeatRef.current) {
-        clearInterval(heartbeatRef.current);
-        heartbeatRef.current = null;
-      }
-      sendFinalHeartbeat();
-    };
-  }, [video, playerState, togglePlay, sendFinalHeartbeat]);
+  const { remainingSeconds } = useHeartbeat({
+    videoId: video?.video_id ?? null,
+    playerState,
+    currentTimeRef,
+    togglePlay,
+  });
 
   // Check if description overflows (ResizeObserver for font-load safety)
   useEffect(() => {
@@ -499,22 +393,6 @@ function VideoPlayerContent() {
   );
 
   const displayProgress = seekProgress ?? (duration > 0 ? (currentTime / duration) * 100 : 0);
-  // Local countdown: decrement remainingSeconds every second while playing
-  useEffect(() => {
-    if (remainingSeconds === null || playerState !== PlayerState.PLAYING) return;
-    const timer = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev === null) return null;
-        if (prev <= 1) {
-          togglePlay();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [remainingSeconds !== null, playerState, togglePlay]);
-
   const isPlaying = playerState === PlayerState.PLAYING;
 
   if (isLoading) {

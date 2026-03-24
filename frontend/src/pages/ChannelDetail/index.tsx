@@ -11,6 +11,7 @@ import { VideoCard } from "../../components/VideoCard";
 import type {
   GetChannelsChannelIdVideos200ItemsItem,
 } from "../../api/generated/antiYtApi.schemas";
+import { PAGE_SIZES } from "../../constants";
 import { Linkify } from "../../components/Linkify";
 
 interface ChannelInfo {
@@ -75,7 +76,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       try {
         const [subsRes, videosRes] = await Promise.allSettled([
           getChannel().getChannelsSubscribed({ limit: 50 }),
-          getChannel().getChannelsChannelIdVideos(channelId, { limit: 30 }),
+          getChannel().getChannelsChannelIdVideos(channelId, { limit: PAGE_SIZES.CHANNEL_VIDEOS }),
         ]);
 
         if (subsRes.status === "fulfilled") {
@@ -110,7 +111,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     if (isLoadingMore || !hasNextVideos) return;
     setIsLoadingMore(true);
     try {
-      const res = await getChannel().getChannelsChannelIdVideos(channelId, { limit: 30, cursor: cursorRef.current });
+      const res = await getChannel().getChannelsChannelIdVideos(channelId, { limit: PAGE_SIZES.CHANNEL_VIDEOS, cursor: cursorRef.current });
       setVideos(prev => [...prev, ...res.items]);
       setHasNextVideos(res.has_next);
       const lastItem = res.items[res.items.length - 1];

@@ -1,6 +1,7 @@
 import { createContext } from "preact";
 import { useState, useEffect, useCallback, useContext } from "preact/hooks";
 import type { ComponentChildren } from "preact";
+import { AxiosError } from "axios";
 import { getUser } from "../api/generated/user";
 import { getAuth } from "../api/generated/auth";
 
@@ -50,8 +51,7 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
       setIsAuthenticated(true);
     } catch (err: unknown) {
       setIsAuthenticated(false);
-      const axiosErr = err as { response?: { status?: number } };
-      if (axiosErr.response?.status !== 401) {
+      if (!(err instanceof AxiosError) || err.response?.status !== 401) {
         setError(
           err instanceof Error ? err : new Error("Failed to check auth"),
         );

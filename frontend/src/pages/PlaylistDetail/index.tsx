@@ -10,6 +10,7 @@ import { VideoCard } from "../../components/VideoCard";
 import { getPlaylist } from "../../api/generated/playlist";
 import { getApiErrorCode } from "../../utils/api-error";
 import { formatTimeAgo } from "../../utils/format";
+import { PAGE_SIZES } from "../../constants";
 import { Linkify } from "../../components/Linkify";
 import type {
   GetPlaylistsPlaylistId200,
@@ -291,7 +292,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
     try {
       const [infoRes, videosRes] = await Promise.allSettled([
         getPlaylist().getPlaylistsPlaylistId(playlistId),
-        getPlaylist().getPlaylistsPlaylistIdVideos(playlistId, { limit: 20 }),
+        getPlaylist().getPlaylistsPlaylistIdVideos(playlistId, { limit: PAGE_SIZES.PLAYLIST_VIDEOS }),
       ]);
 
       if (infoRes.status === "fulfilled") {

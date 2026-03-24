@@ -7,6 +7,7 @@ import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
 import { getHistory } from "../../api/generated/history";
+import { PAGE_SIZES } from "../../constants";
 import type { GetHistory200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 
 function getDateKey(dateStr: string): string {
@@ -55,7 +56,7 @@ function HistoryContent() {
     setIsLoading(true);
     setError(false);
     try {
-      const res = await getHistory().getHistory({ limit: 20 });
+      const res = await getHistory().getHistory({ limit: PAGE_SIZES.HISTORY });
       setItems(res.items);
       setHasNext(res.has_next);
       hasNextRef.current = res.has_next;

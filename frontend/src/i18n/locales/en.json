@@ -456,6 +456,17 @@
       "music": "Theory, composition, and appreciation."
     }
   },
+  "search": {
+    "pageTitle": "Search",
+    "inputPlaceholder": "Search videos...",
+    "placeholder": "Search for videos",
+    "resultsFor": "Results for \"{{query}}\"",
+    "noResults": "No results found",
+    "noResultsDesc": "Try searching with different keywords.",
+    "endOfResults": "All results loaded",
+    "loadError": "Search failed",
+    "retry": "Try again"
+  },
   "apiErrors": {
     "channel.invalid_youtube_url": "Invalid YouTube URL or unsupported format.",
     "channel.invalid_channel_id": "Invalid channel ID.",

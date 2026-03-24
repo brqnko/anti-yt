@@ -14,3 +14,12 @@ export const languages = [
 ];
 
 export const REPORT_FORM_URL = "https://forms.gle/PLACEHOLDER";
+
+export const PAGE_SIZES = {
+  FEED: 12,
+  PLAYLISTS: 12,
+  HISTORY: 20,
+  CHANNEL_VIDEOS: 30,
+  PLAYLIST_VIDEOS: 20,
+  SEARCH: 12,
+} as const;

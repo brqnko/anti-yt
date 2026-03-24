@@ -455,6 +455,17 @@
       "music": "理論、作曲、そして鑑賞。"
     }
   },
+  "search": {
+    "pageTitle": "検索",
+    "inputPlaceholder": "動画を検索...",
+    "placeholder": "動画を検索してみましょう",
+    "resultsFor": "「{{query}}」の検索結果",
+    "noResults": "検索結果がありません",
+    "noResultsDesc": "別のキーワードで検索してみてください。",
+    "endOfResults": "すべての検索結果を読み込みました",
+    "loadError": "検索に失敗しました",
+    "retry": "再試行"
+  },
   "apiErrors": {
     "channel.invalid_youtube_url": "無効なYouTube URLまたはサポートされていない形式です。",
     "channel.invalid_channel_id": "無効なチャンネルIDです。",

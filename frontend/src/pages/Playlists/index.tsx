@@ -8,9 +8,8 @@ import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { AddPlaylistDialog } from "../../components/AddPlaylistDialog";
 import { getPlaylist } from "../../api/generated/playlist";
 import { formatTimeAgo } from "../../utils/format";
+import { PAGE_SIZES.PLAYLISTSS } from "../../constants";
 import type { GetPlaylists200ItemsItem } from "../../api/generated/antiYtApi.schemas";
-
-const PAGE_SIZE = 12;
 
 function PlaylistCard({ playlist }: { playlist: GetPlaylists200ItemsItem }) {
   const { t } = useTranslation();
@@ -84,7 +83,7 @@ function PlaylistsContent() {
     setIsLoading(true);
     setError(false);
     try {
-      const res = await getPlaylist().getPlaylists({ limit: PAGE_SIZE });
+      const res = await getPlaylist().getPlaylists({ limit: PAGE_SIZES.PLAYLISTS });
       setPlaylists(res.items);
       setHasNext(res.has_next);
       hasNextRef.current = res.has_next;
@@ -106,7 +105,7 @@ function PlaylistsContent() {
     setIsLoadingMore(true);
     try {
       const res = await getPlaylist().getPlaylists({
-        limit: PAGE_SIZE,
+        limit: PAGE_SIZES.PLAYLISTS,
         cursor: cursorRef.current,
       });
       setPlaylists((prev) => [...prev, ...res.items]);
