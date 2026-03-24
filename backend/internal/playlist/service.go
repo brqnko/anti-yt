@@ -155,6 +155,14 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 		return nil, err
 	}
 
+	if err := playlist.SetVideoCount(len(allVideoIDs)); err != nil {
+		return nil, err
+	}
+
+	if _, err := NewPlaylistRepository(q).Save(ctx, userID, playlist); err != nil {
+		return nil, err
+	}
+
 	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}

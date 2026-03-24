@@ -6,8 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 import type {
-  GetSearch200,
-  GetSearchParams,
   GetVideosVideoId200
 } from './antiYtApi.schemas';
 
@@ -18,19 +16,6 @@ import { customInstance } from '../mutator';
 
   export const getVideo = () => {
 /**
- * 検索を行う
- * @summary Get search result
- */
-const getSearch = (
-    params: GetSearchParams,
- ) => {
-      return customInstance<GetSearch200>(
-      {url: `/api/v1/search`, method: 'GET',
-        params
-    },
-      );
-    }
-  /**
  * 特定の動画の詳細を取得する
  * @summary Get video detail
  */
@@ -42,6 +27,5 @@ const getVideosVideoId = (
     },
       );
     }
-  return {getSearch,getVideosVideoId}};
-export type GetSearchResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getVideo>['getSearch']>>>
+  return {getVideosVideoId}};
 export type GetVideosVideoIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getVideo>['getVideosVideoId']>>>

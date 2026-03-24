@@ -22,6 +22,7 @@ const History = lazy(() => import("./pages/History/index.jsx"));
 const Playlists = lazy(() => import("./pages/Playlists/index.jsx"));
 const PlaylistDetail = lazy(() => import("./pages/PlaylistDetail/index.jsx"));
 const Explore = lazy(() => import("./pages/Explore/index.jsx"));
+const Search = lazy(() => import("./pages/Search/index.jsx"));
 const NotFound = lazy(() => import("./pages/_404.jsx"));
 import "./style.css";
 
@@ -37,6 +38,7 @@ function AppContent() {
       <Route path="/history" component={History} />
       <Route path="/playlists" component={Playlists} />
       <Route path="/playlists/:playlistId" component={PlaylistDetail} />
+      <Route path="/search" component={Search} />
       <Route path="/profile" component={Profile} />
       <Route path="/register" component={Register} />
       <Route path="/terms" component={Terms} />

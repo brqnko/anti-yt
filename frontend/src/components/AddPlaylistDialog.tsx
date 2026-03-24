@@ -2,12 +2,11 @@ import { useState, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { getPlaylist } from "../api/generated/playlist";
 import { getApiErrorCode } from "../utils/api-error";
-import type { PostPlaylists201 } from "../api/generated/antiYtApi.schemas";
 
 interface AddPlaylistDialogProps {
   open: boolean;
   onClose: () => void;
-  onAdded: (playlist: PostPlaylists201) => void;
+  onAdded: () => void;
 }
 
 export function AddPlaylistDialog({
@@ -49,14 +48,14 @@ export function AddPlaylistDialog({
     setIsSubmitting(true);
     setError(null);
     try {
-      const result = await getPlaylist().postPlaylists({
+      await getPlaylist().postPlaylists({
         playlist_title: trimmedTitle,
         playlist_description: description.trim(),
         playlist_type: "normal",
         playlist_visibility: "private",
         ...(importUrl.trim() ? { base_playlist_url: importUrl.trim() } : {}),
       });
-      onAdded(result);
+      onAdded();
       onClose();
     } catch (err) {
       const code = getApiErrorCode(err);

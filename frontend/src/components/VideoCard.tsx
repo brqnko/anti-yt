@@ -132,6 +132,11 @@ export function VideoCard({
                   />
                   <span class="truncate">{channel.displayName}</span>
                 </a>
+                {dateStr && (
+                  <span class="text-xs flex-shrink-0">
+                    {formatTimeAgo(dateStr, t)}
+                  </span>
+                )}
               </div>
             )}
             {watchedAt && (

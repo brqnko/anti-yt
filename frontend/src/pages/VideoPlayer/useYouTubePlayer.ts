@@ -142,7 +142,7 @@ export function useYouTubePlayer({
       const player = new window.YT.Player(containerId, {
         videoId,
         playerVars: {
-          autoplay: 0,
+          autoplay: 1,
           modestbranding: 1,
           rel: 0,
           controls: 0,

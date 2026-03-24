@@ -6,11 +6,10 @@ import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getVideo } from "../../api/generated/video";
-import { getHistory } from "../../api/generated/history";
 import { getPlaylist } from "../../api/generated/playlist";
 import { formatDuration, formatSubscriberCount } from "../../utils/format";
 import { buildWatchUrl } from "../../utils/url";
-import { getCookie } from "../../utils/cookie";
+import { PAGE_SIZES } from "../../constants";
 import type {
   GetVideosVideoId200,
   GetPlaylists200ItemsItem,
@@ -18,32 +17,10 @@ import type {
   GetPlaylistsPlaylistIdVideos200ItemsItem,
 } from "../../api/generated/antiYtApi.schemas";
 import { useYouTubePlayer, PlayerState } from "./useYouTubePlayer";
+import { useHeartbeat } from "./useHeartbeat";
 import { Linkify } from "../../components/Linkify";
 
 const PLAYER_CONTAINER_ID = "yt-player";
-const HEARTBEAT_INTERVAL_MS = 60_000;
-const HEARTBEAT_DEBOUNCE_MS = 2_000;
-
-/** Fire-and-forget heartbeat that survives page unload / navigation. */
-function sendBeaconHeartbeat(videoId: string, positionSeconds: number): void {
-  const url = `/api/v1/videos/${encodeURIComponent(videoId)}/heartbeats`;
-  const body = JSON.stringify({ current_position_seconds: positionSeconds });
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  const csrfToken = getCookie("csrf_token");
-  if (csrfToken) headers["x-csrf-token"] = csrfToken;
-
-  try {
-    fetch(url, {
-      method: "POST",
-      headers,
-      body,
-      credentials: "include",
-      keepalive: true,
-    });
-  } catch {
-    // best-effort — ignore failures on teardown
-  }
-}
 
 function VideoPlayerContent() {
   const { t } = useTranslation();
@@ -64,7 +41,6 @@ function VideoPlayerContent() {
       : null,
   );
   const [noteText, setNoteText] = useState("");
-  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(false);
@@ -73,11 +49,6 @@ function VideoPlayerContent() {
 
   const playerWrapperRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
-  const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const heartbeatDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const heartbeatFailCountRef = useRef(0);
-  const finalHeartbeatSentRef = useRef(false);
-  const lastFinalSentAtRef = useRef(0);
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const descRef = useRef<HTMLDivElement>(null);
   const [descOverflows, setDescOverflows] = useState(false);
@@ -96,17 +67,17 @@ function VideoPlayerContent() {
   const playlistCursorRef = useRef<string | undefined>(undefined);
   const [removingVideoId, setRemovingVideoId] = useState<string | null>(null);
   const [userPlaylists, setUserPlaylists] = useState<GetPlaylists200ItemsItem[]>([]);
+  const [playlistDialogLoading, setPlaylistDialogLoading] = useState(false);
   const [addingToPlaylist, setAddingToPlaylist] = useState<string | null>(null);
   const [addedToPlaylist, setAddedToPlaylist] = useState<string | null>(null);
   const [failedToAddPlaylist, setFailedToAddPlaylist] = useState<string | null>(null);
   const [addedPlaylistIds, setAddedPlaylistIds] = useState<Set<string>>(new Set());
+  const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
 
   // Refs for values used in keyboard handler / cleanup to avoid stale closures
   const currentTimeRef = useRef(0);
   const durationRef = useRef(0);
   const volumeRef = useRef(100);
-  const videoIdRef = useRef<string | null>(null);
-  videoIdRef.current = video?.video_id ?? null;
 
   // Refs for auto-play next video in playlist
   const playlistVideosRef = useRef(playlistVideos);
@@ -133,7 +104,7 @@ function VideoPlayerContent() {
     setPlaylistLoading(true);
     Promise.allSettled([
       getPlaylist().getPlaylistsPlaylistId(playlistId),
-      getPlaylist().getPlaylistsPlaylistIdVideos(playlistId, { limit: 20 }),
+      getPlaylist().getPlaylistsPlaylistIdVideos(playlistId, { limit: PAGE_SIZES.PLAYLIST_VIDEOS }),
     ]).then(([infoRes, videosRes]) => {
       if (infoRes.status === "fulfilled") {
         setPlaylistInfo(infoRes.value);
@@ -152,7 +123,7 @@ function VideoPlayerContent() {
     setPlaylistLoadingMore(true);
     try {
       const res = await getPlaylist().getPlaylistsPlaylistIdVideos(playlistId, {
-        limit: 20,
+        limit: PAGE_SIZES.PLAYLIST_VIDEOS,
         cursor: playlistCursorRef.current,
       });
       setPlaylistVideos((prev) => [...prev, ...res.items]);
@@ -187,14 +158,18 @@ function VideoPlayerContent() {
     [playlistId, removingVideoId],
   );
 
-  // Fetch user playlists for "Add to Playlist" (when not in playlist context)
-  useEffect(() => {
-    if (playlistId) return;
-    getPlaylist()
-      .getPlaylists({ limit: 50 })
-      .then((res) => setUserPlaylists(res.items))
-      .catch(() => {});
-  }, [playlistId]);
+  const openPlaylistDialog = useCallback(async () => {
+    setShowPlaylistDialog(true);
+    setPlaylistDialogLoading(true);
+    try {
+      const res = await getPlaylist().getPlaylists({ limit: 50 });
+      setUserPlaylists(res.items);
+    } catch {
+      // silently fail
+    } finally {
+      setPlaylistDialogLoading(false);
+    }
+  }, []);
 
   const handleAddToPlaylist = useCallback(
     async (plId: string) => {
@@ -207,13 +182,6 @@ function VideoPlayerContent() {
         });
         setAddedToPlaylist(plId);
         setAddedPlaylistIds((prev) => new Set(prev).add(plId));
-        setUserPlaylists((prev) =>
-          prev.map((p) =>
-            p.playlist_id === plId
-              ? { ...p, playlist_video_count: p.playlist_video_count + 1 }
-              : p,
-          ),
-        );
         setTimeout(() => setAddedToPlaylist(null), 2000);
       } catch {
         setFailedToAddPlaylist(plId);
@@ -273,87 +241,12 @@ function VideoPlayerContent() {
   durationRef.current = duration;
   volumeRef.current = volume;
 
-  // Send a final heartbeat via keepalive fetch (survives unload). Guarded to fire at most once per pause/unload.
-  const sendFinalHeartbeat = useCallback(() => {
-    if (finalHeartbeatSentRef.current) return;
-    const now = Date.now();
-    if (now - lastFinalSentAtRef.current < 10_000) return;
-    const vid = videoIdRef.current;
-    if (vid) {
-      finalHeartbeatSentRef.current = true;
-      lastFinalSentAtRef.current = now;
-      sendBeaconHeartbeat(vid, Math.floor(currentTimeRef.current));
-    }
-  }, []);
-
-  // Send final heartbeat on tab close / hard navigation while playing
-  useEffect(() => {
-    if (!video || playerState !== PlayerState.PLAYING) return;
-
-    const handler = () => sendFinalHeartbeat();
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [video, playerState, sendFinalHeartbeat]);
-
-  // Heartbeat for watch time tracking (with debounce on play start)
-  useEffect(() => {
-    if (!video || playerState !== PlayerState.PLAYING) {
-      if (heartbeatDebounceRef.current) {
-        clearTimeout(heartbeatDebounceRef.current);
-        heartbeatDebounceRef.current = null;
-      }
-      if (heartbeatRef.current) {
-        clearInterval(heartbeatRef.current);
-        heartbeatRef.current = null;
-      }
-      return;
-    }
-
-    // Reset guard — playback resumed, allow a new final heartbeat on next pause/unload
-    finalHeartbeatSentRef.current = false;
-
-    const sendHeartbeat = () => {
-      getHistory()
-        .postVideosVideoIdHeartbeats(video.video_id, {
-          current_position_seconds: Math.floor(currentTimeRef.current),
-        })
-        .then((res) => {
-          heartbeatFailCountRef.current = 0;
-          const remaining = res.daily_remaining_seconds ?? null;
-          setRemainingSeconds(remaining);
-          if (remaining !== null && remaining <= 0) {
-            togglePlay();
-          }
-        })
-        .catch((err: unknown) => {
-          const status = (err as { response?: { status?: number } })?.response?.status;
-          console.warn(`[heartbeat] request failed (status=${status ?? "unknown"})`);
-          heartbeatFailCountRef.current += 1;
-          if (heartbeatFailCountRef.current >= 3) {
-            console.warn("[heartbeat] 3 consecutive failures — pausing playback");
-            togglePlay();
-          }
-        });
-    };
-
-    // Debounce: wait before sending first heartbeat to avoid bursts from rapid pause/play
-    heartbeatDebounceRef.current = setTimeout(() => {
-      sendHeartbeat();
-      heartbeatRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
-    }, HEARTBEAT_DEBOUNCE_MS);
-
-    return () => {
-      if (heartbeatDebounceRef.current) {
-        clearTimeout(heartbeatDebounceRef.current);
-        heartbeatDebounceRef.current = null;
-      }
-      if (heartbeatRef.current) {
-        clearInterval(heartbeatRef.current);
-        heartbeatRef.current = null;
-      }
-      sendFinalHeartbeat();
-    };
-  }, [video, playerState, togglePlay, sendFinalHeartbeat]);
+  const { remainingSeconds } = useHeartbeat({
+    videoId: video?.video_id ?? null,
+    playerState,
+    currentTimeRef,
+    togglePlay,
+  });
 
   // Check if description overflows (ResizeObserver for font-load safety)
   useEffect(() => {
@@ -499,22 +392,6 @@ function VideoPlayerContent() {
   );
 
   const displayProgress = seekProgress ?? (duration > 0 ? (currentTime / duration) * 100 : 0);
-  // Local countdown: decrement remainingSeconds every second while playing
-  useEffect(() => {
-    if (remainingSeconds === null || playerState !== PlayerState.PLAYING) return;
-    const timer = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev === null) return null;
-        if (prev <= 1) {
-          togglePlay();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [remainingSeconds !== null, playerState, togglePlay]);
-
   const isPlaying = playerState === PlayerState.PLAYING;
 
   if (isLoading) {
@@ -731,6 +608,13 @@ function VideoPlayerContent() {
                     </div>
                   </div>
                 </div>
+                <button
+                  class="flex items-center gap-2 h-10 px-4 rounded-lg bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white font-semibold text-sm transition-all cursor-pointer shadow-sm hover:shadow-md flex-shrink-0 self-end"
+                  onClick={openPlaylistDialog}
+                >
+                  <span class="material-symbols-outlined text-primary text-xl">playlist_add</span>
+                  {t("videoPlayer.addToPlaylist")}
+                </button>
               </div>
 
               {/* Description */}
@@ -836,7 +720,7 @@ function VideoPlayerContent() {
                       </h2>
                       <p class="text-[11px] text-text-muted-light dark:text-text-muted-dark">
                         {(playlistVideos.findIndex((v) => v.video_id === videoId) + 1) || "—"}{" "}
-                        / {playlistVideos.length}
+                        / {playlistInfo?.playlist_video_count ?? playlistVideos.length}
                       </p>
                     </div>
                   </div>
@@ -922,77 +806,92 @@ function VideoPlayerContent() {
               </div>
             )}
 
-            {/* Add to Playlist (when not in playlist context) */}
-            {!playlistId && (
-              <div class="space-y-4">
-                <div class="flex items-center justify-between px-2">
-                  <h2 class="font-bold text-md tracking-tight flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary text-xl">
-                      playlist_add
-                    </span>
-                    {t("videoPlayer.addToPlaylist")}
-                  </h2>
-                </div>
-                <div class="flex flex-col gap-2">
-                  {userPlaylists.map((pl) => {
-                    const alreadyAdded = addedPlaylistIds.has(pl.playlist_id);
-                    return (
-                      <button
-                        key={pl.playlist_id}
-                        class={`flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left ${
-                          alreadyAdded || addedToPlaylist === pl.playlist_id
-                            ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-800 cursor-default opacity-70"
-                            : failedToAddPlaylist === pl.playlist_id
-                              ? "bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-800 cursor-pointer"
-                              : "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark hover:border-primary/30 cursor-pointer"
-                        }`}
-                        disabled={alreadyAdded || addingToPlaylist === pl.playlist_id}
-                        onClick={() => handleAddToPlaylist(pl.playlist_id)}
-                      >
-                        <span class="material-symbols-outlined text-primary text-xl">
-                          playlist_play
-                        </span>
-                        <div class="min-w-0 flex-1">
-                          <p class="text-sm font-semibold text-charcoal dark:text-white truncate">
-                            {pl.playlist_title}
-                          </p>
-                          <p class="text-[11px] text-text-muted-light dark:text-text-muted-dark">
-                            {t("playlists.videoCount", {
-                              count: pl.playlist_video_count,
-                            })}
-                          </p>
-                        </div>
-                        {alreadyAdded || addedToPlaylist === pl.playlist_id ? (
-                          <span class="material-symbols-outlined text-green-600 dark:text-green-400 text-xl">
-                            check_circle
-                          </span>
-                        ) : failedToAddPlaylist === pl.playlist_id ? (
-                          <span class="material-symbols-outlined text-red-500 text-xl">
-                            error
-                          </span>
-                        ) : addingToPlaylist === pl.playlist_id ? (
-                          <span class="material-symbols-outlined animate-spin text-primary text-xl">
-                            progress_activity
-                          </span>
-                        ) : (
-                          <span class="material-symbols-outlined text-text-muted-light dark:text-text-muted-dark text-xl">
-                            add
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                  {userPlaylists.length === 0 && (
-                    <p class="text-sm text-text-muted-light dark:text-text-muted-dark text-center py-4">
-                      {t("videoPlayer.noPlaylists")}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
           </aside>
         </div>
       </div>
+      {/* Add to Playlist Dialog */}
+      {showPlaylistDialog && (
+        <div
+          class="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("videoPlayer.addToPlaylist")}
+        >
+          <div
+            class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowPlaylistDialog(false)}
+          />
+          <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 p-6 max-w-md w-full max-h-[80vh] flex flex-col">
+            <button
+              class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
+              onClick={() => setShowPlaylistDialog(false)}
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+            <h2 class="text-xl font-bold text-charcoal dark:text-white mb-4">
+              {t("videoPlayer.addToPlaylist")}
+            </h2>
+            <div class="flex flex-col gap-2 overflow-y-auto flex-1">
+              {playlistDialogLoading ? (
+                <LoadingSpinner size="sm" className="py-8" />
+              ) : userPlaylists.length === 0 ? (
+                <p class="text-sm text-text-muted-light dark:text-text-muted-dark text-center py-8">
+                  {t("videoPlayer.noPlaylists")}
+                </p>
+              ) : (
+                userPlaylists.map((pl) => {
+                  const alreadyAdded = addedPlaylistIds.has(pl.playlist_id);
+                  return (
+                    <button
+                      key={pl.playlist_id}
+                      class={`flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left ${
+                        alreadyAdded || addedToPlaylist === pl.playlist_id
+                          ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-800 cursor-default opacity-70"
+                          : failedToAddPlaylist === pl.playlist_id
+                            ? "bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-800 cursor-pointer"
+                            : "bg-background-light dark:bg-neutral-800 border-border-light dark:border-border-dark hover:border-primary/30 cursor-pointer"
+                      }`}
+                      disabled={alreadyAdded || addingToPlaylist === pl.playlist_id}
+                      onClick={() => handleAddToPlaylist(pl.playlist_id)}
+                    >
+                      <span class="material-symbols-outlined text-primary text-xl">
+                        playlist_play
+                      </span>
+                      <div class="min-w-0 flex-1">
+                        <p class="text-sm font-semibold text-charcoal dark:text-white truncate">
+                          {pl.playlist_title}
+                        </p>
+                        <p class="text-[11px] text-text-muted-light dark:text-text-muted-dark">
+                          {t("playlists.videoCount", {
+                            count: pl.playlist_video_count,
+                          })}
+                        </p>
+                      </div>
+                      {alreadyAdded || addedToPlaylist === pl.playlist_id ? (
+                        <span class="material-symbols-outlined text-green-600 dark:text-green-400 text-xl">
+                          check_circle
+                        </span>
+                      ) : failedToAddPlaylist === pl.playlist_id ? (
+                        <span class="material-symbols-outlined text-red-500 text-xl">
+                          error
+                        </span>
+                      ) : addingToPlaylist === pl.playlist_id ? (
+                        <span class="material-symbols-outlined animate-spin text-primary text-xl">
+                          progress_activity
+                        </span>
+                      ) : (
+                        <span class="material-symbols-outlined text-text-muted-light dark:text-text-muted-dark text-xl">
+                          add
+                        </span>
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

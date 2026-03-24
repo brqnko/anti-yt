@@ -8,6 +8,7 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/feed"
 	"github.com/brqnko/anti-yt/backend/internal/history"
 	"github.com/brqnko/anti-yt/backend/internal/playlist"
 	"github.com/brqnko/anti-yt/backend/internal/user"
@@ -16,11 +17,6 @@ import (
 )
 
 var _ StrictServerInterface = (*APIHandler)(nil)
-
-const (
-	internalErrorTitle  = "Internal Server Error"
-	internalErrorDetail = "Something went wrong!"
-)
 
 type APIHandler struct {
 	db *pgxpool.Pool
@@ -31,6 +27,7 @@ type APIHandler struct {
 	videoService    *video.Service
 	playlistService *playlist.Service
 	historyService  *history.Service
+	feedService     *feed.Service
 
 	serverURL   string
 	frontendURL string
@@ -56,6 +53,7 @@ func NewAPIHandler(
 		videoService:    video.NewService(db),
 		playlistService: playlist.NewService(db, ytService),
 		historyService:  history.NewService(db),
+		feedService:     feed.NewService(db, ytService, rssFetchDuration),
 
 		serverURL:   serverURL,
 		frontendURL: frontendURL,

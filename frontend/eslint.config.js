@@ -1,2 +1,2 @@
 import preact from "eslint-config-preact";
-export default [...preact];
+export default [{ ignores: ["dist/"] }, ...preact];

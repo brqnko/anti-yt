@@ -41,7 +41,7 @@ func (c *channelRepositoryImpl) Save(ctx context.Context, channel *Channel) (_ i
 		return 0, err
 	}
 
-	saveChannel, err := c.q.UpsertChannel(ctx, sqlc.UpsertChannelParams{
+	row, err := c.q.UpsertChannel(ctx, sqlc.UpsertChannelParams{
 		ExternalID:                string(channel.Channel.ID),
 		ExternalDisplayName:       channel.Channel.DisplayName,
 		ExternalCustomID:          channel.Channel.CustomID,
@@ -58,7 +58,9 @@ func (c *channelRepositoryImpl) Save(ctx context.Context, channel *Channel) (_ i
 		return 0, err
 	}
 
-	return saveChannel, nil
+	channel.ID = row.PublicID
+
+	return row.MChannelID, nil
 }
 
 func (c *channelRepositoryImpl) FindForUpdate(ctx context.Context, id uuid.UUID) (_ *Channel, err error) {

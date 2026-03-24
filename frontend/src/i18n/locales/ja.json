@@ -311,7 +311,7 @@
     "viewPlaylist": "プレイリストを見る",
     "addToPlaylist": "プレイリストに追加",
     "noPlaylists": "プレイリストがありません。",
-    "remaining": "残り",
+    "remaining": "今日の残り",
     "mindfulMode": "マインドフルモード有効",
     "noDistractions": "邪魔なものは検出されていません",
     "quality": "画質",
@@ -384,7 +384,6 @@
     "createdAt": "作成日: {{time}}",
     "play": "再生",
     "empty": "プレイリストがありません",
-    "emptyDesc": "プレイリストを作成して、キュレーションされたコンテンツを整理しましょう。",
     "loadError": "プレイリストの読み込みに失敗しました",
     "retry": "再試行"
   },
@@ -454,6 +453,17 @@
       "politics": "政治の動向を把握しましょう。",
       "music": "理論、作曲、そして鑑賞。"
     }
+  },
+  "search": {
+    "pageTitle": "検索",
+    "inputPlaceholder": "動画を検索...",
+    "placeholder": "動画を検索してみましょう",
+    "resultsFor": "「{{query}}」の検索結果",
+    "noResults": "検索結果がありません",
+    "noResultsDesc": "別のキーワードで検索してみてください。",
+    "endOfResults": "すべての検索結果を読み込みました",
+    "loadError": "検索に失敗しました",
+    "retry": "再試行"
   },
   "apiErrors": {
     "channel.invalid_youtube_url": "無効なYouTube URLまたはサポートされていない形式です。",

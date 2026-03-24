@@ -107,6 +107,49 @@ func (v *valuableChannelQueryServiceImpl) GetValuableChannels(ctx context.Contex
 
 var _ ValuableChannelQueryService = (*valuableChannelQueryServiceImpl)(nil)
 
+type GetChannelDetailView struct {
+	ChannelID          uuid.UUID
+	CustomID           string
+	DisplayName        string
+	Description        string
+	IconURL            string
+	SubscribersCount   int64
+}
+
+type ChannelDetailQueryService interface {
+	GetChannelDetail(ctx context.Context, channelID uuid.UUID) (GetChannelDetailView, error)
+}
+
+type channelDetailQueryServiceImpl struct {
+	q sqlc.Querier
+}
+
+func NewChannelDetailQueryService(db *pgxpool.Pool) ChannelDetailQueryService {
+	return &channelDetailQueryServiceImpl{
+		q: sqlc.New(db),
+	}
+}
+
+func (c *channelDetailQueryServiceImpl) GetChannelDetail(ctx context.Context, channelID uuid.UUID) (_ GetChannelDetailView, err error) {
+	defer util.Wrap(&err, "channelDetailQueryService.GetChannelDetail(channelID=%s)", channelID)
+
+	row, err := c.q.GetChannelByPublicID(ctx, channelID)
+	if err != nil {
+		return GetChannelDetailView{}, err
+	}
+
+	return GetChannelDetailView{
+		ChannelID:        row.PublicID,
+		CustomID:         row.ExternalCustomID,
+		DisplayName:      row.ExternalDisplayName,
+		Description:      row.ExternalDescription,
+		IconURL:          row.ExternalIconUrl,
+		SubscribersCount: row.ExternalSubscribersCount,
+	}, nil
+}
+
+var _ ChannelDetailQueryService = (*channelDetailQueryServiceImpl)(nil)
+
 type GetChannelUploadsView struct {
 	ExternalVideoCreatedAt     time.Time
 	ExternalVideoLengthSeconds int
@@ -162,64 +205,3 @@ func (u *uploadsQueryServiceImpl) GetChannelUploads(ctx context.Context, userID,
 }
 
 var _ UploadsQueryService = (*uploadsQueryServiceImpl)(nil)
-
-type GetVideoFeedView struct {
-	ChannelId                  uuid.UUID
-	ExternalChannelDisplayName string
-	ExternalChannelIconUrl     string
-	ExternalVideoCreatedAt     time.Time
-	ExternalVideoLengthSeconds int
-	ExternalVideoThumbnailUrl  string
-	ExternalVideoTitle         string
-	LastWatchSeconds           *int
-	VideoId                    uuid.UUID
-}
-
-type FeedQueryService interface {
-	GetVideoFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetVideoFeedView, error)
-}
-
-type feedQueryServiceImpl struct {
-	q sqlc.Querier
-}
-
-func NewFeedQueryService(db *pgxpool.Pool) FeedQueryService {
-	return &feedQueryServiceImpl{
-		q: sqlc.New(db),
-	}
-}
-
-func (f *feedQueryServiceImpl) GetVideoFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, err error) {
-	defer util.Wrap(&err, "feedQueryService.GetVideoFeed(userID=%s)", userID)
-
-	rows, err := f.q.ListSubscriptionFeed(ctx, sqlc.ListSubscriptionFeedParams{
-		UserID:     userID,
-		Cursor:     cursor,
-		QueryLimit: limit,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	views := make([]GetVideoFeedView, len(rows))
-	for i, row := range rows {
-		var lastWatchSeconds *int
-		if row.LastWatchSeconds != 0 {
-			lastWatchSeconds = &row.LastWatchSeconds
-		}
-		views[i] = GetVideoFeedView{
-			ChannelId:                  row.ChannelID,
-			ExternalChannelDisplayName: row.ExternalDisplayname,
-			ExternalChannelIconUrl:     row.ExternalChannelIconUrl,
-			ExternalVideoCreatedAt:     row.ExternalCreatedAt,
-			ExternalVideoLengthSeconds: row.ExternalLengthSeconds,
-			ExternalVideoThumbnailUrl:  row.ExternalVideoThumbnailUrl,
-			ExternalVideoTitle:         row.ExternalTitle,
-			LastWatchSeconds:           lastWatchSeconds,
-			VideoId:                    row.VideoID,
-		}
-	}
-	return views, nil
-}
-
-var _ FeedQueryService = (*feedQueryServiceImpl)(nil)

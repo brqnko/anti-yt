@@ -4,16 +4,6 @@ import (
 	"context"
 )
 
-func (h *APIHandler) GetSearch(ctx context.Context, request GetSearchRequestObject) (GetSearchResponseObject, error) {
-	// TODO
-	return GetSearch500JSONResponse{
-		InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-			Detail: internalErrorDetail,
-			Title:  internalErrorTitle,
-		},
-	}, nil
-}
-
 func (h *APIHandler) GetVideosVideoId(ctx context.Context, request GetVideosVideoIdRequestObject) (GetVideosVideoIdResponseObject, error) {
 	videoDetail, err := h.videoService.GetVideoDetail(ctx, request.VideoId)
 	if err != nil {

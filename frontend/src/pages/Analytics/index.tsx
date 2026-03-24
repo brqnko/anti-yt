@@ -1,30 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getHistory } from "../../api/generated/history";
 import { getUser } from "../../api/generated/user";
+import { toUTCDateStr, getLastNDaysUTC, isoToDateStr, formatUTCDateLabel } from "../../utils/format";
 import type { GetStatisticsWeekly200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 
-/** Format a Date as YYYY-MM-DD. */
-function toDateStr(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-/** Return the 7 dates from (today - 6) to today. */
-function getLast7Days(): Date[] {
-  const today = new Date();
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(today.getDate() - 6 + i);
-    return d;
-  });
-}
-
 function AnalyticsContent() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   useTitle(t("analytics.pageTitle"));
 
   const [items, setItems] = useState<GetStatisticsWeekly200ItemsItem[]>([]);
@@ -37,9 +23,9 @@ function AnalyticsContent() {
     setIsLoading(true);
     setError(false);
     try {
-      const startDay = getLast7Days()[0];
+      const startDay = getLastNDaysUTC(7)[0];
       const [weeklyData, userData] = await Promise.all([
-        getHistory().getStatisticsWeekly({ target_week: toDateStr(startDay) }),
+        getHistory().getStatisticsWeekly({ target_week: toUTCDateStr(startDay) }),
         getUser().getUsersMeStatus(),
       ]);
       setItems(weeklyData.items);
@@ -59,21 +45,19 @@ function AnalyticsContent() {
   const dailyLimitHours = dailyLimitSeconds != null ? dailyLimitSeconds / 3600 : null;
 
   const dailyBars = useMemo(() => {
-    const days = getLast7Days();
-    const todayStr = toDateStr(new Date());
+    const days = getLastNDaysUTC(7);
+    const todayStr = toUTCDateStr(new Date());
     return days.map((date) => {
-      const dayStr = toDateStr(date);
-      const item = items.find((it) => it.target_day === dayStr);
-      const hours = (item?.video_watch_seconds ?? 0) / 3600;
+      const dayStr = toUTCDateStr(date);
+      const item = items.find((it) => isoToDateStr(it.target_day) === dayStr);
+      const seconds = item?.video_watch_seconds ?? 0;
+      const hours = seconds / 3600;
       const videos = item?.video_watch_count ?? 0;
       const isToday = dayStr === todayStr;
-      const label = date.toLocaleDateString(i18n.language, {
-        month: "numeric",
-        day: "numeric",
-      });
-      return { hours, videos, label, isToday };
+      const label = formatUTCDateLabel(date);
+      return { hours, seconds, videos, label, isToday };
     });
-  }, [items, isLoading, i18n.language]);
+  }, [items, isLoading]);
 
   const totalSeconds = useMemo(
     () => items.reduce((s, d) => s + d.video_watch_seconds, 0),
@@ -126,18 +110,19 @@ function AnalyticsContent() {
     }
   }, [isLoading, items]);
 
-  // Goal progress: less watch time = higher score
-  // average of max(0, 1 - watched/limit) across all 7 days
+  // Goal progress: limit as 100%, less watch = higher score
+  // e.g. limit=1h, watched=30m → 200%, limit=1h, watched=1h → 100%, limit=1h, watched=2h → 50%
   const goalProgress = useMemo(() => {
     if (dailyLimitSeconds == null || dailyLimitSeconds === 0) return null;
-    const days = getLast7Days();
+    const days = getLastNDaysUTC(7);
     const scores = days.map((date) => {
-      const dayStr = toDateStr(date);
-      const item = items.find((it) => it.target_day === dayStr);
+      const dayStr = toUTCDateStr(date);
+      const item = items.find((it) => isoToDateStr(it.target_day) === dayStr);
       const watched = item?.video_watch_seconds ?? 0;
-      return Math.max(0, 1 - watched / dailyLimitSeconds);
+      if (watched === 0) return 100;
+      return Math.round((dailyLimitSeconds / watched) * 100);
     });
-    return Math.round((scores.reduce((a, b) => a + b, 0) / 7) * 100);
+    return Math.round(scores.reduce((a, b) => a + b, 0) / 7);
   }, [items, dailyLimitSeconds]);
 
   if (isLoading) {
@@ -246,7 +231,7 @@ function AnalyticsContent() {
                       class="relative z-10 flex flex-col items-center gap-2 h-full justify-end flex-1 group cursor-pointer"
                       role="button"
                       tabIndex={0}
-                      aria-label={`${bar.label}: ${bar.hours.toFixed(1)}h, ${t("analytics.tooltipVideos", { count: bar.videos })}`}
+                      aria-label={`${bar.label}: ${formatHM(bar.seconds)}, ${t("analytics.tooltipVideos", { count: bar.videos })}`}
                       onClick={toggle}
                       onKeyDown={(e: KeyboardEvent) => {
                         if (e.key === "Enter" || e.key === " ") {
@@ -274,7 +259,7 @@ function AnalyticsContent() {
                           role="tooltip"
                         >
                           <span>{t("analytics.tooltipVideos", { count: bar.videos })}</span>
-                          <span>{t("analytics.tooltipHours", { hours: bar.hours.toFixed(1) })}</span>
+                          <span>{formatHM(bar.seconds)}</span>
                         </div>
                       </div>
                       <p class={`text-xs font-bold tracking-wider ${

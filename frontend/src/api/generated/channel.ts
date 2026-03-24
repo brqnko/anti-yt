@@ -6,13 +6,12 @@
  * OpenAPI spec version: 1.0.0
  */
 import type {
+  GetChannelsChannelId200,
   GetChannelsChannelIdVideos200,
   GetChannelsChannelIdVideosParams,
   GetChannelsSubscribed200,
   GetChannelsSubscribedParams,
-  GetFeed200,
   GetFeedChannels200,
-  GetFeedParams,
   PostChannelsSubscribe201,
   PostChannelsSubscribeBody
 } from './antiYtApi.schemas';
@@ -32,6 +31,18 @@ const getFeedChannels = (
  ) => {
       return customInstance<GetFeedChannels200>(
       {url: `/api/v1/feed/channels`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * チャンネルの詳細情報を取得する
+ * @summary Get channel detail
+ */
+const getChannelsChannelId = (
+    channelId: string,
+ ) => {
+      return customInstance<GetChannelsChannelId200>(
+      {url: `/api/v1/channels/${channelId}`, method: 'GET'
     },
       );
     }
@@ -88,23 +99,10 @@ const deleteChannelsChannelIdSubscribe = (
     },
       );
     }
-  /**
- * チャンネル登録しているチャンネルの最新の一覧を取得
- * @summary Get latest videos
- */
-const getFeed = (
-    params: GetFeedParams,
- ) => {
-      return customInstance<GetFeed200>(
-      {url: `/api/v1/feed`, method: 'GET',
-        params
-    },
-      );
-    }
-  return {getFeedChannels,getChannelsChannelIdVideos,getChannelsSubscribed,postChannelsSubscribe,deleteChannelsChannelIdSubscribe,getFeed}};
+  return {getFeedChannels,getChannelsChannelId,getChannelsChannelIdVideos,getChannelsSubscribed,postChannelsSubscribe,deleteChannelsChannelIdSubscribe}};
 export type GetFeedChannelsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getFeedChannels']>>>
+export type GetChannelsChannelIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getChannelsChannelId']>>>
 export type GetChannelsChannelIdVideosResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getChannelsChannelIdVideos']>>>
 export type GetChannelsSubscribedResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getChannelsSubscribed']>>>
 export type PostChannelsSubscribeResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['postChannelsSubscribe']>>>
 export type DeleteChannelsChannelIdSubscribeResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['deleteChannelsChannelIdSubscribe']>>>
-export type GetFeedResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getFeed']>>>

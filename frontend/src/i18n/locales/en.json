@@ -311,7 +311,7 @@
     "viewPlaylist": "View Full Playlist",
     "addToPlaylist": "Add to Playlist",
     "noPlaylists": "No playlists yet.",
-    "remaining": "Remaining",
+    "remaining": "Today's remaining",
     "mindfulMode": "Mindful Mode Active",
     "noDistractions": "No distractions detected",
     "quality": "Quality",
@@ -385,7 +385,6 @@
     "createdAt": "Created {{time}}",
     "play": "Play",
     "empty": "No playlists yet",
-    "emptyDesc": "Create a playlist to organize your curated content.",
     "loadError": "Failed to load playlists",
     "retry": "Retry"
   },
@@ -455,6 +454,17 @@
       "politics": "Stay informed about political developments.",
       "music": "Theory, composition, and appreciation."
     }
+  },
+  "search": {
+    "pageTitle": "Search",
+    "inputPlaceholder": "Search videos...",
+    "placeholder": "Search for videos",
+    "resultsFor": "Results for \"{{query}}\"",
+    "noResults": "No results found",
+    "noResultsDesc": "Try searching with different keywords.",
+    "endOfResults": "All results loaded",
+    "loadError": "Search failed",
+    "retry": "Try again"
   },
   "apiErrors": {
     "channel.invalid_youtube_url": "Invalid YouTube URL or unsupported format.",
