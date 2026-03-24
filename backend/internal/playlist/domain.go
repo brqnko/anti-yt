@@ -1,7 +1,6 @@
 package playlist
 
 import (
-	"errors"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -9,10 +8,10 @@ import (
 )
 
 var (
-	ErrInvalidPlaylistTitle       = errors.New("invalid playlist title: must be between 1 and 128 characters")
-	ErrInvalidPlaylistDescription = errors.New("invalid playlist description: must be at most 255 characters")
-	ErrInvalidVisibilityCode      = errors.New("invalid visibility code")
-	ErrInvalidPlaylistCode = errors.New("invalid playlist code")
+	ErrInvalidPlaylistTitle       = util.NewDomainError("playlist.invalid_title", "invalid playlist title: must be between 1 and 128 characters")
+	ErrInvalidPlaylistDescription = util.NewDomainError("playlist.invalid_description", "invalid playlist description: must be at most 255 characters")
+	ErrInvalidVisibilityCode      = util.NewDomainError("playlist.invalid_visibility_code", "invalid visibility code")
+	ErrInvalidPlaylistCode        = util.NewDomainError("playlist.invalid_playlist_code", "invalid playlist code")
 )
 
 type VisibilityCode int
@@ -92,8 +91,8 @@ func (p *Playlist) SetDescription(s *string) error {
 	return nil
 }
 
-var ErrNegativeVideoCount = errors.New("video count must not be negative")
-var ErrVideoCountUnderflow = errors.New("video count is already 0")
+var ErrNegativeVideoCount = util.NewDomainError("playlist.negative_video_count", "video count must not be negative")
+var ErrVideoCountUnderflow = util.NewDomainError("playlist.video_count_underflow", "video count is already 0")
 
 func (p *Playlist) SetVideoCount(count int) error {
 	if count < 0 {

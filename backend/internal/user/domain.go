@@ -1,7 +1,6 @@
 package user
 
 import (
-	"errors"
 	"strings"
 	"time"
 
@@ -10,17 +9,17 @@ import (
 )
 
 var (
-	ErrDailyScreenTimeOutOfRange = errors.New("!(0 <= value <= 24 * Hour)")
+	ErrDailyScreenTimeOutOfRange = util.NewDomainError("user.invalid_daily_screen_time", "daily screen time limit is out of range")
 
-	ErrDisplayNameTooLong  = errors.New("display name is too long")
-	ErrDisplayNameTooShort = errors.New("display name is too short")
+	ErrDisplayNameTooLong  = util.NewDomainError("user.display_name_too_long", "display name is too long")
+	ErrDisplayNameTooShort = util.NewDomainError("user.display_name_too_short", "display name is too short")
 
-	ErrLanguageCodeNotSupported = errors.New("given language code is not supported yet")
+	ErrLanguageCodeNotSupported = util.NewDomainError("user.unsupported_language_code", "language code is not supported")
 
-	ErrDailyScreenTimeLimitRangeOrder = errors.New("start >= end")
-	ErrDailyScreenTimeLimitOutOfRange = errors.New("!(0 <= value <= 24 * Hour)")
+	ErrDailyScreenTimeLimitRangeOrder = util.NewDomainError("user.invalid_screen_time_range_order", "screen time range start must be before end")
+	ErrDailyScreenTimeLimitOutOfRange = util.NewDomainError("user.invalid_screen_time_range", "daily screen time limit is out of range")
 
-	ErrInvalidLeaveReasonCode = errors.New("invalid leave reason code")
+	ErrInvalidLeaveReasonCode = util.NewDomainError("user.invalid_leave_reason_code", "invalid leave reason code")
 )
 
 type LeaveReasonCode int

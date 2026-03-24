@@ -2,15 +2,15 @@ package video
 
 import (
 	"context"
-	"errors"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var (
-	ErrInvalidGetUploadLimit = errors.New("invalid get upload limit: out of range (should be [1..50])")
+	ErrInvalidGetUploadLimit = util.NewDomainError("video.invalid_get_upload_limit", "invalid get upload limit: out of range (should be [1..50])")
 )
 
 // ChannelUploadRefresher refreshes channel uploads if the RSS cache is stale.

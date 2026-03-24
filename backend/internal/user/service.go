@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	ErrInvalidAuthorizationIDRegistered = errors.New("invalid authorization id: already registered")
+	ErrInvalidAuthorizationIDRegistered = util.NewDomainError("user.already_registered", "invalid authorization id: already registered")
 )
 
 type Service struct {

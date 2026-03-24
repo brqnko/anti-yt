@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 export interface ForbiddenError {
+  /** エラーコード */
   title: string;
+  /** エラーの詳細 */
   detail: string;
-  /** 試聴を再開できる日時 */
-  time?: string;
 }
 
 export interface ProblemDetailError {

@@ -2,28 +2,19 @@ package v1
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
-	"github.com/brqnko/anti-yt/backend/internal/auth"
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 )
 
 func (h *APIHandler) GetAuthGoogle(ctx context.Context, request GetAuthGoogleRequestObject) (GetAuthGoogleResponseObject, error) {
 	url, csrf, err := h.authService.CreateAuthCode(ctx)
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return GetAuthGoogle500JSONResponse{
-			InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	hutil.AddResponseCookie(ctx, (&http.Cookie{
@@ -54,38 +45,7 @@ func (h *APIHandler) GetAuthGoogleCallback(ctx context.Context, request GetAuthG
 		request.Params.UserAgent,
 	)
 	if err != nil {
-		if errors.Is(err, auth.ErrInvalidCSRFOrState) {
-			return GetAuthGoogleCallback400JSONResponse{
-				BadRequestJSONResponse: BadRequestJSONResponse{
-					Detail: "CSRF is missing",
-					Title:  "CSRF is missing",
-				},
-			}, nil
-		}
-		if errors.Is(err, auth.ErrIDTokenNotFound) {
-			return GetAuthGoogleCallback400JSONResponse{
-				BadRequestJSONResponse: BadRequestJSONResponse{
-					Detail: "Id token not found",
-					Title:  "Id token not found",
-				},
-			}, nil
-		}
-		if errors.Is(err, auth.ErrInvalidCSRF) {
-			return GetAuthGoogleCallback400JSONResponse{
-				BadRequestJSONResponse: BadRequestJSONResponse{
-					Detail: "CSRF is wrong",
-					Title:  "CSRF is wrong",
-				},
-			}, nil
-		}
-
-		hutil.LogError(ctx, err)
-		return GetAuthGoogleCallback500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	hutil.AddResponseCookie(ctx, (&http.Cookie{
@@ -135,22 +95,11 @@ func (h *APIHandler) PostAuthLogout(ctx context.Context, request PostAuthLogoutR
 	}
 	accessToken, ok := hutil.AccessTokenFromContext(ctx)
 	if !ok {
-		return PostAuthLogout500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: "access token not found",
-				Title:  "access token not found",
-			},
-		}, nil
+		return nil, hutil.ErrUserIDNotFoundInContext
 	}
 
 	if err := h.authService.Logout(ctx, accessToken, refreshToken); err != nil {
-		hutil.LogError(ctx, err)
-		return PostAuthLogout500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	hutil.AddResponseCookie(ctx, (&http.Cookie{
@@ -197,13 +146,7 @@ func (h *APIHandler) PostAuthRefresh(ctx context.Context, request PostAuthRefres
 
 	newRefreshToken, newAccessToken, accessTokenExpiresAt, refreshTokenExpiresAt, err := h.authService.RefreshToken(ctx, refreshToken, request.Params.XRealIP, request.Params.CfIpcountry, request.Params.XDeviceFingerprint, request.Params.UserAgent)
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return PostAuthRefresh500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	hutil.AddResponseCookie(ctx, (&http.Cookie{
@@ -231,38 +174,26 @@ func (h *APIHandler) PostAuthRefresh(ctx context.Context, request PostAuthRefres
 func (h *APIHandler) GetUsersMeSessions(ctx context.Context, request GetUsersMeSessionsRequestObject) (GetUsersMeSessionsResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return GetUsersMeSessions500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	sessions, hasNext, err := h.authService.GetSessions(ctx, userID, request.Params.Cursor, int32(request.Params.Limit))
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return GetUsersMeSessions500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	resp := GetUsersMeSessions200JSONResponse{
 		ItemCount: len(sessions),
 		Items: make([]struct {
-			BrowserName    string             `json:"browser_name"`
-			CityName       string             `json:"city_name"`
-			CountryCode    string             `json:"country_code"`
-			CreatedAt      time.Time          `json:"created_at"`
-			DeviceType     string             `json:"device_type"`
+			BrowserName    string    `json:"browser_name"`
+			CityName       string    `json:"city_name"`
+			CountryCode    string    `json:"country_code"`
+			CreatedAt      time.Time `json:"created_at"`
+			DeviceType     string    `json:"device_type"`
 			Id             uuid.UUID `json:"id"`
-			IpAddress      string             `json:"ip_address"`
-			LastLoggedInAt time.Time          `json:"last_logged_in_at"`
-			UserAgent      string             `json:"user_agent"`
+			IpAddress      string    `json:"ip_address"`
+			LastLoggedInAt time.Time `json:"last_logged_in_at"`
+			UserAgent      string    `json:"user_agent"`
 		}, len(sessions)),
 		HasNext: hasNext,
 	}
@@ -285,31 +216,11 @@ func (h *APIHandler) GetUsersMeSessions(ctx context.Context, request GetUsersMeS
 func (h *APIHandler) DeleteUsersMeSessionsSessionId(ctx context.Context, request DeleteUsersMeSessionsSessionIdRequestObject) (DeleteUsersMeSessionsSessionIdResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return DeleteUsersMeSessionsSessionId500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	if _, err := h.authService.RemoveSession(ctx, userID, request.SessionId); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return DeleteUsersMeSessionsSessionId400JSONResponse{
-				BadRequestJSONResponse: BadRequestJSONResponse{
-					Detail: "no such refresh token",
-					Title:  "no such refresh token",
-				},
-			}, nil
-		}
-		hutil.LogError(ctx, err)
-		return DeleteUsersMeSessionsSessionId500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	return DeleteUsersMeSessionsSessionId204Response{}, nil

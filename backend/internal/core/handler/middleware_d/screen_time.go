@@ -33,7 +33,7 @@ func ScreenTimeMiddleware(db *pgxpool.Pool) func(v1.StrictHandlerFunc, string) v
 				return writeErrorJSON(w, http.StatusInternalServerError, "internal server error", "internal server error")
 			}
 			if nextStart := rangeSet.BlockedUntil(now); nextStart != nil {
-				return writeForbiddenJSON(w, "outside_allowed_time_range", "outside allowed time range", "current time is outside the allowed screen time range", nextStart)
+				return writeForbiddenJSON(w, "outside_allowed_time_range", nextStart.Format(time.RFC3339))
 			}
 
 			watchStats, err := historyQS.FindTotalWatchSeconds(ctx, userID)
@@ -48,7 +48,7 @@ func ScreenTimeMiddleware(db *pgxpool.Pool) func(v1.StrictHandlerFunc, string) v
 
 			if watchStats.TodayWatchTotal >= watchStats.DailyLimitSeconds {
 				tomorrow := time.Date(now.Year(), now.Month(), now.Day()+1, 0, 0, 0, 0, time.UTC)
-				return writeForbiddenJSON(w, "screen_time_limit_exceeded", "screen time limit exceeded", "daily screen time limit has been reached", &tomorrow)
+				return writeForbiddenJSON(w, "screen_time_limit_exceeded", tomorrow.Format(time.RFC3339))
 			}
 
 			return f(ctx, w, r, request)

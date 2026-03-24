@@ -166,6 +166,7 @@ func run(ctx context.Context) int {
 		r.Use(v1.SwaggerMiddleware())
 	}
 	v1.HandlerFromMux(v1.NewStrictHandler(h, []v1.StrictMiddlewareFunc{
+		middleware_d.DomainErrorMiddleware,
 		middleware_d.ResponseCookieMiddleware,
 		middleware_d.AccessTokenMiddleware(jwtService, db),
 		middleware_d.ScreenTimeMiddleware(db),

@@ -17,10 +17,9 @@ import (
 )
 
 var (
-	ErrInvalidCSRFOrState = errors.New("invalid csrf or state")
-	ErrInvalidCSRF        = errors.New("invalid csrf: csrf != state")
+	ErrInvalidCSRFOrState = util.NewDomainError("auth.invalid_csrf_or_state", "invalid csrf or state")
+	ErrInvalidCSRF        = util.NewDomainError("auth.invalid_csrf", "invalid csrf: csrf != state")
 	ErrIDTokenNotFound    = oidc.ErrIDTokenNotFound
-
 )
 
 type Service struct {

@@ -16,7 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var ErrInvalidPlaylistID = errors.New("invalid playlist id or unsupported format")
+var ErrInvalidPlaylistID = util.NewDomainError("playlist.invalid_playlist_id", "invalid playlist id or unsupported format")
 
 type Service struct {
 	db         *pgxpool.Pool

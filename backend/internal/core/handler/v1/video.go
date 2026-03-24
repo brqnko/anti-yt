@@ -2,44 +2,22 @@ package v1
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
-	"github.com/brqnko/anti-yt/backend/internal/video"
 )
 
 func (h *APIHandler) GetChannelsChannelIdVideos(ctx context.Context, request GetChannelsChannelIdVideosRequestObject) (GetChannelsChannelIdVideosResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return GetChannelsChannelIdVideos500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	videos, hasNext, err := h.videoService.GetChannelUploads(ctx, userID, request.ChannelId, request.Params.Cursor, int32(request.Params.Limit))
 	if err != nil {
-		if errors.Is(err, video.ErrInvalidGetUploadLimit) {
-			return GetChannelsChannelIdVideos400JSONResponse{BadRequestJSONResponse{
-				Detail: err.Error(),
-				Title:  "Bad Request",
-			}}, nil
-		}
-
-		hutil.LogError(ctx, err)
-		return GetChannelsChannelIdVideos500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	items := make([]struct {
@@ -70,13 +48,7 @@ func (h *APIHandler) GetChannelsChannelIdVideos(ctx context.Context, request Get
 func (h *APIHandler) GetFeed(ctx context.Context, request GetFeedRequestObject) (GetFeedResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return GetFeed500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	if err := h.channelService.SyncRSSFeeds(ctx, userID); err != nil {
@@ -85,24 +57,18 @@ func (h *APIHandler) GetFeed(ctx context.Context, request GetFeedRequestObject) 
 
 	videos, hasNext, err := h.videoService.GetFeed(ctx, userID, request.Params.Cursor, int32(request.Params.Limit))
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return GetFeed500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	items := make([]struct {
 		ChannelId                  uuid.UUID `json:"channel_id"`
-		ExternalChannelDisplayName string             `json:"external_channel_display_name"`
-		ExternalChannelIconUrl     string             `json:"external_channel_icon_url"`
-		ExternalVideoCreatedAt     time.Time          `json:"external_video_created_at"`
-		ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
-		ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
-		ExternalVideoTitle         string             `json:"external_video_title"`
-		LastWatchSeconds           *int               `json:"last_watch_seconds,omitempty"`
+		ExternalChannelDisplayName string    `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
+		ExternalVideoCreatedAt     time.Time `json:"external_video_created_at"`
+		ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string    `json:"external_video_title"`
+		LastWatchSeconds           *int      `json:"last_watch_seconds,omitempty"`
 		VideoId                    uuid.UUID `json:"video_id"`
 	}, len(videos))
 
@@ -138,21 +104,7 @@ func (h *APIHandler) GetSearch(ctx context.Context, request GetSearchRequestObje
 func (h *APIHandler) GetVideosVideoId(ctx context.Context, request GetVideosVideoIdRequestObject) (GetVideosVideoIdResponseObject, error) {
 	videoDetail, err := h.videoService.GetVideoDetail(ctx, request.VideoId)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return GetVideosVideoId404JSONResponse{
-				NotFoundJSONResponse: NotFoundJSONResponse{
-					Detail: "video not found",
-					Title:  "Not Found",
-				},
-			}, nil
-		}
-		hutil.LogError(ctx, err)
-		return GetVideosVideoId500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	return GetVideosVideoId200JSONResponse{
@@ -168,4 +120,3 @@ func (h *APIHandler) GetVideosVideoId(ctx context.Context, request GetVideosVide
 		ExternalChannelSubscribersCount: int(videoDetail.ExternalChannelSubscribersCount),
 	}, nil
 }
-

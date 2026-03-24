@@ -25,11 +25,10 @@ type Service struct {
 }
 
 var (
-	ErrInvalidSubscriptionLimit = errors.New("invalid subscription limit: out of range (should be [1..50])")
-	ErrSubscriptionNotFound     = errors.New("subscription not found")
-	ErrInvalidYouTubeURL        = errors.New("invalid youtube url or unsupported format")
-	ErrInvalidChannelID         = errors.New("invalid channel id")
-	ErrInvalidChannelHandle     = errors.New("invalid channel handle")
+	ErrInvalidSubscriptionLimit = util.NewDomainError("channel.invalid_subscription_limit", "invalid subscription limit: out of range (should be [1..50])")
+	ErrInvalidYouTubeURL        = util.NewDomainError("channel.invalid_youtube_url", "invalid youtube url or unsupported format")
+	ErrInvalidChannelID         = util.NewDomainError("channel.invalid_channel_id", "invalid channel id")
+	ErrInvalidChannelHandle     = util.NewDomainError("channel.invalid_channel_handle", "invalid channel handle")
 )
 
 func NewService(
@@ -149,7 +148,7 @@ func (s *Service) UnsubscribeChannel(ctx context.Context, userID, channelID uuid
 		return err
 	}
 	if rowsAffected == 0 {
-		return ErrSubscriptionNotFound
+		return pgx.ErrNoRows
 	}
 
 	return nil

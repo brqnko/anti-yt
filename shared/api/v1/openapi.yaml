@@ -1954,12 +1954,10 @@ components:
       properties:
         title:
           type: string
+          description: エラーコード
         detail:
           type: string
-        time:
-          type: string
-          format: date-time
-          description: 試聴を再開できる日時
+          description: エラーの詳細
       required: [ title, detail ]
 
     ProblemDetailError:

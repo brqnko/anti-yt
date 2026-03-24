@@ -2,37 +2,22 @@ package v1
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
-	"github.com/brqnko/anti-yt/backend/internal/playlist"
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 )
 
 func (h *APIHandler) GetPlaylists(ctx context.Context, request GetPlaylistsRequestObject) (GetPlaylistsResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return GetPlaylists500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	playlists, hasNext, err := h.playlistService.GetPlaylists(ctx, userID, request.Params.Cursor, int32(request.Params.Limit))
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return GetPlaylists500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	resp := GetPlaylists200JSONResponse{
@@ -40,7 +25,7 @@ func (h *APIHandler) GetPlaylists(ctx context.Context, request GetPlaylistsReque
 		ItemCount: len(playlists),
 		Items: make([]struct {
 			PlaylistDescription  string             `json:"playlist_description"`
-			PlaylistId           uuid.UUID `json:"playlist_id"`
+			PlaylistId           uuid.UUID          `json:"playlist_id"`
 			PlaylistRegisteredAt time.Time          `json:"playlist_registered_at"`
 			PlaylistTitle        string             `json:"playlist_title"`
 			PlaylistType         PlaylistType       `json:"playlist_type"`
@@ -69,13 +54,7 @@ func (h *APIHandler) GetPlaylists(ctx context.Context, request GetPlaylistsReque
 func (h *APIHandler) PostPlaylists(ctx context.Context, request PostPlaylistsRequestObject) (PostPlaylistsResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return PostPlaylists500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	created, err := h.playlistService.CreatePlaylist(
@@ -88,23 +67,7 @@ func (h *APIHandler) PostPlaylists(ctx context.Context, request PostPlaylistsReq
 		request.Body.BasePlaylistUrl,
 	)
 	if err != nil {
-		if errors.Is(err, playlist.ErrInvalidPlaylistTitle) ||
-			errors.Is(err, playlist.ErrInvalidPlaylistDescription) ||
-			errors.Is(err, playlist.ErrInvalidVisibilityCode) ||
-			errors.Is(err, playlist.ErrInvalidPlaylistCode) {
-			return PostPlaylists400JSONResponse{BadRequestJSONResponse{
-				Detail: err.Error(),
-				Title:  "Bad Request",
-			}}, nil
-		}
-
-		hutil.LogError(ctx, err)
-		return PostPlaylists500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	return PostPlaylists201JSONResponse{
@@ -124,31 +87,11 @@ func (h *APIHandler) PostPlaylists(ctx context.Context, request PostPlaylistsReq
 func (h *APIHandler) DeletePlaylistsPlaylistId(ctx context.Context, request DeletePlaylistsPlaylistIdRequestObject) (DeletePlaylistsPlaylistIdResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return DeletePlaylistsPlaylistId500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
-	err = h.playlistService.DeletePlaylist(ctx, userID, request.PlaylistId)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return DeletePlaylistsPlaylistId404JSONResponse{NotFoundJSONResponse{
-				Detail: err.Error(),
-				Title:  "Not Found",
-			}}, nil
-		}
-
-		hutil.LogError(ctx, err)
-		return DeletePlaylistsPlaylistId500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+	if err := h.playlistService.DeletePlaylist(ctx, userID, request.PlaylistId); err != nil {
+		return nil, err
 	}
 
 	return DeletePlaylistsPlaylistId204Response{}, nil
@@ -157,31 +100,12 @@ func (h *APIHandler) DeletePlaylistsPlaylistId(ctx context.Context, request Dele
 func (h *APIHandler) GetPlaylistsPlaylistId(ctx context.Context, request GetPlaylistsPlaylistIdRequestObject) (GetPlaylistsPlaylistIdResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return GetPlaylistsPlaylistId500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	pl, err := h.playlistService.GetPlaylistDetail(ctx, userID, request.PlaylistId)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return GetPlaylistsPlaylistId404JSONResponse{NotFoundJSONResponse{
-				Detail: err.Error(),
-				Title:  "Not Found",
-			}}, nil
-		}
-
-		hutil.LogError(ctx, err)
-		return GetPlaylistsPlaylistId500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	return GetPlaylistsPlaylistId200JSONResponse{
@@ -200,24 +124,12 @@ func (h *APIHandler) GetPlaylistsPlaylistId(ctx context.Context, request GetPlay
 func (h *APIHandler) GetPlaylistsPlaylistIdVideos(ctx context.Context, request GetPlaylistsPlaylistIdVideosRequestObject) (GetPlaylistsPlaylistIdVideosResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return GetPlaylistsPlaylistIdVideos500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	videos, hasNext, err := h.playlistService.GetPlaylistItems(ctx, userID, request.PlaylistId, request.Params.Cursor, int32(request.Params.Limit))
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return GetPlaylistsPlaylistIdVideos500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	resp := GetPlaylistsPlaylistIdVideos200JSONResponse{
@@ -225,13 +137,13 @@ func (h *APIHandler) GetPlaylistsPlaylistIdVideos(ctx context.Context, request G
 		ItemCount: len(videos),
 		Items: make([]struct {
 			ChannelId                  uuid.UUID `json:"channel_id"`
-			ExternalChannelDisplayName string             `json:"external_channel_display_name"`
-			ExternalChannelIconUrl     string             `json:"external_channel_icon_url"`
-			ExternalVideoCreatedAt     time.Time          `json:"external_video_created_at"`
-			ExternalVideoLengthSeconds int                `json:"external_video_length_seconds"`
-			ExternalVideoThumbnailUrl  string             `json:"external_video_thumbnail_url"`
-			ExternalVideoTitle         string             `json:"external_video_title"`
-			LastWatchSeconds           *int               `json:"last_watch_seconds,omitempty"`
+			ExternalChannelDisplayName string    `json:"external_channel_display_name"`
+			ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
+			ExternalVideoCreatedAt     time.Time `json:"external_video_created_at"`
+			ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
+			ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
+			ExternalVideoTitle         string    `json:"external_video_title"`
+			LastWatchSeconds           *int      `json:"last_watch_seconds,omitempty"`
 			VideoId                    uuid.UUID `json:"video_id"`
 		}, len(videos)),
 	}
@@ -254,38 +166,12 @@ func (h *APIHandler) GetPlaylistsPlaylistIdVideos(ctx context.Context, request G
 func (h *APIHandler) PatchPlaylistsPlaylistId(ctx context.Context, request PatchPlaylistsPlaylistIdRequestObject) (PatchPlaylistsPlaylistIdResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return PatchPlaylistsPlaylistId500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	updated, err := h.playlistService.UpdatePlaylist(ctx, userID, request.PlaylistId, request.Body.PlaylistTitle, request.Body.PlaylistDescription)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return PatchPlaylistsPlaylistId404JSONResponse{NotFoundJSONResponse{
-				Detail: err.Error(),
-				Title:  "Not Found",
-			}}, nil
-		}
-		if errors.Is(err, playlist.ErrInvalidPlaylistTitle) ||
-			errors.Is(err, playlist.ErrInvalidPlaylistDescription) {
-			return PatchPlaylistsPlaylistId400JSONResponse{BadRequestJSONResponse{
-				Detail: err.Error(),
-				Title:  "Bad Request",
-			}}, nil
-		}
-
-		hutil.LogError(ctx, err)
-		return PatchPlaylistsPlaylistId500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
 	return PatchPlaylistsPlaylistId200JSONResponse{
@@ -298,37 +184,11 @@ func (h *APIHandler) PatchPlaylistsPlaylistId(ctx context.Context, request Patch
 func (h *APIHandler) DeletePlaylistsPlaylistIdVideos(ctx context.Context, request DeletePlaylistsPlaylistIdVideosRequestObject) (DeletePlaylistsPlaylistIdVideosResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return DeletePlaylistsPlaylistIdVideos500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
-	err = h.playlistService.RemoveVideoFromPlaylist(ctx, userID, request.PlaylistId, request.Params.VideoId)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return DeletePlaylistsPlaylistIdVideos404JSONResponse{NotFoundJSONResponse{
-				Detail: err.Error(),
-				Title:  "Not Found",
-			}}, nil
-		}
-		if errors.Is(err, pgx.ErrNoRows) {
-			return DeletePlaylistsPlaylistIdVideos404JSONResponse{NotFoundJSONResponse{
-				Detail: err.Error(),
-				Title:  "Not Found",
-			}}, nil
-		}
-
-		hutil.LogError(ctx, err)
-		return DeletePlaylistsPlaylistIdVideos500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+	if err := h.playlistService.RemoveVideoFromPlaylist(ctx, userID, request.PlaylistId, request.Params.VideoId); err != nil {
+		return nil, err
 	}
 
 	return DeletePlaylistsPlaylistIdVideos204Response{}, nil
@@ -337,31 +197,11 @@ func (h *APIHandler) DeletePlaylistsPlaylistIdVideos(ctx context.Context, reques
 func (h *APIHandler) PostPlaylistsPlaylistIdVideos(ctx context.Context, request PostPlaylistsPlaylistIdVideosRequestObject) (PostPlaylistsPlaylistIdVideosResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		hutil.LogError(ctx, err)
-		return PostPlaylistsPlaylistIdVideos500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+		return nil, err
 	}
 
-	err = h.playlistService.InsertVideoIntoPlaylist(ctx, userID, request.PlaylistId, request.Body.VideoId)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return PostPlaylistsPlaylistIdVideos404JSONResponse{NotFoundJSONResponse{
-				Detail: err.Error(),
-				Title:  "Not Found",
-			}}, nil
-		}
-
-		hutil.LogError(ctx, err)
-		return PostPlaylistsPlaylistIdVideos500JSONResponse{
-			InternalServerErrorJSONResponse: InternalServerErrorJSONResponse{
-				Detail: internalErrorDetail,
-				Title:  internalErrorTitle,
-			},
-		}, nil
+	if err := h.playlistService.InsertVideoIntoPlaylist(ctx, userID, request.PlaylistId, request.Body.VideoId); err != nil {
+		return nil, err
 	}
 
 	return PostPlaylistsPlaylistIdVideos201JSONResponse{

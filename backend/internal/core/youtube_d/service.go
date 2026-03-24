@@ -20,9 +20,9 @@ import (
 var iso8601DurationRe = regexp.MustCompile(`PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?`)
 
 var (
-	ErrInvalidChannelID = errors.New("invalid channel id")
+	ErrInvalidChannelID = util.NewDomainError("youtube.invalid_channel_id", "invalid channel id")
 
-	ErrVideoIDsTooMuch = errors.New("video ids are too much")
+	ErrVideoIDsTooMuch = util.NewDomainError("youtube.video_ids_too_much", "video ids are too much")
 )
 
 type YouTubeAPIService interface {

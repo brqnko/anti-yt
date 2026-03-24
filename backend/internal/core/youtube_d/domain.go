@@ -1,16 +1,17 @@
 package youtube_d
 
 import (
-	"errors"
 	"strings"
 	"time"
+
+	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
 var (
-	ErrChannelIDEmpty              = errors.New("channel ID must not be empty")
-	ErrChannelIDInvalidPrefix      = errors.New("channel ID must start with 'UC'")
-	ErrChannelUploadsPlaylistEmpty = errors.New("channel uploads playlist ID must not be empty")
-	ErrVideoIDEmpty                = errors.New("video ID must not be empty")
+	ErrChannelIDEmpty              = util.NewDomainError("youtube.channel_id_empty", "channel ID must not be empty")
+	ErrChannelIDInvalidPrefix      = util.NewDomainError("youtube.channel_id_invalid_prefix", "channel ID must start with 'UC'")
+	ErrChannelUploadsPlaylistEmpty = util.NewDomainError("youtube.channel_uploads_playlist_empty", "channel uploads playlist ID must not be empty")
+	ErrVideoIDEmpty                = util.NewDomainError("youtube.video_id_empty", "video ID must not be empty")
 )
 
 type ChannelID string
