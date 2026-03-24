@@ -70,18 +70,6 @@ export const SearchType = {
 } as const;
 
 /**
- * リソースのタイプ
- */
-export type ResourceType = typeof ResourceType[keyof typeof ResourceType];
-
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const ResourceType = {
-  video: 'video',
-  channel: 'channel',
-} as const;
-
-/**
  * プレイリストのタイプ
  */
 export type PlaylistType = typeof PlaylistType[keyof typeof PlaylistType];
@@ -366,10 +354,6 @@ cursor?: string;
  * @minLength 1
  */
 query: string;
-/**
- * 検索のタイプ
- */
-search_type?: SearchType;
 };
 
 export type GetSearch200ItemsItem = {
@@ -387,7 +371,6 @@ export type GetSearch200ItemsItem = {
   external_video_length_seconds: number;
   /** @minimum 0 */
   last_watch_seconds?: number;
-  resource_type: ResourceType;
 };
 
 export type GetSearch200 = {
