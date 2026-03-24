@@ -5,6 +5,7 @@ import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardHeader } from "../../components/DashboardHeader";
 import { useAuth } from "../../contexts/AuthContext";
 import { getUser } from "../../api/generated/user";
+import { getApiErrorCode } from "../../utils/api-error";
 import { languages } from "../../constants";
 import { useColorMode, type ColorMode } from "../../hooks/useColorMode";
 import { modeIcons } from "../../constants";
@@ -45,6 +46,7 @@ function ProfileContent() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveFading, setSaveFading] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const trimmedName = displayName.trim();
   const nameLength = [...trimmedName].length;
@@ -54,6 +56,7 @@ function ProfileContent() {
     if (!isNameValid) return;
     setIsSaving(true);
     setSaveSuccess(false);
+    setSaveError(null);
     try {
       const { patchUsersMeStatus } = getUser();
       await patchUsersMeStatus({
@@ -66,8 +69,9 @@ function ProfileContent() {
       setSaveFading(false);
       setTimeout(() => setSaveFading(true), 2500);
       setTimeout(() => { setSaveSuccess(false); setSaveFading(false); }, 3000);
-    } catch {
-      // Error handling could be improved
+    } catch (err) {
+      const code = getApiErrorCode(err);
+      setSaveError(code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : t("apiErrors.fallback"));
     } finally {
       setIsSaving(false);
     }
@@ -268,6 +272,11 @@ function ProfileContent() {
                   {saveSuccess && (
                     <span class={`text-sm text-green-600 dark:text-green-400 font-medium transition-opacity duration-500 ${saveFading ? "opacity-0" : "opacity-100"}`}>
                       {t("profile.saved")}
+                    </span>
+                  )}
+                  {saveError && (
+                    <span class="text-sm text-red-500 font-medium">
+                      {saveError}
                     </span>
                   )}
                   <button

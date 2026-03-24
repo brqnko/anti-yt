@@ -1,10 +1,10 @@
 import { useState, useEffect } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
-import { AxiosError } from "axios";
 import { useTitle } from "../../hooks/useTitle";
 import { useAuth } from "../../contexts/AuthContext";
 import { getUser } from "../../api/generated/user";
+import { getApiErrorCode } from "../../utils/api-error";
 import type { ProblemDetailError } from "../../api/generated/antiYtApi.schemas";
 import Step1 from "./Step1";
 import Step2 from "./Step2";
@@ -52,10 +52,8 @@ export default function Register() {
       await refreshAuth();
       route("/dashboard");
     } catch (err) {
-      const apiDetail =
-        err instanceof AxiosError && err.response?.data?.detail
-          ? String(err.response.data.detail)
-          : undefined;
+      const code = getApiErrorCode(err);
+      const apiDetail = code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : undefined;
       setError({ title: t("register.error.title"), detail: t("register.error.description"), apiDetail });
     } finally {
       setSubmitting(false);

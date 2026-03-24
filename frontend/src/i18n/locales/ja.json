@@ -426,6 +426,26 @@
       "error": "削除に失敗しました。再度お試しください。"
     }
   },
+  "apiErrors": {
+    "channel.invalid_youtube_url": "無効なYouTube URLまたはサポートされていない形式です。",
+    "channel.invalid_channel_id": "無効なチャンネルIDです。",
+    "channel.invalid_channel_handle": "無効なチャンネルハンドルです。",
+    "channel.invalid_subscription_limit": "登録数の上限に達しました。",
+    "user.display_name_too_long": "表示名が長すぎます。",
+    "user.display_name_too_short": "表示名が短すぎます。",
+    "user.invalid_daily_screen_time": "1日の視聴時間制限が範囲外です。",
+    "user.unsupported_language_code": "サポートされていない言語コードです。",
+    "user.invalid_screen_time_range_order": "開始時刻は終了時刻より前にしてください。",
+    "user.invalid_screen_time_range": "視聴時間の範囲が無効です。",
+    "user.already_registered": "このアカウントは既に登録されています。",
+    "user.invalid_leave_reason_code": "無効な退会理由コードです。",
+    "playlist.invalid_title": "プレイリストのタイトルは1〜128文字にしてください。",
+    "playlist.invalid_description": "プレイリストの説明は255文字以内にしてください。",
+    "playlist.invalid_visibility_code": "無効な公開設定です。",
+    "playlist.invalid_playlist_code": "無効なプレイリストコードです。",
+    "playlist.invalid_playlist_id": "無効なプレイリストIDです。",
+    "fallback": "エラーが発生しました。再度お試しください。"
+  },
   "home": {
     "heroTitle1": "断ち切ろう",
     "heroTitle2": "YouTube依存",

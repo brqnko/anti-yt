@@ -2,6 +2,7 @@ import { useState, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { getUser } from "../../api/generated/user";
 import { getChannel } from "../../api/generated/channel";
+import { getApiErrorCode } from "../../utils/api-error";
 import { AddChannelDialog } from "../../components/AddChannelDialog";
 import { TimeRangeSlider } from "../../components/TimeRangeSlider";
 import { formatTime, parseTimeToMinutes } from "../../utils/format";
@@ -145,7 +146,7 @@ export function RestrictionsTab() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveFading, setSaveFading] = useState(false);
-  const [saveError, setSaveError] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Whitelist (subscriptions)
   const [channels, setChannels] = useState<GetChannelsSubscribed200ItemsItem[]>([]);
@@ -183,7 +184,7 @@ export function RestrictionsTab() {
   const handleSave = async () => {
     setIsSaving(true);
     setSaveSuccess(false);
-    setSaveError(false);
+    setSaveError(null);
     try {
       const { patchUsersMeStatus } = getUser();
       await patchUsersMeStatus({
@@ -198,8 +199,9 @@ export function RestrictionsTab() {
       setSaveFading(false);
       setTimeout(() => setSaveFading(true), 2500);
       setTimeout(() => { setSaveSuccess(false); setSaveFading(false); }, 3000);
-    } catch {
-      setSaveError(true);
+    } catch (err) {
+      const code = getApiErrorCode(err);
+      setSaveError(code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : t("restrictions.saveError"));
     } finally {
       setIsSaving(false);
     }
@@ -358,7 +360,7 @@ export function RestrictionsTab() {
                       <span class="material-symbols-outlined text-[18px]">
                         error
                       </span>
-                      {t("restrictions.saveError")}
+                      {saveError}
                     </span>
                   )}
                 </div>
