@@ -17,7 +17,9 @@ var (
 
 type ChannelID string
 
-func NewChannelID(id string) (ChannelID, error) {
+func NewChannelID(id string) (_ ChannelID, err error) {
+	defer util.Wrap(&err, "NewChannelID")
+
 	id = strings.TrimSpace(id)
 	if id == "" {
 		return "", ErrChannelIDEmpty
@@ -34,7 +36,9 @@ func (c ChannelID) String() string {
 
 type ChannelUploadsPlaylistID string
 
-func NewChannelUploadsPlaylistID(id string) (ChannelUploadsPlaylistID, error) {
+func NewChannelUploadsPlaylistID(id string) (_ ChannelUploadsPlaylistID, err error) {
+	defer util.Wrap(&err, "NewChannelUploadsPlaylistID")
+
 	id = strings.TrimSpace(id)
 	if id == "" {
 		return "", ErrChannelUploadsPlaylistEmpty
@@ -84,7 +88,9 @@ func NewChannel(id, displayName, customID, description, iconURL string, subscrib
 
 type VideoID string
 
-func NewVideoID(id string) (VideoID, error) {
+func NewVideoID(id string) (_ VideoID, err error) {
+	defer util.Wrap(&err, "NewVideoID")
+
 	id = strings.TrimSpace(id)
 	if id == "" {
 		return "", ErrVideoIDEmpty

@@ -216,6 +216,7 @@ func NewValuableChannelRepository(q sqlc.Querier) ValuableChannelRepository {
 
 func (v *valuableChannelRepositoryImpl) Save(ctx context.Context, vc *ValuableChannel) (_ int64, err error) {
 	defer util.Wrap(&err, "valuableChannelRepository.Save(channelID=%s)", vc.ChannelID)
+
 	id, err := v.q.UpsertValuableChannel(ctx, sqlc.UpsertValuableChannelParams{
 		ChannelPublicID:     vc.ChannelID,
 		CategoryCode:        int(vc.ValuableReasonCode),
@@ -229,6 +230,7 @@ func (v *valuableChannelRepositoryImpl) Save(ctx context.Context, vc *ValuableCh
 
 func (v *valuableChannelRepositoryImpl) Remove(ctx context.Context, channelID uuid.UUID) (err error) {
 	defer util.Wrap(&err, "valuableChannelRepository.Remove(channelID=%s)", channelID)
+
 	if err := v.q.DeleteValuableChannel(ctx, channelID); err != nil {
 		return err
 	}
@@ -237,6 +239,7 @@ func (v *valuableChannelRepositoryImpl) Remove(ctx context.Context, channelID uu
 
 func (v *valuableChannelRepositoryImpl) FindForUpdate(ctx context.Context, channelID uuid.UUID) (_ *ValuableChannel, err error) {
 	defer util.Wrap(&err, "valuableChannelRepository.FindForUpdate(channelID=%s)", channelID)
+
 	row, err := v.q.GetValuableChannelForUpdate(ctx, channelID)
 	if err != nil {
 		return nil, err

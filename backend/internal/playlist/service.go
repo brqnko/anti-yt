@@ -7,17 +7,14 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/channel"
-	"github.com/brqnko/anti-yt/backend/internal/core"
-	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/brqnko/anti-yt/backend/internal/video"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
-
-var ErrInvalidPlaylistID = core.NewDomainError("playlist.invalid_playlist_id", "invalid playlist id or unsupported format")
 
 type Service struct {
 	db         *pgxpool.Pool
@@ -35,6 +32,7 @@ func NewService(db *pgxpool.Pool, ytService youtube_d.Service) *Service {
 
 func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, description, visibilityStr, playlistTypeStr string, basePlaylistUrl *string) (_ *Playlist, err error) {
 	defer util.Wrap(&err, "Service.CreatePlaylist(userID=%s)", userID)
+
 	playlist, err := NewPlaylist(
 		title,
 		description,
@@ -71,7 +69,7 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 	}
 
 	// YouTubeからプレイリストをimportする
-	playlistID, err := extractPlaylistID(*basePlaylistUrl)
+	playlistID, err := youtube_d.ExtractPlaylistID(*basePlaylistUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -165,6 +163,8 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 }
 
 func (s *Service) GetPlaylists(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetPlaylistsView, _ bool, err error) {
+	defer util.Wrap(&err, "Service.GetPlaylists")
+
 	playlists, err := s.playlistQS.FindPlaylists(ctx, userID, cursor, limit+1)
 	if err != nil {
 		return nil, false, err
@@ -176,7 +176,9 @@ func (s *Service) GetPlaylists(ctx context.Context, userID uuid.UUID, cursor *uu
 	return playlists, false, nil
 }
 
-func (s *Service) GetPlaylistDetail(ctx context.Context, userID, playlistID uuid.UUID) (GetPlaylistDetailView, error) {
+func (s *Service) GetPlaylistDetail(ctx context.Context, userID, playlistID uuid.UUID) (_ GetPlaylistDetailView, err error) {
+	defer util.Wrap(&err, "Service.GetPlaylistDetail")
+
 	view, err := s.playlistQS.Find(ctx, userID, playlistID)
 	if err != nil {
 		return GetPlaylistDetailView{}, err
@@ -184,11 +186,15 @@ func (s *Service) GetPlaylistDetail(ctx context.Context, userID, playlistID uuid
 	return view, nil
 }
 
-func (s *Service) DeletePlaylist(ctx context.Context, userID, playlistID uuid.UUID) error {
+func (s *Service) DeletePlaylist(ctx context.Context, userID, playlistID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "Service.DeletePlaylist")
+
 	return NewPlaylistRepository(sqlc.New(s.db)).Remove(ctx, userID, playlistID)
 }
 
 func (s *Service) GetPlaylistItems(ctx context.Context, userID, playlistID uuid.UUID, videoCursor *uuid.UUID, limit int32) (_ []GetPlaylistItemView, _ bool, err error) {
+	defer util.Wrap(&err, "Service.GetPlaylistItems")
+
 	items, err := s.playlistQS.FindPlaylistItems(ctx, userID, playlistID, videoCursor, limit+1)
 	if err != nil {
 		return nil, false, err
@@ -200,7 +206,9 @@ func (s *Service) GetPlaylistItems(ctx context.Context, userID, playlistID uuid.
 	return items, false, nil
 }
 
-func (s *Service) UpdatePlaylist(ctx context.Context, userID, playlistID uuid.UUID, newPlaylistTitle *string, newPlaylistDescription *string) (*Playlist, error) {
+func (s *Service) UpdatePlaylist(ctx context.Context, userID, playlistID uuid.UUID, newPlaylistTitle *string, newPlaylistDescription *string) (_ *Playlist, err error) {
+	defer util.Wrap(&err, "Service.UpdatePlaylist")
+
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return nil, err
@@ -235,7 +243,9 @@ func (s *Service) UpdatePlaylist(ctx context.Context, userID, playlistID uuid.UU
 	return playlist, nil
 }
 
-func (s *Service) InsertVideoIntoPlaylist(ctx context.Context, userID, playlistID, videoID uuid.UUID) error {
+func (s *Service) InsertVideoIntoPlaylist(ctx context.Context, userID, playlistID, videoID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "Service.InsertVideoIntoPlaylist")
+
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return err
@@ -268,7 +278,9 @@ func (s *Service) InsertVideoIntoPlaylist(ctx context.Context, userID, playlistI
 	return nil
 }
 
-func (s *Service) RemoveVideoFromPlaylist(ctx context.Context, userID, playlistID, videoID uuid.UUID) error {
+func (s *Service) RemoveVideoFromPlaylist(ctx context.Context, userID, playlistID, videoID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "Service.RemoveVideoFromPlaylist")
+
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return err

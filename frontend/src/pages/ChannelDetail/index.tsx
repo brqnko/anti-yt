@@ -75,7 +75,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       try {
         const [subsRes, videosRes] = await Promise.allSettled([
           getChannel().getChannelsSubscribed({ limit: 50 }),
-          getChannel().getChannelsChannelIdVideos(channelId, {}),
+          getChannel().getChannelsChannelIdVideos(channelId, { limit: 30 }),
         ]);
 
         if (subsRes.status === "fulfilled") {
@@ -110,7 +110,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     if (isLoadingMore || !hasNextVideos) return;
     setIsLoadingMore(true);
     try {
-      const res = await getChannel().getChannelsChannelIdVideos(channelId, { cursor: cursorRef.current });
+      const res = await getChannel().getChannelsChannelIdVideos(channelId, { limit: 30, cursor: cursorRef.current });
       setVideos(prev => [...prev, ...res.items]);
       setHasNextVideos(res.has_next);
       const lastItem = res.items[res.items.length - 1];
@@ -129,6 +129,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       if (isSubscribed) {
         await getChannel().deleteChannelsChannelIdSubscribe(channelInfo.channel_id);
         setIsSubscribed(false);
+        window.dispatchEvent(new CustomEvent("channel-changed", { detail: { type: "removed", data: channelInfo.channel_id } }));
       } else {
         const result = await getChannel().postChannelsSubscribe({
           channel_id: channelInfo.external_channel_id,
@@ -143,6 +144,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
           custom_id: result.channel_custom_id,
         });
         setIsSubscribed(true);
+        window.dispatchEvent(new CustomEvent("channel-changed", { detail: { type: "added", data: result } }));
       }
     } catch {
       // silently fail

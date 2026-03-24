@@ -103,10 +103,33 @@ function ExploreContent() {
     if (subscribedIds.has(channelId) || subscribingIds.has(channelId)) return;
     setSubscribingIds((prev) => new Set(prev).add(channelId));
     try {
-      await getChannel().postChannelsSubscribe({
+      const result = await getChannel().postChannelsSubscribe({
         channel_id: channelCustomUrl,
       });
       setSubscribedIds((prev) => new Set(prev).add(channelId));
+      window.dispatchEvent(new CustomEvent("channel-changed", { detail: { type: "added", data: result } }));
+    } catch {
+      // ignore
+    } finally {
+      setSubscribingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(channelId);
+        return next;
+      });
+    }
+  };
+
+  const handleUnsubscribe = async (channelId: string) => {
+    if (!subscribedIds.has(channelId) || subscribingIds.has(channelId)) return;
+    setSubscribingIds((prev) => new Set(prev).add(channelId));
+    try {
+      await getChannel().deleteChannelsChannelIdSubscribe(channelId);
+      setSubscribedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(channelId);
+        return next;
+      });
+      window.dispatchEvent(new CustomEvent("channel-changed", { detail: { type: "removed", data: channelId } }));
     } catch {
       // ignore
     } finally {
@@ -197,15 +220,20 @@ function ExploreContent() {
                       >
                         <div class="flex items-start justify-between">
                           <div class="flex items-center gap-3">
-                            <img
-                              alt={ch.external_channel_display_name}
-                              class="size-12 rounded-full object-cover bg-gray-100"
-                              src={ch.external_channel_icon_url}
-                            />
+                            <a href={`/channels/${ch.channel_id}`}>
+                              <img
+                                alt={ch.external_channel_display_name}
+                                class="size-12 rounded-full object-cover bg-gray-100"
+                                src={ch.external_channel_icon_url}
+                              />
+                            </a>
                             <div>
-                              <h3 class="font-bold text-charcoal dark:text-white text-base leading-snug">
+                              <a
+                                href={`/channels/${ch.channel_id}`}
+                                class="font-bold text-charcoal dark:text-white text-base leading-snug no-underline hover:underline"
+                              >
                                 {ch.external_channel_display_name}
-                              </h3>
+                              </a>
                               <span
                                 class={`text-xs font-medium px-2 py-0.5 rounded-full ${getCategoryBadgeClasses(ch.category_code)}`}
                               >
@@ -218,11 +246,17 @@ function ExploreContent() {
                           {ch.valuable_description}
                         </p>
                         {isSubscribed ? (
-                          <button class="mt-auto w-full py-2 px-4 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary cursor-default text-sm font-bold flex items-center justify-center gap-2 border-none">
-                            <span class="material-symbols-outlined text-[18px]">
-                              check_circle
+                          <button
+                            class="mt-auto w-full py-2 px-4 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400 transition-all text-sm font-bold flex items-center justify-center gap-2 border-none cursor-pointer group/unsub disabled:opacity-50"
+                            onClick={() => handleUnsubscribe(ch.channel_id)}
+                            disabled={isSubscribing}
+                          >
+                            <span class="group-hover/unsub:hidden">
+                              {isSubscribing ? t("explore.removing") : t("explore.added")}
                             </span>
-                            {t("explore.added")}
+                            <span class="hidden group-hover/unsub:inline">
+                              {isSubscribing ? t("explore.removing") : t("explore.removeFromWhitelist")}
+                            </span>
                           </button>
                         ) : (
                           <button
@@ -235,9 +269,6 @@ function ExploreContent() {
                             }
                             disabled={isSubscribing}
                           >
-                            <span class="material-symbols-outlined text-[18px]">
-                              playlist_add
-                            </span>
                             {isSubscribing
                               ? t("explore.adding")
                               : t("explore.addToWhitelist")}

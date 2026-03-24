@@ -50,6 +50,7 @@ type PlaylistTitle string
 
 func NewPlaylistTitle(s string) (_ PlaylistTitle, err error) {
 	defer util.Wrap(&err, "NewPlaylistTitle")
+
 	if len(s) == 0 || len(s) > 128 {
 		return "", ErrInvalidPlaylistTitle
 	}
@@ -64,6 +65,7 @@ type PlaylistDescription string
 
 func NewPlaylistDescription(s string) (_ PlaylistDescription, err error) {
 	defer util.Wrap(&err, "NewPlaylistDescription")
+
 	if len(s) > 255 {
 		return "", ErrInvalidPlaylistDescription
 	}
@@ -74,10 +76,11 @@ func (p PlaylistDescription) String() string {
 	return string(p)
 }
 
-func (p *Playlist) SetTitle(s *string) error {
+func (p *Playlist) SetTitle(s *string) (err error) {
 	if s == nil {
 		return nil
 	}
+	defer util.Wrap(&err, "Playlist.SetTitle")
 	t, err := NewPlaylistTitle(*s)
 	if err != nil {
 		return err
@@ -86,10 +89,11 @@ func (p *Playlist) SetTitle(s *string) error {
 	return nil
 }
 
-func (p *Playlist) SetDescription(s *string) error {
+func (p *Playlist) SetDescription(s *string) (err error) {
 	if s == nil {
 		return nil
 	}
+	defer util.Wrap(&err, "Playlist.SetDescription")
 	d, err := NewPlaylistDescription(*s)
 	if err != nil {
 		return err
@@ -101,7 +105,8 @@ func (p *Playlist) SetDescription(s *string) error {
 var ErrNegativeVideoCount = core.NewDomainError("playlist.negative_video_count", "video count must not be negative")
 var ErrVideoCountUnderflow = core.NewDomainError("playlist.video_count_underflow", "video count is already 0")
 
-func (p *Playlist) SetVideoCount(count int) error {
+func (p *Playlist) SetVideoCount(count int) (err error) {
+	defer util.Wrap(&err, "Playlist.SetVideoCount")
 	if count < 0 {
 		return ErrNegativeVideoCount
 	}
@@ -113,7 +118,8 @@ func (p *Playlist) IncrementVideoCount() {
 	p.VideoCount++
 }
 
-func (p *Playlist) DecrementVideoCount() error {
+func (p *Playlist) DecrementVideoCount() (err error) {
+	defer util.Wrap(&err, "Playlist.DecrementVideoCount")
 	if p.VideoCount <= 0 {
 		return ErrVideoCountUnderflow
 	}
@@ -190,6 +196,7 @@ func NewPlaylist(
 	opts ...PlaylistOption,
 ) (_ *Playlist, err error) {
 	defer util.Wrap(&err, "NewPlaylist")
+
 	t, err := NewPlaylistTitle(title)
 	if err != nil {
 		return nil, err

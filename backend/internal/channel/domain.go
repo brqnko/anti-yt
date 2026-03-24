@@ -27,7 +27,9 @@ func WithSubscribedChannelSubscribedAt(subscribedAt time.Time) SubscribedChannel
 	}
 }
 
-func NewSubscribedChannel(channelID, subscriberID uuid.UUID, opts ...SubscribedChannelOption) (*SubscribedChannel, error) {
+func NewSubscribedChannel(channelID, subscriberID uuid.UUID, opts ...SubscribedChannelOption) (_ *SubscribedChannel, err error) {
+	defer util.Wrap(&err, "NewSubscribedChannel")
+
 	sc := &SubscribedChannel{
 		SubscribedAt: time.Now(),
 		ChannelID:    channelID,
@@ -88,7 +90,9 @@ func (c *Channel) MarkAsRSSFetched() {
 
 type ValuableDescription string
 
-func NewValuableDescription(description string) (ValuableDescription, error) {
+func NewValuableDescription(description string) (_ ValuableDescription, err error) {
+	defer util.Wrap(&err, "NewValuableDescription")
+
 	if len(description) >= 256 {
 		return "", ErrInvalidValuableDescription
 	}
@@ -136,7 +140,9 @@ var (
 	}
 )
 
-func NewValuableCategoryCode(str string) (ValuableCategoryCode, error) {
+func NewValuableCategoryCode(str string) (_ ValuableCategoryCode, err error) {
+	defer util.Wrap(&err, "NewValuableCategoryCode")
+
 	for _, c := range valuableCategoryCodeMap {
 		if str == c.str {
 			return c.code, nil
@@ -165,6 +171,7 @@ type ValuableChannel struct {
 // これEntityでいいのかな...?
 func NewValuableChannel(channelID uuid.UUID, reasonCode, valuableDescription string) (_ *ValuableChannel, err error) {
 	defer util.Wrap(&err, "NewValuableChannel")
+
 	rc, err := NewValuableCategoryCode(reasonCode)
 	if err != nil {
 		return nil, err
@@ -180,4 +187,32 @@ func NewValuableChannel(channelID uuid.UUID, reasonCode, valuableDescription str
 		ValuableReasonCode:  rc,
 		ValuableDescription: description,
 	}, nil
+}
+
+func (vc *ValuableChannel) SetReasonCode(reasonCode *string) (err error) {
+	if reasonCode == nil {
+		return nil
+	}
+	defer util.Wrap(&err, "ValuableChannel.SetReasonCode")
+
+	rc, err := NewValuableCategoryCode(*reasonCode)
+	if err != nil {
+		return err
+	}
+	vc.ValuableReasonCode = rc
+	return nil
+}
+
+func (vc *ValuableChannel) SetDescription(description *string) (err error) {
+	if description == nil {
+		return nil
+	}
+	defer util.Wrap(&err, "ValuableChannel.SetDescription")
+
+	d, err := NewValuableDescription(*description)
+	if err != nil {
+		return err
+	}
+	vc.ValuableDescription = d
+	return nil
 }

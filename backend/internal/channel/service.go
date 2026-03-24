@@ -29,11 +29,9 @@ type Service struct {
 }
 
 var (
-	ErrInvalidSubscriptionLimit  = core.NewDomainError("channel.invalid_subscription_limit", "invalid subscription limit: out of range (should be [1..50])")
-	ErrInvalidGetUploadLimit     = core.NewDomainError("channel.invalid_get_upload_limit", "invalid get upload limit: out of range (should be [1..50])")
-	ErrInvalidYouTubeURL         = core.NewDomainError("channel.invalid_youtube_url", "invalid youtube url or unsupported format")
-	ErrInvalidChannelID          = core.NewDomainError("channel.invalid_channel_id", "invalid channel id")
-	ErrInvalidChannelHandle      = core.NewDomainError("channel.invalid_channel_handle", "invalid channel handle")
+	ErrInvalidSubscriptionLimit = core.NewDomainError("channel.invalid_subscription_limit", "invalid subscription limit: out of range (should be [1..50])")
+	ErrInvalidGetUploadLimit    = core.NewDomainError("channel.invalid_get_upload_limit", "invalid get upload limit: out of range (should be [1..50])")
+	ErrInvalidChannelID         = core.NewDomainError("channel.invalid_channel_id", "invalid channel id")
 )
 
 func NewService(
@@ -56,7 +54,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 	defer util.Wrap(&err, "Service.SubscribeChannel")
 
 	// ユーザーはURLやハンドルやチャンネルIDで入力してくる
-	channelIDOrHandle, err := extractChannelIDOrHandle(channelText)
+	channelIDOrHandle, err := youtube_d.ExtractChannelIDOrHandle(channelText)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +148,9 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 	return foundChannel, nil
 }
 
-func (s *Service) UnsubscribeChannel(ctx context.Context, userID, channelID uuid.UUID) error {
+func (s *Service) UnsubscribeChannel(ctx context.Context, userID, channelID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "Service.UnsubscribeChannel")
+
 	rowsAffected, err := NewChannelRepository(sqlc.New(s.db)).RemoveSubscription(ctx, userID, channelID)
 	if err != nil {
 		return err
@@ -163,6 +163,8 @@ func (s *Service) UnsubscribeChannel(ctx context.Context, userID, channelID uuid
 }
 
 func (s *Service) GetSubscriptions(ctx context.Context, userID uuid.UUID, limit int32, cursor *uuid.UUID) (_ []GetSubscriptionsView, _ bool, err error) {
+	defer util.Wrap(&err, "Service.GetSubscriptions")
+
 	if limit < 1 || 50 < limit { // openapiもあるが一応チェック
 		return nil, false, ErrInvalidSubscriptionLimit
 	}
@@ -178,8 +180,9 @@ func (s *Service) GetSubscriptions(ctx context.Context, userID uuid.UUID, limit 
 	return channels, false, nil
 }
 
-
 func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetChannelUploadsView, _ bool, err error) {
+	defer util.Wrap(&err, "Service.GetChannelUploads")
+
 	if limit < 1 || 50 < limit {
 		return nil, false, ErrInvalidGetUploadLimit
 	}
@@ -249,6 +252,8 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 }
 
 func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, _ bool, err error) {
+	defer util.Wrap(&err, "Service.GetFeed")
+
 	// RSS Feedを同期する
 	if syncErr := s.syncRSSFeeds(ctx, userID); syncErr != nil {
 		slog.Warn("failed to sync RSS feeds", "error", syncErr)
@@ -265,7 +270,9 @@ func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UU
 	return videos, false, nil
 }
 
-func (s *Service) syncRSSFeeds(ctx context.Context, userID uuid.UUID) error {
+func (s *Service) syncRSSFeeds(ctx context.Context, userID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "Service.syncRSSFeeds")
+
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return err

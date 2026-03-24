@@ -144,11 +144,11 @@ func run(ctx context.Context) int {
 		return 1
 	}
 
-	jwtService := jwt_d.NewJWTService(jwtPrivate, jwtPublic, 30*time.Minute)
+	jwtService := jwt_d.NewService(jwtPrivate, jwtPublic, 30*time.Minute)
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	ytService, err := youtube_d.NewYouTubeAPIServiceImpl(initCtx, cfg.youtubeDataAPIKey)
+	ytService, err := youtube_d.NewService(initCtx, cfg.youtubeDataAPIKey)
 	if err != nil {
 		slog.Error("failed to create youtube service", "error", err)
 		return 1
@@ -162,7 +162,7 @@ func run(ctx context.Context) int {
 		r.Use(middleware_d.RandomLag)
 		r.Use(v1.SwaggerMiddleware())
 	}
-	admin.HandleAdminEndpoints(r, db, cfg.adminAPIKey)
+	admin.HandleAdminEndpoints(r, db, ytService, cfg.adminAPIKey)
 	v1.HandlerFromMux(v1.NewStrictHandler(
 		v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour, ytService, 1*time.Hour),
 		[]v1.StrictMiddlewareFunc{

@@ -32,6 +32,7 @@ func NewVideo(
 	opts ...VideoOption,
 ) (_ *Video, err error) {
 	defer util.Wrap(&err, "NewVideo(channelID=%s)", channelID)
+
 	id, err := uuid.NewV7()
 	if err != nil {
 		return nil, err

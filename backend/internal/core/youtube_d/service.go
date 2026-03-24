@@ -34,16 +34,17 @@ type Service interface {
 	FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error)
 }
 
-var _ Service = (*youTubeAPIServiceImpl)(nil)
+var _ Service = (*serviceImpl)(nil)
 
-type youTubeAPIServiceImpl struct {
+type serviceImpl struct {
 	ytClient   *youtube.Service
 	feedParser *gofeed.Parser
 }
 
 // NOTE: 削除された動画などはAPIから返ってこず、また順番も保証されないのでmapで返す
-func (s *youTubeAPIServiceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (_ map[VideoID]Video, err error) {
+func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (_ map[VideoID]Video, err error) {
 	defer util.Wrap(&err, "youTubeAPIService.FetchVideoDetail")
+
 	if len(videoIDs) == 0 {
 		return map[VideoID]Video{}, nil
 	}
@@ -125,8 +126,9 @@ func (s *youTubeAPIServiceImpl) FetchVideoDetail(ctx context.Context, videoIDs [
 	return videos, nil
 }
 
-func (s *youTubeAPIServiceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (_ Channel, err error) {
+func (s *serviceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (_ Channel, err error) {
 	defer util.Wrap(&err, "youTubeAPIService.FetchChannelDetailByIDOrHandle")
+
 	q := s.ytClient.Channels.List([]string{"snippet", "statistics", "contentDetails"})
 	if strings.HasPrefix(channelID, "@") && len(([]rune)(channelID)) > 3 {
 		q = q.ForHandle(channelID)
@@ -190,8 +192,9 @@ func (s *youTubeAPIServiceImpl) FetchChannelDetailByIDOrHandle(ctx context.Conte
 	return channel, nil
 }
 
-func (s *youTubeAPIServiceImpl) FetchChannelDetail(ctx context.Context, channelIDs []ChannelID) (_ map[ChannelID]Channel, err error) {
+func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []ChannelID) (_ map[ChannelID]Channel, err error) {
 	defer util.Wrap(&err, "youTubeAPIService.FetchChannelDetail")
+
 	if len(channelIDs) == 0 {
 		return map[ChannelID]Channel{}, nil
 	}
@@ -263,8 +266,9 @@ func (s *youTubeAPIServiceImpl) FetchChannelDetail(ctx context.Context, channelI
 	return result, nil
 }
 
-func (s *youTubeAPIServiceImpl) FetchRSSFeed(ctx context.Context, channelID ChannelID) (_ []VideoID, err error) {
+func (s *serviceImpl) FetchRSSFeed(ctx context.Context, channelID ChannelID) (_ []VideoID, err error) {
 	defer util.Wrap(&err, "youTubeAPIService.FetchRSSFeed")
+
 	if !strings.HasPrefix((string)(channelID), "UC") || len(channelID) != 24 {
 		return nil, ErrInvalidChannelID
 	}
@@ -302,8 +306,9 @@ func (s *youTubeAPIServiceImpl) FetchRSSFeed(ctx context.Context, channelID Chan
 	return videos, nil
 }
 
-func (s *youTubeAPIServiceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error) {
+func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error) {
 	defer util.Wrap(&err, "youTubeAPIService.FetchPlaylistVideoIDs")
+
 	call := s.ytClient.PlaylistItems.List([]string{"contentDetails"}).
 		PlaylistId(playlistID).
 		MaxResults(50).
@@ -334,8 +339,9 @@ func (s *youTubeAPIServiceImpl) FetchPlaylistVideoIDs(ctx context.Context, playl
 	return videoIDs, res.NextPageToken, nil
 }
 
-func NewYouTubeAPIServiceImpl(ctx context.Context, apiKey string) (_ Service, err error) {
+func NewService(ctx context.Context, apiKey string) (_ Service, err error) {
 	defer util.Wrap(&err, "NewYouTubeAPIServiceImpl")
+
 	ytClient, err := youtube.NewService(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
 		return nil, err
@@ -344,7 +350,7 @@ func NewYouTubeAPIServiceImpl(ctx context.Context, apiKey string) (_ Service, er
 	feedParser := gofeed.NewParser()
 	feedParser.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
 
-	return &youTubeAPIServiceImpl{
+	return &serviceImpl{
 		ytClient:   ytClient,
 		feedParser: feedParser,
 	}, nil

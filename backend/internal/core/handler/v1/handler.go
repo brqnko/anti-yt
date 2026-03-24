@@ -40,7 +40,7 @@ func NewAPIHandler(
 	db *pgxpool.Pool,
 	oidcService oidc.GoogleOIDCService,
 	serverURL, frontendURL string,
-	jwtService jwt_d.JWTService,
+	jwtService jwt_d.Service,
 	refreshTokenDuration time.Duration,
 	ytService youtube_d.Service,
 	rssFetchDuration time.Duration,

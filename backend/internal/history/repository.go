@@ -25,6 +25,7 @@ func NewHistoryRepository(q sqlc.Querier) HistoryRepository {
 
 func (h *historyRepositoryImpl) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, positionSeconds int) (err error) {
 	defer util.Wrap(&err, "historyRepository.Heartbeat(userID=%s, videoID=%s)", userID, videoID)
+
 	publicID, err := uuid.NewV7()
 	if err != nil {
 		return err

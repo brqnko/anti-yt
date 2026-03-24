@@ -3,6 +3,7 @@ package video
 import (
 	"context"
 
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -17,7 +18,9 @@ func NewService(db *pgxpool.Pool) *Service {
 	}
 }
 
-func (s *Service) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (GetVideoDetailView, error) {
+func (s *Service) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (_ GetVideoDetailView, err error) {
+	defer util.Wrap(&err, "Service.GetVideoDetail")
+
 	view, err := s.videoQS.Find(ctx, videoID)
 	if err != nil {
 		return GetVideoDetailView{}, err

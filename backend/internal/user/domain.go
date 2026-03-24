@@ -66,7 +66,9 @@ type DailyScreenTimeLimit struct {
 	duration *time.Duration
 }
 
-func NewDailyScreenTimeLimit(seconds *int) (DailyScreenTimeLimit, error) {
+func NewDailyScreenTimeLimit(seconds *int) (_ DailyScreenTimeLimit, err error) {
+	defer util.Wrap(&err, "NewDailyScreenTimeLimit")
+
 	if seconds == nil {
 		return DailyScreenTimeLimit{duration: nil}, nil
 	}
@@ -100,7 +102,9 @@ func (d DailyScreenTimeLimit) ToIntPtr() *int {
 
 type DisplayName string
 
-func NewDisplayName(s string) (DisplayName, error) {
+func NewDisplayName(s string) (_ DisplayName, err error) {
+	defer util.Wrap(&err, "NewDisplayName")
+
 	str := strings.TrimSpace(s)
 
 	length := len([]rune(str))
@@ -127,7 +131,9 @@ var languageCodeMap = []struct {
 	{code: "ja", str: "ja"},
 }
 
-func NewLanguageCode(value string) (LanguageCode, error) {
+func NewLanguageCode(value string) (_ LanguageCode, err error) {
+	defer util.Wrap(&err, "NewLanguageCode")
+
 	for _, c := range languageCodeMap {
 		if value == c.str {
 			return c.code, nil
@@ -148,6 +154,8 @@ type DailyScreenTimeLimitRange struct {
 }
 
 func NewDailyScreenTimeLimitRange(startTimeSeconds, endTimeSeconds int) (_ DailyScreenTimeLimitRange, err error) {
+	defer util.Wrap(&err, "NewDailyScreenTimeLimitRange")
+
 	if startTimeSeconds >= endTimeSeconds {
 		return DailyScreenTimeLimitRange{}, ErrDailyScreenTimeLimitRangeOrder
 	}

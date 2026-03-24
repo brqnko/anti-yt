@@ -3,14 +3,20 @@ package admin
 import (
 	"net/http"
 
+	"github.com/brqnko/anti-yt/backend/internal/admin"
+	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func HandleAdminEndpoints(m *chi.Mux, db *pgxpool.Pool, adminAPIKey string) {
-	m.Route("/admin/api/v1", func(r chi.Router) {
+func HandleAdminEndpoints(m *chi.Mux, db *pgxpool.Pool, ytService youtube_d.Service, adminAPIKey string) {
+	h := newHandler(admin.NewService(db, ytService))
+
+	m.Route("/admin", func(r chi.Router) {
 		r.Use(adminAPIKeyAuthMiddleware(adminAPIKey))
-		// TODO: ルートを追加
+		r.Post("/valuable", h.createValuableChannel)
+		r.Patch("/valuable", h.updateValuableChannel)
+		r.Delete("/valuable", h.removeValuableChannel)
 	})
 }
 

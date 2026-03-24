@@ -40,6 +40,7 @@ func NewVideoQueryService(db *pgxpool.Pool) VideoQueryService {
 
 func (v *videoQueryServiceImpl) Find(ctx context.Context, id uuid.UUID) (_ GetVideoDetailView, err error) {
 	defer util.Wrap(&err, "videoQueryService.Find(id=%s)", id)
+
 	row, err := v.q.GetVideoDetail(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

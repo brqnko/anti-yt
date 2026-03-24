@@ -6,11 +6,11 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
 	"github.com/brqnko/anti-yt/backend/internal/user"
-	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -28,7 +28,7 @@ type Service struct {
 
 	oidcService oidc.GoogleOIDCService
 
-	jwtService jwt_d.JWTService
+	jwtService jwt_d.Service
 
 	serverURL            string
 	refreshTokenDuration time.Duration
@@ -38,20 +38,22 @@ type Service struct {
 	userQS          user.UserQueryService
 }
 
-func NewService(db *pgxpool.Pool, oidcService oidc.GoogleOIDCService, serverURL string, jwtService jwt_d.JWTService, refreshTokenDuration time.Duration) *Service {
+func NewService(db *pgxpool.Pool, oidcService oidc.GoogleOIDCService, serverURL string, jwtService jwt_d.Service, refreshTokenDuration time.Duration) *Service {
 	return &Service{
-		db:                        db,
-		oidcService:               oidcService,
-		jwtService:                jwtService,
-		serverURL:                 serverURL,
-		refreshTokenDuration:      refreshTokenDuration,
-		refreshTokenQS:  NewRefreshTokenQueryService(db),
-		authorizationQS: NewAuthorizationQueryService(db),
-		userQS:          user.NewUserQueryService(db),
+		db:                   db,
+		oidcService:          oidcService,
+		jwtService:           jwtService,
+		serverURL:            serverURL,
+		refreshTokenDuration: refreshTokenDuration,
+		refreshTokenQS:       NewRefreshTokenQueryService(db),
+		authorizationQS:      NewAuthorizationQueryService(db),
+		userQS:               user.NewUserQueryService(db),
 	}
 }
 
 func (s *Service) CreateAuthCode(ctx context.Context) (_, _ string, err error) {
+	defer util.Wrap(&err, "Service.CreateAuthCode")
+
 	csrfToken, err := util.RandomStringUrlSafe(32)
 	if err != nil {
 		return "", "", err
@@ -62,6 +64,7 @@ func (s *Service) CreateAuthCode(ctx context.Context) (_, _ string, err error) {
 
 func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipAddress, countryCode, deviceFingerprint, userAgent string) (_, _, _, _ string, _, _ time.Time, err error) {
 	defer util.Wrap(&err, "Service.GoogleOIDCCallback")
+
 	if csrf == "" || state == "" {
 		return "", "", "", "", time.Time{}, time.Time{}, ErrInvalidCSRFOrState
 	}
@@ -170,7 +173,9 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 	}
 }
 
-func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) error {
+func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) (err error) {
+	defer util.Wrap(&err, "Service.Logout")
+
 	q := sqlc.New(s.db)
 	userID, _, _, _ := s.jwtService.VerifyUserAccessToken(accessToken)
 
@@ -179,6 +184,8 @@ func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) 
 }
 
 func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, countryCode, deviceFingerprint, userAgent string) (_, _ string, _, _ time.Time, err error) {
+	defer util.Wrap(&err, "Service.RefreshToken")
+
 	tokenHash := util.Sha256Hex(refreshToken)
 
 	newToken, err := util.RandomStringUrlSafe(32)
@@ -227,6 +234,8 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 }
 
 func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetSessionsView, _ bool, err error) {
+	defer util.Wrap(&err, "Service.GetSessions")
+
 	view, err := s.refreshTokenQS.GetSessions(ctx, userID, cursor, limit+1)
 	if err != nil {
 		return nil, false, err
@@ -237,7 +246,9 @@ func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID, cursor *uui
 	return view, false, nil
 }
 
-func (s *Service) RemoveSession(ctx context.Context, userID, sessionID uuid.UUID) (uuid.UUID, error) {
+func (s *Service) RemoveSession(ctx context.Context, userID, sessionID uuid.UUID) (_ uuid.UUID, err error) {
+	defer util.Wrap(&err, "Service.RemoveSession")
+
 	q := sqlc.New(s.db)
 	removedPublicID, err := NewRefreshTokenRepository(q).RevokeByID(ctx, userID, sessionID, time.Now().UTC().Add(s.jwtService.TokenDuration()))
 	if err != nil {

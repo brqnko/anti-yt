@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
-	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -21,13 +21,13 @@ var (
 
 type Service struct {
 	db         *pgxpool.Pool
-	jwtService jwt_d.JWTService
+	jwtService jwt_d.Service
 	serverURL  string
 
 	userQS UserQueryService
 }
 
-func NewService(db *pgxpool.Pool, jwtService jwt_d.JWTService, serverURL string) *Service {
+func NewService(db *pgxpool.Pool, jwtService jwt_d.Service, serverURL string) *Service {
 	return &Service{
 		db:         db,
 		jwtService: jwtService,
@@ -157,7 +157,9 @@ func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName
 	return u, nil
 }
 
-func (s *Service) GetUserStatus(ctx context.Context, userID uuid.UUID) (UserStatusView, error) {
+func (s *Service) GetUserStatus(ctx context.Context, userID uuid.UUID) (_ UserStatusView, err error) {
+	defer util.Wrap(&err, "Service.GetUserStatus")
+
 	view, err := s.userQS.Find(ctx, userID)
 	if err != nil {
 		return UserStatusView{}, err
@@ -165,7 +167,9 @@ func (s *Service) GetUserStatus(ctx context.Context, userID uuid.UUID) (UserStat
 	return view, nil
 }
 
-func (s *Service) RemoveUser(ctx context.Context, userID uuid.UUID) error {
+func (s *Service) RemoveUser(ctx context.Context, userID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "Service.RemoveUser")
+
 	if err := NewUserRepository(sqlc.New(s.db)).Remove(ctx, userID, LeaveReasonCode(0)); err != nil {
 		return err
 	}
