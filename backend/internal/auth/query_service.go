@@ -53,6 +53,7 @@ func NewRefreshTokenQueryService(db *pgxpool.Pool) RefreshTokenQueryService {
 
 func (r *refreshTokenQueryServiceImpl) GetSessions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetSessionsView, err error) {
 	defer util.Wrap(&err, "refreshTokenQueryService.GetSessions(userID=%s)", userID)
+
 	rows, err := r.q.ListRefreshTokens(ctx, sqlc.ListRefreshTokensParams{
 		UserID:     userID,
 		QueryLimit: limit,

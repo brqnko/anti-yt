@@ -30,6 +30,7 @@ func NewPlaylistRepository(q sqlc.Querier) PlaylistRepository {
 
 func (r *playlistRepositoryImpl) Save(ctx context.Context, userID uuid.UUID, playlist *Playlist) (_ int64, err error) {
 	defer util.Wrap(&err, "playlistRepository.Save(userID=%s)", userID)
+
 	id, err := r.q.UpsertPlaylist(ctx, sqlc.UpsertPlaylistParams{
 		UserPublicID:        userID,
 		PlaylistTitle:       string(playlist.Title),
@@ -89,6 +90,7 @@ func (r *playlistRepositoryImpl) InsertVideo(ctx context.Context, userID, playli
 
 func (r *playlistRepositoryImpl) BulkInsertVideos(ctx context.Context, playlistInternalID int64, videoInternalIDs []int64) (err error) {
 	defer util.Wrap(&err, "playlistRepository.BulkInsertVideos(playlistInternalID=%d)", playlistInternalID)
+
 	params := make([]sqlc.BulkInsertPlaylistVideosParams, len(videoInternalIDs))
 	for i, videoID := range videoInternalIDs {
 		params[i] = sqlc.BulkInsertPlaylistVideosParams{

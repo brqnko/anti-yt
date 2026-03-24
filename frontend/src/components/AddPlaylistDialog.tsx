@@ -1,6 +1,7 @@
 import { useState, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { getPlaylist } from "../api/generated/playlist";
+import { getApiErrorCode } from "../utils/api-error";
 import type { PostPlaylists201 } from "../api/generated/antiYtApi.schemas";
 
 interface AddPlaylistDialogProps {
@@ -57,8 +58,9 @@ export function AddPlaylistDialog({
       });
       onAdded(result);
       onClose();
-    } catch {
-      setError(t("dashboard.addPlaylistDialog.error"));
+    } catch (err) {
+      const code = getApiErrorCode(err);
+      setError(code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : t("dashboard.addPlaylistDialog.error"));
     } finally {
       setIsSubmitting(false);
     }

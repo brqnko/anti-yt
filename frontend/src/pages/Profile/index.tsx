@@ -1,15 +1,25 @@
-import { useState, useEffect } from "preact/hooks";
+import { useState, useEffect, useCallback } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardHeader } from "../../components/DashboardHeader";
 import { useAuth } from "../../contexts/AuthContext";
 import { getUser } from "../../api/generated/user";
-import { languages } from "../../constants";
+import { getApiErrorCode } from "../../utils/api-error";
+import { languages, modeIcons, REPORT_FORM_URL } from "../../constants";
 import { useColorMode, type ColorMode } from "../../hooks/useColorMode";
-import { modeIcons } from "../../constants";
 import { RestrictionsTab } from "./RestrictionsTab";
 import { SecurityTab } from "./SecurityTab";
+
+const SIDEBAR_STORAGE_KEY = "sidebar-open";
+
+function getStoredSidebarState(): boolean {
+  try {
+    const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+    if (stored !== null) return stored === "true";
+  } catch {}
+  return true;
+}
 
 type Tab = "restrictions" | "profile" | "security";
 
@@ -17,6 +27,16 @@ function ProfileContent() {
   const { t, i18n } = useTranslation();
   const { logout } = useAuth();
   const { mode, setMode } = useColorMode();
+
+  const [sidebarOpen, setSidebarOpen] = useState(getStoredSidebarState);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen((v) => {
+      const next = !v;
+      try { localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next)); } catch {}
+      return next;
+    });
+  }, []);
 
   const colorModes: { value: ColorMode; icon: string }[] = [
     { value: "light", icon: modeIcons.light },
@@ -45,6 +65,7 @@ function ProfileContent() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveFading, setSaveFading] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const trimmedName = displayName.trim();
   const nameLength = [...trimmedName].length;
@@ -54,6 +75,7 @@ function ProfileContent() {
     if (!isNameValid) return;
     setIsSaving(true);
     setSaveSuccess(false);
+    setSaveError(null);
     try {
       const { patchUsersMeStatus } = getUser();
       await patchUsersMeStatus({
@@ -66,8 +88,9 @@ function ProfileContent() {
       setSaveFading(false);
       setTimeout(() => setSaveFading(true), 2500);
       setTimeout(() => { setSaveSuccess(false); setSaveFading(false); }, 3000);
-    } catch {
-      // Error handling could be improved
+    } catch (err) {
+      const code = getApiErrorCode(err);
+      setSaveError(code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : t("apiErrors.fallback"));
     } finally {
       setIsSaving(false);
     }
@@ -87,11 +110,28 @@ function ProfileContent() {
 
   return (
     <div class="relative flex h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
-      <DashboardHeader />
+      <DashboardHeader sidebarOpen={sidebarOpen} onToggleSidebar={toggleSidebar} />
 
-      <div class="flex flex-1 w-full overflow-hidden">
+      <div class="flex flex-1 w-full max-w-[1600px] mx-auto overflow-hidden">
+        {/* Mobile backdrop */}
+        {sidebarOpen && (
+          <div
+            class="fixed inset-0 z-30 bg-black/40 lg:hidden"
+            onClick={toggleSidebar}
+          />
+        )}
+
         {/* Sidebar */}
-        <aside class="w-64 border-r border-border-light dark:border-border-dark hidden lg:flex flex-col p-6 gap-2 overflow-y-auto shrink-0">
+        <aside
+          class={`flex flex-col border-r border-border-light dark:border-border-dark shrink-0 transition-[width,opacity,transform] duration-200
+            fixed top-[57px] bottom-0 z-40 bg-background-light dark:bg-background-dark
+            lg:relative lg:top-auto lg:bottom-auto lg:z-auto
+            ${sidebarOpen
+              ? "w-64 opacity-100 translate-x-0 overflow-y-auto"
+              : "w-0 opacity-0 -translate-x-full lg:translate-x-0 overflow-hidden"
+            }`}
+        >
+          <div class="flex flex-col flex-1 p-6 gap-2 min-w-[16rem]">
           <button
             onClick={() => setActiveTab("profile")}
             class={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all font-bold border-none bg-transparent w-full text-left ${
@@ -127,7 +167,7 @@ function ProfileContent() {
           </button>
           <div class="mt-auto flex flex-col gap-1">
             <a
-              href="https://forms.gle/PLACEHOLDER"
+              href={REPORT_FORM_URL}
               target="_blank"
               rel="noopener noreferrer"
               class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-all font-bold no-underline"
@@ -143,6 +183,7 @@ function ProfileContent() {
               <span class="material-symbols-outlined">logout</span>
               {t("profile.nav.signOut")}
             </button>
+          </div>
           </div>
         </aside>
 
@@ -268,6 +309,11 @@ function ProfileContent() {
                   {saveSuccess && (
                     <span class={`text-sm text-green-600 dark:text-green-400 font-medium transition-opacity duration-500 ${saveFading ? "opacity-0" : "opacity-100"}`}>
                       {t("profile.saved")}
+                    </span>
+                  )}
+                  {saveError && (
+                    <span class="text-sm text-red-500 font-medium">
+                      {saveError}
                     </span>
                   )}
                   <button

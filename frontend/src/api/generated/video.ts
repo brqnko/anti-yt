@@ -6,10 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 import type {
-  GetChannelsChannelIdVideos200,
-  GetChannelsChannelIdVideosParams,
-  GetFeed200,
-  GetFeedParams,
   GetSearch200,
   GetSearchParams,
   GetVideosVideoId200
@@ -22,20 +18,6 @@ import { customInstance } from '../mutator';
 
   export const getVideo = () => {
 /**
- * チャンネルが投稿している動画を一覧で表示する
- * @summary Get latest channel uploads
- */
-const getChannelsChannelIdVideos = (
-    channelId: string,
-    params: GetChannelsChannelIdVideosParams,
- ) => {
-      return customInstance<GetChannelsChannelIdVideos200>(
-      {url: `/api/v1/channels/${channelId}/videos`, method: 'GET',
-        params
-    },
-      );
-    }
-  /**
  * 検索を行う
  * @summary Get search result
  */
@@ -44,19 +26,6 @@ const getSearch = (
  ) => {
       return customInstance<GetSearch200>(
       {url: `/api/v1/search`, method: 'GET',
-        params
-    },
-      );
-    }
-  /**
- * チャンネル登録しているチャンネルの最新の一覧を取得
- * @summary Get latest videos
- */
-const getFeed = (
-    params: GetFeedParams,
- ) => {
-      return customInstance<GetFeed200>(
-      {url: `/api/v1/feed`, method: 'GET',
         params
     },
       );
@@ -73,8 +42,6 @@ const getVideosVideoId = (
     },
       );
     }
-  return {getChannelsChannelIdVideos,getSearch,getFeed,getVideosVideoId}};
-export type GetChannelsChannelIdVideosResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getVideo>['getChannelsChannelIdVideos']>>>
+  return {getSearch,getVideosVideoId}};
 export type GetSearchResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getVideo>['getSearch']>>>
-export type GetFeedResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getVideo>['getFeed']>>>
 export type GetVideosVideoIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getVideo>['getVideosVideoId']>>>

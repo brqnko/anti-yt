@@ -36,6 +36,7 @@ INSERT INTO
         language_code,
         daily_screen_time_seconds,
         joined_at,
+        left_at,
         leave_reason_code,
         public_id
     )
@@ -46,6 +47,7 @@ SELECT
     deleted.language_code AS language_code,
     deleted.daily_screen_time_seconds AS daily_screen_time_seconds,
     deleted.joined_at AS joined_at,
+    CURRENT_TIMESTAMP AS left_at,
     $1 AS leave_reason_code,
     deleted.public_id AS public_id
 FROM
@@ -173,7 +175,6 @@ SELECT
     m_user.language_code,
     m_user.joined_at,
     m_user.daily_screen_time_seconds,
-    m_user_screen_time_range.public_id AS screen_time_range_id,
     m_user_screen_time_range.screen_time_range_start,
     m_user_screen_time_range.screen_time_range_end
 FROM
@@ -190,7 +191,6 @@ type GetUserProfileRow struct {
 	LanguageCode           string
 	JoinedAt               time.Time
 	DailyScreenTimeSeconds int
-	ScreenTimeRangeID      *uuid.UUID
 	ScreenTimeRangeStart   *database_d.Seconds
 	ScreenTimeRangeEnd     *database_d.Seconds
 }
@@ -210,7 +210,6 @@ func (q *Queries) GetUserProfile(ctx context.Context, userPublicID uuid.UUID) ([
 			&i.LanguageCode,
 			&i.JoinedAt,
 			&i.DailyScreenTimeSeconds,
-			&i.ScreenTimeRangeID,
 			&i.ScreenTimeRangeStart,
 			&i.ScreenTimeRangeEnd,
 		); err != nil {
@@ -278,8 +277,7 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (int64, 
 const listScreenTimeRanges = `-- name: ListScreenTimeRanges :many
 SELECT
     m_user_screen_time_range.screen_time_range_start,
-    m_user_screen_time_range.screen_time_range_end,
-    m_user_screen_time_range.public_id
+    m_user_screen_time_range.screen_time_range_end
 FROM
     m_user_screen_time_range
 WHERE
@@ -300,7 +298,6 @@ ORDER BY
 type ListScreenTimeRangesRow struct {
 	ScreenTimeRangeStart database_d.Seconds
 	ScreenTimeRangeEnd   database_d.Seconds
-	PublicID             uuid.UUID
 }
 
 // m_user.public_idのユーザーの視聴制限範囲を取得する。
@@ -313,7 +310,7 @@ func (q *Queries) ListScreenTimeRanges(ctx context.Context, userPublicID uuid.UU
 	var items []ListScreenTimeRangesRow
 	for rows.Next() {
 		var i ListScreenTimeRangesRow
-		if err := rows.Scan(&i.ScreenTimeRangeStart, &i.ScreenTimeRangeEnd, &i.PublicID); err != nil {
+		if err := rows.Scan(&i.ScreenTimeRangeStart, &i.ScreenTimeRangeEnd); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

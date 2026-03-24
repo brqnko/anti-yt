@@ -1,6 +1,7 @@
 import { useState, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { getChannel } from "../api/generated/channel";
+import { getApiErrorCode } from "../utils/api-error";
 import type { PostChannelsSubscribe201 } from "../api/generated/antiYtApi.schemas";
 
 interface AddChannelDialogProps {
@@ -49,8 +50,9 @@ export function AddChannelDialog({
       });
       onAdded(result);
       onClose();
-    } catch {
-      setError(t("dashboard.addChannelDialog.error"));
+    } catch (err) {
+      const code = getApiErrorCode(err);
+      setError(code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : t("dashboard.addChannelDialog.error"));
     } finally {
       setIsSubmitting(false);
     }

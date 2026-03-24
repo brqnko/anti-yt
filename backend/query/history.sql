@@ -158,11 +158,17 @@ do_insert AS (
         t_video_watch (
             m_user_id,
             m_video_id,
+            public_id,
+            watch_start_at,
+            watch_end_at,
             watch_position_seconds
         )
     SELECT
         (SELECT m_user_id FROM resolved_user),
         (SELECT m_video_id FROM resolved_video),
+        @public_id,
+        @watch_start_at,
+        @watch_end_at,
         @watch_position_seconds
     WHERE
         NOT EXISTS (SELECT 1 FROM update_same)

@@ -3,46 +3,54 @@ package playlist
 import (
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 )
 
 var (
-	ErrInvalidPlaylistTitle       = util.NewDomainError("playlist.invalid_title", "invalid playlist title: must be between 1 and 128 characters")
-	ErrInvalidPlaylistDescription = util.NewDomainError("playlist.invalid_description", "invalid playlist description: must be at most 255 characters")
-	ErrInvalidVisibilityCode      = util.NewDomainError("playlist.invalid_visibility_code", "invalid visibility code")
-	ErrInvalidPlaylistCode        = util.NewDomainError("playlist.invalid_playlist_code", "invalid playlist code")
+	ErrInvalidPlaylistTitle       = core.NewDomainError("playlist.invalid_title", "invalid playlist title: must be between 1 and 128 characters")
+	ErrInvalidPlaylistDescription = core.NewDomainError("playlist.invalid_description", "invalid playlist description: must be at most 255 characters")
+	ErrInvalidVisibilityCode      = core.NewDomainError("playlist.invalid_visibility_code", "invalid visibility code")
+	ErrInvalidPlaylistCode        = core.NewDomainError("playlist.invalid_playlist_code", "invalid playlist code")
 )
 
 type VisibilityCode int
 
-const (
-	VisibilityPrivate VisibilityCode = 0
-)
+var visibilityCodeMap = []struct {
+	code VisibilityCode
+	str  string
+}{
+	{code: 0, str: "private"},
+}
 
 func NewVisibilityCode(s string) (_ VisibilityCode, err error) {
 	defer util.Wrap(&err, "NewVisibilityCode")
-	switch s {
-	case "private":
-		return VisibilityPrivate, nil
-	default:
-		return 0, ErrInvalidVisibilityCode
+
+	for _, c := range visibilityCodeMap {
+		if s == c.str {
+			return c.code, nil
+		}
 	}
+
+	return 0, ErrInvalidVisibilityCode
 }
 
 func (v VisibilityCode) String() string {
-	switch v {
-	case VisibilityPrivate:
-		return "private"
-	default:
-		return "private"
+	for _, c := range visibilityCodeMap {
+		if c.code == v {
+			return c.str
+		}
 	}
+
+	return "private"
 }
 
 type PlaylistTitle string
 
 func NewPlaylistTitle(s string) (_ PlaylistTitle, err error) {
 	defer util.Wrap(&err, "NewPlaylistTitle")
+
 	if len(s) == 0 || len(s) > 128 {
 		return "", ErrInvalidPlaylistTitle
 	}
@@ -57,6 +65,7 @@ type PlaylistDescription string
 
 func NewPlaylistDescription(s string) (_ PlaylistDescription, err error) {
 	defer util.Wrap(&err, "NewPlaylistDescription")
+
 	if len(s) > 255 {
 		return "", ErrInvalidPlaylistDescription
 	}
@@ -67,10 +76,11 @@ func (p PlaylistDescription) String() string {
 	return string(p)
 }
 
-func (p *Playlist) SetTitle(s *string) error {
+func (p *Playlist) SetTitle(s *string) (err error) {
 	if s == nil {
 		return nil
 	}
+	defer util.Wrap(&err, "Playlist.SetTitle")
 	t, err := NewPlaylistTitle(*s)
 	if err != nil {
 		return err
@@ -79,10 +89,11 @@ func (p *Playlist) SetTitle(s *string) error {
 	return nil
 }
 
-func (p *Playlist) SetDescription(s *string) error {
+func (p *Playlist) SetDescription(s *string) (err error) {
 	if s == nil {
 		return nil
 	}
+	defer util.Wrap(&err, "Playlist.SetDescription")
 	d, err := NewPlaylistDescription(*s)
 	if err != nil {
 		return err
@@ -91,10 +102,11 @@ func (p *Playlist) SetDescription(s *string) error {
 	return nil
 }
 
-var ErrNegativeVideoCount = util.NewDomainError("playlist.negative_video_count", "video count must not be negative")
-var ErrVideoCountUnderflow = util.NewDomainError("playlist.video_count_underflow", "video count is already 0")
+var ErrNegativeVideoCount = core.NewDomainError("playlist.negative_video_count", "video count must not be negative")
+var ErrVideoCountUnderflow = core.NewDomainError("playlist.video_count_underflow", "video count is already 0")
 
-func (p *Playlist) SetVideoCount(count int) error {
+func (p *Playlist) SetVideoCount(count int) (err error) {
+	defer util.Wrap(&err, "Playlist.SetVideoCount")
 	if count < 0 {
 		return ErrNegativeVideoCount
 	}
@@ -106,7 +118,8 @@ func (p *Playlist) IncrementVideoCount() {
 	p.VideoCount++
 }
 
-func (p *Playlist) DecrementVideoCount() error {
+func (p *Playlist) DecrementVideoCount() (err error) {
+	defer util.Wrap(&err, "Playlist.DecrementVideoCount")
 	if p.VideoCount <= 0 {
 		return ErrVideoCountUnderflow
 	}
@@ -116,27 +129,33 @@ func (p *Playlist) DecrementVideoCount() error {
 
 type PlaylistCode int
 
-const (
-	PlaylistCodeNormal PlaylistCode = 0
-)
+var playlistCodeMap = []struct {
+	code PlaylistCode
+	str  string
+}{
+	{code: 0, str: "normal"},
+}
 
 func NewPlaylistCode(s string) (_ PlaylistCode, err error) {
 	defer util.Wrap(&err, "NewPlaylistCode")
-	switch s {
-	case "normal":
-		return PlaylistCodeNormal, nil
-	default:
-		return 0, ErrInvalidPlaylistCode
+
+	for _, c := range playlistCodeMap {
+		if s == c.str {
+			return c.code, nil
+		}
 	}
+
+	return 0, ErrInvalidPlaylistCode
 }
 
 func (p PlaylistCode) String() string {
-	switch p {
-	case PlaylistCodeNormal:
-		return "normal"
-	default:
-		return "normal"
+	for _, c := range playlistCodeMap {
+		if c.code == p {
+			return c.str
+		}
 	}
+
+	return "normal"
 }
 
 type Playlist struct {
@@ -177,6 +196,7 @@ func NewPlaylist(
 	opts ...PlaylistOption,
 ) (_ *Playlist, err error) {
 	defer util.Wrap(&err, "NewPlaylist")
+
 	t, err := NewPlaylistTitle(title)
 	if err != nil {
 		return nil, err

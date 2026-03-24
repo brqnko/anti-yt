@@ -12,15 +12,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type HSearch struct {
-	HSearchID     int64
-	MUserID       int64
-	SearchKeyword string
-	SearchedAt    time.Time
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-}
-
 type HUser struct {
 	HUserID                int64
 	MUserAuthorizationID   int64
@@ -125,7 +116,6 @@ type MUserScreenTimeRange struct {
 	ScreenTimeRangeEnd     database_d.Seconds
 	CreatedAt              time.Time
 	UpdatedAt              time.Time
-	PublicID               uuid.UUID
 }
 
 type MUserSubscribingChannel struct {
@@ -135,6 +125,15 @@ type MUserSubscribingChannel struct {
 	SubscribedAt              time.Time
 	CreatedAt                 time.Time
 	UpdatedAt                 time.Time
+}
+
+type MValuableChannel struct {
+	MValuableChannelID  int64
+	MChannelID          int64
+	CategoryCode        int
+	ValuableDescription string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
 }
 
 type MVideo struct {

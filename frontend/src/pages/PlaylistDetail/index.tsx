@@ -8,6 +8,7 @@ import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
 import { getPlaylist } from "../../api/generated/playlist";
+import { getApiErrorCode } from "../../utils/api-error";
 import { formatTimeAgo } from "../../utils/format";
 import { Linkify } from "../../components/Linkify";
 import type {
@@ -41,7 +42,7 @@ function EditPlaylistDialog({
   const [title, setTitle] = useState(playlist.playlist_title);
   const [description, setDescription] = useState(playlist.playlist_description);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEscapeKey(open, onClose);
 
@@ -49,14 +50,14 @@ function EditPlaylistDialog({
     if (open) {
       setTitle(playlist.playlist_title);
       setDescription(playlist.playlist_description);
-      setError(false);
+      setError(null);
     }
   }, [open, playlist]);
 
   const handleSave = async () => {
     if (!title.trim() || isSaving) return;
     setIsSaving(true);
-    setError(false);
+    setError(null);
     try {
       await getPlaylist().patchPlaylistsPlaylistId(playlist.playlist_id, {
         playlist_title: title.trim(),
@@ -68,8 +69,9 @@ function EditPlaylistDialog({
       });
       window.dispatchEvent(new CustomEvent("playlist-changed"));
       onClose();
-    } catch {
-      setError(true);
+    } catch (err) {
+      const code = getApiErrorCode(err);
+      setError(code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : t("playlistDetail.editDialog.error"));
     } finally {
       setIsSaving(false);
     }
@@ -118,7 +120,7 @@ function EditPlaylistDialog({
         </div>
         {error && (
           <p class="text-sm text-red-500" role="alert">
-            {t("playlistDetail.editDialog.error")}
+            {error}
           </p>
         )}
         <div class="flex justify-end gap-3 pt-2">
@@ -129,7 +131,7 @@ function EditPlaylistDialog({
             {t("playlistDetail.editDialog.cancel")}
           </button>
           <button
-            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-charcoal hover:bg-primary/80 transition-colors cursor-pointer border-none disabled:opacity-50"
+            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors cursor-pointer border-none disabled:opacity-50"
             onClick={handleSave}
             disabled={!title.trim() || isSaving}
           >
@@ -407,7 +409,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
               {t("playlistDetail.notFoundDesc")}
             </p>
             <a
-              class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-charcoal rounded-lg font-medium text-sm hover:bg-primary/80 transition-colors no-underline"
+              class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
               href="/playlists"
             >
               <span class="material-symbols-outlined text-[18px]">

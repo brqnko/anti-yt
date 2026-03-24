@@ -401,43 +401,18 @@ paths:
                         external_channel_icon_url:
                           type: string
                           format: uri
-                        external_channel_id:
-                          type: string
                         external_channel_display_name:
                           type: string
-                        videos:
-                          type: object
-                          properties:
-                            item_count:
-                              type: integer
-                              minimum: 0
-                            items:
-                              type: array
-                              uniqueItems: true
-                              items:
-                                type: object
-                                properties:
-                                  video_id:
-                                    type: string
-                                    format: uuid
-                                  external_video_id:
-                                    type: string
-                                  external_video_thumbnail_url:
-                                    type: string
-                                    format: uri
-                                  external_video_title:
-                                    type: string
-                                  external_video_description:
-                                    type: string
-                                  external_video_created_at:
-                                    type: string
-                                    format: date-time
-                                  external_video_length_seconds:
-                                    type: integer
-                                    minimum: 0
-                                required: [ video_id, external_video_id, external_video_thumbnail_url, external_video_title, external_video_description, external_video_created_at, external_video_length_seconds ]
-                          required: [ item_count, items ]
-                      required: [ channel_id, external_channel_icon_url, external_channel_id, external_channel_display_name ]
+                        external_channel_cusom_url:
+                          type: string
+                          minLength: 4
+                        category_code:
+                          type: integer
+                          minimum: 0
+                        valuable_description:
+                          type: string
+                          maxLength: 256
+                      required: [ channel_id, external_channel_icon_url, external_channel_display_name, external_channel_cusom_url, category_code, valuable_description ]
                 required: [ item_count, items ]
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -462,7 +437,7 @@ paths:
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
-      tags: [ video ]
+      tags: [ channel ]
       summary: Get latest channel uploads
       description: チャンネルが投稿している動画を一覧で表示する
       operationId: getChannelsChannelIdVideos
@@ -604,7 +579,7 @@ paths:
                         channel_custom_id:
                           type: string
                           description: チャンネルのカスタムID(ハンドル名)
-                          minLength: 3
+                          minLength: 4
                         external_channel_icon_url:
                           type: string
                           description: チャンネルのアイコンURL
@@ -680,7 +655,7 @@ paths:
                   channel_custom_id:
                     type: string
                     description: チャンネルのカスタムID(ハンドル名)
-                    minLength: 3
+                    minLength: 4
                   channel_description:
                     type: string
                     description: 登録したチャンネルの説明文
@@ -873,7 +848,7 @@ paths:
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
-      tags: [ video ]
+      tags: [ channel ]
       summary: Get latest videos
       description: チャンネル登録しているチャンネルの最新の一覧を取得
       operationId: getFeed
@@ -1002,7 +977,7 @@ paths:
                   channel_custom_id:
                     type: string
                     description: チャンネルのハンドル名
-                    minLength: 3
+                    minLength: 4
                   external_channel_icon_url:
                     type: string
                     format: uri
@@ -1973,10 +1948,6 @@ components:
       type: object
       description: スクリーン時間の許可時間帯
       properties:
-        id:
-          type: string
-          format: uuid
-          description: スロットID
         start_time:
           type: string
           pattern: "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
@@ -1985,7 +1956,7 @@ components:
           type: string
           pattern: "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
           description: 終了時刻 (HH:mm形式)
-      required: [ id, start_time, end_time ]
+      required: [ start_time, end_time ]
 
     User:
       type: object

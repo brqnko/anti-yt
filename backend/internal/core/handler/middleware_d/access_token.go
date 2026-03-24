@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
-	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -23,7 +23,7 @@ var (
 	}
 )
 
-func AccessTokenMiddleware(jwtService jwt_d.JWTService, db *pgxpool.Pool) func(v1.StrictHandlerFunc, string) v1.StrictHandlerFunc {
+func AccessTokenMiddleware(jwtService jwt_d.Service, db *pgxpool.Pool) func(v1.StrictHandlerFunc, string) v1.StrictHandlerFunc {
 	q := sqlc.New(db)
 
 	return func(f v1.StrictHandlerFunc, operationID string) v1.StrictHandlerFunc {

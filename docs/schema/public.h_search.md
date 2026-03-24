@@ -30,7 +30,6 @@
 | Name | Definition |
 | ---- | ---------- |
 | h_search_pkey | CREATE UNIQUE INDEX h_search_pkey ON public.h_search USING btree (h_search_id) |
-| idx_1_h_search | CREATE INDEX idx_1_h_search ON public.h_search USING btree (m_user_id) |
 
 ## Relations
 

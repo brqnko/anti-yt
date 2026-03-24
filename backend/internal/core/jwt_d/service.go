@@ -25,34 +25,35 @@ type UserClaims struct {
 	jwt.RegisteredClaims
 }
 
-type JWTService interface {
-	SignUserAccessToken(userID, jti uuid.UUID, serverURL string) (token string, expiresAt time.Time, err error)
-	SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string) (token string, expiresAt time.Time, err error)
+type Service interface {
+	SignUserAccessToken(userID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error)
+	SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error)
 	TokenDuration() time.Duration
-	VerifyUserAccessToken(token string) (userID, jti uuid.UUID, expiresAt time.Time, err error)
-	VerifyRegisterToken(token string) (authorizationID, jti uuid.UUID, err error)
+	VerifyUserAccessToken(token string) (_, _ uuid.UUID, _ time.Time, err error)
+	VerifyRegisterToken(token string) (_, _ uuid.UUID, err error)
 }
 
-type jwtService struct {
+type serviceImpl struct {
 	publicKey           ed25519.PublicKey
 	privateKey          ed25519.PrivateKey
 	accessTokenDuration time.Duration
 }
 
-func NewJWTService(privateKey ed25519.PrivateKey, publicKey ed25519.PublicKey, accessTokenDuration time.Duration) JWTService {
-	return &jwtService{
+func NewService(privateKey ed25519.PrivateKey, publicKey ed25519.PublicKey, accessTokenDuration time.Duration) Service {
+	return &serviceImpl{
 		publicKey:           publicKey,
 		privateKey:          privateKey,
 		accessTokenDuration: accessTokenDuration,
 	}
 }
 
-func (s *jwtService) TokenDuration() time.Duration {
+func (s *serviceImpl) TokenDuration() time.Duration {
 	return s.accessTokenDuration
 }
 
-func (s *jwtService) SignUserAccessToken(userID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error) {
+func (s *serviceImpl) SignUserAccessToken(userID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error) {
 	defer util.Wrap(&err, "jwtService.SignUserAccessToken(userID=%s)", userID)
+
 	now := time.Now().UTC()
 	expiresAt := now.Add(s.accessTokenDuration)
 	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, UserClaims{
@@ -74,8 +75,9 @@ func (s *jwtService) SignUserAccessToken(userID, jti uuid.UUID, serverURL string
 	return signed, expiresAt, nil
 }
 
-func (s *jwtService) SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error) {
+func (s *serviceImpl) SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error) {
 	defer util.Wrap(&err, "jwtService.SignRegisterToken(authorizationID=%s)", authorizationID)
+
 	now := time.Now().UTC()
 	expiresAt := now.Add(s.accessTokenDuration)
 	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, RegisterClaims{
@@ -97,7 +99,9 @@ func (s *jwtService) SignRegisterToken(authorizationID, jti uuid.UUID, serverURL
 	return signed, expiresAt, nil
 }
 
-func (s *jwtService) VerifyRegisterToken(token string) (uuid.UUID, uuid.UUID, error) {
+func (s *serviceImpl) VerifyRegisterToken(token string) (_ uuid.UUID, _ uuid.UUID, err error) {
+	defer util.Wrap(&err, "jwtService.VerifyRegisterToken")
+
 	claims := &RegisterClaims{}
 
 	parsedToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
@@ -136,7 +140,9 @@ func (s *jwtService) VerifyRegisterToken(token string) (uuid.UUID, uuid.UUID, er
 	return authorizationID, jti, nil
 }
 
-func (s *jwtService) VerifyUserAccessToken(token string) (uuid.UUID, uuid.UUID, time.Time, error) {
+func (s *serviceImpl) VerifyUserAccessToken(token string) (_ uuid.UUID, _ uuid.UUID, _ time.Time, err error) {
+	defer util.Wrap(&err, "jwtService.VerifyUserAccessToken")
+
 	claims := &UserClaims{}
 
 	parsedToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
