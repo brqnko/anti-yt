@@ -67,10 +67,12 @@ function VideoPlayerContent() {
   const playlistCursorRef = useRef<string | undefined>(undefined);
   const [removingVideoId, setRemovingVideoId] = useState<string | null>(null);
   const [userPlaylists, setUserPlaylists] = useState<GetPlaylists200ItemsItem[]>([]);
+  const [playlistDialogLoading, setPlaylistDialogLoading] = useState(false);
   const [addingToPlaylist, setAddingToPlaylist] = useState<string | null>(null);
   const [addedToPlaylist, setAddedToPlaylist] = useState<string | null>(null);
   const [failedToAddPlaylist, setFailedToAddPlaylist] = useState<string | null>(null);
   const [addedPlaylistIds, setAddedPlaylistIds] = useState<Set<string>>(new Set());
+  const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
 
   // Refs for values used in keyboard handler / cleanup to avoid stale closures
   const currentTimeRef = useRef(0);
@@ -156,14 +158,18 @@ function VideoPlayerContent() {
     [playlistId, removingVideoId],
   );
 
-  // Fetch user playlists for "Add to Playlist" (when not in playlist context)
-  useEffect(() => {
-    if (playlistId) return;
-    getPlaylist()
-      .getPlaylists({ limit: 50 })
-      .then((res) => setUserPlaylists(res.items))
-      .catch(() => {});
-  }, [playlistId]);
+  const openPlaylistDialog = useCallback(async () => {
+    setShowPlaylistDialog(true);
+    setPlaylistDialogLoading(true);
+    try {
+      const res = await getPlaylist().getPlaylists({ limit: 50 });
+      setUserPlaylists(res.items);
+    } catch {
+      // silently fail
+    } finally {
+      setPlaylistDialogLoading(false);
+    }
+  }, []);
 
   const handleAddToPlaylist = useCallback(
     async (plId: string) => {
@@ -176,13 +182,6 @@ function VideoPlayerContent() {
         });
         setAddedToPlaylist(plId);
         setAddedPlaylistIds((prev) => new Set(prev).add(plId));
-        setUserPlaylists((prev) =>
-          prev.map((p) =>
-            p.playlist_id === plId
-              ? { ...p, playlist_video_count: p.playlist_video_count + 1 }
-              : p,
-          ),
-        );
         setTimeout(() => setAddedToPlaylist(null), 2000);
       } catch {
         setFailedToAddPlaylist(plId);
@@ -609,6 +608,13 @@ function VideoPlayerContent() {
                     </div>
                   </div>
                 </div>
+                <button
+                  class="flex items-center gap-2 h-10 px-4 rounded-lg bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white font-semibold text-sm transition-all cursor-pointer shadow-sm hover:shadow-md flex-shrink-0 self-end"
+                  onClick={openPlaylistDialog}
+                >
+                  <span class="material-symbols-outlined text-primary text-xl">playlist_add</span>
+                  {t("videoPlayer.addToPlaylist")}
+                </button>
               </div>
 
               {/* Description */}
@@ -714,7 +720,7 @@ function VideoPlayerContent() {
                       </h2>
                       <p class="text-[11px] text-text-muted-light dark:text-text-muted-dark">
                         {(playlistVideos.findIndex((v) => v.video_id === videoId) + 1) || "—"}{" "}
-                        / {playlistVideos.length}
+                        / {playlistInfo?.playlist_video_count ?? playlistVideos.length}
                       </p>
                     </div>
                   </div>
@@ -800,77 +806,92 @@ function VideoPlayerContent() {
               </div>
             )}
 
-            {/* Add to Playlist (when not in playlist context) */}
-            {!playlistId && (
-              <div class="space-y-4">
-                <div class="flex items-center justify-between px-2">
-                  <h2 class="font-bold text-md tracking-tight flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary text-xl">
-                      playlist_add
-                    </span>
-                    {t("videoPlayer.addToPlaylist")}
-                  </h2>
-                </div>
-                <div class="flex flex-col gap-2">
-                  {userPlaylists.map((pl) => {
-                    const alreadyAdded = addedPlaylistIds.has(pl.playlist_id);
-                    return (
-                      <button
-                        key={pl.playlist_id}
-                        class={`flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left ${
-                          alreadyAdded || addedToPlaylist === pl.playlist_id
-                            ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-800 cursor-default opacity-70"
-                            : failedToAddPlaylist === pl.playlist_id
-                              ? "bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-800 cursor-pointer"
-                              : "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark hover:border-primary/30 cursor-pointer"
-                        }`}
-                        disabled={alreadyAdded || addingToPlaylist === pl.playlist_id}
-                        onClick={() => handleAddToPlaylist(pl.playlist_id)}
-                      >
-                        <span class="material-symbols-outlined text-primary text-xl">
-                          playlist_play
-                        </span>
-                        <div class="min-w-0 flex-1">
-                          <p class="text-sm font-semibold text-charcoal dark:text-white truncate">
-                            {pl.playlist_title}
-                          </p>
-                          <p class="text-[11px] text-text-muted-light dark:text-text-muted-dark">
-                            {t("playlists.videoCount", {
-                              count: pl.playlist_video_count,
-                            })}
-                          </p>
-                        </div>
-                        {alreadyAdded || addedToPlaylist === pl.playlist_id ? (
-                          <span class="material-symbols-outlined text-green-600 dark:text-green-400 text-xl">
-                            check_circle
-                          </span>
-                        ) : failedToAddPlaylist === pl.playlist_id ? (
-                          <span class="material-symbols-outlined text-red-500 text-xl">
-                            error
-                          </span>
-                        ) : addingToPlaylist === pl.playlist_id ? (
-                          <span class="material-symbols-outlined animate-spin text-primary text-xl">
-                            progress_activity
-                          </span>
-                        ) : (
-                          <span class="material-symbols-outlined text-text-muted-light dark:text-text-muted-dark text-xl">
-                            add
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                  {userPlaylists.length === 0 && (
-                    <p class="text-sm text-text-muted-light dark:text-text-muted-dark text-center py-4">
-                      {t("videoPlayer.noPlaylists")}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
           </aside>
         </div>
       </div>
+      {/* Add to Playlist Dialog */}
+      {showPlaylistDialog && (
+        <div
+          class="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("videoPlayer.addToPlaylist")}
+        >
+          <div
+            class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowPlaylistDialog(false)}
+          />
+          <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 p-6 max-w-md w-full max-h-[80vh] flex flex-col">
+            <button
+              class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
+              onClick={() => setShowPlaylistDialog(false)}
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+            <h2 class="text-xl font-bold text-charcoal dark:text-white mb-4">
+              {t("videoPlayer.addToPlaylist")}
+            </h2>
+            <div class="flex flex-col gap-2 overflow-y-auto flex-1">
+              {playlistDialogLoading ? (
+                <LoadingSpinner size="sm" className="py-8" />
+              ) : userPlaylists.length === 0 ? (
+                <p class="text-sm text-text-muted-light dark:text-text-muted-dark text-center py-8">
+                  {t("videoPlayer.noPlaylists")}
+                </p>
+              ) : (
+                userPlaylists.map((pl) => {
+                  const alreadyAdded = addedPlaylistIds.has(pl.playlist_id);
+                  return (
+                    <button
+                      key={pl.playlist_id}
+                      class={`flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left ${
+                        alreadyAdded || addedToPlaylist === pl.playlist_id
+                          ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-800 cursor-default opacity-70"
+                          : failedToAddPlaylist === pl.playlist_id
+                            ? "bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-800 cursor-pointer"
+                            : "bg-background-light dark:bg-neutral-800 border-border-light dark:border-border-dark hover:border-primary/30 cursor-pointer"
+                      }`}
+                      disabled={alreadyAdded || addingToPlaylist === pl.playlist_id}
+                      onClick={() => handleAddToPlaylist(pl.playlist_id)}
+                    >
+                      <span class="material-symbols-outlined text-primary text-xl">
+                        playlist_play
+                      </span>
+                      <div class="min-w-0 flex-1">
+                        <p class="text-sm font-semibold text-charcoal dark:text-white truncate">
+                          {pl.playlist_title}
+                        </p>
+                        <p class="text-[11px] text-text-muted-light dark:text-text-muted-dark">
+                          {t("playlists.videoCount", {
+                            count: pl.playlist_video_count,
+                          })}
+                        </p>
+                      </div>
+                      {alreadyAdded || addedToPlaylist === pl.playlist_id ? (
+                        <span class="material-symbols-outlined text-green-600 dark:text-green-400 text-xl">
+                          check_circle
+                        </span>
+                      ) : failedToAddPlaylist === pl.playlist_id ? (
+                        <span class="material-symbols-outlined text-red-500 text-xl">
+                          error
+                        </span>
+                      ) : addingToPlaylist === pl.playlist_id ? (
+                        <span class="material-symbols-outlined animate-spin text-primary text-xl">
+                          progress_activity
+                        </span>
+                      ) : (
+                        <span class="material-symbols-outlined text-text-muted-light dark:text-text-muted-dark text-xl">
+                          add
+                        </span>
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

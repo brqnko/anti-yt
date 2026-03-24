@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "preact/hooks";
+import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
@@ -8,7 +9,7 @@ import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { AddPlaylistDialog } from "../../components/AddPlaylistDialog";
 import { getPlaylist } from "../../api/generated/playlist";
 import { formatTimeAgo } from "../../utils/format";
-import { PAGE_SIZES.PLAYLISTSS } from "../../constants";
+import { PAGE_SIZES } from "../../constants";
 import type { GetPlaylists200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 
 function PlaylistCard({ playlist }: { playlist: GetPlaylists200ItemsItem }) {
@@ -23,7 +24,7 @@ function PlaylistCard({ playlist }: { playlist: GetPlaylists200ItemsItem }) {
           <img
             src={playlist.top_video_thumbnail_url}
             alt={playlist.playlist_title}
-            class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            class="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
           <div class="absolute inset-0 flex items-center justify-center">
@@ -67,6 +68,7 @@ function PlaylistCard({ playlist }: { playlist: GetPlaylists200ItemsItem }) {
 
 function PlaylistsContent() {
   const { t } = useTranslation();
+  const { route } = useLocation();
   useTitle(t("playlists.pageTitle"));
 
   const [playlists, setPlaylists] = useState<GetPlaylists200ItemsItem[]>([]);
@@ -140,7 +142,7 @@ function PlaylistsContent() {
               onClick={() => setShowAddPlaylist(true)}
             >
               <span class="material-symbols-outlined">add</span>
-              <span>{t("playlists.createNew")}</span>
+              {t("playlists.createNew")}
             </button>
           </div>
         </div>
@@ -180,14 +182,6 @@ function PlaylistsContent() {
               playlist_play
             </span>
             <p class="text-lg font-medium">{t("playlists.empty")}</p>
-            <p class="text-sm mt-1">{t("playlists.emptyDesc")}</p>
-            <button
-              class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer border-none"
-              onClick={() => setShowAddPlaylist(true)}
-            >
-              <span class="material-symbols-outlined text-[18px]">add</span>
-              {t("playlists.createNew")}
-            </button>
           </div>
         )}
       </div>
@@ -195,12 +189,7 @@ function PlaylistsContent() {
       <AddPlaylistDialog
         open={showAddPlaylist}
         onClose={() => setShowAddPlaylist(false)}
-        onAdded={(pl) =>
-          setPlaylists((prev) => [
-            { ...pl, top_video_thumbnail_url: undefined },
-            ...prev,
-          ])
-        }
+        onAdded={(pl) => route(`/playlists/${pl.playlist_id}`)}
       />
     </DashboardLayout>
   );

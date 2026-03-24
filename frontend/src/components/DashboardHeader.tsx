@@ -55,18 +55,11 @@ export function DashboardHeader({
             class="flex-1 bg-transparent px-4 py-2 text-sm text-charcoal dark:text-white outline-none placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark"
             aria-label={t("search.inputPlaceholder")}
           />
-          <button
-            type="submit"
-            class="px-4 py-2 bg-transparent border-none cursor-pointer text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors"
-            aria-label={t("search.pageTitle")}
-          >
-            <span class="material-symbols-outlined text-[20px]">search</span>
-          </button>
         </div>
       </form>
 
       <div class="flex items-center gap-4 shrink-0">
-        <
+        <a
           href="/profile"
           class="size-9 flex items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/20 cursor-pointer text-primary no-underline"
           aria-label={t("profile.pageTitle")}

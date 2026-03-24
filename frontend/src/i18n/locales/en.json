@@ -311,7 +311,7 @@
     "viewPlaylist": "View Full Playlist",
     "addToPlaylist": "Add to Playlist",
     "noPlaylists": "No playlists yet.",
-    "remaining": "Remaining",
+    "remaining": "Today's remaining",
     "mindfulMode": "Mindful Mode Active",
     "noDistractions": "No distractions detected",
     "quality": "Quality",
@@ -385,7 +385,6 @@
     "createdAt": "Created {{time}}",
     "play": "Play",
     "empty": "No playlists yet",
-    "emptyDesc": "Create a playlist to organize your curated content.",
     "loadError": "Failed to load playlists",
     "retry": "Retry"
   },

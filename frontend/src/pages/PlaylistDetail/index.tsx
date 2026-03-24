@@ -10,6 +10,7 @@ import { VideoCard } from "../../components/VideoCard";
 import { getPlaylist } from "../../api/generated/playlist";
 import { getApiErrorCode } from "../../utils/api-error";
 import { formatTimeAgo } from "../../utils/format";
+import { buildWatchUrl } from "../../utils/url";
 import { PAGE_SIZES } from "../../constants";
 import { Linkify } from "../../components/Linkify";
 import type {
@@ -68,7 +69,7 @@ function EditPlaylistDialog({
         playlist_title: title.trim(),
         playlist_description: description.trim(),
       });
-      window.dispatchEvent(new CustomEvent("playlist-changed"));
+
       onClose();
     } catch (err) {
       const code = getApiErrorCode(err);
@@ -351,7 +352,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
     setIsDeleting(true);
     try {
       await getPlaylist().deletePlaylistsPlaylistId(playlistId);
-      window.dispatchEvent(new CustomEvent("playlist-changed"));
+
       route("/playlists");
     } catch {
       // keep dialog open on error
@@ -371,14 +372,8 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
       setVideos((prev) =>
         prev.filter((v) => v.video_id !== removeTarget.video_id),
       );
-      setPlaylistInfo((prev) =>
-        prev
-          ? {
-              ...prev,
-              playlist_video_count: Math.max(0, prev.playlist_video_count - 1),
-            }
-          : prev,
-      );
+      const refreshed = await getPlaylist().getPlaylistsPlaylistId(playlistId);
+      setPlaylistInfo(refreshed);
       setRemoveTarget(null);
     } catch {
       setRemoveError(true);
@@ -465,21 +460,40 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
         <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark mb-8 p-6">
           <div class="flex flex-col sm:flex-row gap-6 items-start">
             {/* Thumbnail */}
-            <div class="relative w-full sm:w-48 aspect-video flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
-              {playlistInfo.top_video_thumbnail_url ? (
-                <img
-                  src={playlistInfo.top_video_thumbnail_url}
-                  alt={playlistInfo.playlist_title}
-                  class="absolute inset-0 w-full h-full object-cover"
-                />
-              ) : (
+            {videos.length > 0 ? (
+              <a
+                href={buildWatchUrl(videos[0].video_id, undefined, playlistId)}
+                class="group/thumb relative w-full sm:w-48 aspect-video flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 block no-underline"
+              >
+                {playlistInfo.top_video_thumbnail_url ? (
+                  <img
+                    src={playlistInfo.top_video_thumbnail_url}
+                    alt={playlistInfo.playlist_title}
+                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/thumb:scale-105"
+                  />
+                ) : (
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-5xl text-text-muted-light dark:text-text-muted-dark">
+                      playlist_play
+                    </span>
+                  </div>
+                )}
+                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300" />
+                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  <div class="size-12 rounded-full bg-primary/90 flex items-center justify-center text-white shadow-lg">
+                    <span class="material-symbols-outlined text-[28px] ml-1">play_arrow</span>
+                  </div>
+                </div>
+              </a>
+            ) : (
+              <div class="relative w-full sm:w-48 aspect-video flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
                 <div class="absolute inset-0 flex items-center justify-center">
                   <span class="material-symbols-outlined text-5xl text-text-muted-light dark:text-text-muted-dark">
                     playlist_play
                   </span>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Info */}
             <div class="flex-1 min-w-0">

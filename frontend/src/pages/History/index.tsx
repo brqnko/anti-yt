@@ -7,35 +7,31 @@ import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
 import { getHistory } from "../../api/generated/history";
+import { isoToDateStr, toUTCDateStr, todayUTC } from "../../utils/format";
 import { PAGE_SIZES } from "../../constants";
 import type { GetHistory200ItemsItem } from "../../api/generated/antiYtApi.schemas";
-
-function getDateKey(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 function formatDateHeader(
   dateKey: string,
   t: (key: string) => string,
   locale: string,
 ): string {
-  const today = new Date();
-  const todayKey = getDateKey(today.toISOString());
+  const today = todayUTC();
+  const todayKey = toUTCDateStr(today);
 
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayKey = getDateKey(yesterday.toISOString());
+  const yesterday = new Date(today.getTime() - 86400000);
+  const yesterdayKey = toUTCDateStr(yesterday);
 
   if (dateKey === todayKey) return t("history.today");
   if (dateKey === yesterdayKey) return t("history.yesterday");
 
   const [y, m, d] = dateKey.split("-").map(Number);
-  const date = new Date(y, m - 1, d);
+  const date = new Date(Date.UTC(y, m - 1, d));
   return date.toLocaleDateString(locale, {
     month: "long",
     day: "numeric",
-    ...(y !== today.getFullYear() ? { year: "numeric" } : {}),
+    timeZone: "UTC",
+    ...(y !== today.getUTCFullYear() ? { year: "numeric" } : {}),
   });
 }
 
@@ -97,7 +93,7 @@ function HistoryContent() {
     const groups: { key: string; label: string; items: GetHistory200ItemsItem[] }[] = [];
     let currentKey = "";
     for (const item of items) {
-      const key = getDateKey(item.watched_at);
+      const key = isoToDateStr(item.watched_at);
       if (key !== currentKey) {
         currentKey = key;
         groups.push({

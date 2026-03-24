@@ -7,7 +7,7 @@ import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
-import { getVideo } from "../../api/generated/video";
+import { getFeed } from "../../api/generated/feed";
 import { PAGE_SIZES } from "../../constants";
 import type { GetSearch200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 
@@ -44,12 +44,11 @@ function SearchContent() {
 
     const load = async () => {
       try {
-        const res = await getVideo().getSearch({ query: searchQuery, limit: PAGE_SIZES.SEARCH });
+        const res = await getFeed().getSearch({ query: searchQuery, limit: PAGE_SIZES.SEARCH, language: navigator.language });
         if (currentQueryRef.current !== searchQuery) return;
         setVideos(res.items);
         setHasNext(res.has_next);
-        const lastItem = res.items[res.items.length - 1];
-        cursorRef.current = lastItem?.video_id;
+        cursorRef.current = res.cursor;
       } catch {
         if (currentQueryRef.current === searchQuery) setError(true);
       } finally {
@@ -63,15 +62,15 @@ function SearchContent() {
     if (isLoadingMore || !hasNext || !searchQuery.trim()) return;
     setIsLoadingMore(true);
     try {
-      const res = await getVideo().getSearch({
+      const res = await getFeed().getSearch({
         query: searchQuery,
         limit: PAGE_SIZES.SEARCH,
         cursor: cursorRef.current,
+        language: navigator.language,
       });
       setVideos((prev) => [...prev, ...res.items]);
       setHasNext(res.has_next);
-      const lastItem = res.items[res.items.length - 1];
-      cursorRef.current = lastItem?.video_id;
+      cursorRef.current = res.cursor;
     } finally {
       setIsLoadingMore(false);
     }
@@ -108,7 +107,7 @@ function SearchContent() {
           </div>
         ) : videos.length > 0 ? (
           <>
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div class="flex flex-col gap-6">
               {videos.map((video) => (
                 <VideoCard
                   key={video.video_id}
@@ -123,6 +122,7 @@ function SearchContent() {
                   }}
                   dateStr={video.external_video_created_at}
                   watchedSeconds={video.last_watch_seconds}
+                  layout="row"
                 />
               ))}
             </div>

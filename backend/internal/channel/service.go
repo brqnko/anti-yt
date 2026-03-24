@@ -23,7 +23,7 @@ type Service struct {
 	subscriptionQS    SubscriptionQueryService
 	valuableChannelQS ValuableChannelQueryService
 	uploadsQS         UploadsQueryService
-	feedQS            FeedQueryService
+	channelDetailQS   ChannelDetailQueryService
 
 	rssFetchDuration time.Duration
 }
@@ -46,7 +46,7 @@ func NewService(
 		subscriptionQS:    NewSubscriptionQueryService(db),
 		valuableChannelQS: NewValuableChannelQueryService(db),
 		uploadsQS:         NewUploadsQueryService(db),
-		feedQS:            NewFeedQueryService(db),
+		channelDetailQS:   NewChannelDetailQueryService(db),
 	}
 }
 
@@ -251,82 +251,21 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 	return videos, false, nil
 }
 
-func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetFeed")
+func (s *Service) GetChannelDetail(ctx context.Context, channelID uuid.UUID) (_ GetChannelDetailView, err error) {
+	defer util.Wrap(&err, "Service.GetChannelDetail")
 
-	tx, err := s.db.Begin(ctx)
+	detail, err := s.channelDetailQS.GetChannelDetail(ctx, channelID)
 	if err != nil {
-		return nil, false, err
-	}
-	defer func() {
-		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			slog.Warn("failed to rollback transaction", "error", err)
-		}
-	}()
-	q := sqlc.New(tx)
-
-	// NOTE: YouTube RSS Feedはレートリミットが厳しいのでlimit=1
-	// rss_fetched_atで昇順ソートしているので、ちょっとずつ更新されていくはず
-	channels, err := NewChannelRepository(q).FindToFetchRSSForUpdate(ctx, userID, s.rssFetchDuration, 1)
-	if err != nil {
-		return nil, false, err
+		return GetChannelDetailView{}, err
 	}
 
-	for _, ch := range channels {
-		// RSSから動画ID一覧を取得する
-		// TODO: チャンネルが削除されてrssの取得に失敗した場合のケースを考慮する
-		videoIDs, err := s.ytService.FetchRSSFeed(ctx, ch.Channel.ID)
-		if err != nil {
-			return nil, false, err
-		}
-
-		// 動画ID一覧から動画の詳細情報を取得する
-		// TODO: 現在はchannels分YouTube Data APIにリクエストを投げているが、一括で取得したい
-		videoDetailMap, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
-		if err != nil {
-			return nil, false, err
-		}
-
-		fetchedAt := time.Now().UTC()
-		for _, vd := range videoDetailMap {
-			v, err := video.NewVideo(ch.ID, fetchedAt, vd)
-			if err != nil {
-				slog.Info("failed to newVideo", "error", err)
-				continue
-			}
-
-			if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
-				slog.Info("failed to save video", "error", err)
-				continue
-			}
-		}
-
-		ch.MarkAsRSSFetched()
-		if _, err := NewChannelRepository(q).Save(ctx, ch); err != nil {
-			return nil, false, err
-		}
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return nil, false, err
-	}
-
-	videos, err := s.feedQS.GetVideoFeed(ctx, userID, cursor, limit+1)
-	if err != nil {
-		return nil, false, err
-	}
-
-	if len(videos) > int(limit) {
-		return videos[:limit], true, nil
-	}
-	return videos, false, nil
+	return detail, nil
 }
 
 func (s *Service) GetChannelFeeds(ctx context.Context) (_ []GetValuableChannelView, err error) {
 	defer util.Wrap(&err, "Service.GetChannelFeeds")
 
-	var channels []GetValuableChannelView
-	channels, err = s.valuableChannelQS.GetValuableChannels(ctx)
+	channels, err := s.valuableChannelQS.GetValuableChannels(ctx)
 	if err != nil {
 		return nil, err
 	}

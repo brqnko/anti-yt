@@ -311,7 +311,7 @@
     "viewPlaylist": "プレイリストを見る",
     "addToPlaylist": "プレイリストに追加",
     "noPlaylists": "プレイリストがありません。",
-    "remaining": "残り",
+    "remaining": "今日の残り",
     "mindfulMode": "マインドフルモード有効",
     "noDistractions": "邪魔なものは検出されていません",
     "quality": "画質",
@@ -384,7 +384,6 @@
     "createdAt": "作成日: {{time}}",
     "play": "再生",
     "empty": "プレイリストがありません",
-    "emptyDesc": "プレイリストを作成して、キュレーションされたコンテンツを整理しましょう。",
     "loadError": "プレイリストの読み込みに失敗しました",
     "retry": "再試行"
   },

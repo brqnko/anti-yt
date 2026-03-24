@@ -2,12 +2,11 @@ import { useState, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { getChannel } from "../api/generated/channel";
 import { getApiErrorCode } from "../utils/api-error";
-import type { PostChannelsSubscribe201 } from "../api/generated/antiYtApi.schemas";
 
 interface AddChannelDialogProps {
   open: boolean;
   onClose: () => void;
-  onAdded: (sub: PostChannelsSubscribe201) => void;
+  onAdded: () => void;
 }
 
 export function AddChannelDialog({
@@ -45,10 +44,10 @@ export function AddChannelDialog({
     setIsSubmitting(true);
     setError(null);
     try {
-      const result = await getChannel().postChannelsSubscribe({
+      await getChannel().postChannelsSubscribe({
         channel_id: trimmed,
       });
-      onAdded(result);
+      onAdded();
       onClose();
     } catch (err) {
       const code = getApiErrorCode(err);

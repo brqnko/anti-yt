@@ -32,7 +32,7 @@ type Service interface {
 	FetchRSSFeed(ctx context.Context, channelID ChannelID) ([]VideoID, error)
 	FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (map[VideoID]Video, error)
 	FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error)
-	SearchVideoIDs(ctx context.Context, query string, pageToken string) (_ []VideoID, _ string, err error)
+	SearchVideoIDs(ctx context.Context, query string, pageToken string, language *string) (_ []VideoID, _ string, err error)
 }
 
 var _ Service = (*serviceImpl)(nil)
@@ -340,7 +340,7 @@ func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID stri
 	return videoIDs, res.NextPageToken, nil
 }
 
-func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToken string) (_ []VideoID, _ string, err error) {
+func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToken string, language *string) (_ []VideoID, _ string, err error) {
 	defer util.Wrap(&err, "youTubeAPIService.SearchVideoIDs")
 
 	call := s.ytClient.Search.List([]string{"id"}).
@@ -350,6 +350,9 @@ func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToke
 		Context(ctx)
 	if pageToken != "" {
 		call = call.PageToken(pageToken)
+	}
+	if language != nil && *language != "" {
+		call = call.RelevanceLanguage(*language)
 	}
 
 	res, err := call.Do()

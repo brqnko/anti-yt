@@ -53,7 +53,7 @@ func NewAPIHandler(
 		videoService:    video.NewService(db),
 		playlistService: playlist.NewService(db, ytService),
 		historyService:  history.NewService(db),
-		feedService:     feed.NewService(db, ytService),
+		feedService:     feed.NewService(db, ytService, rssFetchDuration),
 
 		serverURL:   serverURL,
 		frontendURL: frontendURL,

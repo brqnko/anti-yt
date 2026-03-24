@@ -232,6 +232,16 @@ export type GetFeedChannels200 = {
   items: GetFeedChannels200ItemsItem[];
 };
 
+export type GetChannelsChannelId200 = {
+  channel_id: string;
+  external_channel_custom_id: string;
+  external_channel_display_name: string;
+  external_channel_description: string;
+  external_channel_icon_url: string;
+  /** @minimum 0 */
+  external_channel_subscribers_count: number;
+};
+
 export type GetChannelsChannelIdVideosParams = {
 /**
  * 取得する最大の数
@@ -354,6 +364,10 @@ cursor?: string;
  * @minLength 1
  */
 query: string;
+/**
+ * 検索の言語（例：ja, en）
+ */
+language?: string;
 };
 
 export type GetSearch200ItemsItem = {
@@ -377,6 +391,8 @@ export type GetSearch200 = {
   /** @minimum 0 */
   item_count: number;
   has_next: boolean;
+  /** 次ページのカーソル（ページネーション用） */
+  cursor?: string;
   items: GetSearch200ItemsItem[];
 };
 

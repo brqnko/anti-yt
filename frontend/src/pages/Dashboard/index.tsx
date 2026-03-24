@@ -6,7 +6,7 @@ import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
-import { getChannel } from "../../api/generated/channel";
+import { getFeed } from "../../api/generated/feed";
 import { PAGE_SIZES } from "../../constants";
 import type { GetFeed200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 
@@ -23,7 +23,7 @@ function DashboardContent() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const feedRes = await getChannel().getFeed({ limit: PAGE_SIZES.FEED });
+        const feedRes = await getFeed().getFeed({ limit: PAGE_SIZES.FEED });
         setFeedVideos(feedRes.items);
         setHasNext(feedRes.has_next);
         const lastItem = feedRes.items[feedRes.items.length - 1];
@@ -39,7 +39,7 @@ function DashboardContent() {
     if (isLoadingMore || !hasNext) return;
     setIsLoadingMore(true);
     try {
-      const res = await getChannel().getFeed({ limit: 12, cursor: cursorRef.current });
+      const res = await getFeed().getFeed({ limit: 12, cursor: cursorRef.current });
       setFeedVideos((prev) => [...prev, ...res.items]);
       setHasNext(res.has_next);
       const lastItem = res.items[res.items.length - 1];
