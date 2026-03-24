@@ -30,7 +30,7 @@ type Service interface {
 	FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (Channel, error)
 	FetchRSSFeed(ctx context.Context, channelID ChannelID) ([]VideoID, error)
 	FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (map[VideoID]Video, error)
-	FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (videoIDs []VideoID, nextPageToken string, err error)
+	FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error)
 }
 
 var _ Service = (*youTubeAPIServiceImpl)(nil)
@@ -301,7 +301,7 @@ func (s *youTubeAPIServiceImpl) FetchRSSFeed(ctx context.Context, channelID Chan
 	return videos, nil
 }
 
-func (s *youTubeAPIServiceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (videoIDs []VideoID, nextPageToken string, err error) {
+func (s *youTubeAPIServiceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error) {
 	defer util.Wrap(&err, "youTubeAPIService.FetchPlaylistVideoIDs")
 	call := s.ytClient.PlaylistItems.List([]string{"contentDetails"}).
 		PlaylistId(playlistID).
@@ -316,7 +316,7 @@ func (s *youTubeAPIServiceImpl) FetchPlaylistVideoIDs(ctx context.Context, playl
 		return nil, "", err
 	}
 
-	videoIDs = make([]VideoID, 0, len(res.Items))
+	videoIDs := make([]VideoID, 0, len(res.Items))
 	for _, item := range res.Items {
 		if item.ContentDetails == nil || item.ContentDetails.VideoId == "" {
 			slog.Info("item.ContentDetails is nil or VideoId is empty(fetchPlaylistVideoIDs)")

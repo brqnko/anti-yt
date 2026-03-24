@@ -50,7 +50,7 @@ func NewService(db *pgxpool.Pool, oidcService oidc.GoogleOIDCService, serverURL 
 	}
 }
 
-func (s *Service) CreateAuthCode(ctx context.Context) (redirectURL, csrf string, err error) {
+func (s *Service) CreateAuthCode(ctx context.Context) (_, _ string, err error) {
 	csrfToken, err := util.RandomStringUrlSafe(32)
 	if err != nil {
 		return "", "", err
@@ -59,7 +59,7 @@ func (s *Service) CreateAuthCode(ctx context.Context) (redirectURL, csrf string,
 	return s.oidcService.AuthCodeURL(csrfToken), csrfToken, nil
 }
 
-func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipAddress, countryCode, deviceFingerprint, userAgent string) (accessToken, refreshTokenRaw, csrfToken, redirectPath string, accessTokenExpiresAt, refreshTokenExpiresAt time.Time, err error) {
+func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipAddress, countryCode, deviceFingerprint, userAgent string) (_, _, _, _ string, _, _ time.Time, err error) {
 	defer util.Wrap(&err, "Service.GoogleOIDCCallback")
 	if csrf == "" || state == "" {
 		return "", "", "", "", time.Time{}, time.Time{}, ErrInvalidCSRFOrState
@@ -177,7 +177,7 @@ func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) 
 	return NewRefreshTokenRepository(q).RevokeByTokenHash(ctx, userID, refreshTokenHash, time.Now().UTC().Add(s.refreshTokenDuration))
 }
 
-func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, countryCode, deviceFingerprint, userAgent string) (refreshTokenRaw string, accessToken string, accessTokenExpiresAt, refreshTokenExpiresAt time.Time, err error) {
+func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, countryCode, deviceFingerprint, userAgent string) (_, _ string, _, _ time.Time, err error) {
 	tokenHash := util.Sha256Hex(refreshToken)
 
 	newToken, err := util.RandomStringUrlSafe(32)
@@ -225,7 +225,7 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 	return newToken, accessTokenString, signedAtExpiresAtD, newRefreshToken.ExpiresAt, nil
 }
 
-func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (sessions []GetSessionsView, hasNext bool, err error) {
+func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetSessionsView, _ bool, err error) {
 	view, err := s.refreshTokenQS.GetSessions(ctx, userID, cursor, limit+1)
 	if err != nil {
 		return nil, false, err

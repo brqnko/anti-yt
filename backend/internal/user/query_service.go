@@ -28,7 +28,7 @@ type ScreenTimeLimitRangeView struct {
 
 type UserQueryService interface {
 	Find(ctx context.Context, userID uuid.UUID) (UserStatusView, error)
-	FindByAuthorizationID(ctx context.Context, authorizationID int64) (userID uuid.UUID, isDeactivated bool, err error)
+	FindByAuthorizationID(ctx context.Context, authorizationID int64) (_ uuid.UUID, _ bool, err error)
 }
 
 type userQueryServiceImpl struct {

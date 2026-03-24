@@ -44,7 +44,7 @@ func (s *Service) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (GetVid
 	return view, nil
 }
 
-func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32) (videos []GetChannelUploadsView, hasNext bool, err error) {
+func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetChannelUploadsView, _ bool, err error) {
 	if limit < 1 || 50 < limit {
 		return nil, false, ErrInvalidGetUploadLimit
 	}
@@ -53,7 +53,7 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 		return nil, false, err
 	}
 
-	videos, err = s.videoQS.GetChannelUploads(ctx, userID, channelID, cursor, limit+1)
+	videos, err := s.videoQS.GetChannelUploads(ctx, userID, channelID, cursor, limit+1)
 	if err != nil {
 		return nil, false, err
 	}
@@ -64,8 +64,8 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 	return videos, false, nil
 }
 
-func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (videos []GetVideoFeedView, hasNext bool, err error) {
-	videos, err = s.videoQS.GetVideoFeed(ctx, userID, cursor, limit+1)
+func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, _ bool, err error) {
+	videos, err := s.videoQS.GetVideoFeed(ctx, userID, cursor, limit+1)
 	if err != nil {
 		return nil, false, err
 	}

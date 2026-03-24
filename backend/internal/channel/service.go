@@ -156,12 +156,12 @@ func (s *Service) UnsubscribeChannel(ctx context.Context, userID, channelID uuid
 	return nil
 }
 
-func (s *Service) GetSubscriptions(ctx context.Context, userID uuid.UUID, limit int32, cursor *uuid.UUID) (channels []GetSubscriptionsView, hasNext bool, err error) {
+func (s *Service) GetSubscriptions(ctx context.Context, userID uuid.UUID, limit int32, cursor *uuid.UUID) (_ []GetSubscriptionsView, _ bool, err error) {
 	if limit < 1 || 50 < limit { // openapiもあるが一応チェック
 		return nil, false, ErrInvalidSubscriptionLimit
 	}
 
-	channels, err = s.subscriptionQS.GetSubscriptions(ctx, userID, cursor, limit+1)
+	channels, err := s.subscriptionQS.GetSubscriptions(ctx, userID, cursor, limit+1)
 	if err != nil {
 		return nil, false, err
 	}
@@ -292,9 +292,10 @@ func (s *Service) SyncRSSFeeds(ctx context.Context, userID uuid.UUID) error {
 	return nil
 }
 
-func (s *Service) GetChannelFeeds(ctx context.Context) (channels []GetValuableChannelView, err error) {
+func (s *Service) GetChannelFeeds(ctx context.Context) (_ []GetValuableChannelView, err error) {
 	defer util.Wrap(&err, "Service.GetChannelFeeds")
 
+	var channels []GetValuableChannelView
 	channels, err = s.valuableChannelQS.GetValuableChannels(ctx)
 	if err != nil {
 		return nil, err

@@ -163,8 +163,8 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 	return playlist, nil
 }
 
-func (s *Service) GetPlaylists(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (playlists []GetPlaylistsView, hasNext bool, err error) {
-	playlists, err = s.playlistQS.FindPlaylists(ctx, userID, cursor, limit+1)
+func (s *Service) GetPlaylists(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetPlaylistsView, _ bool, err error) {
+	playlists, err := s.playlistQS.FindPlaylists(ctx, userID, cursor, limit+1)
 	if err != nil {
 		return nil, false, err
 	}
@@ -187,8 +187,8 @@ func (s *Service) DeletePlaylist(ctx context.Context, userID, playlistID uuid.UU
 	return NewPlaylistRepository(sqlc.New(s.db)).Remove(ctx, userID, playlistID)
 }
 
-func (s *Service) GetPlaylistItems(ctx context.Context, userID, playlistID uuid.UUID, videoCursor *uuid.UUID, limit int32) (items []GetPlaylistItemView, hasNext bool, err error) {
-	items, err = s.playlistQS.FindPlaylistItems(ctx, userID, playlistID, videoCursor, limit+1)
+func (s *Service) GetPlaylistItems(ctx context.Context, userID, playlistID uuid.UUID, videoCursor *uuid.UUID, limit int32) (_ []GetPlaylistItemView, _ bool, err error) {
+	items, err := s.playlistQS.FindPlaylistItems(ctx, userID, playlistID, videoCursor, limit+1)
 	if err != nil {
 		return nil, false, err
 	}

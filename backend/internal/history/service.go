@@ -39,8 +39,8 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 	return &remaining, nil
 }
 
-func (s *Service) GetHistory(ctx context.Context, userID uuid.UUID, limit int, cursor *uuid.UUID) (views []GetHistoryView, hasNext bool, err error) {
-	views, err = s.historyQS.FindHistory(ctx, userID, cursor, int32(limit+1))
+func (s *Service) GetHistory(ctx context.Context, userID uuid.UUID, limit int, cursor *uuid.UUID) (_ []GetHistoryView, _ bool, err error) {
+	views, err := s.historyQS.FindHistory(ctx, userID, cursor, int32(limit+1))
 	if err != nil {
 		return nil, false, err
 	}

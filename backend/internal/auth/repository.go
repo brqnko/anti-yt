@@ -45,8 +45,8 @@ var _ AuthorizationRepository = (*authorizationRepositoryImpl)(nil)
 type RefreshTokenRepository interface {
 	Save(ctx context.Context, authorizationID int64, refreshToken *RefreshToken) (int64, error)
 	RevokeByTokenHash(ctx context.Context, userID uuid.UUID, tokenHash string, jtiExpiresAt time.Time) error
-	RevokeByID(ctx context.Context, userID, sessionID uuid.UUID, jtiExpiresAt time.Time) (id uuid.UUID, err error)
-	RotateRefreshToken(ctx context.Context, newRefreshToken *RefreshToken, tokenHashForCheck string, updatedAtForCheck time.Time) (userID uuid.UUID, err error)
+	RevokeByID(ctx context.Context, userID, sessionID uuid.UUID, jtiExpiresAt time.Time) (_ uuid.UUID, err error)
+	RotateRefreshToken(ctx context.Context, newRefreshToken *RefreshToken, tokenHashForCheck string, updatedAtForCheck time.Time) (_ uuid.UUID, err error)
 }
 
 type refreshTokenRepositoryImpl struct {
@@ -113,8 +113,9 @@ func (r *refreshTokenRepositoryImpl) RevokeByID(ctx context.Context, userID, ses
 	return removedPublicID, nil
 }
 
-func (r *refreshTokenRepositoryImpl) RotateRefreshToken(ctx context.Context, newRefreshToken *RefreshToken, tokenHashForCheck string, updatedAtForCheck time.Time) (userID uuid.UUID, err error) {
+func (r *refreshTokenRepositoryImpl) RotateRefreshToken(ctx context.Context, newRefreshToken *RefreshToken, tokenHashForCheck string, updatedAtForCheck time.Time) (_ uuid.UUID, err error) {
 	defer util.Wrap(&err, "refreshTokenRepository.RotateRefreshToken")
+	var userID uuid.UUID
 	userID, err = r.q.RotateRefreshToken(ctx, sqlc.RotateRefreshTokenParams{
 		NewTokenHash:         newRefreshToken.TokenHash,
 		NewExpiresAt:         newRefreshToken.ExpiresAt,

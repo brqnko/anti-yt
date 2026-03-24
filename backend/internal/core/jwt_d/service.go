@@ -26,11 +26,11 @@ type UserClaims struct {
 }
 
 type JWTService interface {
-	SignUserAccessToken(userID, jti uuid.UUID, serverURL string) (token string, expiresAt time.Time, err error)
-	SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string) (token string, expiresAt time.Time, err error)
+	SignUserAccessToken(userID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error)
+	SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error)
 	TokenDuration() time.Duration
-	VerifyUserAccessToken(token string) (userID, jti uuid.UUID, expiresAt time.Time, err error)
-	VerifyRegisterToken(token string) (authorizationID, jti uuid.UUID, err error)
+	VerifyUserAccessToken(token string) (_, _ uuid.UUID, _ time.Time, err error)
+	VerifyRegisterToken(token string) (_, _ uuid.UUID, err error)
 }
 
 type jwtService struct {
