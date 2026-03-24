@@ -254,28 +254,9 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, _ bool, err error) {
 	defer util.Wrap(&err, "Service.GetFeed")
 
-	// RSS Feedを同期する
-	if syncErr := s.syncRSSFeeds(ctx, userID); syncErr != nil {
-		slog.Warn("failed to sync RSS feeds", "error", syncErr)
-	}
-
-	videos, err := s.feedQS.GetVideoFeed(ctx, userID, cursor, limit+1)
-	if err != nil {
-		return nil, false, err
-	}
-
-	if len(videos) > int(limit) {
-		return videos[:limit], true, nil
-	}
-	return videos, false, nil
-}
-
-func (s *Service) syncRSSFeeds(ctx context.Context, userID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "Service.syncRSSFeeds")
-
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return err
+		return nil, false, err
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -288,7 +269,7 @@ func (s *Service) syncRSSFeeds(ctx context.Context, userID uuid.UUID) (err error
 	// rss_fetched_atで昇順ソートしているので、ちょっとずつ更新されていくはず
 	channels, err := NewChannelRepository(q).FindToFetchRSSForUpdate(ctx, userID, s.rssFetchDuration, 1)
 	if err != nil {
-		return err
+		return nil, false, err
 	}
 
 	for _, ch := range channels {
@@ -296,14 +277,14 @@ func (s *Service) syncRSSFeeds(ctx context.Context, userID uuid.UUID) (err error
 		// TODO: チャンネルが削除されてrssの取得に失敗した場合のケースを考慮する
 		videoIDs, err := s.ytService.FetchRSSFeed(ctx, ch.Channel.ID)
 		if err != nil {
-			return err
+			return nil, false, err
 		}
 
 		// 動画ID一覧から動画の詳細情報を取得する
 		// TODO: 現在はchannels分YouTube Data APIにリクエストを投げているが、一括で取得したい
 		videoDetailMap, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
 		if err != nil {
-			return err
+			return nil, false, err
 		}
 
 		fetchedAt := time.Now().UTC()
@@ -322,15 +303,23 @@ func (s *Service) syncRSSFeeds(ctx context.Context, userID uuid.UUID) (err error
 
 		ch.MarkAsRSSFetched()
 		if _, err := NewChannelRepository(q).Save(ctx, ch); err != nil {
-			return err
+			return nil, false, err
 		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return err
+		return nil, false, err
 	}
 
-	return nil
+	videos, err := s.feedQS.GetVideoFeed(ctx, userID, cursor, limit+1)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if len(videos) > int(limit) {
+		return videos[:limit], true, nil
+	}
+	return videos, false, nil
 }
 
 func (s *Service) GetChannelFeeds(ctx context.Context) (_ []GetValuableChannelView, err error) {
