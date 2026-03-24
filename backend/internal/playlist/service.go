@@ -3,13 +3,13 @@ package playlist
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/channel"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/brqnko/anti-yt/backend/internal/video"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -32,7 +32,8 @@ func NewService(db *pgxpool.Pool, ytService youtube_d.YouTubeAPIService) (*Servi
 	}, nil
 }
 
-func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, description, visibilityStr, playlistTypeStr string, basePlaylistUrl *string) (*Playlist, error) {
+func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, description, visibilityStr, playlistTypeStr string, basePlaylistUrl *string) (_ *Playlist, err error) {
+	defer util.Wrap(&err, "Service.CreatePlaylist(userID=%s)", userID)
 	playlist, err := NewPlaylist(
 		title,
 		description,
@@ -80,13 +81,13 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 		// プレイリストから動画IDのリストを取得
 		videoIDs, pageToken, err := s.ytService.FetchPlaylistVideoIDs(ctx, playlistID, nextPageToken)
 		if err != nil {
-			return nil, fmt.Errorf("failed to fetchPlaylistVideoIds: %w", err)
+			return nil, err
 		}
 
 		// 動画IDのリストから詳細を取得
 		videoDetails, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
 		if err != nil {
-			return nil, fmt.Errorf("failed to fetchVideoDetail: %w", err)
+			return nil, err
 		}
 
 		// チャンネル詳細を取得
@@ -98,7 +99,7 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 		}
 		channelDetails, err := s.ytService.FetchChannelDetail(ctx, channelIDs)
 		if err != nil {
-			return nil, fmt.Errorf("failed to fetchChannelDetail: %w", err)
+			return nil, err
 		}
 
 		fetchedAt := time.Now().UTC()
@@ -109,11 +110,11 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 		for _, channelDetail := range channelDetails {
 			ch, err := channel.NewChannel(fetchedAt, fetchedAt, channelDetail)
 			if err != nil {
-				return nil, fmt.Errorf("failed to newChannel: %w", err)
+				return nil, err
 			}
 
 			if _, err := channel.NewChannelRepository(sqlc.New(s.db)).Save(ctx, ch); err != nil {
-				return nil, fmt.Errorf("failed to saveChannel: %w", err)
+				return nil, err
 			}
 			savedChannels[channelDetail.ID] = ch.ID
 		}

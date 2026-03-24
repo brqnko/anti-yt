@@ -3,10 +3,10 @@ package video
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -62,13 +62,14 @@ func NewVideoQueryService(db *pgxpool.Pool) VideoQueryService {
 	}
 }
 
-func (v *videoQueryServiceImpl) Find(ctx context.Context, id uuid.UUID) (GetVideoDetailView, error) {
+func (v *videoQueryServiceImpl) Find(ctx context.Context, id uuid.UUID) (_ GetVideoDetailView, err error) {
+	defer util.Wrap(&err, "videoQueryService.Find(id=%s)", id)
 	row, err := v.q.GetVideoDetail(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return GetVideoDetailView{}, err
 		}
-		return GetVideoDetailView{}, fmt.Errorf("failed to getVideoDetail(videoQueryService.Find): %w", err)
+		return GetVideoDetailView{}, err
 	}
 
 	return GetVideoDetailView{
@@ -85,7 +86,8 @@ func (v *videoQueryServiceImpl) Find(ctx context.Context, id uuid.UUID) (GetVide
 	}, nil
 }
 
-func (v *videoQueryServiceImpl) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetChannelUploadsView, error) {
+func (v *videoQueryServiceImpl) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetChannelUploadsView, err error) {
+	defer util.Wrap(&err, "videoQueryService.GetChannelUploads(userID=%s, channelID=%s)", userID, channelID)
 	rows, err := v.q.ListChannelVideos(ctx, sqlc.ListChannelVideosParams{
 		UserID:     userID,
 		ChannelID:  channelID,
@@ -93,7 +95,7 @@ func (v *videoQueryServiceImpl) GetChannelUploads(ctx context.Context, userID, c
 		QueryLimit: limit,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to listChannelVideos(videoQueryService.GetChannelUploads): %w", err)
+		return nil, err
 	}
 
 	views := make([]GetChannelUploadsView, len(rows))
@@ -114,14 +116,15 @@ func (v *videoQueryServiceImpl) GetChannelUploads(ctx context.Context, userID, c
 	return views, nil
 }
 
-func (v *videoQueryServiceImpl) GetVideoFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetVideoFeedView, error) {
+func (v *videoQueryServiceImpl) GetVideoFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, err error) {
+	defer util.Wrap(&err, "videoQueryService.GetVideoFeed(userID=%s)", userID)
 	rows, err := v.q.ListSubscriptionFeed(ctx, sqlc.ListSubscriptionFeedParams{
 		UserID:     userID,
 		Cursor:     cursor,
 		QueryLimit: limit,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to listSubscriptionFeed(videoQueryService.GetVideoFeed): %w", err)
+		return nil, err
 	}
 
 	views := make([]GetVideoFeedView, len(rows))

@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
@@ -41,10 +40,12 @@ func NewUserQueryService(db *pgxpool.Pool) UserQueryService {
 	return &userQueryServiceImpl{q: sqlc.New(db)}
 }
 
-func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (UserStatusView, error) {
+func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (_ UserStatusView, err error) {
+	defer util.Wrap(&err, "userQueryService.Find(userID=%s)", userID)
+
 	rows, err := u.q.GetUserProfile(ctx, userID)
 	if err != nil {
-		return UserStatusView{}, fmt.Errorf("failed to getUserWithScreenTimeRanges(userQueryService.Find): %w", err)
+		return UserStatusView{}, err
 	}
 	if len(rows) == 0 {
 		return UserStatusView{}, pgx.ErrNoRows
@@ -59,11 +60,11 @@ func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (User
 		for i, row := range rows {
 			startTime, err := util.IntToHHmm(int(*row.ScreenTimeRangeStart))
 			if err != nil {
-				return UserStatusView{}, fmt.Errorf("failed to convert startTime(userQueryService.Find): %w", err)
+				return UserStatusView{}, err
 			}
 			endTime, err := util.IntToHHmm(int(*row.ScreenTimeRangeEnd))
 			if err != nil {
-				return UserStatusView{}, fmt.Errorf("failed to convert endTime(userQueryService.Find): %w", err)
+				return UserStatusView{}, err
 			}
 			ranges[i] = ScreenTimeLimitRangeView{
 				ID:        *row.ScreenTimeRangeID,
@@ -88,13 +89,15 @@ func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (User
 	}, nil
 }
 
-func (u *userQueryServiceImpl) FindByAuthorizationID(ctx context.Context, authorizationID int64) (uuid.UUID, bool, error) {
+func (u *userQueryServiceImpl) FindByAuthorizationID(ctx context.Context, authorizationID int64) (_ uuid.UUID, _ bool, err error) {
+	defer util.Wrap(&err, "userQueryService.FindByAuthorizationID(authorizationID=%d)", authorizationID)
+
 	row, err := u.q.GetUserIDByAuthorization(ctx, authorizationID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return uuid.Nil, false, err
 		}
-		return uuid.Nil, false, fmt.Errorf("failed to userQueryService.FindByAuthorizationID: %w", err)
+		return uuid.Nil, false, err
 	}
 	return row.PublicID, row.IsDeactivated, nil
 }

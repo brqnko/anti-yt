@@ -3,7 +3,6 @@ package channel
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -46,7 +45,9 @@ func NewService(
 	}, nil
 }
 
-func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channelText string) (*Channel, error) {
+func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channelText string) (_ *Channel, err error) {
+	defer util.Wrap(&err, "Service.SubscribeChannel")
+
 	// ユーザーはURLやハンドルやチャンネルIDで入力してくる
 	channelIDOrHandle, err := extractChannelIDOrHandle(channelText)
 	if err != nil {
@@ -55,7 +56,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to begin: %w", err)
+		return nil, err
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -79,7 +80,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 		channelDetail, err := s.ytService.FetchChannelDetailByIDOrHandle(ctx, channelIDOrHandle)
 		fetchedAt := time.Now().UTC()
 		if err != nil {
-			return nil, fmt.Errorf("failed to fetchChannelDetail: %w", err)
+			return nil, err
 		}
 
 		// YouTubeで取得したチャンネル情報をシステムのエンティティに変換
@@ -92,7 +93,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 		// NOTE: fetchの結果をキャッシュするため、トランザクションの外で行う
 		_, err = NewChannelRepository(sqlc.New(s.db)).Save(ctx, channel)
 		if err != nil {
-			return nil, fmt.Errorf("failed to saveChannel: %w", err)
+			return nil, err
 		}
 
 		// チャンネルの投稿動画(IDのみ)をAPIから取得する
@@ -136,7 +137,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return nil, fmt.Errorf("failed to commit: %w", err)
+		return nil, err
 	}
 
 	return foundChannel, nil
@@ -170,10 +171,12 @@ func (s *Service) GetSubscriptions(ctx context.Context, userID uuid.UUID, limit 
 	return channels, false, nil
 }
 
-func (s *Service) RefreshChannelIfStale(ctx context.Context, channelID uuid.UUID) error {
+func (s *Service) RefreshChannelIfStale(ctx context.Context, channelID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "Service.RefreshChannelIfStale(channelID=%s)", channelID)
+
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to begin: %w", err)
+		return err
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -197,7 +200,7 @@ func (s *Service) RefreshChannelIfStale(ctx context.Context, channelID uuid.UUID
 		// 動画ID一覧から動画の詳細情報を取得する
 		videoDetailMap, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
 		if err != nil {
-			return fmt.Errorf("failed to fetchVideoDetail: %w", err)
+			return err
 		}
 
 		fetchedAt := time.Now().UTC()
@@ -221,7 +224,7 @@ func (s *Service) RefreshChannelIfStale(ctx context.Context, channelID uuid.UUID
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("failed to commit: %w", err)
+		return err
 	}
 
 	return nil

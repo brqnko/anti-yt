@@ -11,6 +11,7 @@ import (
 
 	"strings"
 
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/mmcdole/gofeed"
 	"google.golang.org/api/option"
 	"google.golang.org/api/youtube/v3"
@@ -40,7 +41,8 @@ type youTubeAPIServiceImpl struct {
 }
 
 // NOTE: 削除された動画などはAPIから返ってこず、また順番も保証されないのでmapで返す
-func (s *youTubeAPIServiceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (map[VideoID]Video, error) {
+func (s *youTubeAPIServiceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (_ map[VideoID]Video, err error) {
+	defer util.Wrap(&err, "youTubeAPIService.FetchVideoDetail")
 	if len(videoIDs) == 0 {
 		return map[VideoID]Video{}, nil
 	}
@@ -57,7 +59,7 @@ func (s *youTubeAPIServiceImpl) FetchVideoDetail(ctx context.Context, videoIDs [
 		Context(ctx).
 		Do()
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetchVideoDetail(ytClient.Videos.List): %w", err)
+		return nil, err
 	}
 
 	videos := make(map[VideoID]Video)
@@ -122,7 +124,8 @@ func (s *youTubeAPIServiceImpl) FetchVideoDetail(ctx context.Context, videoIDs [
 	return videos, nil
 }
 
-func (s *youTubeAPIServiceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (Channel, error) {
+func (s *youTubeAPIServiceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (_ Channel, err error) {
+	defer util.Wrap(&err, "youTubeAPIService.FetchChannelDetailByIDOrHandle")
 	q := s.ytClient.Channels.List([]string{"snippet", "statistics", "contentDetails"})
 	if strings.HasPrefix(channelID, "@") && len(([]rune)(channelID)) > 3 {
 		q = q.ForHandle(channelID)
@@ -134,7 +137,7 @@ func (s *youTubeAPIServiceImpl) FetchChannelDetailByIDOrHandle(ctx context.Conte
 
 	res, err := q.Context(ctx).Do()
 	if err != nil {
-		return Channel{}, fmt.Errorf("failed to Channels.List(handle=%s): %w", channelID, err)
+		return Channel{}, err
 	}
 	if len(res.Items) == 0 {
 		return Channel{}, errors.New("len(res.Items) == 0(fetchChannelDetail)")
@@ -180,13 +183,14 @@ func (s *youTubeAPIServiceImpl) FetchChannelDetailByIDOrHandle(ctx context.Conte
 		createdAt,
 	)
 	if err != nil {
-		return Channel{}, fmt.Errorf("failed to NewChannel(fetchChannelDetail): %w", err)
+		return Channel{}, err
 	}
 
 	return channel, nil
 }
 
-func (s *youTubeAPIServiceImpl) FetchChannelDetail(ctx context.Context, channelIDs []ChannelID) (map[ChannelID]Channel, error) {
+func (s *youTubeAPIServiceImpl) FetchChannelDetail(ctx context.Context, channelIDs []ChannelID) (_ map[ChannelID]Channel, err error) {
+	defer util.Wrap(&err, "youTubeAPIService.FetchChannelDetail")
 	if len(channelIDs) == 0 {
 		return map[ChannelID]Channel{}, nil
 	}
@@ -198,7 +202,7 @@ func (s *youTubeAPIServiceImpl) FetchChannelDetail(ctx context.Context, channelI
 	}
 	res, err := s.ytClient.Channels.List([]string{"snippet", "statistics", "contentDetails"}).Id(ids...).Context(ctx).Do()
 	if err != nil {
-		return nil, fmt.Errorf("failed to Channels.List: %w", err)
+		return nil, err
 	}
 
 	for _, found := range res.Items {
@@ -258,7 +262,8 @@ func (s *youTubeAPIServiceImpl) FetchChannelDetail(ctx context.Context, channelI
 	return result, nil
 }
 
-func (s *youTubeAPIServiceImpl) FetchRSSFeed(ctx context.Context, channelID ChannelID) ([]VideoID, error) {
+func (s *youTubeAPIServiceImpl) FetchRSSFeed(ctx context.Context, channelID ChannelID) (_ []VideoID, err error) {
+	defer util.Wrap(&err, "youTubeAPIService.FetchRSSFeed")
 	if !strings.HasPrefix((string)(channelID), "UC") || len(channelID) != 24 {
 		return nil, ErrInvalidChannelID
 	}
@@ -268,7 +273,7 @@ func (s *youTubeAPIServiceImpl) FetchRSSFeed(ctx context.Context, channelID Chan
 		ctx,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to ParseURLWithContext(channel=%s): %w", channelID, err)
+		return nil, err
 	}
 
 	videos := make([]VideoID, 0, len(feed.Items))
@@ -296,7 +301,8 @@ func (s *youTubeAPIServiceImpl) FetchRSSFeed(ctx context.Context, channelID Chan
 	return videos, nil
 }
 
-func (s *youTubeAPIServiceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) ([]VideoID, string, error) {
+func (s *youTubeAPIServiceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (videoIDs []VideoID, nextPageToken string, err error) {
+	defer util.Wrap(&err, "youTubeAPIService.FetchPlaylistVideoIDs")
 	call := s.ytClient.PlaylistItems.List([]string{"contentDetails"}).
 		PlaylistId(playlistID).
 		MaxResults(50).
@@ -307,10 +313,10 @@ func (s *youTubeAPIServiceImpl) FetchPlaylistVideoIDs(ctx context.Context, playl
 
 	res, err := call.Do()
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to PlaylistItems.List(playlist=%s): %w", playlistID, err)
+		return nil, "", err
 	}
 
-	videoIDs := make([]VideoID, 0, len(res.Items))
+	videoIDs = make([]VideoID, 0, len(res.Items))
 	for _, item := range res.Items {
 		if item.ContentDetails == nil || item.ContentDetails.VideoId == "" {
 			slog.Info("item.ContentDetails is nil or VideoId is empty(fetchPlaylistVideoIDs)")
@@ -327,10 +333,11 @@ func (s *youTubeAPIServiceImpl) FetchPlaylistVideoIDs(ctx context.Context, playl
 	return videoIDs, res.NextPageToken, nil
 }
 
-func NewYouTubeAPIServiceImpl(ctx context.Context, apiKey string) (YouTubeAPIService, error) {
+func NewYouTubeAPIServiceImpl(ctx context.Context, apiKey string) (_ YouTubeAPIService, err error) {
+	defer util.Wrap(&err, "NewYouTubeAPIServiceImpl")
 	ytClient, err := youtube.NewService(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
-		return nil, fmt.Errorf("failed to NewService: %w", err)
+		return nil, err
 	}
 
 	feedParser := gofeed.NewParser()

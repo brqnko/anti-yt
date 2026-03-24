@@ -4,9 +4,9 @@ import (
 	"crypto/ed25519"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
@@ -51,7 +51,8 @@ func (s *jwtService) TokenDuration() time.Duration {
 	return s.accessTokenDuration
 }
 
-func (s *jwtService) SignUserAccessToken(userID, jti uuid.UUID, serverURL string) (string, time.Time, error) {
+func (s *jwtService) SignUserAccessToken(userID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error) {
+	defer util.Wrap(&err, "jwtService.SignUserAccessToken(userID=%s)", userID)
 	now := time.Now().UTC()
 	expiresAt := now.Add(s.accessTokenDuration)
 	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, UserClaims{
@@ -68,12 +69,13 @@ func (s *jwtService) SignUserAccessToken(userID, jti uuid.UUID, serverURL string
 	})
 	signed, err := token.SignedString(s.privateKey)
 	if err != nil {
-		return "", expiresAt, fmt.Errorf("failed to SignUserAccessToken: %w", err)
+		return "", expiresAt, err
 	}
 	return signed, expiresAt, nil
 }
 
-func (s *jwtService) SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string) (string, time.Time, error) {
+func (s *jwtService) SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error) {
+	defer util.Wrap(&err, "jwtService.SignRegisterToken(authorizationID=%s)", authorizationID)
 	now := time.Now().UTC()
 	expiresAt := now.Add(s.accessTokenDuration)
 	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, RegisterClaims{
@@ -90,7 +92,7 @@ func (s *jwtService) SignRegisterToken(authorizationID, jti uuid.UUID, serverURL
 	})
 	signed, err := token.SignedString(s.privateKey)
 	if err != nil {
-		return "", expiresAt, fmt.Errorf("failed to SignRegisterToken: %w", err)
+		return "", expiresAt, err
 	}
 	return signed, expiresAt, nil
 }

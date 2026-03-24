@@ -3,11 +3,11 @@ package channel
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
@@ -31,12 +31,14 @@ type channelRepositoryImpl struct {
 	q sqlc.Querier
 }
 
-func (c *channelRepositoryImpl) Save(ctx context.Context, channel *Channel) (int64, error) {
+func (c *channelRepositoryImpl) Save(ctx context.Context, channel *Channel) (_ int64, err error) {
+	defer util.Wrap(&err, "channelRepository.Save")
+
 	if err := c.q.ClearStaleChannelCustomID(ctx, sqlc.ClearStaleChannelCustomIDParams{
 		ExternalCustomID: channel.Channel.CustomID,
 		ExternalID:       string(channel.Channel.ID),
 	}); err != nil {
-		return 0, fmt.Errorf("failed to clearStaleChannelCustomID(channelRepository.Save): %w", err)
+		return 0, err
 	}
 
 	saveChannel, err := c.q.UpsertChannel(ctx, sqlc.UpsertChannelParams{
@@ -53,19 +55,21 @@ func (c *channelRepositoryImpl) Save(ctx context.Context, channel *Channel) (int
 		FetchedAt:                 channel.FetchedAt,
 	})
 	if err != nil {
-		return 0, fmt.Errorf("failed to saveChannel(channelRepository.Save): %w", err)
+		return 0, err
 	}
 
 	return saveChannel, nil
 }
 
-func (c *channelRepositoryImpl) FindForUpdate(ctx context.Context, id uuid.UUID) (*Channel, error) {
+func (c *channelRepositoryImpl) FindForUpdate(ctx context.Context, id uuid.UUID) (_ *Channel, err error) {
+	defer util.Wrap(&err, "channelRepository.FindForUpdate(id=%s)", id)
+
 	row, err := c.q.GetChannelForUpdate(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, err
 		}
-		return nil, fmt.Errorf("failed to getChannelForUpdate(channelRepository.FindForUpdate): %w", err)
+		return nil, err
 	}
 
 	channelDetail, err := youtube_d.NewChannel(
@@ -79,18 +83,20 @@ func (c *channelRepositoryImpl) FindForUpdate(ctx context.Context, id uuid.UUID)
 		row.ExternalCreatedAt,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to newChannel(channelRepository.FindForUpdate): %w", err)
+		return nil, err
 	}
 
 	ch, err := NewChannel(row.FetchedAt, row.RssFetchedAt, channelDetail, WithChannelID(row.PublicID))
 	if err != nil {
-		return nil, fmt.Errorf("failed to newChannel(channelRepository.FindForUpdate): %w", err)
+		return nil, err
 	}
 
 	return ch, nil
 }
 
-func (c *channelRepositoryImpl) FindByIdOrHandle(ctx context.Context, idOrHandle string) (*Channel, error) {
+func (c *channelRepositoryImpl) FindByIdOrHandle(ctx context.Context, idOrHandle string) (_ *Channel, err error) {
+	defer util.Wrap(&err, "channelRepository.FindByIdOrHandle")
+
 	row, err := c.q.FindChannelByExternalID(ctx, sqlc.FindChannelByExternalIDParams{
 		ExternalID:       idOrHandle,
 		ExternalCustomID: idOrHandle,
@@ -99,7 +105,7 @@ func (c *channelRepositoryImpl) FindByIdOrHandle(ctx context.Context, idOrHandle
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, err
 		}
-		return nil, fmt.Errorf("failed to getChannelByIdOrHandle: %w", err)
+		return nil, err
 	}
 
 	ytCh, err := youtube_d.NewChannel(
@@ -113,25 +119,27 @@ func (c *channelRepositoryImpl) FindByIdOrHandle(ctx context.Context, idOrHandle
 		row.ExternalCreatedAt,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to newChannel: %w", err)
+		return nil, err
 	}
 
 	ch, err := NewChannel(row.FetchedAt, row.RssFetchedAt, ytCh, WithChannelID(row.PublicID))
 	if err != nil {
-		return nil, fmt.Errorf("failed to newChannel: %w", err)
+		return nil, err
 	}
 
 	return ch, nil
 }
 
-func (c *channelRepositoryImpl) FindToFetchRSSForUpdate(ctx context.Context, userID uuid.UUID, rssFetchDuration time.Duration, limit int32) ([]*Channel, error) {
+func (c *channelRepositoryImpl) FindToFetchRSSForUpdate(ctx context.Context, userID uuid.UUID, rssFetchDuration time.Duration, limit int32) (_ []*Channel, err error) {
+	defer util.Wrap(&err, "channelRepository.FindToFetchRSSForUpdate(userID=%s)", userID)
+
 	rows, err := c.q.ListStaleRSSChannelsForUpdate(ctx, sqlc.ListStaleRSSChannelsForUpdateParams{
 		UserID:     userID,
 		RssFetch:   time.Now().UTC().Add(-rssFetchDuration),
 		QueryLimit: limit,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to getChannelsToFetchRSSForUpdate(channelRepository.FindToFetchRSSForUpdate): %w", err)
+		return nil, err
 	}
 
 	channels := make([]*Channel, len(rows))
@@ -147,12 +155,12 @@ func (c *channelRepositoryImpl) FindToFetchRSSForUpdate(ctx context.Context, use
 			row.ExternalCreatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to newChannel(channelRepository.FindToFetchRSSForUpdate): %w", err)
+			return nil, err
 		}
 
 		channel, err := NewChannel(row.FetchedAt, row.RssFetchedAt, channelDetail, WithChannelID(row.PublicID))
 		if err != nil {
-			return nil, fmt.Errorf("failed to newChannel(channelRepository.FindToFetchRSSForUpdate): %w", err)
+			return nil, err
 		}
 
 		channels[i] = channel
@@ -161,26 +169,30 @@ func (c *channelRepositoryImpl) FindToFetchRSSForUpdate(ctx context.Context, use
 	return channels, nil
 }
 
-func (s *channelRepositoryImpl) SaveSubscription(ctx context.Context, subscribedChannel *SubscribedChannel) (int64, error) {
+func (s *channelRepositoryImpl) SaveSubscription(ctx context.Context, subscribedChannel *SubscribedChannel) (_ int64, err error) {
+	defer util.Wrap(&err, "channelRepository.SaveSubscription")
+
 	id, err := s.q.InsertSubscription(ctx, sqlc.InsertSubscriptionParams{
 		UserPublicID: subscribedChannel.SubscriberID,
 		ChannelID:    subscribedChannel.ChannelID,
 		SubscribedAt: subscribedChannel.SubscribedAt,
 	})
 	if err != nil {
-		return 0, fmt.Errorf("failed to saveChannelSubscription(channelRepository.SaveSubscription): %w", err)
+		return 0, err
 	}
 
 	return id, nil
 }
 
 func (s *channelRepositoryImpl) RemoveSubscription(ctx context.Context, userID, channelID uuid.UUID) (rowAffected int64, err error) {
+	defer util.Wrap(&err, "channelRepository.RemoveSubscription(userID=%s, channelID=%s)", userID, channelID)
+
 	row, err := s.q.DeleteSubscription(ctx, sqlc.DeleteSubscriptionParams{
 		UserPublicID: userID,
 		ChannelID:    channelID,
 	})
 	if err != nil {
-		return 0, fmt.Errorf("failed to deleteChannelSubscription(channelRepository.RemoveSubscription): %w", err)
+		return 0, err
 	}
 
 	return row, nil

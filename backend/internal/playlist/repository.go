@@ -2,10 +2,10 @@ package playlist
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 )
 
@@ -28,7 +28,8 @@ func NewPlaylistRepository(q sqlc.Querier) PlaylistRepository {
 	}
 }
 
-func (r *playlistRepositoryImpl) Save(ctx context.Context, userID uuid.UUID, playlist *Playlist) (int64, error) {
+func (r *playlistRepositoryImpl) Save(ctx context.Context, userID uuid.UUID, playlist *Playlist) (_ int64, err error) {
+	defer util.Wrap(&err, "playlistRepository.Save(userID=%s)", userID)
 	id, err := r.q.UpsertPlaylist(ctx, sqlc.UpsertPlaylistParams{
 		UserPublicID:        userID,
 		PlaylistTitle:       string(playlist.Title),
@@ -40,7 +41,7 @@ func (r *playlistRepositoryImpl) Save(ctx context.Context, userID uuid.UUID, pla
 		RegisteredAt:        playlist.RegisteredAt,
 	})
 	if err != nil {
-		return 0, fmt.Errorf("failed to savePlaylist(playlistRepository.Save): %w", err)
+		return 0, err
 	}
 
 	return id, nil
@@ -86,7 +87,8 @@ func (r *playlistRepositoryImpl) InsertVideo(ctx context.Context, userID, playli
 	})
 }
 
-func (r *playlistRepositoryImpl) BulkInsertVideos(ctx context.Context, playlistInternalID int64, videoInternalIDs []int64) error {
+func (r *playlistRepositoryImpl) BulkInsertVideos(ctx context.Context, playlistInternalID int64, videoInternalIDs []int64) (err error) {
+	defer util.Wrap(&err, "playlistRepository.BulkInsertVideos(playlistInternalID=%d)", playlistInternalID)
 	params := make([]sqlc.BulkInsertPlaylistVideosParams, len(videoInternalIDs))
 	for i, videoID := range videoInternalIDs {
 		params[i] = sqlc.BulkInsertPlaylistVideosParams{
@@ -97,7 +99,7 @@ func (r *playlistRepositoryImpl) BulkInsertVideos(ctx context.Context, playlistI
 	}
 	rowsAffected, err := r.q.BulkInsertPlaylistVideos(ctx, params)
 	if err != nil {
-		return fmt.Errorf("failed to bulkInsertIntoPlaylist(playlistRepository.BulkInsertVideos): %w", err)
+		return err
 	}
 	if rowsAffected != int64(len(params)) {
 		slog.Warn("rowsAffected mismatch(playlistRepository.BulkInsertVideos)", "expected", len(params), "actual", rowsAffected)

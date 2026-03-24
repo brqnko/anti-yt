@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -62,6 +61,7 @@ func (s *Service) CreateAuthCode(ctx context.Context) (redirectURL, csrf string,
 }
 
 func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipAddress, countryCode, deviceFingerprint, userAgent string) (accessToken, refreshTokenRaw, csrfToken, redirectPath string, accessTokenExpiresAt, refreshTokenExpiresAt time.Time, err error) {
+	defer util.Wrap(&err, "Service.GoogleOIDCCallback")
 	if csrf == "" || state == "" {
 		return "", "", "", "", time.Time{}, time.Time{}, ErrInvalidCSRFOrState
 	}
@@ -71,12 +71,12 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 
 	sub, err := s.oidcService.ExchangeAndVerify(ctx, code)
 	if err != nil {
-		return "", "", "", "", time.Time{}, time.Time{}, fmt.Errorf("failed to exchangeAndVerify: %w", err)
+		return "", "", "", "", time.Time{}, time.Time{}, err
 	}
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return "", "", "", "", time.Time{}, time.Time{}, fmt.Errorf("failed to begin: %w", err)
+		return "", "", "", "", time.Time{}, time.Time{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -139,7 +139,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 		}
 
 		if err := tx.Commit(ctx); err != nil {
-			return "", "", "", "", time.Time{}, time.Time{}, fmt.Errorf("failed to commit: %w", err)
+			return "", "", "", "", time.Time{}, time.Time{}, err
 		}
 
 		return at, refreshTokenRawStr, csrfGenerated, "dashboard", atExp, refreshToken.ExpiresAt, nil
@@ -150,7 +150,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 		}
 
 		if err := tx.Commit(ctx); err != nil {
-			return "", "", "", "", time.Time{}, time.Time{}, fmt.Errorf("failed to commit: %w", err)
+			return "", "", "", "", time.Time{}, time.Time{}, err
 		}
 
 		return at, refreshTokenRawStr, csrfGenerated, "reactivation", atExp, refreshToken.ExpiresAt, nil
@@ -161,7 +161,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 		}
 
 		if err := tx.Commit(ctx); err != nil {
-			return "", "", "", "", time.Time{}, time.Time{}, fmt.Errorf("failed to commit: %w", err)
+			return "", "", "", "", time.Time{}, time.Time{}, err
 		}
 
 		return at, refreshTokenRawStr, csrfGenerated, "register", atExp, refreshToken.ExpiresAt, nil

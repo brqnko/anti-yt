@@ -2,10 +2,10 @@ package user
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 )
 
@@ -29,12 +29,14 @@ const (
 	LeaveReasonSelf LeaveReasonCode = 0
 )
 
-func NewLeaveReasonCode(s string) (LeaveReasonCode, error) {
+func NewLeaveReasonCode(s string) (_ LeaveReasonCode, err error) {
+	defer util.Wrap(&err, "NewLeaveReasonCode")
+
 	switch s {
 	case "self":
 		return LeaveReasonSelf, nil
 	default:
-		return 0, fmt.Errorf("failed to create leave reason code(newLeaveReasonCode): %w", ErrInvalidLeaveReasonCode)
+		return 0, ErrInvalidLeaveReasonCode
 	}
 }
 
@@ -160,13 +162,15 @@ type DailyScreenTimeLimitRangeSet struct {
 	Ranges []DailyScreenTimeLimitRange
 }
 
-func NewDailyScreenTimeLimitRangeSet(screenLimits []struct{ Start, End int }) (*DailyScreenTimeLimitRangeSet, error) {
+func NewDailyScreenTimeLimitRangeSet(screenLimits []struct{ Start, End int }) (_ *DailyScreenTimeLimitRangeSet, err error) {
+	defer util.Wrap(&err, "NewDailyScreenTimeLimitRangeSet")
+
 	// NOTE: UX的に、時間範囲の重複は許容する
 	ranges := make([]DailyScreenTimeLimitRange, len(screenLimits))
 	for i, r := range screenLimits {
 		domainRange, err := NewDailyScreenTimeLimitRange(r.Start, r.End)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create daily screen time limit range(newDailyScreenTimeLimitRangeSet): %w", err)
+			return nil, err
 		}
 		ranges[i] = domainRange
 	}
@@ -242,59 +246,67 @@ func WithUserJoinedAt(joinedAt time.Time) UserOption {
 	}
 }
 
-func (u *User) SetDisplayName(displayName *string) error {
+func (u *User) SetDisplayName(displayName *string) (err error) {
+	defer util.Wrap(&err, "User.SetDisplayName")
+
 	if displayName == nil {
 		return nil
 	}
 	dn, err := NewDisplayName(*displayName)
 	if err != nil {
-		return fmt.Errorf("failed to create display name(User.SetDisplayName): %w", err)
+		return err
 	}
 	u.DisplayName = dn
 	return nil
 }
 
-func (u *User) SetLanguageCode(languageCode *string) error {
+func (u *User) SetLanguageCode(languageCode *string) (err error) {
+	defer util.Wrap(&err, "User.SetLanguageCode")
+
 	if languageCode == nil {
 		return nil
 	}
 	lc, err := NewLanguageCode(*languageCode)
 	if err != nil {
-		return fmt.Errorf("failed to create language code(User.SetLanguageCode): %w", err)
+		return err
 	}
 	u.LanguageCode = lc
 	return nil
 }
 
-func (u *User) SetScreenTimeLimit(dailyScreenLimit *int) error {
+func (u *User) SetScreenTimeLimit(dailyScreenLimit *int) (err error) {
+	defer util.Wrap(&err, "User.SetScreenTimeLimit")
+
 	if dailyScreenLimit == nil {
 		return nil
 	}
 	stl, err := NewDailyScreenTimeLimit(dailyScreenLimit)
 	if err != nil {
-		return fmt.Errorf("failed to create daily screen time limit(User.SetScreenTimeLimit): %w", err)
+		return err
 	}
 	u.ScreenTimeLimit = stl
 	return nil
 }
 
-func NewUser(displayName string, languageCode string, dailyScreenLimit *int, opts ...UserOption) (*User, error) {
+func NewUser(displayName string, languageCode string, dailyScreenLimit *int, opts ...UserOption) (_ *User, err error) {
+	defer util.Wrap(&err, "NewUser")
+
 	dn, err := NewDisplayName(displayName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create display name(newUser): %w", err)
+		return nil, err
 	}
 	lc, err := NewLanguageCode(languageCode)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create language code(newUser): %w", err)
+		return nil, err
 	}
 	stl, err := NewDailyScreenTimeLimit(dailyScreenLimit)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create daily screen time limit(newUser): %w", err)
+		return nil, err
 	}
 
 	id, err := uuid.NewV7()
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate uuid v7(newUser): %w", err)
+		return nil, err
 	}
 
 	u := &User{

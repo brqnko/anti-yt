@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -36,7 +35,9 @@ func NewService(db *pgxpool.Pool, jwtService jwt_d.JWTService, serverURL string)
 	}, nil
 }
 
-func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailyScreenLimit *int, screenLimits []struct{ Start, End int }, displayName string, languageCode string) (*User, string, time.Time, error) {
+func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailyScreenLimit *int, screenLimits []struct{ Start, End int }, displayName string, languageCode string) (_ *User, _ string, _ time.Time, err error) {
+	defer util.Wrap(&err, "Service.CreateNewUser")
+
 	authorizationID, jti, err := s.jwtService.VerifyRegisterToken(accessToken)
 	if err != nil {
 		return nil, "", time.Time{}, err
@@ -53,7 +54,7 @@ func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailySc
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, "", time.Time{}, fmt.Errorf("failed to begin: %w", err)
+		return nil, "", time.Time{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -88,22 +89,24 @@ func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailySc
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return nil, "", time.Time{}, fmt.Errorf("failed to commit: %w", err)
+		return nil, "", time.Time{}, err
 	}
 
 	// ユーザー作成成功後、UserAccessTokenを発行する（RegisterTokenからの切り替え）
 	newAccessToken, accessTokenExpiresAt, err := s.jwtService.SignUserAccessToken(user.ID, jti, s.serverURL)
 	if err != nil {
-		return nil, "", time.Time{}, fmt.Errorf("failed to signUserAccessToken: %w", err)
+		return nil, "", time.Time{}, err
 	}
 
 	return user, newAccessToken, accessTokenExpiresAt, nil
 }
 
-func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName, newLanguageCode *string, newDailyScreenLimit *int, newScreenLimits *[]struct{ Start, End int }) (*User, error) {
+func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName, newLanguageCode *string, newDailyScreenLimit *int, newScreenLimits *[]struct{ Start, End int }) (_ *User, err error) {
+	defer util.Wrap(&err, "Service.EditUser(userID=%s)", userID)
+
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to begin: %w", err)
+		return nil, err
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -139,7 +142,7 @@ func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName
 		}
 
 		if err := q.DeleteScreenTimeRangesByUserID(ctx, mUserID); err != nil {
-			return nil, fmt.Errorf("failed to removeScreenTimeRangesByUserId: %w", err)
+			return nil, err
 		}
 		if err := NewUserRepository(q).SaveScreenTimeRanges(ctx, mUserID, rangeSet); err != nil {
 			return nil, err
@@ -147,7 +150,7 @@ func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return nil, fmt.Errorf("failed to commit: %w", err)
+		return nil, err
 	}
 
 	return u, nil

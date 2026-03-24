@@ -2,9 +2,9 @@ package playlist
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 )
 
@@ -21,12 +21,13 @@ const (
 	VisibilityPrivate VisibilityCode = 0
 )
 
-func NewVisibilityCode(s string) (VisibilityCode, error) {
+func NewVisibilityCode(s string) (_ VisibilityCode, err error) {
+	defer util.Wrap(&err, "NewVisibilityCode")
 	switch s {
 	case "private":
 		return VisibilityPrivate, nil
 	default:
-		return 0, fmt.Errorf("failed to create visibility code(newVisibilityCode): %w", ErrInvalidVisibilityCode)
+		return 0, ErrInvalidVisibilityCode
 	}
 }
 
@@ -41,9 +42,10 @@ func (v VisibilityCode) String() string {
 
 type PlaylistTitle string
 
-func NewPlaylistTitle(s string) (PlaylistTitle, error) {
+func NewPlaylistTitle(s string) (_ PlaylistTitle, err error) {
+	defer util.Wrap(&err, "NewPlaylistTitle")
 	if len(s) == 0 || len(s) > 128 {
-		return "", fmt.Errorf("failed to create playlist title(newPlaylistTitle): %w", ErrInvalidPlaylistTitle)
+		return "", ErrInvalidPlaylistTitle
 	}
 	return PlaylistTitle(s), nil
 }
@@ -54,9 +56,10 @@ func (p PlaylistTitle) String() string {
 
 type PlaylistDescription string
 
-func NewPlaylistDescription(s string) (PlaylistDescription, error) {
+func NewPlaylistDescription(s string) (_ PlaylistDescription, err error) {
+	defer util.Wrap(&err, "NewPlaylistDescription")
 	if len(s) > 255 {
-		return "", fmt.Errorf("failed to create playlist description(newPlaylistDescription): %w", ErrInvalidPlaylistDescription)
+		return "", ErrInvalidPlaylistDescription
 	}
 	return PlaylistDescription(s), nil
 }
@@ -118,12 +121,13 @@ const (
 	PlaylistCodeNormal PlaylistCode = 0
 )
 
-func NewPlaylistCode(s string) (PlaylistCode, error) {
+func NewPlaylistCode(s string) (_ PlaylistCode, err error) {
+	defer util.Wrap(&err, "NewPlaylistCode")
 	switch s {
 	case "normal":
 		return PlaylistCodeNormal, nil
 	default:
-		return 0, fmt.Errorf("failed to create playlist code(newPlaylistCode): %w", ErrInvalidPlaylistCode)
+		return 0, ErrInvalidPlaylistCode
 	}
 }
 
@@ -172,30 +176,31 @@ func NewPlaylist(
 	visibilityStr string,
 	playlistTypeStr string,
 	opts ...PlaylistOption,
-) (*Playlist, error) {
+) (_ *Playlist, err error) {
+	defer util.Wrap(&err, "NewPlaylist")
 	t, err := NewPlaylistTitle(title)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create playlist title(newPlaylist): %w", err)
+		return nil, err
 	}
 
 	d, err := NewPlaylistDescription(description)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create playlist description(newPlaylist): %w", err)
+		return nil, err
 	}
 
 	v, err := NewVisibilityCode(visibilityStr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create visibility code(newPlaylist): %w", err)
+		return nil, err
 	}
 
 	pc, err := NewPlaylistCode(playlistTypeStr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create playlist code(newPlaylist): %w", err)
+		return nil, err
 	}
 
 	id, err := uuid.NewV7()
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate uuid v7(newPlaylist): %w", err)
+		return nil, err
 	}
 
 	pl := &Playlist{

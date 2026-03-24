@@ -1,10 +1,10 @@
 package video
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 )
 
@@ -30,10 +30,11 @@ func NewVideo(
 
 	video youtube_d.Video,
 	opts ...VideoOption,
-) (*Video, error) {
+) (_ *Video, err error) {
+	defer util.Wrap(&err, "NewVideo(channelID=%s)", channelID)
 	id, err := uuid.NewV7()
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate uuid v7(newVideo): %w", err)
+		return nil, err
 	}
 
 	v := Video{

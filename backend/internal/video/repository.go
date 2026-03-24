@@ -2,9 +2,9 @@ package video
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
 type VideoRepository interface {
@@ -21,7 +21,8 @@ func NewVideoRepository(q sqlc.Querier) VideoRepository {
 	}
 }
 
-func (v *videoRepositoryImpl) Save(ctx context.Context, video *Video) (int64, error) {
+func (v *videoRepositoryImpl) Save(ctx context.Context, video *Video) (_ int64, err error) {
+	defer util.Wrap(&err, "videoRepository.Save")
 	id, err := v.q.UpsertVideo(ctx, sqlc.UpsertVideoParams{
 		ChannelID:             video.ChannelID,
 		ExternalID:            string(video.Video.ID),
@@ -34,7 +35,7 @@ func (v *videoRepositoryImpl) Save(ctx context.Context, video *Video) (int64, er
 		ID:                    video.ID,
 	})
 	if err != nil {
-		return 0, fmt.Errorf("failed to saveVideo(videoRepository.Save): %w", err)
+		return 0, err
 	}
 
 	return id, nil

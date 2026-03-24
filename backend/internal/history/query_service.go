@@ -2,10 +2,10 @@ package history
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -49,14 +49,15 @@ func NewHistoryQueryService(db *pgxpool.Pool) HistoryQueryService {
 	}
 }
 
-func (h *historyQueryServiceImpl) FindHistory(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetHistoryView, error) {
+func (h *historyQueryServiceImpl) FindHistory(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetHistoryView, err error) {
+	defer util.Wrap(&err, "historyQueryService.FindHistory(userID=%s)", userID)
 	rows, err := h.q.ListWatchHistory(ctx, sqlc.ListWatchHistoryParams{
 		UserID:     userID,
 		Cursor:     cursor,
 		QueryLimit: limit,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to getHistory(historyQueryService.FindHistory): %w", err)
+		return nil, err
 	}
 
 	views := make([]GetHistoryView, len(rows))
@@ -76,14 +77,15 @@ func (h *historyQueryServiceImpl) FindHistory(ctx context.Context, userID uuid.U
 	return views, nil
 }
 
-func (h *historyQueryServiceImpl) FindStatisticsByWeek(ctx context.Context, userID uuid.UUID, startDate time.Time) ([]GetStatisticsWeeklyView, error) {
+func (h *historyQueryServiceImpl) FindStatisticsByWeek(ctx context.Context, userID uuid.UUID, startDate time.Time) (_ []GetStatisticsWeeklyView, err error) {
+	defer util.Wrap(&err, "historyQueryService.FindStatisticsByWeek(userID=%s)", userID)
 	rows, err := h.q.ListDailyWatchStatsByRange(ctx, sqlc.ListDailyWatchStatsByRangeParams{
 		UserID:    userID,
 		StartDate: startDate,
 		EndDate:   startDate.Add(7 * 24 * time.Hour), // NOTE: postgresql側で+ '7 days'するとsqlcがパースエラー起こす
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to getUserStatisticsByWeek(historyQueryService.FindStatisticsByWeek): %w", err)
+		return nil, err
 	}
 
 	views := make([]GetStatisticsWeeklyView, len(rows))
@@ -97,10 +99,11 @@ func (h *historyQueryServiceImpl) FindStatisticsByWeek(ctx context.Context, user
 	return views, nil
 }
 
-func (h *historyQueryServiceImpl) FindTotalWatchSeconds(ctx context.Context, userID uuid.UUID) (GetTotalWatchSecondsView, error) {
+func (h *historyQueryServiceImpl) FindTotalWatchSeconds(ctx context.Context, userID uuid.UUID) (_ GetTotalWatchSecondsView, err error) {
+	defer util.Wrap(&err, "historyQueryService.FindTotalWatchSeconds(userID=%s)", userID)
 	row, err := h.q.GetDailyWatchSummary(ctx, userID)
 	if err != nil {
-		return GetTotalWatchSecondsView{}, fmt.Errorf("failed to getTotalWatchSeconds(historyQueryService.FindTotalWatchSeconds): %w", err)
+		return GetTotalWatchSecondsView{}, err
 	}
 	return GetTotalWatchSecondsView{
 		DailyLimitSeconds: row.DailyLimitSeconds,

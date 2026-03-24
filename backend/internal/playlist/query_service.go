@@ -3,10 +3,10 @@ package playlist
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -64,14 +64,15 @@ func NewPlaylistQueryService(db *pgxpool.Pool) PlaylistQueryService {
 	}
 }
 
-func (p *playlistQueryServiceImpl) FindPlaylists(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetPlaylistsView, error) {
+func (p *playlistQueryServiceImpl) FindPlaylists(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetPlaylistsView, err error) {
+	defer util.Wrap(&err, "playlistQueryService.FindPlaylists(userID=%s)", userID)
 	rows, err := p.q.ListUserPlaylists(ctx, sqlc.ListUserPlaylistsParams{
 		UserID:     userID,
 		Cursor:     cursor,
 		QueryLimit: limit,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to getUserPlaylists(playlistQueryService.FindPlaylists): %w", err)
+		return nil, err
 	}
 
 	views := make([]GetPlaylistsView, len(rows))
@@ -95,7 +96,8 @@ func (p *playlistQueryServiceImpl) FindPlaylists(ctx context.Context, userID uui
 	return views, nil
 }
 
-func (p *playlistQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID, playlistID uuid.UUID) (GetPlaylistDetailView, error) {
+func (p *playlistQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID, playlistID uuid.UUID) (_ GetPlaylistDetailView, err error) {
+	defer util.Wrap(&err, "playlistQueryService.Find(userID=%s, playlistID=%s)", userID, playlistID)
 	row, err := p.q.GetPlaylistWithThumbnail(ctx, sqlc.GetPlaylistWithThumbnailParams{
 		UserID:     userID,
 		PlaylistID: playlistID,
@@ -104,7 +106,7 @@ func (p *playlistQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID, p
 		if errors.Is(err, pgx.ErrNoRows) {
 			return GetPlaylistDetailView{}, err
 		}
-		return GetPlaylistDetailView{}, fmt.Errorf("failed to getPlaylist(playlistQueryService.Find): %w", err)
+		return GetPlaylistDetailView{}, err
 	}
 
 	var topVideoThumbnailUrl *string
@@ -125,7 +127,8 @@ func (p *playlistQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID, p
 	}, nil
 }
 
-func (p *playlistQueryServiceImpl) FindPlaylistItems(ctx context.Context, userID, playlistID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetPlaylistItemView, error) {
+func (p *playlistQueryServiceImpl) FindPlaylistItems(ctx context.Context, userID, playlistID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetPlaylistItemView, err error) {
+	defer util.Wrap(&err, "playlistQueryService.FindPlaylistItems(userID=%s, playlistID=%s)", userID, playlistID)
 	rows, err := p.q.ListPlaylistVideos(ctx, sqlc.ListPlaylistVideosParams{
 		UserID:     userID,
 		PlaylistID: playlistID,
@@ -133,7 +136,7 @@ func (p *playlistQueryServiceImpl) FindPlaylistItems(ctx context.Context, userID
 		QueryLimit: limit,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to getPlaylistVideos(playlistQueryService.FindPlaylistItems): %w", err)
+		return nil, err
 	}
 
 	views := make([]GetPlaylistItemView, len(rows))
