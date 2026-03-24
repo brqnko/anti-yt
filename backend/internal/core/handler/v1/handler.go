@@ -53,7 +53,7 @@ func NewAPIHandler(
 		authService:     auth.NewService(db, oidcService, serverURL, jwtService, refreshTokenDuration),
 		userService:     user.NewService(db, jwtService, serverURL),
 		channelService:  channelService,
-		videoService:    video.NewService(db, ytService, channelService),
+		videoService:    video.NewService(db),
 		playlistService: playlist.NewService(db, ytService),
 		historyService:  history.NewService(db),
 

@@ -6,7 +6,6 @@ import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getChannel } from "../../api/generated/channel";
-import { getVideo } from "../../api/generated/video";
 import { formatSubscriberCount } from "../../utils/format";
 import { VideoCard } from "../../components/VideoCard";
 import type {
@@ -76,7 +75,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       try {
         const [subsRes, videosRes] = await Promise.allSettled([
           getChannel().getChannelsSubscribed({ limit: 50 }),
-          getVideo().getChannelsChannelIdVideos(channelId, {}),
+          getChannel().getChannelsChannelIdVideos(channelId, {}),
         ]);
 
         if (subsRes.status === "fulfilled") {
@@ -111,7 +110,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     if (isLoadingMore || !hasNextVideos) return;
     setIsLoadingMore(true);
     try {
-      const res = await getVideo().getChannelsChannelIdVideos(channelId, { cursor: cursorRef.current });
+      const res = await getChannel().getChannelsChannelIdVideos(channelId, { cursor: cursorRef.current });
       setVideos(prev => [...prev, ...res.items]);
       setHasNextVideos(res.has_next);
       const lastItem = res.items[res.items.length - 1];

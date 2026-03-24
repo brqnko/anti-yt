@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
-	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/brqnko/anti-yt/backend/internal/video"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -22,15 +22,18 @@ type Service struct {
 
 	subscriptionQS    SubscriptionQueryService
 	valuableChannelQS ValuableChannelQueryService
+	uploadsQS         UploadsQueryService
+	feedQS            FeedQueryService
 
 	rssFetchDuration time.Duration
 }
 
 var (
-	ErrInvalidSubscriptionLimit = core.NewDomainError("channel.invalid_subscription_limit", "invalid subscription limit: out of range (should be [1..50])")
-	ErrInvalidYouTubeURL        = core.NewDomainError("channel.invalid_youtube_url", "invalid youtube url or unsupported format")
-	ErrInvalidChannelID         = core.NewDomainError("channel.invalid_channel_id", "invalid channel id")
-	ErrInvalidChannelHandle     = core.NewDomainError("channel.invalid_channel_handle", "invalid channel handle")
+	ErrInvalidSubscriptionLimit  = core.NewDomainError("channel.invalid_subscription_limit", "invalid subscription limit: out of range (should be [1..50])")
+	ErrInvalidGetUploadLimit     = core.NewDomainError("channel.invalid_get_upload_limit", "invalid get upload limit: out of range (should be [1..50])")
+	ErrInvalidYouTubeURL         = core.NewDomainError("channel.invalid_youtube_url", "invalid youtube url or unsupported format")
+	ErrInvalidChannelID          = core.NewDomainError("channel.invalid_channel_id", "invalid channel id")
+	ErrInvalidChannelHandle      = core.NewDomainError("channel.invalid_channel_handle", "invalid channel handle")
 )
 
 func NewService(
@@ -44,6 +47,8 @@ func NewService(
 		rssFetchDuration:  rssFetchDuration,
 		subscriptionQS:    NewSubscriptionQueryService(db),
 		valuableChannelQS: NewValuableChannelQueryService(db),
+		uploadsQS:         NewUploadsQueryService(db),
+		feedQS:            NewFeedQueryService(db),
 	}
 }
 
@@ -121,7 +126,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 				continue
 			}
 
-			if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
+			if _, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v); err != nil {
 				slog.Info("failed to save video", "error", err)
 			}
 		}
@@ -173,16 +178,19 @@ func (s *Service) GetSubscriptions(ctx context.Context, userID uuid.UUID, limit 
 	return channels, false, nil
 }
 
-func (s *Service) RefreshChannelIfStale(ctx context.Context, channelID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "Service.RefreshChannelIfStale(channelID=%s)", channelID)
+
+func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetChannelUploadsView, _ bool, err error) {
+	if limit < 1 || 50 < limit {
+		return nil, false, ErrInvalidGetUploadLimit
+	}
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return err
+		return nil, false, err
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			slog.Error("failed to rollback transaction", "error", err)
+			slog.Warn("failed to rollback transaction", "error", err)
 		}
 	}()
 	q := sqlc.New(tx)
@@ -190,19 +198,19 @@ func (s *Service) RefreshChannelIfStale(ctx context.Context, channelID uuid.UUID
 	// ロッキングリード
 	lockedChannel, err := NewChannelRepository(q).FindForUpdate(ctx, channelID)
 	if err != nil {
-		return err
+		return nil, false, err
 	}
 	if lockedChannel.ShouldFetchRSSFeed(s.rssFetchDuration) {
 		// RSSから動画ID一覧を取得する
 		videoIDs, err := s.ytService.FetchRSSFeed(ctx, lockedChannel.Channel.ID)
 		if err != nil {
-			return err
+			return nil, false, err
 		}
 
 		// 動画ID一覧から動画の詳細情報を取得する
 		videoDetailMap, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
 		if err != nil {
-			return err
+			return nil, false, err
 		}
 
 		fetchedAt := time.Now().UTC()
@@ -221,18 +229,43 @@ func (s *Service) RefreshChannelIfStale(ctx context.Context, channelID uuid.UUID
 
 		lockedChannel.MarkAsRSSFetched()
 		if _, err := NewChannelRepository(q).Save(ctx, lockedChannel); err != nil {
-			return err
+			return nil, false, err
 		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return err
+		return nil, false, err
 	}
 
-	return nil
+	videos, err := s.uploadsQS.GetChannelUploads(ctx, userID, channelID, cursor, limit+1)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if len(videos) > int(limit) {
+		return videos[:limit], true, nil
+	}
+	return videos, false, nil
 }
 
-func (s *Service) SyncRSSFeeds(ctx context.Context, userID uuid.UUID) error {
+func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, _ bool, err error) {
+	// RSS Feedを同期する
+	if syncErr := s.syncRSSFeeds(ctx, userID); syncErr != nil {
+		slog.Warn("failed to sync RSS feeds", "error", syncErr)
+	}
+
+	videos, err := s.feedQS.GetVideoFeed(ctx, userID, cursor, limit+1)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if len(videos) > int(limit) {
+		return videos[:limit], true, nil
+	}
+	return videos, false, nil
+}
+
+func (s *Service) syncRSSFeeds(ctx context.Context, userID uuid.UUID) error {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return err

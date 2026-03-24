@@ -437,7 +437,7 @@ paths:
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
-      tags: [ video ]
+      tags: [ channel ]
       summary: Get latest channel uploads
       description: チャンネルが投稿している動画を一覧で表示する
       operationId: getChannelsChannelIdVideos
@@ -848,7 +848,7 @@ paths:
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
     get:
-      tags: [ video ]
+      tags: [ channel ]
       summary: Get latest videos
       description: チャンネル登録しているチャンネルの最新の一覧を取得
       operationId: getFeed
