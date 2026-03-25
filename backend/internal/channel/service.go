@@ -20,10 +20,8 @@ type Service struct {
 	db        *pgxpool.Pool
 	ytService youtube_d.Service
 
-	subscriptionQS    SubscriptionQueryService
+	channelQS         ChannelQueryService
 	valuableChannelQS ValuableChannelQueryService
-	uploadsQS         UploadsQueryService
-	channelDetailQS   ChannelDetailQueryService
 
 	rssFetchDuration time.Duration
 }
@@ -43,10 +41,8 @@ func NewService(
 		db:                db,
 		ytService:         ytService,
 		rssFetchDuration:  rssFetchDuration,
-		subscriptionQS:    NewSubscriptionQueryService(db),
+		channelQS:         NewChannelQueryService(db),
 		valuableChannelQS: NewValuableChannelQueryService(db),
-		uploadsQS:         NewUploadsQueryService(db),
-		channelDetailQS:   NewChannelDetailQueryService(db),
 	}
 }
 
@@ -70,7 +66,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 	}()
 	q := sqlc.New(tx)
 
-	if err := util.TryAdLock(ctx, q, util.Sha256Int64([]byte(channelIDOrHandle))); err != nil {
+	if err := util.TryAdLock(ctx, q, []byte(channelIDOrHandle)); err != nil {
 		return nil, err
 	}
 
@@ -151,12 +147,9 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 func (s *Service) UnsubscribeChannel(ctx context.Context, userID, channelID uuid.UUID) (err error) {
 	defer util.Wrap(&err, "Service.UnsubscribeChannel")
 
-	rowsAffected, err := NewChannelRepository(sqlc.New(s.db)).RemoveSubscription(ctx, userID, channelID)
+	_, err = NewChannelRepository(sqlc.New(s.db)).RemoveSubscription(ctx, userID, channelID)
 	if err != nil {
 		return err
-	}
-	if rowsAffected == 0 {
-		return pgx.ErrNoRows
 	}
 
 	return nil
@@ -169,7 +162,7 @@ func (s *Service) GetSubscriptions(ctx context.Context, userID uuid.UUID, limit 
 		return nil, false, ErrInvalidSubscriptionLimit
 	}
 
-	channels, err := s.subscriptionQS.GetSubscriptions(ctx, userID, cursor, limit+1)
+	channels, err := s.channelQS.GetSubscriptions(ctx, userID, cursor, limit+1)
 	if err != nil {
 		return nil, false, err
 	}
@@ -240,7 +233,7 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 		return nil, false, err
 	}
 
-	videos, err := s.uploadsQS.GetChannelUploads(ctx, userID, channelID, cursor, limit+1)
+	videos, err := s.channelQS.GetChannelUploads(ctx, userID, channelID, cursor, limit+1)
 	if err != nil {
 		return nil, false, err
 	}
@@ -254,7 +247,7 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 func (s *Service) GetChannelDetail(ctx context.Context, channelID uuid.UUID) (_ GetChannelDetailView, err error) {
 	defer util.Wrap(&err, "Service.GetChannelDetail")
 
-	detail, err := s.channelDetailQS.GetChannelDetail(ctx, channelID)
+	detail, err := s.channelQS.GetChannelDetail(ctx, channelID)
 	if err != nil {
 		return GetChannelDetailView{}, err
 	}

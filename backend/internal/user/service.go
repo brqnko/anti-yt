@@ -65,7 +65,7 @@ func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailySc
 	q := sqlc.New(tx)
 
 	// 勧告ロック
-	if err := util.TryAdLock(ctx, q, util.Sha256Int64(authorizationID[:])); err != nil {
+	if err := util.TryAdLock(ctx, q, authorizationID[:]); err != nil {
 		return nil, "", time.Time{}, err
 	}
 

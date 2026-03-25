@@ -12,7 +12,6 @@
 | screen_time_range_end | time without time zone |  | false |  |  |  |
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
-| public_id | uuid |  | false |  |  |  |
 
 ## Constraints
 
@@ -21,7 +20,6 @@
 | m_user_screen_time_range_created_at_not_null | n | NOT NULL created_at |
 | m_user_screen_time_range_m_user_id_not_null | n | NOT NULL m_user_id |
 | m_user_screen_time_range_m_user_screen_time_range_id_not_null | n | NOT NULL m_user_screen_time_range_id |
-| m_user_screen_time_range_public_id_not_null | n | NOT NULL public_id |
 | m_user_screen_time_range_screen_time_range_end_not_null | n | NOT NULL screen_time_range_end |
 | m_user_screen_time_range_screen_time_range_start_not_null | n | NOT NULL screen_time_range_start |
 | m_user_screen_time_range_updated_at_not_null | n | NOT NULL updated_at |
@@ -32,7 +30,6 @@
 | Name | Definition |
 | ---- | ---------- |
 | m_user_screen_time_range_pkey | CREATE UNIQUE INDEX m_user_screen_time_range_pkey ON public.m_user_screen_time_range USING btree (m_user_screen_time_range_id) |
-| uk_1_m_user_screen_time_range | CREATE UNIQUE INDEX uk_1_m_user_screen_time_range ON public.m_user_screen_time_range USING btree (public_id) |
 | idx_1_m_user_screen_time_range | CREATE INDEX idx_1_m_user_screen_time_range ON public.m_user_screen_time_range USING btree (m_user_id) |
 
 ## Relations
