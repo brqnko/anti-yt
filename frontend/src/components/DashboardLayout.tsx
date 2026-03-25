@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
 import type { ComponentChildren } from "preact";
+import useSWR from "swr";
 import { DashboardHeader } from "./DashboardHeader";
 import { AddChannelDialog } from "./AddChannelDialog";
 import { AddPlaylistDialog } from "./AddPlaylistDialog";
 import { getChannel } from "../api/generated/channel";
 import { getPlaylist } from "../api/generated/playlist";
+import { CACHE_KEYS } from "../api/cache-keys";
 import type {
   GetChannelsSubscribed200ItemsItem,
   GetPlaylists200ItemsItem,
@@ -29,13 +31,36 @@ export function DashboardLayout({
 }) {
   const { t } = useTranslation();
   const { url } = useLocation();
-  const [subscriptions, setSubscriptions] = useState<GetChannelsSubscribed200ItemsItem[]>([]);
-  const [playlists, setPlaylists] = useState<GetPlaylists200ItemsItem[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
   const [showAddChannel, setShowAddChannel] = useState(false);
   const [showAddPlaylist, setShowAddPlaylist] = useState(false);
 
   const [sidebarOpen, setSidebarOpen] = useState(getStoredSidebarState);
+
+  const {
+    data: subscriptions = [],
+    isLoading: isSubscriptionsLoading,
+    mutate: mutateSubscriptions,
+  } = useSWR<GetChannelsSubscribed200ItemsItem[]>(
+    CACHE_KEYS.dashboardSubscriptions,
+    async () => {
+      const res = await getChannel().getChannelsSubscribed({ limit: 10 });
+      return res.items;
+    },
+  );
+
+  const {
+    data: playlists = [],
+    isLoading: isPlaylistsLoading,
+    mutate: mutatePlaylists,
+  } = useSWR<GetPlaylists200ItemsItem[]>(
+    CACHE_KEYS.dashboardPlaylists,
+    async () => {
+      const res = await getPlaylist().getPlaylists({ limit: 10 });
+      return res.items;
+    },
+  );
+
+  const isLoaded = !isSubscriptionsLoading && !isPlaylistsLoading;
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((v) => {
@@ -51,42 +76,6 @@ export function DashboardLayout({
       setSidebarOpen(false);
     }
   }, [url]);
-
-  const refreshSubscriptions = useCallback(async () => {
-    try {
-      const res = await getChannel().getChannelsSubscribed({ limit: 10 });
-      setSubscriptions(res.items);
-    } catch {}
-  }, []);
-
-  const refreshPlaylists = useCallback(async () => {
-    try {
-      const res = await getPlaylist().getPlaylists({ limit: 10 });
-      setPlaylists(res.items);
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [subsRes, playlistRes] = await Promise.allSettled([
-          getChannel().getChannelsSubscribed({ limit: 10 }),
-          getPlaylist().getPlaylists({ limit: 10 }),
-        ]);
-        if (subsRes.status === "fulfilled") setSubscriptions(subsRes.value.items);
-        if (playlistRes.status === "fulfilled") setPlaylists(playlistRes.value.items);
-      } finally {
-        setIsLoaded(true);
-      }
-    };
-    load();
-  }, []);
-
-  // URLが変わるたびにサイドバーのデータを再取得する
-  useEffect(() => {
-    refreshSubscriptions();
-    refreshPlaylists();
-  }, [url, refreshSubscriptions, refreshPlaylists]);
 
   return (
     <div class="relative flex h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
@@ -271,12 +260,12 @@ export function DashboardLayout({
       <AddChannelDialog
         open={showAddChannel}
         onClose={() => setShowAddChannel(false)}
-        onAdded={() => refreshSubscriptions()}
+        onAdded={() => mutateSubscriptions()}
       />
       <AddPlaylistDialog
         open={showAddPlaylist}
         onClose={() => setShowAddPlaylist(false)}
-        onAdded={() => refreshPlaylists()}
+        onAdded={() => mutatePlaylists()}
       />
     </div>
   );
