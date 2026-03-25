@@ -13,7 +13,7 @@ export const languages = [
   { code: "en", label: "English" },
 ];
 
-export const REPORT_FORM_URL = "https://forms.gle/PLACEHOLDER";
+export const REPORT_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfbAk6J4jSW83eKe1CeGCCqqHI517STCPh3hE2zRbWedbdcCQ/viewform?usp=dialog";
 
 export const PAGE_SIZES = {
   FEED: 12,

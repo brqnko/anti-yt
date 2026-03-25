@@ -1,6 +1,8 @@
 import { useState, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
+import { mutate } from "swr";
 import { getChannel } from "../api/generated/channel";
+import { CACHE_KEYS } from "../api/cache-keys";
 import { getApiErrorCode } from "../utils/api-error";
 
 interface AddChannelDialogProps {
@@ -47,6 +49,7 @@ export function AddChannelDialog({
       await getChannel().postChannelsSubscribe({
         channel_id: trimmed,
       });
+      await mutate(CACHE_KEYS.dashboardSubscriptions);
       onAdded();
       onClose();
     } catch (err) {
