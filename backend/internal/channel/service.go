@@ -151,12 +151,9 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 func (s *Service) UnsubscribeChannel(ctx context.Context, userID, channelID uuid.UUID) (err error) {
 	defer util.Wrap(&err, "Service.UnsubscribeChannel")
 
-	rowsAffected, err := NewChannelRepository(sqlc.New(s.db)).RemoveSubscription(ctx, userID, channelID)
+	_, err = NewChannelRepository(sqlc.New(s.db)).RemoveSubscription(ctx, userID, channelID)
 	if err != nil {
 		return err
-	}
-	if rowsAffected == 0 {
-		return pgx.ErrNoRows
 	}
 
 	return nil
