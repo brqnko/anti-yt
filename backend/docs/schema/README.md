@@ -20,6 +20,7 @@
 | [public.m_playlist_video](public.m_playlist_video.md) | 6 |  | BASE TABLE |
 | [public.t_jti_blacklist](public.t_jti_blacklist.md) | 2 |  | BASE TABLE |
 | [public.m_valuable_channel](public.m_valuable_channel.md) | 6 |  | BASE TABLE |
+| [public.t_ratelimit](public.t_ratelimit.md) | 5 |  | BASE TABLE |
 
 ## Stored procedures and functions
 

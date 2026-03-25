@@ -99,6 +99,7 @@ type Querier interface {
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
 	UpsertChannel(ctx context.Context, arg UpsertChannelParams) (UpsertChannelRow, error)
 	UpsertPlaylist(ctx context.Context, arg UpsertPlaylistParams) (int64, error)
+	UpsertRatelimit(ctx context.Context, arg UpsertRatelimitParams) (UpsertRatelimitRow, error)
 	UpsertValuableChannel(ctx context.Context, arg UpsertValuableChannelParams) (int64, error)
 	UpsertVideo(ctx context.Context, arg UpsertVideoParams) (int64, error)
 	UpsertWatchHeartbeat(ctx context.Context, arg UpsertWatchHeartbeatParams) error

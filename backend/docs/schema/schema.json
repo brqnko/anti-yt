@@ -2886,6 +2886,119 @@
           ]
         }
       ]
+    },
+    {
+      "name": "public.t_ratelimit",
+      "type": "BASE TABLE",
+      "columns": [
+        {
+          "name": "t_ratelimit",
+          "type": "bigint",
+          "nullable": false
+        },
+        {
+          "name": "user_public_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "consumed_quota",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "t_ratelimit_pkey",
+          "def": "CREATE UNIQUE INDEX t_ratelimit_pkey ON public.t_ratelimit USING btree (t_ratelimit)",
+          "table": "public.t_ratelimit",
+          "columns": [
+            "t_ratelimit"
+          ]
+        },
+        {
+          "name": "idx_1_t_ratelimit",
+          "def": "CREATE UNIQUE INDEX idx_1_t_ratelimit ON public.t_ratelimit USING btree (user_public_id)",
+          "table": "public.t_ratelimit",
+          "columns": [
+            "user_public_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "t_ratelimit_consumed_quota_not_null",
+          "type": "n",
+          "def": "NOT NULL consumed_quota",
+          "table": "public.t_ratelimit",
+          "referenced_table": "",
+          "columns": [
+            "consumed_quota"
+          ]
+        },
+        {
+          "name": "t_ratelimit_created_at_not_null",
+          "type": "n",
+          "def": "NOT NULL created_at",
+          "table": "public.t_ratelimit",
+          "referenced_table": "",
+          "columns": [
+            "created_at"
+          ]
+        },
+        {
+          "name": "t_ratelimit_t_ratelimit_not_null",
+          "type": "n",
+          "def": "NOT NULL t_ratelimit",
+          "table": "public.t_ratelimit",
+          "referenced_table": "",
+          "columns": [
+            "t_ratelimit"
+          ]
+        },
+        {
+          "name": "t_ratelimit_updated_at_not_null",
+          "type": "n",
+          "def": "NOT NULL updated_at",
+          "table": "public.t_ratelimit",
+          "referenced_table": "",
+          "columns": [
+            "updated_at"
+          ]
+        },
+        {
+          "name": "t_ratelimit_user_public_id_not_null",
+          "type": "n",
+          "def": "NOT NULL user_public_id",
+          "table": "public.t_ratelimit",
+          "referenced_table": "",
+          "columns": [
+            "user_public_id"
+          ]
+        },
+        {
+          "name": "t_ratelimit_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (t_ratelimit)",
+          "table": "public.t_ratelimit",
+          "referenced_table": "",
+          "columns": [
+            "t_ratelimit"
+          ]
+        }
+      ]
     }
   ],
   "relations": [
