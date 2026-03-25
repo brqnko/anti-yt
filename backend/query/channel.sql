@@ -121,7 +121,7 @@ ORDER BY
 LIMIT
     @query_limit;
 
--- name: DeleteSubscription :execrows
+-- name: DeleteSubscription :one
 DELETE FROM
     m_user_subscribing_channel
 WHERE
@@ -144,7 +144,8 @@ WHERE
             c.public_id = @channel_id
         LIMIT
             1
-    );
+    )
+RETURNING m_user_subscribing_channel.m_user_subscribing_channel_id;
 
 -- name: GetChannelByPublicID :one
 SELECT

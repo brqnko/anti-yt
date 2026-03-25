@@ -33,7 +33,7 @@ func (q *Queries) ClearStaleChannelCustomID(ctx context.Context, arg ClearStaleC
 	return err
 }
 
-const deleteSubscription = `-- name: DeleteSubscription :execrows
+const deleteSubscription = `-- name: DeleteSubscription :one
 DELETE FROM
     m_user_subscribing_channel
 WHERE
@@ -57,6 +57,7 @@ WHERE
         LIMIT
             1
     )
+RETURNING m_user_subscribing_channel.m_user_subscribing_channel_id
 `
 
 type DeleteSubscriptionParams struct {
@@ -65,11 +66,10 @@ type DeleteSubscriptionParams struct {
 }
 
 func (q *Queries) DeleteSubscription(ctx context.Context, arg DeleteSubscriptionParams) (int64, error) {
-	result, err := q.db.Exec(ctx, deleteSubscription, arg.UserPublicID, arg.ChannelID)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
+	row := q.db.QueryRow(ctx, deleteSubscription, arg.UserPublicID, arg.ChannelID)
+	var m_user_subscribing_channel_id int64
+	err := row.Scan(&m_user_subscribing_channel_id)
+	return m_user_subscribing_channel_id, err
 }
 
 const findChannelByExternalID = `-- name: FindChannelByExternalID :one

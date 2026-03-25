@@ -40,6 +40,10 @@ var _ Service = (*serviceImpl)(nil)
 type serviceImpl struct {
 	ytClient   *youtube.Service
 	feedParser *gofeed.Parser
+
+	lastCheckedDay  time.Time
+	consumedQuota   int
+	dailyQuotaLimit int
 }
 
 // NOTE: 削除された動画などはAPIから返ってこず、また順番も保証されないのでmapで返す
@@ -51,6 +55,10 @@ func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) 
 	}
 	if len(videoIDs) > 50 {
 		return nil, ErrVideoIDsTooMuch
+	}
+
+	if err := s.tryConsumeQuota(1); err != nil {
+		return nil, err
 	}
 
 	ids := make([]string, len(videoIDs))
@@ -130,6 +138,10 @@ func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) 
 func (s *serviceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (_ Channel, err error) {
 	defer util.Wrap(&err, "youTubeAPIService.FetchChannelDetailByIDOrHandle")
 
+	if err := s.tryConsumeQuota(1); err != nil {
+		return Channel{}, err
+	}
+
 	q := s.ytClient.Channels.List([]string{"snippet", "statistics", "contentDetails"})
 	if strings.HasPrefix(channelID, "@") && len(([]rune)(channelID)) > 3 {
 		q = q.ForHandle(channelID)
@@ -198,6 +210,10 @@ func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []Chann
 
 	if len(channelIDs) == 0 {
 		return map[ChannelID]Channel{}, nil
+	}
+
+	if err := s.tryConsumeQuota(1); err != nil {
+		return nil, err
 	}
 
 	result := make(map[ChannelID]Channel)
@@ -310,6 +326,10 @@ func (s *serviceImpl) FetchRSSFeed(ctx context.Context, channelID ChannelID) (_ 
 func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error) {
 	defer util.Wrap(&err, "youTubeAPIService.FetchPlaylistVideoIDs")
 
+	if err := s.tryConsumeQuota(1); err != nil {
+		return nil, "", err
+	}
+
 	call := s.ytClient.PlaylistItems.List([]string{"contentDetails"}).
 		PlaylistId(playlistID).
 		MaxResults(50).
@@ -342,6 +362,10 @@ func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID stri
 
 func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToken string, language *string) (_ []VideoID, _ string, err error) {
 	defer util.Wrap(&err, "youTubeAPIService.SearchVideoIDs")
+
+	if err := s.tryConsumeQuota(100); err != nil {
+		return nil, "", err
+	}
 
 	call := s.ytClient.Search.List([]string{"id"}).
 		Q(query).
@@ -377,6 +401,24 @@ func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToke
 	return videoIDs, res.NextPageToken, nil
 }
 
+var (
+	errDailyQuotaExceeded = errors.New("daily quota exceeded")
+)
+
+func (s *serviceImpl) tryConsumeQuota(quota int) error {
+	if s.lastCheckedDay.Before(quotaDate()) {
+		s.consumedQuota = 0
+		s.lastCheckedDay = quotaDate()
+	}
+
+	if s.consumedQuota+quota > s.dailyQuotaLimit {
+		return errDailyQuotaExceeded
+	}
+
+	s.consumedQuota += quota
+	return nil
+}
+
 func NewService(ctx context.Context, apiKey string) (_ Service, err error) {
 	defer util.Wrap(&err, "NewYouTubeAPIServiceImpl")
 
@@ -389,7 +431,17 @@ func NewService(ctx context.Context, apiKey string) (_ Service, err error) {
 	feedParser.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
 
 	return &serviceImpl{
-		ytClient:   ytClient,
-		feedParser: feedParser,
+		ytClient:        ytClient,
+		feedParser:      feedParser,
+		lastCheckedDay:  quotaDate().Add(24 * time.Hour),
+		consumedQuota:   0,
+		dailyQuotaLimit: 100,
 	}, nil
+}
+
+func quotaDate() time.Time {
+	loc, _ := time.LoadLocation("America/Los_Angeles")
+	y, m, d := time.Now().In(loc).Date()
+
+	return time.Date(y, m, d, 0, 0, 0, 0, loc)
 }

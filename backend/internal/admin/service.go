@@ -48,7 +48,7 @@ func (s *Service) CreateNewValuableChannel(ctx context.Context, externalChannelI
 	}()
 	q := sqlc.New(tx)
 
-	if err := util.TryAdLock(ctx, q, util.Sha256Int64([]byte(channelIDOrHandle))); err != nil {
+	if err := util.TryAdLock(ctx, q, []byte(channelIDOrHandle)); err != nil {
 		return nil, err
 	}
 

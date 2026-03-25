@@ -30,7 +30,7 @@
 | Name | Definition |
 | ---- | ---------- |
 | m_valuable_channel_pkey | CREATE UNIQUE INDEX m_valuable_channel_pkey ON public.m_valuable_channel USING btree (m_valuable_channel_id) |
-| uk_1_m_valuable_channel | CREATE INDEX uk_1_m_valuable_channel ON public.m_valuable_channel USING btree (m_channel_id) |
+| uk_1_m_valuable_channel | CREATE UNIQUE INDEX uk_1_m_valuable_channel ON public.m_valuable_channel USING btree (m_channel_id) |
 
 ## Relations
 
