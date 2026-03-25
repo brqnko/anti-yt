@@ -20,21 +20,23 @@ type GetSubscriptionsView struct {
 	ChannelSubscribersCount    int64
 }
 
-type SubscriptionQueryService interface {
+type ChannelQueryService interface {
 	GetSubscriptions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetSubscriptionsView, error)
+	GetChannelDetail(ctx context.Context, channelID uuid.UUID) (GetChannelDetailView, error)
+	GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetChannelUploadsView, error)
 }
 
-type subscriptionQueryServiceImpl struct {
+type channelQueryServiceImpl struct {
 	q sqlc.Querier
 }
 
-func NewSubscriptionQueryService(db *pgxpool.Pool) SubscriptionQueryService {
-	return &subscriptionQueryServiceImpl{
+func NewChannelQueryService(db *pgxpool.Pool) ChannelQueryService {
+	return &channelQueryServiceImpl{
 		q: sqlc.New(db),
 	}
 }
 
-func (c *subscriptionQueryServiceImpl) GetSubscriptions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetSubscriptionsView, error) {
+func (c *channelQueryServiceImpl) GetSubscriptions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetSubscriptionsView, error) {
 	rows, err := c.q.ListSubscribedChannels(ctx, sqlc.ListSubscribedChannelsParams{
 		UserPublicID:   userID,
 		CursorPublicID: cursor,
@@ -57,8 +59,6 @@ func (c *subscriptionQueryServiceImpl) GetSubscriptions(ctx context.Context, use
 	}
 	return views, nil
 }
-
-var _ SubscriptionQueryService = (*subscriptionQueryServiceImpl)(nil)
 
 type GetValuableChannelView struct {
 	ChannelId                  uuid.UUID
@@ -116,22 +116,8 @@ type GetChannelDetailView struct {
 	SubscribersCount   int64
 }
 
-type ChannelDetailQueryService interface {
-	GetChannelDetail(ctx context.Context, channelID uuid.UUID) (GetChannelDetailView, error)
-}
-
-type channelDetailQueryServiceImpl struct {
-	q sqlc.Querier
-}
-
-func NewChannelDetailQueryService(db *pgxpool.Pool) ChannelDetailQueryService {
-	return &channelDetailQueryServiceImpl{
-		q: sqlc.New(db),
-	}
-}
-
-func (c *channelDetailQueryServiceImpl) GetChannelDetail(ctx context.Context, channelID uuid.UUID) (_ GetChannelDetailView, err error) {
-	defer util.Wrap(&err, "channelDetailQueryService.GetChannelDetail(channelID=%s)", channelID)
+func (c *channelQueryServiceImpl) GetChannelDetail(ctx context.Context, channelID uuid.UUID) (_ GetChannelDetailView, err error) {
+	defer util.Wrap(&err, "channelQueryService.GetChannelDetail(channelID=%s)", channelID)
 
 	row, err := c.q.GetChannelByPublicID(ctx, channelID)
 	if err != nil {
@@ -148,8 +134,6 @@ func (c *channelDetailQueryServiceImpl) GetChannelDetail(ctx context.Context, ch
 	}, nil
 }
 
-var _ ChannelDetailQueryService = (*channelDetailQueryServiceImpl)(nil)
-
 type GetChannelUploadsView struct {
 	ExternalVideoCreatedAt     time.Time
 	ExternalVideoLengthSeconds int
@@ -159,24 +143,10 @@ type GetChannelUploadsView struct {
 	VideoId                    uuid.UUID
 }
 
-type UploadsQueryService interface {
-	GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetChannelUploadsView, error)
-}
+func (c *channelQueryServiceImpl) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetChannelUploadsView, err error) {
+	defer util.Wrap(&err, "channelQueryService.GetChannelUploads(userID=%s, channelID=%s)", userID, channelID)
 
-type uploadsQueryServiceImpl struct {
-	q sqlc.Querier
-}
-
-func NewUploadsQueryService(db *pgxpool.Pool) UploadsQueryService {
-	return &uploadsQueryServiceImpl{
-		q: sqlc.New(db),
-	}
-}
-
-func (u *uploadsQueryServiceImpl) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetChannelUploadsView, err error) {
-	defer util.Wrap(&err, "uploadsQueryService.GetChannelUploads(userID=%s, channelID=%s)", userID, channelID)
-
-	rows, err := u.q.ListChannelVideos(ctx, sqlc.ListChannelVideosParams{
+	rows, err := c.q.ListChannelVideos(ctx, sqlc.ListChannelVideosParams{
 		UserID:     userID,
 		ChannelID:  channelID,
 		Cursor:     cursor,
@@ -204,4 +174,4 @@ func (u *uploadsQueryServiceImpl) GetChannelUploads(ctx context.Context, userID,
 	return views, nil
 }
 
-var _ UploadsQueryService = (*uploadsQueryServiceImpl)(nil)
+var _ ChannelQueryService = (*channelQueryServiceImpl)(nil)
