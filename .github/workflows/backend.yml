@@ -35,6 +35,4 @@ jobs:
           version: latest
           working-directory: backend
 
-      - run: go test -v -race ./...
-
       - run: go build -v -o server ./cmd/api

@@ -57,11 +57,11 @@ func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (_ Us
 	if first.ScreenTimeRangeStart != nil {
 		ranges = make([]ScreenTimeLimitRangeView, len(rows))
 		for i, row := range rows {
-			startTime, err := util.IntToHHmm(int(*row.ScreenTimeRangeStart))
+			startTime, err := util.IntToHHmm(int(*row.ScreenTimeRangeStart) / 60)
 			if err != nil {
 				return UserStatusView{}, err
 			}
-			endTime, err := util.IntToHHmm(int(*row.ScreenTimeRangeEnd))
+			endTime, err := util.IntToHHmm(int(*row.ScreenTimeRangeEnd) / 60)
 			if err != nil {
 				return UserStatusView{}, err
 			}

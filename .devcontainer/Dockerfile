@@ -42,6 +42,13 @@ RUN wget -O /usr/local/bin/goose \
         https://github.com/pressly/goose/releases/download/v3.27.0/goose_linux_${TARGETARCH} \
     && chmod +x /usr/local/bin/goose
 
+RUN wget -O /tmp/moq.tar.gz \
+        https://github.com/matryer/moq/releases/download/v0.6.0/moq_Linux_${TARGETARCH}.tar.gz \
+    && tar -xzf /tmp/moq.tar.gz -C /tmp moq \
+    && cp /tmp/moq /usr/local/bin/moq \
+    && chmod +x /usr/local/bin/moq \
+    && rm /tmp/moq.tar.gz /tmp/moq
+
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=cache,target=/root/.cache/go-build \
     go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.6.0

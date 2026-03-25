@@ -107,6 +107,9 @@ export function useYouTubePlayer({
   const [volume, setVolumeState] = useState(() => loadPreference(STORAGE_KEY_VOLUME, 100));
   const [isMuted, setIsMuted] = useState(() => loadPreference(STORAGE_KEY_MUTED, false));
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const loadedVideoIdRef = useRef("");
+  const videoIdRef = useRef(videoId);
+  videoIdRef.current = videoId;
 
   // Keep callback refs stable to avoid re-creating the player on every render
   const onReadyRef = useRef(onReady);
@@ -132,15 +135,20 @@ export function useYouTubePlayer({
     }
   }, []);
 
+  // Create the player once per container. Video changes are handled by a
+  // separate effect that calls loadVideoById so the player instance (and its
+  // autoplay permission) survives across playlist items – this avoids the
+  // browser blocking autoplay when the tab is in the background.
   useEffect(() => {
     let cancelled = false;
 
     setLoadError(false);
+    const initialVideoId = videoIdRef.current;
     loadIframeAPI().then(() => {
       if (cancelled) return;
 
       const player = new window.YT.Player(containerId, {
-        videoId,
+        videoId: initialVideoId || undefined,
         playerVars: {
           autoplay: 1,
           modestbranding: 1,
@@ -155,6 +163,7 @@ export function useYouTubePlayer({
             if (cancelled) return;
             setIsReady(true);
             setDuration(player.getDuration());
+            loadedVideoIdRef.current = initialVideoId;
 
             // Restore saved volume & mute preferences
             const savedVolume = loadPreference(STORAGE_KEY_VOLUME, 100);
@@ -199,10 +208,23 @@ export function useYouTubePlayer({
       stopTimeSync();
       playerRef.current?.destroy();
       playerRef.current = null;
+      loadedVideoIdRef.current = "";
       setIsReady(false);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- startTimeSync/stopTimeSync are stable (useCallback with []), callbacks via refs
-  }, [videoId, containerId]);
+  }, [containerId]);
+
+  // Load a new video into the existing player when videoId changes.
+  useEffect(() => {
+    if (!videoId || videoId === loadedVideoIdRef.current) return;
+    const p = playerRef.current;
+    if (p && isReady) {
+      p.loadVideoById(videoId);
+      loadedVideoIdRef.current = videoId;
+      setCurrentTime(0);
+      setDuration(0);
+    }
+  }, [videoId, isReady]);
 
   const play = useCallback(() => playerRef.current?.playVideo(), []);
   const pause = useCallback(() => playerRef.current?.pauseVideo(), []);
