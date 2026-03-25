@@ -9,7 +9,7 @@
 | [public.m_user_authorization](public.m_user_authorization.md) | 7 |  | BASE TABLE |
 | [public.m_refresh_token](public.m_refresh_token.md) | 18 |  | BASE TABLE |
 | [public.h_user](public.h_user.md) | 11 |  | BASE TABLE |
-| [public.m_user_screen_time_range](public.m_user_screen_time_range.md) | 7 |  | BASE TABLE |
+| [public.m_user_screen_time_range](public.m_user_screen_time_range.md) | 6 |  | BASE TABLE |
 | [public.m_user_subscribing_channel](public.m_user_subscribing_channel.md) | 6 |  | BASE TABLE |
 | [public.m_channel](public.m_channel.md) | 14 |  | BASE TABLE |
 | [public.m_video](public.m_video.md) | 12 |  | BASE TABLE |

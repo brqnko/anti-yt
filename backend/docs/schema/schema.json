@@ -1007,11 +1007,6 @@
           "type": "timestamp with time zone",
           "nullable": false,
           "default": "CURRENT_TIMESTAMP"
-        },
-        {
-          "name": "public_id",
-          "type": "uuid",
-          "nullable": false
         }
       ],
       "indexes": [
@@ -1021,14 +1016,6 @@
           "table": "public.m_user_screen_time_range",
           "columns": [
             "m_user_screen_time_range_id"
-          ]
-        },
-        {
-          "name": "uk_1_m_user_screen_time_range",
-          "def": "CREATE UNIQUE INDEX uk_1_m_user_screen_time_range ON public.m_user_screen_time_range USING btree (public_id)",
-          "table": "public.m_user_screen_time_range",
-          "columns": [
-            "public_id"
           ]
         },
         {
@@ -1069,16 +1056,6 @@
           "referenced_table": "",
           "columns": [
             "m_user_screen_time_range_id"
-          ]
-        },
-        {
-          "name": "m_user_screen_time_range_public_id_not_null",
-          "type": "n",
-          "def": "NOT NULL public_id",
-          "table": "public.m_user_screen_time_range",
-          "referenced_table": "",
-          "columns": [
-            "public_id"
           ]
         },
         {
@@ -2830,7 +2807,7 @@
         },
         {
           "name": "uk_1_m_valuable_channel",
-          "def": "CREATE INDEX uk_1_m_valuable_channel ON public.m_valuable_channel USING btree (m_channel_id)",
+          "def": "CREATE UNIQUE INDEX uk_1_m_valuable_channel ON public.m_valuable_channel USING btree (m_channel_id)",
           "table": "public.m_valuable_channel",
           "columns": [
             "m_channel_id"

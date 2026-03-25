@@ -211,32 +211,29 @@
 <!-- public.m_user_screen_time_range -->
 <g id="node6" class="node">
 <title>public.m_user_screen_time_range</title>
-<polygon fill="#efefef" stroke="none" points="1596.73,-925 1596.73,-960.6 1982.63,-960.6 1982.63,-925 1596.73,-925"/>
-<polygon fill="none" stroke="black" points="1596.73,-925 1596.73,-960.6 1982.63,-960.6 1982.63,-925 1596.73,-925"/>
-<text text-anchor="start" x="1603.73" y="-938.4" font-family="Arial Bold" font-size="18.00">public.m_user_screen_time_range</text>
-<text text-anchor="start" x="1851.14" y="-938.4" font-family="Arial" font-size="14.00">    </text>
-<text text-anchor="start" x="1882.26" y="-938.4" font-family="Arial" font-size="14.00" fill="#666666">[BASE TABLE]</text>
-<polygon fill="none" stroke="black" points="1596.73,-894.2 1596.73,-925 1982.63,-925 1982.63,-894.2 1596.73,-894.2"/>
-<text text-anchor="start" x="1603.73" y="-906.4" font-family="Arial" font-size="14.00">m_user_screen_time_range_id </text>
-<text text-anchor="start" x="1800.62" y="-906.4" font-family="Arial" font-size="14.00" fill="#666666">[bigint]</text>
-<polygon fill="none" stroke="black" points="1596.73,-863.4 1596.73,-894.2 1982.63,-894.2 1982.63,-863.4 1596.73,-863.4"/>
-<text text-anchor="start" x="1603.73" y="-875.6" font-family="Arial" font-size="14.00">m_user_id </text>
-<text text-anchor="start" x="1672.99" y="-875.6" font-family="Arial" font-size="14.00" fill="#666666">[bigint]</text>
-<polygon fill="none" stroke="black" points="1596.73,-832.6 1596.73,-863.4 1982.63,-863.4 1982.63,-832.6 1596.73,-832.6"/>
-<text text-anchor="start" x="1603.73" y="-844.8" font-family="Arial" font-size="14.00">screen_time_range_start </text>
-<text text-anchor="start" x="1762.48" y="-844.8" font-family="Arial" font-size="14.00" fill="#666666">[time without time zone]</text>
-<polygon fill="none" stroke="black" points="1596.73,-801.8 1596.73,-832.6 1982.63,-832.6 1982.63,-801.8 1596.73,-801.8"/>
-<text text-anchor="start" x="1603.73" y="-814" font-family="Arial" font-size="14.00">screen_time_range_end </text>
-<text text-anchor="start" x="1758.61" y="-814" font-family="Arial" font-size="14.00" fill="#666666">[time without time zone]</text>
-<polygon fill="none" stroke="black" points="1596.73,-771 1596.73,-801.8 1982.63,-801.8 1982.63,-771 1596.73,-771"/>
-<text text-anchor="start" x="1603.73" y="-783.2" font-family="Arial" font-size="14.00">created_at </text>
-<text text-anchor="start" x="1673.78" y="-783.2" font-family="Arial" font-size="14.00" fill="#666666">[timestamp with time zone]</text>
-<polygon fill="none" stroke="black" points="1596.73,-740.2 1596.73,-771 1982.63,-771 1982.63,-740.2 1596.73,-740.2"/>
-<text text-anchor="start" x="1603.73" y="-752.4" font-family="Arial" font-size="14.00">updated_at </text>
-<text text-anchor="start" x="1677.69" y="-752.4" font-family="Arial" font-size="14.00" fill="#666666">[timestamp with time zone]</text>
-<polygon fill="none" stroke="black" points="1596.73,-709.4 1596.73,-740.2 1982.63,-740.2 1982.63,-709.4 1596.73,-709.4"/>
-<text text-anchor="start" x="1603.73" y="-721.6" font-family="Arial" font-size="14.00">public_id </text>
-<text text-anchor="start" x="1662.88" y="-721.6" font-family="Arial" font-size="14.00" fill="#666666">[uuid]</text>
+<polygon fill="#efefef" stroke="none" points="1596.73,-909.6 1596.73,-945.2 1982.63,-945.2 1982.63,-909.6 1596.73,-909.6"/>
+<polygon fill="none" stroke="black" points="1596.73,-909.6 1596.73,-945.2 1982.63,-945.2 1982.63,-909.6 1596.73,-909.6"/>
+<text text-anchor="start" x="1603.73" y="-923" font-family="Arial Bold" font-size="18.00">public.m_user_screen_time_range</text>
+<text text-anchor="start" x="1851.14" y="-923" font-family="Arial" font-size="14.00">    </text>
+<text text-anchor="start" x="1882.26" y="-923" font-family="Arial" font-size="14.00" fill="#666666">[BASE TABLE]</text>
+<polygon fill="none" stroke="black" points="1596.73,-878.8 1596.73,-909.6 1982.63,-909.6 1982.63,-878.8 1596.73,-878.8"/>
+<text text-anchor="start" x="1603.73" y="-891" font-family="Arial" font-size="14.00">m_user_screen_time_range_id </text>
+<text text-anchor="start" x="1800.62" y="-891" font-family="Arial" font-size="14.00" fill="#666666">[bigint]</text>
+<polygon fill="none" stroke="black" points="1596.73,-848 1596.73,-878.8 1982.63,-878.8 1982.63,-848 1596.73,-848"/>
+<text text-anchor="start" x="1603.73" y="-860.2" font-family="Arial" font-size="14.00">m_user_id </text>
+<text text-anchor="start" x="1672.99" y="-860.2" font-family="Arial" font-size="14.00" fill="#666666">[bigint]</text>
+<polygon fill="none" stroke="black" points="1596.73,-817.2 1596.73,-848 1982.63,-848 1982.63,-817.2 1596.73,-817.2"/>
+<text text-anchor="start" x="1603.73" y="-829.4" font-family="Arial" font-size="14.00">screen_time_range_start </text>
+<text text-anchor="start" x="1762.48" y="-829.4" font-family="Arial" font-size="14.00" fill="#666666">[time without time zone]</text>
+<polygon fill="none" stroke="black" points="1596.73,-786.4 1596.73,-817.2 1982.63,-817.2 1982.63,-786.4 1596.73,-786.4"/>
+<text text-anchor="start" x="1603.73" y="-798.6" font-family="Arial" font-size="14.00">screen_time_range_end </text>
+<text text-anchor="start" x="1758.61" y="-798.6" font-family="Arial" font-size="14.00" fill="#666666">[time without time zone]</text>
+<polygon fill="none" stroke="black" points="1596.73,-755.6 1596.73,-786.4 1982.63,-786.4 1982.63,-755.6 1596.73,-755.6"/>
+<text text-anchor="start" x="1603.73" y="-767.8" font-family="Arial" font-size="14.00">created_at </text>
+<text text-anchor="start" x="1673.78" y="-767.8" font-family="Arial" font-size="14.00" fill="#666666">[timestamp with time zone]</text>
+<polygon fill="none" stroke="black" points="1596.73,-724.8 1596.73,-755.6 1982.63,-755.6 1982.63,-724.8 1596.73,-724.8"/>
+<text text-anchor="start" x="1603.73" y="-737" font-family="Arial" font-size="14.00">updated_at </text>
+<text text-anchor="start" x="1677.69" y="-737" font-family="Arial" font-size="14.00" fill="#666666">[timestamp with time zone]</text>
 </g>
 <!-- public.m_user_subscribing_channel -->
 <g id="node7" class="node">
