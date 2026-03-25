@@ -6,6 +6,7 @@ import {
   hydrate,
   prerender as ssr,
 } from "preact-iso";
+import { SWRConfig } from "swr";
 import { AuthProvider } from "./contexts/AuthContext";
 import "./i18n";
 
@@ -51,9 +52,20 @@ function AppContent() {
 export function App() {
   return (
     <LocationProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <SWRConfig
+        value={{
+          revalidateOnFocus: true,
+          revalidateOnReconnect: true,
+          dedupingInterval: 30_000,
+          focusThrottleInterval: 10_000,
+          keepPreviousData: true,
+          errorRetryCount: 1,
+        }}
+      >
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </SWRConfig>
     </LocationProvider>
   );
 }

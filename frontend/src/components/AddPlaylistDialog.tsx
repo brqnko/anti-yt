@@ -1,6 +1,8 @@
 import { useState, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
+import { mutate } from "swr";
 import { getPlaylist } from "../api/generated/playlist";
+import { CACHE_KEYS } from "../api/cache-keys";
 import { getApiErrorCode } from "../utils/api-error";
 
 interface AddPlaylistDialogProps {
@@ -55,6 +57,7 @@ export function AddPlaylistDialog({
         playlist_visibility: "private",
         ...(importUrl.trim() ? { base_playlist_url: importUrl.trim() } : {}),
       });
+      await mutate(CACHE_KEYS.dashboardPlaylists);
       onAdded();
       onClose();
     } catch (err) {
