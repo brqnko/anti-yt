@@ -19,7 +19,7 @@ INSERT INTO t_ratelimit(
 VALUES ($1, $2)
 ON CONFLICT (user_public_id) DO UPDATE SET
     consumed_quota = CASE
-        WHEN updated_at AT TIME ZONE 'US/Pacific' < date_trunc('day', current_timestamp AT TIME ZONE 'US/Pacific') THEN EXCLUDED.consumed_quota
+        WHEN updated_at AT TIME ZONE 'America/Los_Angeles' < date_trunc('day', current_timestamp AT TIME ZONE 'America/Los_Angeles') THEN EXCLUDED.consumed_quota
         ELSE consumed_quota + EXCLUDED.consumed_quota
     END,
     updated_at = current_timestamp

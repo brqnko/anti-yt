@@ -51,37 +51,37 @@ func UserRatelimitMiddleware(r *chi.Mux, db *pgxpool.Pool) func(v1.StrictHandler
 	quotaMap := buildQuotaMap([]quotaMapKey{
 		{
 			method:    http.MethodPost,
-			pathRegex: regexp.MustCompile("/api/v1/channels/subscribe"),
+			pathRegex: regexp.MustCompile(`/api/v1/channels/subscribe$`),
 			quota:     3,
 		},
 		{
 			method:    http.MethodGet,
-			pathRegex: regexp.MustCompile("/api/v1/channels/{.*}"),
+			pathRegex: regexp.MustCompile(`/api/v1/channels/\{[^/]+\}/videos$`),
+			quota:     2,
+		},
+		{
+			method:    http.MethodGet,
+			pathRegex: regexp.MustCompile(`/api/v1/channels/\{[^/]+\}$`),
 			quota:     1,
 		},
 		{
 			method:    http.MethodGet,
-			pathRegex: regexp.MustCompile("/api/v1/channels/{.*}/videos"),
-			quota:     2,
-		},
-		{
-			method:    http.MethodGet,
-			pathRegex: regexp.MustCompile("/api/v1/feed"),
-			quota:     2,
-		},
-		{
-			method:    http.MethodGet,
-			pathRegex: regexp.MustCompile("/api/v1/search"),
-			quota:     100,
-		},
-		{
-			method:    http.MethodGet,
-			pathRegex: regexp.MustCompile("/api/v1/feed/channels"),
+			pathRegex: regexp.MustCompile(`/api/v1/feed/channels$`),
 			quota:     3,
 		},
 		{
+			method:    http.MethodGet,
+			pathRegex: regexp.MustCompile(`/api/v1/feed$`),
+			quota:     2,
+		},
+		{
+			method:    http.MethodGet,
+			pathRegex: regexp.MustCompile(`/api/v1/search$`),
+			quota:     100,
+		},
+		{
 			method:    http.MethodPost,
-			pathRegex: regexp.MustCompile("/api/v1/playlists/{.*}/videos"),
+			pathRegex: regexp.MustCompile(`/api/v1/playlists/\{[^/]+\}/videos$`),
 			quota:     100,
 		},
 	}, r)
