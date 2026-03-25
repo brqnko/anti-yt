@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/testutil"
 	"github.com/google/uuid"
@@ -390,10 +389,3 @@ func TestService_RemoveUser(t *testing.T) {
 
 func intPtr(v int) *int       { return &v }
 func strPtr(v string) *string { return &v }
-
-// timeInRange は秒数がHH:mm形式の文字列と一致するか簡易チェック
-func timeInRange(seconds int) string {
-	h := seconds / 3600
-	m := (seconds % 3600) / 60
-	return time.Date(0, 1, 1, h, m, 0, 0, time.UTC).Format("15:04")
-}
