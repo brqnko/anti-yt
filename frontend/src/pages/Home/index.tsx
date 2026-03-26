@@ -184,7 +184,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div class="flex flex-col h-screen w-full overflow-hidden font-display antialiased">
+    <div class="flex flex-col min-h-dvh w-full overflow-hidden font-display antialiased">
       {/* Session expired banner */}
       {showExpiredBanner && (
         <div class="flex items-center justify-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-sm font-medium">

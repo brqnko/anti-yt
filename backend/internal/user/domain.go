@@ -61,7 +61,6 @@ func IsUnlimitedScreenTimeSeconds(seconds int) bool {
 	return seconds >= int((24 * time.Hour).Seconds())
 }
 
-
 type DailyScreenTimeLimit struct {
 	duration *time.Duration
 }
@@ -129,6 +128,7 @@ var languageCodeMap = []struct {
 	str  string
 }{
 	{code: "ja", str: "ja"},
+	{code: "en", str: "en"},
 }
 
 func NewLanguageCode(value string) (_ LanguageCode, err error) {

@@ -13,6 +13,7 @@ var (
 	ErrChannelIDInvalidPrefix      = core.NewDomainError("youtube.channel_id_invalid_prefix", "channel ID must start with 'UC'")
 	ErrChannelUploadsPlaylistEmpty = core.NewDomainError("youtube.channel_uploads_playlist_empty", "channel uploads playlist ID must not be empty")
 	ErrVideoIDEmpty                = core.NewDomainError("youtube.video_id_empty", "video ID must not be empty")
+	ErrVideoTooShort               = core.NewDomainError("youtube.video_too_short", "video must be longer than 60 seconds")
 )
 
 type ChannelID string
@@ -123,6 +124,10 @@ func NewVideo(id, channelID, title, description, thumbnailURL string, lengthSeco
 	channelIDd, err := NewChannelID(channelID)
 	if err != nil {
 		return Video{}, err
+	}
+
+	if lengthSeconds <= 60 {
+		return Video{}, ErrVideoTooShort
 	}
 
 	return Video{

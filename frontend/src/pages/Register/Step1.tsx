@@ -63,10 +63,7 @@ export default function Step1({ displayName, setDisplayName, languageCode, setLa
                 onInput={(e) => setDisplayName((e.target as HTMLInputElement).value)}
                 required
               />
-              <div class="mt-2 flex items-center justify-between">
-                <p class="text-xs text-taupe">
-                  {t("register.profileDetails.displayNameHint")}
-                </p>
+              <div class="mt-2 flex items-center justify-end">
                 <span class={`text-xs tabular-nums ${nameLength > 29 ? "text-red-500" : "text-taupe"}`}>
                   {nameLength}/29
                 </span>
@@ -103,9 +100,6 @@ export default function Step1({ displayName, setDisplayName, languageCode, setLa
                 </select>
                 <Icon name="expand_more" class="absolute right-4 top-1/2 -translate-y-1/2   text-taupe pointer-events-none" />
               </div>
-              <p class="mt-2 text-xs text-taupe">
-                {t("register.profileDetails.contentLanguageHint")}
-              </p>
             </div>
           </div>
 

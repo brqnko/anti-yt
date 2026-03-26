@@ -77,6 +77,12 @@ function VideoPlayerContent() {
   const [addedPlaylistIds, setAddedPlaylistIds] = useState<Set<string>>(new Set());
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
 
+  useEffect(() => {
+    if (!showPlaylistDialog) return;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, [showPlaylistDialog]);
+
   // Refs for values used in keyboard handler / cleanup to avoid stale closures
   const durationRef = useRef(0);
   const volumeRef = useRef(100);
@@ -225,6 +231,7 @@ function VideoPlayerContent() {
     seekTo,
     setVolume,
     toggleMute,
+    setHighFreqSync,
   } = useYouTubePlayer({
     videoId: video?.external_video_id ?? "",
     containerId: PLAYER_CONTAINER_ID,
@@ -239,9 +246,19 @@ function VideoPlayerContent() {
     }
   }, [isReady, seekTo]);
 
-  // rAF-driven progress bar update (avoids per-frame re-renders)
+  // Switch to high-frequency (rAF) time sync while controls are visible
   useEffect(() => {
-    if (!isReady || !duration) return;
+    if (isReady && controlsVisible && playerState === PlayerState.PLAYING) {
+      setHighFreqSync(true);
+      return () => setHighFreqSync(false);
+    }
+  }, [isReady, controlsVisible, playerState, setHighFreqSync]);
+
+  // Sync progress bar from the shared currentTimeRef (updated by useYouTubePlayer's rAF).
+  // Uses a separate rAF only while the controls overlay is visible to avoid GPU work
+  // compositing invisible layers every frame.
+  useEffect(() => {
+    if (!isReady || !duration || !controlsVisible) return;
     let raf: number;
     const tick = () => {
       if (!isSeekingRef.current) {
@@ -257,7 +274,7 @@ function VideoPlayerContent() {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [isReady, duration, currentTimeRef]);
+  }, [isReady, duration, currentTimeRef, controlsVisible]);
 
   // Keep refs in sync with latest values
   durationRef.current = duration;
@@ -474,7 +491,7 @@ function VideoPlayerContent() {
               {isReady && !isPlaying && playerState !== PlayerState.BUFFERING && (
                 <div class="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
                   <button
-                    class="size-20 rounded-full bg-primary text-white flex items-center justify-center hover:scale-105 transition-transform border-none cursor-pointer pointer-events-auto"
+                    class="size-20 rounded-full bg-primary text-white flex items-center justify-center border-none cursor-pointer pointer-events-auto"
                     onClick={togglePlay}
                     aria-label={t("videoPlayer.play")}
                   >
@@ -510,7 +527,7 @@ function VideoPlayerContent() {
 
               {/* Player controls overlay */}
               <div
-                class={`absolute bottom-0 inset-x-0 p-4 md:p-6 bg-gradient-to-t from-black/80 to-transparent z-30 transition-opacity ${controlsVisible ? "opacity-100" : "opacity-0 group-hover/player:opacity-100"}`}
+                class={`absolute bottom-0 inset-x-0 p-4 md:p-6 bg-gradient-to-t from-black/80 to-transparent z-30 transition-[opacity,visibility] ${controlsVisible ? "opacity-100 visible" : "opacity-0 invisible group-hover/player:visible group-hover/player:opacity-100"}`}
                 onMouseMove={showControlsTemporarily}
               >
                 {/* Progress bar */}
@@ -630,7 +647,6 @@ function VideoPlayerContent() {
                   class="flex items-center gap-2 h-10 px-4 rounded-lg bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white font-semibold text-sm transition-all cursor-pointer hover:-translate-y-px flex-shrink-0 self-end"
                   onClick={openPlaylistDialog}
                 >
-                  <Icon name="playlist_add" class="text-primary text-xl" />
                   {t("videoPlayer.addToPlaylist")}
                 </button>
               </div>
@@ -641,7 +657,7 @@ function VideoPlayerContent() {
                   <div class="bg-border-light/50 dark:bg-[#332e27]/30 p-6 rounded-xl">
                     <div
                       ref={descRef}
-                      class={`text-charcoal dark:text-white/80 leading-relaxed whitespace-pre-line overflow-hidden transition-[max-height] duration-300 ${isDescExpanded ? "" : "max-h-[4.875rem]"}`}
+                      class={`text-charcoal dark:text-white/80 leading-relaxed whitespace-pre-line overflow-hidden ${isDescExpanded ? "" : "max-h-[4.875rem]"}`}
                     >
                         <Linkify text={video.external_video_description} />
                     </div>
@@ -803,7 +819,7 @@ function VideoPlayerContent() {
                           </div>
                         </a>
                         <button
-                          class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer bg-transparent border-none opacity-0 group-hover/pv:opacity-100 focus:opacity-100"
+                          class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer bg-transparent border-none hidden group-hover/pv:block focus:block"
                           title={t("playlistDetail.removeVideo")}
                           disabled={removingVideoId === pv.video_id}
                           onClick={(e) => {
