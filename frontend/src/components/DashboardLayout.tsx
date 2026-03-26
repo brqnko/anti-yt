@@ -79,7 +79,7 @@ export function DashboardLayout({
   }, [url]);
 
   return (
-    <div class="relative flex lg:h-dvh w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
+    <div class="relative flex h-dvh w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
       <DashboardHeader sidebarOpen={sidebarOpen} onToggleSidebar={toggleSidebar} />
 
       <div class="flex flex-1 w-full max-w-[1600px] mx-auto overflow-hidden">
