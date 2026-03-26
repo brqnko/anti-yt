@@ -163,11 +163,11 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     <DashboardLayout>
       <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
         {/* Channel Info */}
-        <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark mb-8 p-6">
+        <div class="bg-card-light dark:bg-card-dark rounded-xl border border-border-light dark:border-border-dark mb-8 p-6">
           <div class="flex flex-col md:flex-row gap-6 items-start md:items-center">
             {/* Avatar */}
             <div class="shrink-0">
-              <div class="size-24 md:size-28 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden shadow-md border-2 border-border-light dark:border-border-dark">
+              <div class="size-24 md:size-28 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden border-2 border-border-light dark:border-border-dark">
                 <img
                   src={channelInfo.external_channel_icon_url}
                   alt={channelInfo.external_channel_display_name}
@@ -191,7 +191,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
 
             {/* Whitelist Toggle */}
             <div class="flex-shrink-0 w-full md:w-auto">
-              <div class="bg-background-light dark:bg-background-dark border border-primary/20 p-4 rounded-xl flex items-center justify-between md:justify-start gap-4 shadow-sm">
+              <div class="bg-background-light dark:bg-background-dark border border-primary/20 p-4 rounded-xl flex items-center justify-between md:justify-start gap-4">
                 <div class="flex flex-col">
                   <span class="text-sm font-bold">{t("channelDetail.whitelistChannel")}</span>
                   <span class="text-xs text-text-muted-light dark:text-text-muted-dark">

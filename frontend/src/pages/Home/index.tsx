@@ -10,11 +10,11 @@ import { GithubIcon } from "./GithubIcon";
 
 function DashboardPreview({ t }: { t: (key: string) => string }) {
   return (
-    <div class="animate-fade-in-up relative w-[90%] max-w-4xl bg-white dark:bg-[#151515] rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
+    <div class="animate-fade-in-up relative w-[90%] max-w-4xl bg-white dark:bg-[#151515] rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
       <div class="p-8 bg-slate-50/50 dark:bg-[#0f0f0f]">
         <div class="grid grid-cols-2 gap-6">
           {/* Allowance card */}
-          <div class="col-span-2 bg-white dark:bg-[#1a1a1a] p-6 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm flex items-center justify-between">
+          <div class="col-span-2 bg-white dark:bg-[#1a1a1a] p-6 rounded-xl border border-slate-200 dark:border-white/5 flex items-center justify-between">
             <div>
               <h3 class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
                 {t("home.dailyAllowance")}
@@ -49,7 +49,7 @@ function DashboardPreview({ t }: { t: (key: string) => string }) {
           </div>
 
           {/* Chart card */}
-          <div class="bg-white dark:bg-[#1a1a1a] p-6 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
+          <div class="bg-white dark:bg-[#1a1a1a] p-6 rounded-xl border border-slate-200 dark:border-white/5">
             <h3 class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-4">
               {t("home.watchTime")}
             </h3>
@@ -99,7 +99,7 @@ function DashboardPreview({ t }: { t: (key: string) => string }) {
           </div>
 
           {/* Whitelist card */}
-          <div class="bg-white dark:bg-[#1a1a1a] p-6 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
+          <div class="bg-white dark:bg-[#1a1a1a] p-6 rounded-xl border border-slate-200 dark:border-white/5">
             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 mb-4">
               {t("home.whitelist")}
             </h3>
@@ -220,7 +220,7 @@ export default function Home() {
               <span class="material-symbols-outlined text-xl">translate</span>
             </button>
             {langOpen && (
-              <div role="menu" class="absolute right-0 top-full mt-2 py-2 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-xl border border-slate-200 dark:border-white/10 min-w-[180px] z-50">
+              <div role="menu" class="absolute right-0 top-full mt-2 py-2 bg-white dark:bg-[#1a1a1a] rounded-xl ring-1 ring-black/5 dark:ring-white/5 border border-slate-200 dark:border-white/10 min-w-[180px] z-50">
                 {languages.map((lang) => (
                   <button
                     role="menuitem"
@@ -275,7 +275,7 @@ export default function Home() {
               {isAuthenticated ? (
                 <a
                   href="/dashboard"
-                  class="flex w-full sm:w-auto items-center justify-center rounded-xl bg-primary px-8 py-4 text-base font-bold text-white hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl no-underline cursor-pointer"
+                  class="flex w-full sm:w-auto items-center justify-center rounded-xl bg-primary px-8 py-4 text-base font-bold text-white hover:bg-primary/90 transition-all hover:-translate-y-0.5 no-underline cursor-pointer"
                 >
                   {t("home.dashboard")}
                 </a>
@@ -284,7 +284,7 @@ export default function Home() {
                   onClick={() => {
                     window.location.href = "/api/v1/auth/google";
                   }}
-                  class="flex w-full sm:w-auto items-center justify-center gap-3 rounded-xl bg-white dark:bg-[#242424] px-8 py-4 text-base font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-primary/50 dark:hover:border-primary/50 transition-all shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
+                  class="flex w-full sm:w-auto items-center justify-center gap-3 rounded-xl bg-white dark:bg-[#242424] px-8 py-4 text-base font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-primary/50 dark:hover:border-primary/50 transition-all hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
                 >
                   <GoogleIcon />
                   <span>{t("home.signInWithGoogle")}</span>
@@ -316,7 +316,7 @@ export default function Home() {
         {/* Right panel */}
         <div class="hidden lg:flex lg:w-[55%] h-full relative items-center justify-center overflow-hidden bg-slate-100 dark:bg-[#0c0c0c]">
           <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(208,187,149,0.2),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(208,187,149,0.1),transparent_70%)]" />
-          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px]" />
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,_var(--color-primary)_0%,_transparent_70%)] opacity-5" />
           <DashboardPreview t={t} />
         </div>
       </div>

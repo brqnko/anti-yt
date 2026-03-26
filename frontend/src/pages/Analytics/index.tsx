@@ -170,7 +170,7 @@ function AnalyticsContent() {
           {/* Stats Cards */}
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Time Watched */}
-            <div class="flex flex-col gap-3 rounded-xl p-6 border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark shadow-sm">
+            <div class="flex flex-col gap-3 rounded-xl p-6 border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark">
               <p class="text-text-muted-light dark:text-text-muted-dark text-sm font-medium uppercase tracking-wider">
                 {t("analytics.timeWasted")}
               </p>
@@ -180,7 +180,7 @@ function AnalyticsContent() {
             </div>
 
             {/* Daily Average */}
-            <div class="flex flex-col gap-3 rounded-xl p-6 border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark shadow-sm">
+            <div class="flex flex-col gap-3 rounded-xl p-6 border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark">
               <p class="text-text-muted-light dark:text-text-muted-dark text-sm font-medium uppercase tracking-wider">
                 {t("analytics.dailyAverage")}
               </p>
@@ -190,7 +190,7 @@ function AnalyticsContent() {
             </div>
 
             {/* Weekly Average Goal Progress */}
-            <div class="flex flex-col gap-3 rounded-xl p-6 border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark shadow-sm">
+            <div class="flex flex-col gap-3 rounded-xl p-6 border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark">
               <p class="text-text-muted-light dark:text-text-muted-dark text-sm font-medium uppercase tracking-wider">
                 {t("analytics.weeklyAverageGoal")}
               </p>
@@ -201,7 +201,7 @@ function AnalyticsContent() {
           </div>
 
           {/* Weekly Chart Section */}
-          <div ref={chartRef} class="flex flex-col rounded-xl border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark shadow-sm">
+          <div ref={chartRef} class="flex flex-col rounded-xl border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark">
             <div class="p-6 border-b border-border-light dark:border-border-dark flex justify-between items-center flex-wrap gap-4">
               <h3 class="text-lg font-bold text-charcoal dark:text-white">
                 {t("analytics.weeklyUsageTrends")}
@@ -241,7 +241,7 @@ function AnalyticsContent() {
                       }}
                     >
                       <div
-                        class={`w-full max-w-[60px] rounded-t-md relative group-hover:shadow-lg ${
+                        class={`w-full max-w-[60px] rounded-t-md relative ${
                           bar.isToday
                             ? "bg-primary/40 dark:bg-primary/30 border-2 border-dashed border-primary hover:bg-primary/50"
                             : "bg-primary/80 dark:bg-primary/60 hover:bg-primary"

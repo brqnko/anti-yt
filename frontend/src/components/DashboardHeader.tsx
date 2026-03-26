@@ -25,7 +25,7 @@ export function DashboardHeader({
   };
 
   return (
-    <header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-border-light dark:border-border-dark bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md px-6 py-3 gap-4">
+    <header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark px-6 py-3 gap-4">
       <div class="flex items-center gap-3 shrink-0">
         {onToggleSidebar && (
           <button

@@ -52,7 +52,7 @@ function VideoThumbnail({
       </span>
       <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300 pointer-events-none">
         <div
-          class={`rounded-full bg-primary/90 flex items-center justify-center text-white shadow-lg transform scale-90 group-hover/thumb:scale-100 transition-transform ${
+          class={`rounded-full bg-primary/90 flex items-center justify-center text-white transform scale-90 group-hover/thumb:scale-100 transition-transform ${
             size === "card" ? "size-12" : "size-10"
           }`}
         >

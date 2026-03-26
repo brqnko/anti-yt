@@ -17,7 +17,7 @@ function PlaylistCard({ playlist }: { playlist: GetPlaylists200ItemsItem }) {
   return (
     <a
       href={`/playlists/${playlist.playlist_id}`}
-      class="group relative flex flex-col bg-card-light dark:bg-card-dark rounded-xl shadow-sm hover:shadow-lg border border-transparent hover:border-primary/20 transition-all duration-300 overflow-hidden no-underline"
+      class="group relative flex flex-col bg-card-light dark:bg-card-dark rounded-xl hover:-translate-y-0.5 border border-transparent hover:border-primary/20 transition-all duration-300 overflow-hidden no-underline"
     >
       <div class="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
         {playlist.top_video_thumbnail_url ? (
@@ -138,7 +138,7 @@ function PlaylistsContent() {
           </div>
           <div class="flex flex-wrap items-center gap-3">
             <button
-              class="flex items-center gap-2 h-12 px-6 rounded-lg bg-primary hover:bg-primary/90 text-white font-bold shadow-sm hover:shadow-md transition-all cursor-pointer border-none"
+              class="flex items-center gap-2 h-12 px-6 rounded-lg bg-primary hover:bg-primary/90 text-white font-bold hover:-translate-y-px transition-all cursor-pointer border-none"
               onClick={() => setShowAddPlaylist(true)}
             >
               <span class="material-symbols-outlined">add</span>

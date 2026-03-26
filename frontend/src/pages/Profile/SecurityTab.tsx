@@ -130,7 +130,7 @@ export function SecurityTab() {
           <h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">
             {t("security.currentSession")}
           </h3>
-          <div class="overflow-hidden rounded-xl border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark shadow-sm">
+          <div class="overflow-hidden rounded-xl border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark">
             {/* Main Row */}
             <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-6 border-b border-border-light dark:border-border-dark">
               <div class="flex items-center gap-4 flex-1">
@@ -203,7 +203,7 @@ export function SecurityTab() {
             {otherSessions.map((session) => (
               <div
                 key={session.id}
-                class="flex flex-col sm:flex-row sm:items-center gap-4 bg-card-light dark:bg-card-dark px-5 py-4 rounded-xl border border-border-light dark:border-border-dark shadow-sm justify-between group hover:border-primary/50 transition-colors"
+                class="flex flex-col sm:flex-row sm:items-center gap-4 bg-card-light dark:bg-card-dark px-5 py-4 rounded-xl border border-border-light dark:border-border-dark justify-between group hover:border-primary/50 transition-colors"
               >
                 <div class="flex items-center gap-4">
                   <div class="flex items-center justify-center rounded-lg bg-background-light dark:bg-background-dark shrink-0 size-12">
@@ -271,8 +271,8 @@ export function SecurityTab() {
         const session = sessions.find((s) => s.id === confirmRevokeId);
         if (!session) return null;
         return (
-          <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => { if (revokingId === null) setConfirmRevokeId(null); }}>
-            <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-2xl border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
+          <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60" onClick={() => { if (revokingId === null) setConfirmRevokeId(null); }}>
+            <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
               <h3 class="text-lg font-bold">{t("security.revokeConfirmTitle")}</h3>
               <p class="text-sm text-text-muted-light dark:text-text-muted-dark leading-relaxed">
                 {t("security.revokeConfirmDesc", { name: session.browser_name })}

@@ -195,7 +195,7 @@ function ProfileContent() {
               onClick={() => setActiveTab("profile")}
               class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none ${
                 activeTab === "profile"
-                  ? "bg-card-light dark:bg-card-dark shadow-sm text-primary"
+                  ? "bg-card-light dark:bg-card-dark text-primary"
                   : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
               }`}
             >
@@ -205,7 +205,7 @@ function ProfileContent() {
               onClick={() => setActiveTab("restrictions")}
               class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none ${
                 activeTab === "restrictions"
-                  ? "bg-card-light dark:bg-card-dark shadow-sm text-primary"
+                  ? "bg-card-light dark:bg-card-dark text-primary"
                   : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
               }`}
             >
@@ -215,7 +215,7 @@ function ProfileContent() {
               onClick={() => setActiveTab("security")}
               class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none ${
                 activeTab === "security"
-                  ? "bg-card-light dark:bg-card-dark shadow-sm text-primary"
+                  ? "bg-card-light dark:bg-card-dark text-primary"
                   : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
               }`}
             >
@@ -236,7 +236,7 @@ function ProfileContent() {
               </div>
 
               {/* Account Details */}
-              <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
+              <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
                 <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
                   <h2 class="text-xl font-bold">
                     {t("profile.accountDetails")}
@@ -327,7 +327,7 @@ function ProfileContent() {
               </div>
 
               {/* Appearance */}
-              <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
+              <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
                 <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
                   <h2 class="text-xl font-bold">
                     {t("appearance.title")}
@@ -391,8 +391,8 @@ function ProfileContent() {
 
       {/* Logout Confirmation Dialog */}
       {showLogoutConfirm && (
-        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowLogoutConfirm(false)}>
-          <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-2xl border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
+        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60" onClick={() => setShowLogoutConfirm(false)}>
+          <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
             <h3 class="text-lg font-bold text-charcoal dark:text-white">
               {t("profile.logoutConfirmTitle")}
             </h3>
@@ -419,8 +419,8 @@ function ProfileContent() {
 
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
-        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => { if (!isDeleting) setShowDeleteConfirm(false); }}>
-          <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-2xl border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
+        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60" onClick={() => { if (!isDeleting) setShowDeleteConfirm(false); }}>
+          <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
             <h3 class="text-lg font-bold text-red-600 dark:text-red-400">
               {t("profile.deleteConfirmTitle")}
             </h3>

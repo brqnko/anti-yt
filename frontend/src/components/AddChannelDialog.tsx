@@ -68,10 +68,10 @@ export function AddChannelDialog({
       aria-label={t("dashboard.addChannelDialog.title")}
     >
       <div
-        class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        class="absolute inset-0 bg-black/60"
         onClick={onClose}
       />
-      <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 p-8 max-w-sm w-full">
+      <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl ring-1 ring-black/10 dark:ring-white/10 border border-gray-100 dark:border-neutral-800 p-8 max-w-sm w-full">
         <button
           class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
           onClick={onClose}
@@ -103,7 +103,7 @@ export function AddChannelDialog({
           </button>
           <input
             type="text"
-            class="w-full pl-10 pr-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all shadow-sm"
+            class="w-full pl-10 pr-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
             placeholder={t("dashboard.addChannelDialog.placeholder")}
             value={channelId}
             onInput={(e) =>

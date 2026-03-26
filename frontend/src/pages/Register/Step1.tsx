@@ -38,14 +38,14 @@ export default function Step1({ displayName, setDisplayName, languageCode, setLa
       </div>
 
       {/* Card */}
-      <div class="bg-white dark:bg-[#2a2721] rounded-2xl shadow-xl border border-gray-100 dark:border-neutral-800 p-8 md:p-10 relative overflow-hidden">
+      <div class="bg-white dark:bg-[#2a2721] rounded-2xl border border-gray-100 dark:border-neutral-800 p-8 md:p-10 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
 
         <form class="space-y-10" onSubmit={handleSubmit}>
           {/* Display Name */}
           <div class="space-y-4">
             <div class="flex items-center gap-3 mb-2">
-              <div class="flex items-center justify-center size-8 rounded-full bg-background-light dark:bg-neutral-800 text-charcoal dark:text-white font-bold border border-gray-200 dark:border-neutral-700 shadow-sm text-sm">
+              <div class="flex items-center justify-center size-8 rounded-full bg-background-light dark:bg-neutral-800 text-charcoal dark:text-white font-bold border border-gray-200 dark:border-neutral-700 text-sm">
                 1
               </div>
               <label class="text-lg font-bold text-charcoal dark:text-white" for="display-name">
@@ -56,7 +56,7 @@ export default function Step1({ displayName, setDisplayName, languageCode, setLa
               <input
                 id="display-name"
                 type="text"
-                class="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all shadow-sm"
+                class="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                 placeholder={t("register.profileDetails.displayNamePlaceholder")}
                 value={displayName}
                 onInput={(e) => setDisplayName((e.target as HTMLInputElement).value)}
@@ -78,7 +78,7 @@ export default function Step1({ displayName, setDisplayName, languageCode, setLa
           {/* Content Language */}
           <div class="space-y-4">
             <div class="flex items-center gap-3 mb-2">
-              <div class="flex items-center justify-center size-8 rounded-full bg-background-light dark:bg-neutral-800 text-charcoal dark:text-white font-bold border border-gray-200 dark:border-neutral-700 shadow-sm text-sm">
+              <div class="flex items-center justify-center size-8 rounded-full bg-background-light dark:bg-neutral-800 text-charcoal dark:text-white font-bold border border-gray-200 dark:border-neutral-700 text-sm">
                 2
               </div>
               <label class="text-lg font-bold text-charcoal dark:text-white" for="language-select">
@@ -92,7 +92,7 @@ export default function Step1({ displayName, setDisplayName, languageCode, setLa
                 </span>
                 <select
                   id="language-select"
-                  class="w-full pl-12 pr-10 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none appearance-none transition-all shadow-sm cursor-pointer"
+                  class="w-full pl-12 pr-10 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none appearance-none transition-all cursor-pointer"
                   value={languageCode}
                   onChange={(e) => setLanguageCode((e.target as HTMLSelectElement).value)}
                 >

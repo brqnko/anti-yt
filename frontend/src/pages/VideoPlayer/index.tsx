@@ -428,7 +428,7 @@ function VideoPlayerContent() {
             {/* YouTube Player */}
             <div
               ref={playerWrapperRef}
-              class="w-full bg-black rounded-xl overflow-hidden shadow-2xl relative aspect-video group/player"
+              class="w-full bg-black rounded-xl overflow-hidden ring-1 ring-white/10 relative aspect-video group/player"
             >
               {/* YouTube iframe gets injected here */}
               <div id={PLAYER_CONTAINER_ID} class="absolute inset-0 w-full h-full" />
@@ -447,7 +447,7 @@ function VideoPlayerContent() {
               {isReady && !isPlaying && playerState !== PlayerState.BUFFERING && (
                 <div class="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
                   <button
-                    class="size-20 rounded-full bg-primary text-white flex items-center justify-center shadow-lg hover:scale-105 transition-transform border-none cursor-pointer pointer-events-auto"
+                    class="size-20 rounded-full bg-primary text-white flex items-center justify-center hover:scale-105 transition-transform border-none cursor-pointer pointer-events-auto"
                     onClick={togglePlay}
                     aria-label={t("videoPlayer.play")}
                   >
@@ -459,7 +459,7 @@ function VideoPlayerContent() {
               {/* Buffering spinner */}
               {isReady && playerState === PlayerState.BUFFERING && (
                 <div class="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-                  <span class="material-symbols-outlined text-5xl animate-spin text-white drop-shadow-lg">
+                  <span class="material-symbols-outlined text-5xl animate-spin text-white">
                     progress_activity
                   </span>
                 </div>
@@ -607,7 +607,7 @@ function VideoPlayerContent() {
                     </div>
                   </div>
                 <button
-                  class="flex items-center gap-2 h-10 px-4 rounded-lg bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white font-semibold text-sm transition-all cursor-pointer shadow-sm hover:shadow-md flex-shrink-0 self-end"
+                  class="flex items-center gap-2 h-10 px-4 rounded-lg bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white font-semibold text-sm transition-all cursor-pointer hover:-translate-y-px flex-shrink-0 self-end"
                   onClick={openPlaylistDialog}
                 >
                   <span class="material-symbols-outlined text-primary text-xl">playlist_add</span>
@@ -644,7 +644,7 @@ function VideoPlayerContent() {
           {/* Sidebar */}
           <aside class="w-full xl:w-[420px] shrink-0 space-y-8">
             {/* Quick Notes */}
-            <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark shadow-sm flex flex-col overflow-hidden">
+            <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden">
               <div class="p-4 border-b border-border-light dark:border-border-dark flex items-center justify-between">
                 <h2 class="font-bold text-lg tracking-tight flex items-center gap-2">
                   <span class="material-symbols-outlined text-primary">edit_note</span>
@@ -699,13 +699,13 @@ function VideoPlayerContent() {
 
             {/* Playlist sidebar */}
             {playlistId && playlistLoading && (
-              <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark shadow-sm p-8">
+              <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark p-8">
                 <LoadingSpinner size="sm" />
               </div>
             )}
 
             {playlistId && !playlistLoading && playlistVideos.length > 0 && (
-              <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark shadow-sm flex flex-col overflow-hidden">
+              <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden">
                 {/* Playlist header */}
                 <div class="p-4 border-b border-border-light dark:border-border-dark flex items-center justify-between gap-3">
                   <div class="flex items-center gap-2 min-w-0">
@@ -816,10 +816,10 @@ function VideoPlayerContent() {
           aria-label={t("videoPlayer.addToPlaylist")}
         >
           <div
-            class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            class="absolute inset-0 bg-black/60"
             onClick={() => setShowPlaylistDialog(false)}
           />
-          <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 p-6 max-w-md w-full max-h-[80vh] flex flex-col">
+          <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl ring-1 ring-black/10 dark:ring-white/10 border border-gray-100 dark:border-neutral-800 p-6 max-w-md w-full max-h-[80vh] flex flex-col">
             <button
               class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
               onClick={() => setShowPlaylistDialog(false)}

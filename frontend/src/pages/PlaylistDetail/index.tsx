@@ -83,7 +83,7 @@ function EditPlaylistDialog({
 
   return (
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
       role="dialog"
       aria-modal="true"
       aria-label={t("playlistDetail.editDialog.title")}
@@ -91,7 +91,7 @@ function EditPlaylistDialog({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-xl w-full max-w-md p-6 flex flex-col gap-4">
+      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-md p-6 flex flex-col gap-4">
         <h2 class="text-xl font-bold text-charcoal dark:text-white">
           {t("playlistDetail.editDialog.title")}
         </h2>
@@ -164,7 +164,7 @@ function DeleteConfirmDialog({
 
   return (
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
       role="dialog"
       aria-modal="true"
       aria-label={t("playlistDetail.deleteDialog.title")}
@@ -172,7 +172,7 @@ function DeleteConfirmDialog({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-4">
+      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-sm p-6 flex flex-col gap-4">
         <h2 class="text-xl font-bold text-charcoal dark:text-white">
           {t("playlistDetail.deleteDialog.title")}
         </h2>
@@ -222,7 +222,7 @@ function RemoveVideoDialog({
 
   return (
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
       role="dialog"
       aria-modal="true"
       aria-label={t("playlistDetail.removeVideoDialog.title")}
@@ -230,7 +230,7 @@ function RemoveVideoDialog({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-4">
+      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-sm p-6 flex flex-col gap-4">
         <h2 class="text-xl font-bold text-charcoal dark:text-white">
           {t("playlistDetail.removeVideoDialog.title")}
         </h2>
@@ -457,7 +457,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
         </a>
 
         {/* Playlist Header */}
-        <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark mb-8 p-6">
+        <div class="bg-card-light dark:bg-card-dark rounded-xl border border-border-light dark:border-border-dark mb-8 p-6">
           <div class="flex flex-col sm:flex-row gap-6 items-start">
             {/* Thumbnail */}
             {videos.length > 0 ? (
@@ -480,7 +480,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                 )}
                 <div class="absolute inset-0 bg-black/30 opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300" />
                 <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300 pointer-events-none">
-                  <div class="size-12 rounded-full bg-primary/90 flex items-center justify-center text-white shadow-lg">
+                  <div class="size-12 rounded-full bg-primary/90 flex items-center justify-center text-white">
                     <span class="material-symbols-outlined text-[28px] ml-1">play_arrow</span>
                   </div>
                 </div>

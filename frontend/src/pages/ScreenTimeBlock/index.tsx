@@ -62,7 +62,7 @@ function GrassMowerGame() {
       </div>
 
       {/* Grass Grid */}
-      <div class="grid grid-cols-6 gap-2 bg-card-light dark:bg-card-dark p-4 rounded-3xl shadow-sm border border-border-light dark:border-border-dark w-full aspect-square max-w-[340px]">
+      <div class="grid grid-cols-6 gap-2 bg-card-light dark:bg-card-dark p-4 rounded-3xlborder border-border-light dark:border-border-dark w-full aspect-square max-w-[340px]">
         {tiles.map((state, i) => (
           <button
             key={i}
@@ -84,7 +84,7 @@ function GrassMowerGame() {
 
       {/* Stats row */}
       <div class="mt-6 flex gap-4">
-        <div class="bg-card-light dark:bg-card-dark px-4 py-2 rounded-2xl shadow-sm border border-border-light dark:border-border-dark flex items-center gap-2">
+        <div class="bg-card-light dark:bg-card-dark px-4 py-2 rounded-2xlborder border-border-light dark:border-border-dark flex items-center gap-2">
           <span class="material-symbols-outlined text-green-500 text-sm">
             grass
           </span>
@@ -93,7 +93,7 @@ function GrassMowerGame() {
           </span>
         </div>
         <button
-          class="bg-card-light dark:bg-card-dark px-4 py-2 rounded-2xl shadow-sm border border-border-light dark:border-border-dark flex items-center gap-2 hover:bg-border-light/50 dark:hover:bg-border-dark/50 transition-colors cursor-pointer"
+          class="bg-card-light dark:bg-card-dark px-4 py-2 rounded-2xlborder border-border-light dark:border-border-dark flex items-center gap-2 hover:bg-border-light/50 dark:hover:bg-border-dark/50 transition-colors cursor-pointer"
           onClick={resetGame}
         >
           <span class="material-symbols-outlined text-taupe text-sm">

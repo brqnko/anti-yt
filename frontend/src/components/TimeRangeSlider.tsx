@@ -57,14 +57,14 @@ export function TimeRangeSlider({
   const thumbs = (
     <>
       <div
-        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full shadow-md cursor-grab z-10 hover:scale-110 active:scale-95 transition-transform touch-none`}
+        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full cursor-grab z-10 hover:scale-110 active:scale-95 transition-transform touch-none`}
         style={{ left: `${startPct}%` }}
         onPointerDown={handlePointerDown("start")}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
       />
       <div
-        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full shadow-md cursor-grab z-10 hover:scale-110 active:scale-95 transition-transform touch-none`}
+        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full cursor-grab z-10 hover:scale-110 active:scale-95 transition-transform touch-none`}
         style={{ left: `${endPct}%` }}
         onPointerDown={handlePointerDown("end")}
         onPointerMove={handlePointerMove}
@@ -92,7 +92,7 @@ export function TimeRangeSlider({
             class="absolute top-1 z-20 transition-all duration-200"
             style={{ left: `${startPct}%`, transform: "translateX(-50%)" }}
           >
-            <span class="bg-white dark:bg-[#2a2721] text-primary border border-gray-200 dark:border-neutral-700 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+            <span class="bg-white dark:bg-[#2a2721] text-primary border border-gray-200 dark:border-neutral-700 text-[10px] font-bold px-1.5 py-0.5 rounded">
               {formatTime(range.startMinutes)}
             </span>
           </div>
@@ -100,7 +100,7 @@ export function TimeRangeSlider({
             class="absolute top-1 z-20 transition-all duration-200"
             style={{ left: `${endPct}%`, transform: "translateX(-50%)" }}
           >
-            <span class="bg-white dark:bg-[#2a2721] text-primary border border-gray-200 dark:border-neutral-700 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+            <span class="bg-white dark:bg-[#2a2721] text-primary border border-gray-200 dark:border-neutral-700 text-[10px] font-bold px-1.5 py-0.5 rounded">
               {formatTime(range.endMinutes)}
             </span>
           </div>
@@ -126,7 +126,7 @@ export function TimeRangeSlider({
             />
             {/* Highlight bar */}
             <div
-              class="absolute top-[3px] bottom-[3px] bg-primary rounded-full shadow-sm pointer-events-none"
+              class="absolute top-[3px] bottom-[3px] bg-primary rounded-full pointer-events-none"
               style={{ left: `${startPct}%`, width: `${endPct - startPct}%` }}
             />
 
