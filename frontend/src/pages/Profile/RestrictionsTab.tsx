@@ -285,20 +285,20 @@ export function RestrictionsTab() {
                   <button
                     type="button"
                     role="switch"
-                    aria-checked={isUnlimited}
+                    aria-checked={!isUnlimited}
                     onClick={() => setIsUnlimited(!isUnlimited)}
                     class={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors cursor-pointer border-none ${
-                      isUnlimited ? "bg-primary" : "bg-gray-300 dark:bg-gray-600"
+                      !isUnlimited ? "bg-primary" : "bg-gray-300 dark:bg-gray-600"
                     }`}
                   >
                     <span
                       class={`inline-block size-5 rounded-full bg-white shadow-sm transition-transform ${
-                        isUnlimited ? "translate-x-6" : "translate-x-1"
+                        !isUnlimited ? "translate-x-6" : "translate-x-1"
                       }`}
                     />
                   </button>
                   <span class="text-sm font-medium text-text-muted-light dark:text-text-muted-dark">
-                    {t("restrictions.unlimited")}
+                    {t("restrictions.enableLimit")}
                   </span>
 
                   <div class="w-px h-6 bg-border-light dark:bg-border-dark" />

@@ -178,7 +178,6 @@ function HistoryContent() {
               history
             </span>
             <p class="text-lg font-medium">{t("history.noHistory")}</p>
-            <p class="text-sm mt-1">{t("history.noHistoryDesc")}</p>
           </div>
         )}
         </div>

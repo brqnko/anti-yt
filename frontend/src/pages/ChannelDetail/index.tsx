@@ -230,9 +230,6 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-bold">
               {t("channelDetail.latestUploads")}
-              <span class="text-text-muted-light dark:text-text-muted-dark font-normal text-sm ml-2">
-                ({t("channelDetail.previewOnly")})
-              </span>
             </h3>
           </div>
 
