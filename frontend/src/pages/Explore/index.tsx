@@ -145,6 +145,7 @@ function ExploreContent() {
                         <div class="flex items-center gap-3">
                           <img
                             alt={ch.external_channel_display_name}
+                            loading="lazy"
                             class="size-12 rounded-full object-cover bg-gray-100"
                             src={ch.external_channel_icon_url}
                           />

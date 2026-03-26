@@ -187,6 +187,7 @@ export function DashboardLayout({
                     <div class="size-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden shrink-0">
                       <img
                         alt={sub.external_channel_display_name}
+                        loading="lazy"
                         class="w-full h-full object-cover"
                         src={sub.external_channel_icon_url}
                       />
@@ -251,7 +252,7 @@ export function DashboardLayout({
         </aside>
 
         {/* Main Content */}
-        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto overflow-x-hidden">
           {children}
         </main>
       </div>

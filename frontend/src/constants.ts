@@ -16,10 +16,10 @@ export const languages = [
 export const REPORT_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfbAk6J4jSW83eKe1CeGCCqqHI517STCPh3hE2zRbWedbdcCQ/viewform?usp=dialog";
 
 export const PAGE_SIZES = {
-  FEED: 12,
-  PLAYLISTS: 12,
-  HISTORY: 20,
-  CHANNEL_VIDEOS: 30,
-  PLAYLIST_VIDEOS: 20,
+  FEED: 25,
+  PLAYLISTS: 25,
+  HISTORY: 25,
+  CHANNEL_VIDEOS: 25,
+  PLAYLIST_VIDEOS: 25,
   SEARCH: 50,
 } as const;

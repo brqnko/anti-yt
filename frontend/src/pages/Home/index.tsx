@@ -137,7 +137,7 @@ function WhitelistItem({
   return (
     <div class="flex items-center gap-3 px-3 py-2 rounded-lg">
       <div class="size-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden shrink-0">
-        <img alt={name} class="w-full h-full object-cover" src={icon} />
+        <img alt={name} loading="lazy" class="w-full h-full object-cover" src={icon} />
       </div>
       <span class="text-sm font-medium text-slate-700 dark:text-white truncate">
         {name}

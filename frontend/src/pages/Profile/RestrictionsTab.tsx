@@ -76,6 +76,7 @@ function RemoveChannelDialog({
           <img
             src={channel.external_channel_icon_url}
             alt=""
+            loading="lazy"
             class="rounded-full size-10 shrink-0 border border-border-light dark:border-border-dark object-cover"
           />
           <div class="flex flex-col min-w-0">
@@ -224,8 +225,8 @@ export function RestrictionsTab() {
   };
 
   return (
-    <>
-      <div class="flex flex-col gap-2 mb-2">
+    <div class="flex flex-col gap-6 min-w-0 overflow-hidden">
+      <div class="flex flex-col gap-2">
         <h1 class="text-3xl lg:text-4xl font-black leading-tight tracking-[-0.033em]">
           {t("restrictions.title")}
         </h1>
@@ -407,6 +408,7 @@ export function RestrictionsTab() {
                     <img
                       src={ch.external_channel_icon_url}
                       alt=""
+                      loading="lazy"
                       class="rounded-full size-12 shrink-0 border border-border-light dark:border-border-dark object-cover"
                     />
                     <div class="flex flex-col grow min-w-0">
@@ -453,6 +455,6 @@ export function RestrictionsTab() {
         onClose={() => setRemoveTarget(null)}
         onConfirm={() => handleUnsubscribe(removeTarget!.channel_id)}
       />
-    </>
+    </div>
   );
 }

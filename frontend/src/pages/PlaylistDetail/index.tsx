@@ -545,7 +545,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                 {videos.map((video) => (
                   <div
                     key={video.video_id}
-                    class="py-4 first:pt-0 group/row flex items-center gap-2"
+                    class="py-4 first:pt-0 group/row flex items-start sm:items-center gap-2"
                   >
                     <div class="flex-1 min-w-0">
                       <VideoCard

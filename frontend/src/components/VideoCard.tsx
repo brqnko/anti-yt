@@ -39,12 +39,13 @@ function VideoThumbnail({
     <a
       href={watchUrl}
       class={`group/thumb relative aspect-video overflow-hidden bg-gray-200 dark:bg-gray-800 block no-underline ${
-        size === "card" ? "rounded-xl" : "w-36 sm:w-48 md:w-60 flex-shrink-0 rounded-lg"
+        size === "card" ? "rounded-xl" : "rounded-xl sm:w-48 sm:flex-shrink-0 sm:rounded-lg md:w-60"
       }`}
     >
       <img
         src={thumbnailUrl}
         alt={title}
+        loading="lazy"
         class="absolute inset-0 w-full h-full object-cover"
       />
       <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300" />
@@ -107,12 +108,12 @@ export function VideoCard({
 
   if (layout === "row") {
     return (
-      <article class="flex gap-4 group">
+      <article class="flex flex-col sm:flex-row gap-3 sm:gap-4 group">
         {thumbnail}
-        <div class="flex flex-col gap-3 min-w-0 flex-1 py-1">
+        <div class="flex flex-col gap-2 sm:gap-3 min-w-0 flex-1 sm:py-1">
           <a
             href={watchUrl}
-            class="text-lg font-bold text-charcoal dark:text-white leading-snug line-clamp-2 no-underline hover:text-primary transition-colors"
+            class="text-base sm:text-lg font-bold text-charcoal dark:text-white leading-snug line-clamp-2 no-underline hover:text-primary transition-colors"
           >
             {title}
           </a>
@@ -121,11 +122,12 @@ export function VideoCard({
               <div class="flex items-center gap-2 text-sm text-text-muted-light dark:text-text-muted-dark">
                 <a
                   href={`/channels/${channel.channelId}`}
-                  class="flex items-center gap-1.5 no-underline text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors"
+                  class="flex items-center gap-1.5 min-w-0 overflow-hidden no-underline text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors"
                 >
                   <img
                     src={channel.iconUrl}
                     alt={channel.displayName}
+                    loading="lazy"
                     class="size-5 rounded-full object-cover"
                   />
                   <span class="truncate">{channel.displayName}</span>
@@ -159,6 +161,7 @@ export function VideoCard({
           >
             <img
               alt={channel.displayName}
+              loading="lazy"
               class="w-full h-full object-cover"
               src={channel.iconUrl}
             />

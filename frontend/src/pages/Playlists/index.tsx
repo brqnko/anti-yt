@@ -25,6 +25,7 @@ function PlaylistCard({ playlist }: { playlist: GetPlaylists200ItemsItem }) {
           <img
             src={playlist.top_video_thumbnail_url}
             alt={playlist.playlist_title}
+            loading="lazy"
             class="absolute inset-0 w-full h-full object-cover"
           />
         ) : (

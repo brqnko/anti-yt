@@ -607,6 +607,7 @@ function VideoPlayerContent() {
                       <img
                         src={video.external_channel_icon_url}
                         alt={video.external_channel_display_name}
+                        loading="lazy"
                         class="w-full h-full object-cover"
                       />
                     </a>
@@ -779,6 +780,7 @@ function VideoPlayerContent() {
                             <img
                               src={pv.external_video_thumbnail_url}
                               alt=""
+                              loading="lazy"
                               class="absolute inset-0 w-full h-full object-cover"
                             />
                             <span class="absolute bottom-0.5 right-0.5 bg-black/80 text-white text-[10px] font-bold px-1 py-0.5 rounded">
