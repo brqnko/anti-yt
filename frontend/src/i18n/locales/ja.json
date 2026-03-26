@@ -96,9 +96,7 @@
       "subtitle": "まずは基本情報を設定しましょう。",
       "displayName": "表示名",
       "displayNamePlaceholder": "例: ねこすきー",
-      "displayNameHint": "デイリーレポートでこの名前が使われます。",
-      "contentLanguage": "コンテンツの言語",
-      "contentLanguageHint": "この言語の教育コンテンツが優先的に表示されます。"
+      "contentLanguage": "コンテンツの言語"
     },
     "restrictions": {
       "title": "初期制限",

@@ -398,22 +398,27 @@ export function RestrictionsTab() {
                     key={ch.channel_id}
                     class="flex items-center gap-4 p-3 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark group hover:border-primary/50 transition-colors"
                   >
-                    <img
-                      src={ch.external_channel_icon_url}
-                      alt=""
-                      loading="lazy"
-                      class="rounded-full size-12 shrink-0 border border-border-light dark:border-border-dark object-cover"
-                    />
-                    <div class="flex flex-col grow min-w-0">
-                      <p class="font-bold truncate">
-                        {ch.external_channel_display_name}
-                      </p>
-                      <p class="text-xs text-text-muted-light dark:text-text-muted-dark">
-                        {ch.channel_custom_id}
-                      </p>
-                    </div>
+                    <a
+                      href={`/channels/${ch.channel_id}`}
+                      class="flex items-center gap-4 grow min-w-0 no-underline text-inherit"
+                    >
+                      <img
+                        src={ch.external_channel_icon_url}
+                        alt=""
+                        loading="lazy"
+                        class="rounded-full size-12 shrink-0 border border-border-light dark:border-border-dark object-cover"
+                      />
+                      <div class="flex flex-col grow min-w-0">
+                        <p class="font-bold truncate">
+                          {ch.external_channel_display_name}
+                        </p>
+                        <p class="text-xs text-text-muted-light dark:text-text-muted-dark">
+                          {ch.channel_custom_id}
+                        </p>
+                      </div>
+                    </a>
                     <button
-                      class="size-8 flex items-center justify-center rounded-full text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all cursor-pointer bg-transparent border-none"
+                      class="size-8 flex items-center justify-center rounded-full text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all cursor-pointer bg-transparent border-none shrink-0"
                       onClick={() => setRemoveTarget(ch)}
                     >
                       <Icon name="close" class="text-[20px]" />

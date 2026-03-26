@@ -77,6 +77,12 @@ function VideoPlayerContent() {
   const [addedPlaylistIds, setAddedPlaylistIds] = useState<Set<string>>(new Set());
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
 
+  useEffect(() => {
+    if (!showPlaylistDialog) return;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, [showPlaylistDialog]);
+
   // Refs for values used in keyboard handler / cleanup to avoid stale closures
   const durationRef = useRef(0);
   const volumeRef = useRef(100);

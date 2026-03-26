@@ -96,9 +96,7 @@
       "subtitle": "Personalize your experience to get started.",
       "displayName": "Display Name",
       "displayNamePlaceholder": "e.g. CoolCat42",
-      "displayNameHint": "This is how we'll address you in your daily reports.",
-      "contentLanguage": "Content Language",
-      "contentLanguageHint": "We will prioritize educational content in this language."
+      "contentLanguage": "Content Language"
     },
     "restrictions": {
       "title": "Initial Restrictions",
