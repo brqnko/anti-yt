@@ -1,31 +1,4 @@
 services:
-  tunnel:
-    image: cloudflare/cloudflared:latest
-    command: tunnel --no-autoupdate run
-    environment:
-      TUNNEL_TOKEN: ${TUNNEL_TOKEN}
-    depends_on:
-      - nginx
-    restart: unless-stopped
-    networks:
-      - app-network
-
-  nginx:
-    image: nginx:1.28.3-alpine3.23
-    ports:
-      - "127.0.0.1:80:80"
-    volumes:
-      - frontend-dist:/usr/share/nginx/html:ro
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      frontend:
-        condition: service_completed_successfully
-      backend:
-        condition: service_started
-    restart: unless-stopped
-    networks:
-      - app-network
-
   backend:
     build:
       context: ./backend
@@ -39,9 +12,6 @@ services:
       - jwt-private
       - jwt-public
       - google-oidc-secret
-    depends_on:
-      db:
-        condition: service_healthy
     restart: unless-stopped
     networks:
       - app-network
@@ -53,30 +23,10 @@ services:
       - frontend-dist:/output
     restart: "no"
 
-  db:
-    image: postgres:18.3-alpine3.23
-    healthcheck:
-      test: ["CMD", "pg_isready"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    user: postgres
-    secrets:
-      - db-password
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: antiyt
-      POSTGRES_PASSWORD_FILE: /run/secrets/db-password
-    expose:
-      - "5432"
-    restart: unless-stopped
-    networks:
-      - app-network
-
 volumes:
-  db-data:
   frontend-dist:
+    external: true
+    name: anti-yt-frontend-dist
 
 secrets:
   db-password:
@@ -92,6 +42,5 @@ secrets:
 
 networks:
   app-network:
-    ipam:
-      config:
-        - subnet: 172.30.0.0/16
+    external: true
+    name: anti-yt-network
