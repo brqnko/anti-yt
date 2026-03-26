@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
+import { Icon } from "../../components/Icon";
 
 const GRID_SIZE = 36; // 6x6
 const REGROW_INTERVAL_MS = 5000;
@@ -62,7 +63,7 @@ function GrassMowerGame() {
       </div>
 
       {/* Grass Grid */}
-      <div class="grid grid-cols-6 gap-2 bg-card-light dark:bg-card-dark p-4 rounded-3xl shadow-sm border border-border-light dark:border-border-dark w-full aspect-square max-w-[340px]">
+      <div class="grid grid-cols-6 gap-2 bg-card-light dark:bg-card-dark p-4 rounded-3xlborder border-border-light dark:border-border-dark w-full aspect-square max-w-[340px]">
         {tiles.map((state, i) => (
           <button
             key={i}
@@ -84,21 +85,17 @@ function GrassMowerGame() {
 
       {/* Stats row */}
       <div class="mt-6 flex gap-4">
-        <div class="bg-card-light dark:bg-card-dark px-4 py-2 rounded-2xl shadow-sm border border-border-light dark:border-border-dark flex items-center gap-2">
-          <span class="material-symbols-outlined text-green-500 text-sm">
-            grass
-          </span>
+        <div class="bg-card-light dark:bg-card-dark px-4 py-2 rounded-2xlborder border-border-light dark:border-border-dark flex items-center gap-2">
+          <Icon name="grass" class="text-green-500 text-sm" />
           <span class="text-sm font-medium text-charcoal dark:text-white/80">
             {mownCount}
           </span>
         </div>
         <button
-          class="bg-card-light dark:bg-card-dark px-4 py-2 rounded-2xl shadow-sm border border-border-light dark:border-border-dark flex items-center gap-2 hover:bg-border-light/50 dark:hover:bg-border-dark/50 transition-colors cursor-pointer"
+          class="bg-card-light dark:bg-card-dark px-4 py-2 rounded-2xlborder border-border-light dark:border-border-dark flex items-center gap-2 hover:bg-border-light/50 dark:hover:bg-border-dark/50 transition-colors cursor-pointer"
           onClick={resetGame}
         >
-          <span class="material-symbols-outlined text-taupe text-sm">
-            refresh
-          </span>
+          <Icon name="refresh" class="text-taupe text-sm" />
           <span class="text-sm font-medium text-charcoal dark:text-white/80">
             {t("screenTimeBlock.reset")}
           </span>
@@ -121,9 +118,7 @@ export default function ScreenTimeBlock({
       {/* Header */}
       <div class="text-center mb-10">
         <div class="inline-flex items-center justify-center size-16 rounded-full bg-primary/10 mb-4">
-          <span class="material-symbols-outlined text-primary text-3xl">
-            timer_off
-          </span>
+          <Icon name="timer_off" class="text-primary text-3xl" />
         </div>
         <h1 class="text-2xl font-bold text-charcoal dark:text-white tracking-tight">
           {t("screenTimeBlock.title")}

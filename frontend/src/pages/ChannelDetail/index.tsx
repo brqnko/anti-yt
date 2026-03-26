@@ -14,6 +14,7 @@ import type {
 } from "../../api/generated/antiYtApi.schemas";
 import { PAGE_SIZES } from "../../constants";
 import { Linkify } from "../../components/Linkify";
+import { Icon } from "../../components/Icon";
 
 function ExpandableDescription({ description }: { description: string }) {
   const { t } = useTranslation();
@@ -39,7 +40,7 @@ function ExpandableDescription({ description }: { description: string }) {
         <button
           type="button"
           class="text-sm font-medium text-primary hover:text-primary/80 transition-colors bg-transparent border-none cursor-pointer p-0 mt-2"
-          onClick={() => { setExpanded(!expanded); if (expanded && ref.current) setClamped(ref.current.scrollHeight > ref.current.clientHeight); }}
+          onClick={() => setExpanded(!expanded)}
         >
           {expanded ? t("channelDetail.showLess") : t("channelDetail.showMore")}
         </button>
@@ -144,13 +145,13 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       <DashboardLayout>
         <div class="w-full max-w-[1200px] mx-auto px-6 py-10">
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-            <span class="material-symbols-outlined text-5xl mb-4">search_off</span>
+            <Icon name="search_off" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("channelDetail.notFound")}</p>
             <a
               class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
               href="/dashboard"
             >
-              <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+              <Icon name="arrow_back" class="text-[18px]" />
               {t("channelDetail.backToDashboard")}
             </a>
           </div>
@@ -163,35 +164,37 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     <DashboardLayout>
       <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
         {/* Channel Info */}
-        <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark mb-8 p-6">
-          <div class="flex flex-col md:flex-row gap-6 items-start md:items-center">
-            {/* Avatar */}
-            <div class="shrink-0">
-              <div class="size-24 md:size-28 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden shadow-md border-2 border-border-light dark:border-border-dark">
-                <img
-                  src={channelInfo.external_channel_icon_url}
-                  alt={channelInfo.external_channel_display_name}
-                  class="w-full h-full object-cover"
-                />
+        <div class="bg-card-light dark:bg-card-dark rounded-xl border border-border-light dark:border-border-dark mb-8 p-6">
+          <div class="flex flex-col gap-6">
+            <div class="flex flex-row gap-4 md:gap-6 items-center">
+              {/* Avatar */}
+              <div class="shrink-0">
+                <div class="size-16 md:size-28 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden border-2 border-border-light dark:border-border-dark">
+                  <img
+                    src={channelInfo.external_channel_icon_url}
+                    alt={channelInfo.external_channel_display_name}
+                    class="w-full h-full object-cover"
+                  />
+                </div>
               </div>
-            </div>
 
-            {/* Channel Text Info */}
-            <div class="flex-1 min-w-0">
-              <h1 class="text-2xl md:text-3xl font-bold mb-1">{channelInfo.external_channel_display_name}</h1>
-              <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-muted-light dark:text-text-muted-dark">
-                <span>
-                  {formatSubscriberCount(channelInfo.external_channel_subscribers_count)} {t("channelDetail.subscribers")}
-                </span>
-                {channelInfo.external_channel_custom_id && (
-                  <span>{channelInfo.external_channel_custom_id}</span>
-                )}
+              {/* Channel Text Info */}
+              <div class="flex-1 min-w-0">
+                <h1 class="text-xl md:text-3xl font-bold mb-1 truncate">{channelInfo.external_channel_display_name}</h1>
+                <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-muted-light dark:text-text-muted-dark">
+                  <span>
+                    {formatSubscriberCount(channelInfo.external_channel_subscribers_count)} {t("channelDetail.subscribers")}
+                  </span>
+                  {channelInfo.external_channel_custom_id && (
+                    <span>{channelInfo.external_channel_custom_id}</span>
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Whitelist Toggle */}
             <div class="flex-shrink-0 w-full md:w-auto">
-              <div class="bg-background-light dark:bg-background-dark border border-primary/20 p-4 rounded-xl flex items-center justify-between md:justify-start gap-4 shadow-sm">
+              <div class="bg-background-light dark:bg-background-dark border border-primary/20 p-4 rounded-xl flex items-center justify-between md:justify-start gap-4">
                 <div class="flex flex-col">
                   <span class="text-sm font-bold">{t("channelDetail.whitelistChannel")}</span>
                   <span class="text-xs text-text-muted-light dark:text-text-muted-dark">
@@ -258,7 +261,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
             </>
           ) : (
             <div class="flex flex-col items-center justify-center py-12 text-text-muted-light dark:text-text-muted-dark bg-card-light dark:bg-card-dark rounded-xl border border-border-light dark:border-border-dark">
-              <span class="material-symbols-outlined text-4xl mb-3">videocam_off</span>
+              <Icon name="videocam_off" class="text-4xl mb-3" />
               <p class="text-sm font-medium">{t("channelDetail.noVideos")}</p>
             </div>
           )}

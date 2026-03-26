@@ -10,6 +10,7 @@ import Step1 from "./Step1";
 import Step2 from "./Step2";
 import type { TimeRange } from "../../types/time-range";
 import { formatTime } from "../../utils/format";
+import { Icon } from "../../components/Icon";
 
 export default function Register() {
   const { t, i18n } = useTranslation();
@@ -93,14 +94,14 @@ export default function Register() {
       {/* Error dialog */}
       {error && (
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setError(null)} />
-          <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 p-8 max-w-sm w-full text-center">
+          <div class="absolute inset-0 bg-black/60" onClick={() => setError(null)} />
+          <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl ring-1 ring-black/10 dark:ring-white/10 border border-gray-100 dark:border-neutral-800 p-8 max-w-sm w-full text-center">
             <button
               type="button"
               class="absolute top-4 right-4 text-taupe hover:text-charcoal dark:hover:text-white transition-colors cursor-pointer"
               onClick={() => setError(null)}
             >
-              <span class="material-symbols-outlined">close</span>
+              <Icon name="close" />
             </button>
             <h3 class="text-xl font-black text-charcoal dark:text-white mb-2">
               {error.title}

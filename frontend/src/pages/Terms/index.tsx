@@ -23,7 +23,7 @@ export default function Terms() {
       </div>
 
       <div class="max-w-4xl mx-auto">
-        <div class="bg-white dark:bg-[#26221c] border border-[#e1ddd6] dark:border-[#3d372e] rounded-2xl overflow-hidden shadow-sm mb-12">
+        <div class="bg-white dark:bg-[#26221c] border border-[#e1ddd6] dark:border-[#3d372e] rounded-2xl overflow-hidden mb-12">
           <div class="p-8 border-b border-[#e1ddd6] dark:border-[#3d372e] flex items-center bg-[#fdfdfc] dark:bg-[#2a2620]">
             <span class="text-xs text-[#847862] font-semibold px-3 py-1.5 bg-[#f0eeea] dark:bg-[#3d372e] rounded-full uppercase tracking-wider">
               {t("terms.version")}

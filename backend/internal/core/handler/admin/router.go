@@ -12,7 +12,7 @@ import (
 func HandleAdminEndpoints(m *chi.Mux, db *pgxpool.Pool, ytService youtube_d.Service, adminAPIKey string) {
 	h := newHandler(admin.NewService(db, ytService))
 
-	m.Route("/admin", func(r chi.Router) {
+	m.Route("/api/admin", func(r chi.Router) {
 		r.Use(adminAPIKeyAuthMiddleware(adminAPIKey))
 		r.Post("/valuable", h.createValuableChannel)
 		r.Patch("/valuable", h.updateValuableChannel)

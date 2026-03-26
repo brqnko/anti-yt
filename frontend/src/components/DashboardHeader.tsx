@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
+import { Icon } from "./Icon";
 
 export function DashboardHeader({
   sidebarOpen = false,
@@ -25,7 +26,7 @@ export function DashboardHeader({
   };
 
   return (
-    <header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-border-light dark:border-border-dark bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md px-6 py-3 gap-4">
+    <header class="sticky top-0 z-50 flex items-center justify-between border-b border-solid border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark px-6 py-3 gap-4 overflow-hidden">
       <div class="flex items-center gap-3 shrink-0">
         {onToggleSidebar && (
           <button
@@ -34,16 +35,16 @@ export function DashboardHeader({
             aria-label={t("dashboard.toggleSidebar")}
             aria-expanded={sidebarOpen}
           >
-            <span class="material-symbols-outlined text-2xl">menu</span>
+            <Icon name="menu" class="text-2xl" />
           </button>
         )}
         <a href="/dashboard" class="no-underline text-charcoal dark:text-white">
-          <span class="text-xl font-bold tracking-tight">anti-yt</span>
+          <span class="text-xl font-bold tracking-tight whitespace-nowrap">anti-yt</span>
         </a>
       </div>
 
       <form
-        class="flex-1 max-w-xl mx-auto flex"
+        class="flex-1 min-w-0 max-w-xl mx-auto flex"
         onSubmit={handleSearch}
         role="search"
       >
@@ -65,7 +66,7 @@ export function DashboardHeader({
           class="size-9 flex items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/20 cursor-pointer text-primary no-underline"
           aria-label={t("profile.pageTitle")}
         >
-          <span class="material-symbols-outlined text-[20px]">person</span>
+          <Icon name="person" class="text-[20px]" />
         </a>
       </div>
     </header>

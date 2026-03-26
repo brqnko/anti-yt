@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { TimeRangeSlider } from "../../components/TimeRangeSlider";
 import { hasOverlap, type TimeRange } from "../../types/time-range";
+import { Icon } from "../../components/Icon";
 
 interface Step2Props {
   isLimited: boolean;
@@ -75,7 +76,7 @@ export default function Step2({
       </div>
 
       {/* Card */}
-      <div class="bg-white dark:bg-[#2a2721] rounded-2xl shadow-xl border border-gray-100 dark:border-neutral-800 p-6 md:p-8 relative overflow-hidden">
+      <div class="bg-white dark:bg-[#2a2721] rounded-2xl border border-gray-100 dark:border-neutral-800 p-6 md:p-8 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
 
         <form class="space-y-0" onSubmit={handleSubmit}>
@@ -83,8 +84,8 @@ export default function Step2({
           <div class="mb-8 pb-8 border-b border-gray-100 dark:border-neutral-800">
             <div class="flex items-center justify-between mb-6">
               <div class="flex items-center gap-4">
-                <div class="size-10 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 flex items-center justify-center shadow-sm">
-                  <span class="material-symbols-outlined">timer</span>
+                <div class="size-10 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 flex items-center justify-center">
+                  <Icon name="timer" />
                 </div>
                 <div>
                   <h3 class="font-bold text-lg text-charcoal dark:text-white leading-tight">
@@ -106,7 +107,7 @@ export default function Step2({
                     checked={isLimited}
                     onChange={(e) => setIsLimited((e.target as HTMLInputElement).checked)}
                   />
-                  <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-neutral-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary shadow-sm" />
+                  <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-neutral-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" />
                 </label>
                 <span class="text-[10px] font-bold text-primary uppercase tracking-wider pr-2">
                   {t("register.restrictions.limited")}
@@ -122,7 +123,7 @@ export default function Step2({
                   </label>
                   <input
                     type="number"
-                    class="w-full bg-background-light dark:bg-background-dark border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white text-xl font-bold rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all shadow-inner"
+                    class="w-full bg-gray-50 dark:bg-[#161310] border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white text-xl font-bold rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                     min={0}
                     max={23}
                     value={hours}
@@ -136,7 +137,7 @@ export default function Step2({
                   </label>
                   <input
                     type="number"
-                    class="w-full bg-background-light dark:bg-background-dark border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white text-xl font-bold rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all shadow-inner"
+                    class="w-full bg-gray-50 dark:bg-[#161310] border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white text-xl font-bold rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                     min={0}
                     max={59}
                     value={minutes}
@@ -151,8 +152,8 @@ export default function Step2({
           <div class="mb-8">
             <div class="flex items-center justify-between mb-6">
               <div class="flex items-center gap-4">
-                <div class="size-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shadow-sm">
-                  <span class="material-symbols-outlined">calendar_clock</span>
+                <div class="size-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center">
+                  <Icon name="calendar_clock" />
                 </div>
                 <div>
                   <h3 class="font-bold text-lg text-charcoal dark:text-white leading-tight">
@@ -182,7 +183,7 @@ export default function Step2({
               class="mt-4 w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-dashed border-gray-300 dark:border-neutral-700 text-sm font-bold text-taupe hover:text-primary hover:border-primary hover:bg-primary/5 transition-all cursor-pointer"
               onClick={addRange}
             >
-              <span class="material-symbols-outlined text-lg">add_circle</span>
+              <Icon name="add_circle" class="text-lg" />
               {t("register.restrictions.addTimeRange")}
             </button>
           </div>
@@ -211,7 +212,7 @@ export default function Step2({
                 class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border-none"
               >
                 <span>{t("register.submit")}</span>
-                <span class="material-symbols-outlined text-lg">check</span>
+                <Icon name="check" class="text-lg" />
               </button>
             </div>
             <p class="text-xs text-taupe text-center">

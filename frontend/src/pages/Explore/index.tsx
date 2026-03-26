@@ -6,6 +6,7 @@ import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getChannel } from "../../api/generated/channel";
 import type { GetFeedChannels200ItemsItem } from "../../api/generated/antiYtApi.schemas";
+import { Icon } from "../../components/Icon";
 
 const CATEGORY_CODES = [
   { code: -1, key: "all", icon: "grid_view" },
@@ -99,9 +100,7 @@ function ExploreContent() {
                       }`}
                       onClick={() => setSelectedCategory(cat.code)}
                     >
-                      <span class="material-symbols-outlined text-[16px]">
-                        {cat.icon}
-                      </span>
+                      <Icon name={cat.icon} class="text-[16px]" />
                       {cat.key === "all"
                         ? t("explore.allCategories")
                         : t(`explore.categories.${cat.key}`)}
@@ -116,9 +115,7 @@ function ExploreContent() {
               <LoadingSpinner />
             ) : error ? (
               <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-                <span class="material-symbols-outlined text-5xl mb-4">
-                  error_outline
-                </span>
+                <Icon name="error_outline" class="text-5xl mb-4" />
                 <p class="text-lg font-medium">{t("explore.loadError")}</p>
                 <button
                   class="mt-4 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer border-none"
@@ -129,9 +126,7 @@ function ExploreContent() {
               </div>
             ) : filteredChannels.length === 0 ? (
               <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-                <span class="material-symbols-outlined text-5xl mb-4">
-                  search_off
-                </span>
+                <Icon name="search_off" class="text-5xl mb-4" />
                 <p class="text-lg font-medium">{t("explore.noChannels")}</p>
               </div>
             ) : (
@@ -150,6 +145,7 @@ function ExploreContent() {
                         <div class="flex items-center gap-3">
                           <img
                             alt={ch.external_channel_display_name}
+                            loading="lazy"
                             class="size-12 rounded-full object-cover bg-gray-100"
                             src={ch.external_channel_icon_url}
                           />

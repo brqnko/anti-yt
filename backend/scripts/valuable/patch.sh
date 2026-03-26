@@ -22,7 +22,7 @@ FIELDS='{external_channel_id: $c'
 [ -n "$DESCRIPTION" ] && ARGS+=(--arg d "$DESCRIPTION") && FIELDS="$FIELDS, description: \$d"
 FIELDS="$FIELDS}"
 
-RES=$(curl -s -X PATCH "${BASE_URL}/admin/valuable" \
+RES=$(curl -s -X PATCH "${BASE_URL}/api/admin/valuable" \
   -H "Authorization: Bearer ${ADMIN_API_KEY}" \
   -H "Content-Type: application/json" \
   -d "$(jq -n "${ARGS[@]}" "$FIELDS")")

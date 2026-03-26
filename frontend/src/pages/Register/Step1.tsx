@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { languages } from "../../constants";
+import { Icon } from "../../components/Icon";
 
 interface Step1Props {
   displayName: string;
@@ -38,14 +39,14 @@ export default function Step1({ displayName, setDisplayName, languageCode, setLa
       </div>
 
       {/* Card */}
-      <div class="bg-white dark:bg-[#2a2721] rounded-2xl shadow-xl border border-gray-100 dark:border-neutral-800 p-8 md:p-10 relative overflow-hidden">
+      <div class="bg-white dark:bg-[#2a2721] rounded-2xl border border-gray-100 dark:border-neutral-800 p-8 md:p-10 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
 
         <form class="space-y-10" onSubmit={handleSubmit}>
           {/* Display Name */}
           <div class="space-y-4">
             <div class="flex items-center gap-3 mb-2">
-              <div class="flex items-center justify-center size-8 rounded-full bg-background-light dark:bg-neutral-800 text-charcoal dark:text-white font-bold border border-gray-200 dark:border-neutral-700 shadow-sm text-sm">
+              <div class="flex items-center justify-center size-8 rounded-full bg-background-light dark:bg-neutral-800 text-charcoal dark:text-white font-bold border border-gray-200 dark:border-neutral-700 text-sm">
                 1
               </div>
               <label class="text-lg font-bold text-charcoal dark:text-white" for="display-name">
@@ -56,7 +57,7 @@ export default function Step1({ displayName, setDisplayName, languageCode, setLa
               <input
                 id="display-name"
                 type="text"
-                class="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all shadow-sm"
+                class="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                 placeholder={t("register.profileDetails.displayNamePlaceholder")}
                 value={displayName}
                 onInput={(e) => setDisplayName((e.target as HTMLInputElement).value)}
@@ -78,7 +79,7 @@ export default function Step1({ displayName, setDisplayName, languageCode, setLa
           {/* Content Language */}
           <div class="space-y-4">
             <div class="flex items-center gap-3 mb-2">
-              <div class="flex items-center justify-center size-8 rounded-full bg-background-light dark:bg-neutral-800 text-charcoal dark:text-white font-bold border border-gray-200 dark:border-neutral-700 shadow-sm text-sm">
+              <div class="flex items-center justify-center size-8 rounded-full bg-background-light dark:bg-neutral-800 text-charcoal dark:text-white font-bold border border-gray-200 dark:border-neutral-700 text-sm">
                 2
               </div>
               <label class="text-lg font-bold text-charcoal dark:text-white" for="language-select">
@@ -87,12 +88,10 @@ export default function Step1({ displayName, setDisplayName, languageCode, setLa
             </div>
             <div class="ml-11">
               <div class="relative">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-taupe">
-                  translate
-                </span>
+                <Icon name="translate" class="absolute left-4 top-1/2 -translate-y-1/2   text-taupe" />
                 <select
                   id="language-select"
-                  class="w-full pl-12 pr-10 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none appearance-none transition-all shadow-sm cursor-pointer"
+                  class="w-full pl-12 pr-10 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none appearance-none transition-all cursor-pointer"
                   value={languageCode}
                   onChange={(e) => setLanguageCode((e.target as HTMLSelectElement).value)}
                 >
@@ -102,9 +101,7 @@ export default function Step1({ displayName, setDisplayName, languageCode, setLa
                     </option>
                   ))}
                 </select>
-                <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-taupe pointer-events-none">
-                  expand_more
-                </span>
+                <Icon name="expand_more" class="absolute right-4 top-1/2 -translate-y-1/2   text-taupe pointer-events-none" />
               </div>
               <p class="mt-2 text-xs text-taupe">
                 {t("register.profileDetails.contentLanguageHint")}
@@ -120,9 +117,7 @@ export default function Step1({ displayName, setDisplayName, languageCode, setLa
               class="w-full sm:w-auto px-8 py-3.5 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border-none"
             >
               <span>{t("register.continue")}</span>
-              <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">
-                arrow_forward
-              </span>
+              <Icon name="arrow_forward" class="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
         </form>

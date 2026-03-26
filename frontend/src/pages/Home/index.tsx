@@ -7,14 +7,15 @@ import { useAuth } from "../../contexts/AuthContext";
 import { modeIcons, modeOrder, languages } from "../../constants";
 import { GoogleIcon } from "./GoogleIcon";
 import { GithubIcon } from "./GithubIcon";
+import { Icon } from "../../components/Icon";
 
 function DashboardPreview({ t }: { t: (key: string) => string }) {
   return (
-    <div class="animate-fade-in-up relative w-[90%] max-w-4xl bg-white dark:bg-[#151515] rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
+    <div class="animate-fade-in-up relative w-[90%] max-w-4xl bg-white dark:bg-[#151515] rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
       <div class="p-8 bg-slate-50/50 dark:bg-[#0f0f0f]">
         <div class="grid grid-cols-2 gap-6">
           {/* Allowance card */}
-          <div class="col-span-2 bg-white dark:bg-[#1a1a1a] p-6 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm flex items-center justify-between">
+          <div class="col-span-2 bg-white dark:bg-[#1a1a1a] p-6 rounded-xl border border-slate-200 dark:border-white/5 flex items-center justify-between">
             <div>
               <h3 class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
                 {t("home.dailyAllowance")}
@@ -42,14 +43,12 @@ function DashboardPreview({ t }: { t: (key: string) => string }) {
                   stroke-width="4"
                 />
               </svg>
-              <span class="material-symbols-outlined absolute text-primary text-xl">
-                timer
-              </span>
+              <Icon name="timer" class="absolute text-primary text-xl" />
             </div>
           </div>
 
           {/* Chart card */}
-          <div class="bg-white dark:bg-[#1a1a1a] p-6 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
+          <div class="bg-white dark:bg-[#1a1a1a] p-6 rounded-xl border border-slate-200 dark:border-white/5">
             <h3 class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-4">
               {t("home.watchTime")}
             </h3>
@@ -99,7 +98,7 @@ function DashboardPreview({ t }: { t: (key: string) => string }) {
           </div>
 
           {/* Whitelist card */}
-          <div class="bg-white dark:bg-[#1a1a1a] p-6 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
+          <div class="bg-white dark:bg-[#1a1a1a] p-6 rounded-xl border border-slate-200 dark:border-white/5">
             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 mb-4">
               {t("home.whitelist")}
             </h3>
@@ -117,7 +116,7 @@ function DashboardPreview({ t }: { t: (key: string) => string }) {
                 icon="https://yt3.googleusercontent.com/5iu-BPHEqMoHn2GOFBp_DYxRDZNFE6aOtOBIOHagsUWfbnhDf5W9izHd8y-ciah6qk2vjOdxOA=s88-c-k-c0x00ffffff-no-rj"
               />
               <div class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium">
-                <span class="material-symbols-outlined text-[18px]">add</span>
+                <Icon name="add" class="text-[18px]" />
                 <span>{t("dashboard.requestChannel")}</span>
               </div>
             </div>
@@ -138,7 +137,7 @@ function WhitelistItem({
   return (
     <div class="flex items-center gap-3 px-3 py-2 rounded-lg">
       <div class="size-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden shrink-0">
-        <img alt={name} class="w-full h-full object-cover" src={icon} />
+        <img alt={name} loading="lazy" class="w-full h-full object-cover" src={icon} />
       </div>
       <span class="text-sm font-medium text-slate-700 dark:text-white truncate">
         {name}
@@ -189,7 +188,7 @@ export default function Home() {
       {/* Session expired banner */}
       {showExpiredBanner && (
         <div class="flex items-center justify-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-sm font-medium">
-          <span class="material-symbols-outlined text-base">warning</span>
+          <Icon name="warning" class="text-base" />
           {t("home.sessionExpired")}
         </div>
       )}
@@ -205,9 +204,7 @@ export default function Home() {
             title={t(`common.colorMode.${nextMode}`)}
             aria-label={`${t(`common.colorMode.${mode}`)} → ${t(`common.colorMode.${nextMode}`)}`}
           >
-            <span class="material-symbols-outlined text-xl">
-              {modeIcons[mode]}
-            </span>
+            <Icon name={modeIcons[mode]} class="text-xl" />
           </button>
           <div class="relative" ref={langRef}>
             <button
@@ -217,10 +214,10 @@ export default function Home() {
               aria-expanded={langOpen}
               aria-haspopup="true"
             >
-              <span class="material-symbols-outlined text-xl">translate</span>
+              <Icon name="translate" class="text-xl" />
             </button>
             {langOpen && (
-              <div role="menu" class="absolute right-0 top-full mt-2 py-2 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-xl border border-slate-200 dark:border-white/10 min-w-[180px] z-50">
+              <div role="menu" class="absolute right-0 top-full mt-2 py-2 bg-white dark:bg-[#1a1a1a] rounded-xl ring-1 ring-black/5 dark:ring-white/5 border border-slate-200 dark:border-white/10 min-w-[180px] z-50">
                 {languages.map((lang) => (
                   <button
                     role="menuitem"
@@ -236,9 +233,7 @@ export default function Home() {
                       setLangOpen(false);
                     }}
                   >
-                    <span class={`material-symbols-outlined text-base ${currentLang === lang.code ? "opacity-100" : "opacity-0"}`}>
-                      check
-                    </span>
+                    <Icon name="check" class={`text-base ${currentLang === lang.code ? "opacity-100" : "opacity-0"}`} />
                     {lang.label}
                   </button>
                 ))}
@@ -275,7 +270,7 @@ export default function Home() {
               {isAuthenticated ? (
                 <a
                   href="/dashboard"
-                  class="flex w-full sm:w-auto items-center justify-center rounded-xl bg-primary px-8 py-4 text-base font-bold text-white hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl no-underline cursor-pointer"
+                  class="flex w-full sm:w-auto items-center justify-center rounded-xl bg-primary px-8 py-4 text-base font-bold text-white hover:bg-primary/90 transition-all hover:-translate-y-0.5 no-underline cursor-pointer"
                 >
                   {t("home.dashboard")}
                 </a>
@@ -284,7 +279,7 @@ export default function Home() {
                   onClick={() => {
                     window.location.href = "/api/v1/auth/google";
                   }}
-                  class="flex w-full sm:w-auto items-center justify-center gap-3 rounded-xl bg-white dark:bg-[#242424] px-8 py-4 text-base font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-primary/50 dark:hover:border-primary/50 transition-all shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
+                  class="flex w-full sm:w-auto items-center justify-center gap-3 rounded-xl bg-white dark:bg-[#242424] px-8 py-4 text-base font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-primary/50 dark:hover:border-primary/50 transition-all hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
                 >
                   <GoogleIcon />
                   <span>{t("home.signInWithGoogle")}</span>
@@ -316,7 +311,7 @@ export default function Home() {
         {/* Right panel */}
         <div class="hidden lg:flex lg:w-[55%] h-full relative items-center justify-center overflow-hidden bg-slate-100 dark:bg-[#0c0c0c]">
           <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(208,187,149,0.2),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(208,187,149,0.1),transparent_70%)]" />
-          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px]" />
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,_var(--color-primary)_0%,_transparent_70%)] opacity-5" />
           <DashboardPreview t={t} />
         </div>
       </div>

@@ -106,7 +106,9 @@ export function useYouTubePlayer({
   const [duration, setDuration] = useState(0);
   const [volume, setVolumeState] = useState(() => loadPreference(STORAGE_KEY_VOLUME, 100));
   const [isMuted, setIsMuted] = useState(() => loadPreference(STORAGE_KEY_MUTED, false));
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const currentTimeRef = useRef(0);
+  const lastRenderedSecondRef = useRef(-1);
   const loadedVideoIdRef = useRef("");
   const videoIdRef = useRef(videoId);
   videoIdRef.current = videoId;
@@ -117,21 +119,29 @@ export function useYouTubePlayer({
   const onStateChangeRef = useRef(onStateChange);
   onStateChangeRef.current = onStateChange;
 
-  // Sync time periodically while playing
+  // Sync time via rAF while playing (state updates only when displayed second changes)
   const startTimeSync = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    const tick = () => {
       const p = playerRef.current;
       if (p?.getCurrentTime) {
-        setCurrentTime(p.getCurrentTime());
+        const t = p.getCurrentTime();
+        currentTimeRef.current = t;
+        const sec5 = Math.floor(t / 5);
+        if (sec5 !== lastRenderedSecondRef.current) {
+          lastRenderedSecondRef.current = sec5;
+          setCurrentTime(t);
+        }
       }
-    }, 250);
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
   }, []);
 
   const stopTimeSync = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
     }
   }, []);
 
@@ -275,6 +285,8 @@ export function useYouTubePlayer({
 
   const seekTo = useCallback((seconds: number) => {
     playerRef.current?.seekTo(seconds, true);
+    currentTimeRef.current = seconds;
+    lastRenderedSecondRef.current = Math.floor(seconds);
     setCurrentTime(seconds);
   }, []);
 
@@ -308,6 +320,7 @@ export function useYouTubePlayer({
     loadError,
     playerState,
     currentTime,
+    currentTimeRef,
     duration,
     volume,
     isMuted,
