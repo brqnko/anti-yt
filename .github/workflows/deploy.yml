@@ -22,6 +22,5 @@ jobs:
           script: |
             cd ~/anti-yt
             git pull origin main
-            docker compose up -d --build backend frontend
+            docker compose up -d --build
             docker wait anti-yt-frontend-1
-            docker compose exec nginx nginx -s reload
