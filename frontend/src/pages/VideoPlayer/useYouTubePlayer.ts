@@ -143,12 +143,46 @@ export function useYouTubePlayer({
     let cancelled = false;
 
     setLoadError(false);
-    const initialVideoId = videoIdRef.current;
-    loadIframeAPI().then(() => {
+
+    // Wait for the container element to exist in the DOM.
+    // The VideoPlayer component conditionally renders the container div
+    // (hidden behind a loading spinner until video data loads), so the
+    // element may not be present when this effect first runs.
+    function waitForContainer(): Promise<void> {
+      return new Promise((resolve, reject) => {
+        if (document.getElementById(containerId)) {
+          resolve();
+          return;
+        }
+        let elapsed = 0;
+        const interval = 100;
+        const maxWait = 15_000;
+        const timer = setInterval(() => {
+          if (cancelled) {
+            clearInterval(timer);
+            reject(new Error("cancelled"));
+            return;
+          }
+          elapsed += interval;
+          if (document.getElementById(containerId)) {
+            clearInterval(timer);
+            resolve();
+          } else if (elapsed >= maxWait) {
+            clearInterval(timer);
+            reject(new Error("Container element not found"));
+          }
+        }, interval);
+      });
+    }
+
+    Promise.all([loadIframeAPI(), waitForContainer()]).then(() => {
       if (cancelled) return;
 
+      // Re-read the latest videoId — the ref may have been updated while
+      // we were waiting for the iframe API and/or container element.
+      const currentVideoId = videoIdRef.current;
       const player = new window.YT.Player(containerId, {
-        videoId: initialVideoId || undefined,
+        videoId: currentVideoId || undefined,
         playerVars: {
           autoplay: 1,
           modestbranding: 1,
@@ -163,7 +197,7 @@ export function useYouTubePlayer({
             if (cancelled) return;
             setIsReady(true);
             setDuration(player.getDuration());
-            loadedVideoIdRef.current = initialVideoId;
+            loadedVideoIdRef.current = currentVideoId;
 
             // Restore saved volume & mute preferences
             const savedVolume = loadPreference(STORAGE_KEY_VOLUME, 100);
@@ -230,7 +264,7 @@ export function useYouTubePlayer({
   const pause = useCallback(() => playerRef.current?.pauseVideo(), []);
   const togglePlay = useCallback(() => {
     const p = playerRef.current;
-    if (!p) return;
+    if (!p || typeof p.getPlayerState !== "function") return;
     const state = p.getPlayerState();
     if (state === PlayerState.PLAYING) {
       p.pauseVideo();

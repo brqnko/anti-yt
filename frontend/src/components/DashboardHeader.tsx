@@ -1,7 +1,6 @@
 import { useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
-import { Logo } from "./Logo";
 
 export function DashboardHeader({
   sidebarOpen = false,
@@ -38,7 +37,9 @@ export function DashboardHeader({
             <span class="material-symbols-outlined text-2xl">menu</span>
           </button>
         )}
-        <Logo />
+        <a href="/dashboard" class="no-underline text-charcoal dark:text-white">
+          <span class="text-xl font-bold tracking-tight">anti-yt</span>
+        </a>
       </div>
 
       <form

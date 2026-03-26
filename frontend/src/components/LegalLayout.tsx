@@ -17,13 +17,8 @@ export function LegalLayout({ children }: { children: ComponentChildren }) {
       {/* Header */}
       <header class="border-b border-[#f0eeea] dark:border-[#3d372e] bg-[#fbfaf9]/80 dark:bg-[#1d1a15]/80 backdrop-blur-md sticky top-0 z-50">
         <div class="max-w-[1000px] mx-auto px-6 py-4 flex items-center justify-between">
-          <a href="/" class="flex items-center gap-4 no-underline text-inherit">
-            <span class="material-symbols-outlined text-3xl text-primary">
-              timelapse
-            </span>
-            <h2 class="text-xl font-bold leading-tight tracking-tight m-0">
-              anti-yt
-            </h2>
+          <a href="/" class="no-underline text-inherit">
+            <span class="text-xl font-bold tracking-tight">anti-yt</span>
           </a>
           <nav class="flex items-center gap-6">
             {navLinks.map((link) => (

@@ -435,7 +435,7 @@ func NewService(ctx context.Context, apiKey string) (_ Service, err error) {
 		feedParser:      feedParser,
 		lastCheckedDay:  quotaDate().Add(24 * time.Hour),
 		consumedQuota:   0,
-		dailyQuotaLimit: 100,
+		dailyQuotaLimit: 10000,
 	}, nil
 }
 

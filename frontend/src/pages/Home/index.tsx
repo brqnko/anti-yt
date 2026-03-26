@@ -5,7 +5,6 @@ import { useTitle } from "../../hooks/useTitle";
 import { useColorMode } from "../../hooks/useColorMode";
 import { useAuth } from "../../contexts/AuthContext";
 import { modeIcons, modeOrder, languages } from "../../constants";
-import { Logo } from "../../components/Logo";
 import { GoogleIcon } from "./GoogleIcon";
 import { GithubIcon } from "./GithubIcon";
 
@@ -196,7 +195,9 @@ export default function Home() {
       )}
       {/* Header */}
       <header class="flex items-center justify-between py-4 px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 z-30 bg-slate-100 dark:bg-[#0c0c0c] border-b border-slate-200 dark:border-white/5">
-        <Logo />
+        <a href="/" class="no-underline text-charcoal dark:text-white">
+          <span class="text-xl font-bold tracking-tight">anti-yt</span>
+        </a>
         <div class="flex items-center gap-2">
           <button
             class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-200/60 dark:bg-white/10 hover:bg-slate-300/60 dark:hover:bg-white/20 transition-colors cursor-pointer text-slate-600 dark:text-slate-300"

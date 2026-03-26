@@ -576,12 +576,11 @@ function VideoPlayerContent() {
 
             {/* Video info */}
             <div class="mt-8">
-              <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-border-light dark:border-border-dark">
-                <div class="space-y-4 flex-1">
-                  <h1 class="text-3xl font-extrabold leading-tight tracking-tight">
-                    {video.external_video_title}
-                  </h1>
-                  <div class="flex items-center gap-4">
+              <h1 class="text-xl font-bold leading-tight tracking-tight">
+                {video.external_video_title}
+              </h1>
+              <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 mt-4 pb-6 border-b border-border-light dark:border-border-dark">
+                <div class="flex items-center gap-4">
                     <a
                       href={`/channels/${video.channel_id}`}
                       class="size-12 rounded-full bg-cover bg-center border-2 border-primary/20 overflow-hidden block flex-shrink-0"
@@ -607,7 +606,6 @@ function VideoPlayerContent() {
                       </p>
                     </div>
                   </div>
-                </div>
                 <button
                   class="flex items-center gap-2 h-10 px-4 rounded-lg bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white font-semibold text-sm transition-all cursor-pointer shadow-sm hover:shadow-md flex-shrink-0 self-end"
                   onClick={openPlaylistDialog}
