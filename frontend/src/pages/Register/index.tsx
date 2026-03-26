@@ -62,7 +62,7 @@ export default function Register() {
   };
 
   return (
-    <div class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display text-charcoal dark:text-gray-100 transition-colors duration-200">
+    <div class="bg-background-light dark:bg-background-dark min-h-dvh flex flex-col font-display text-charcoal dark:text-gray-100 transition-colors duration-200">
       <main class="flex-grow w-full flex items-center justify-center px-4 sm:px-6 py-24">
         <div class="w-full max-w-2xl">
           {step === 1 ? (

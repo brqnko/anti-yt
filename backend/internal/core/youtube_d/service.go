@@ -370,6 +370,7 @@ func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToke
 	call := s.ytClient.Search.List([]string{"id"}).
 		Q(query).
 		Type("video").
+		VideoDuration("medium").
 		MaxResults(50).
 		Context(ctx)
 	if pageToken != "" {

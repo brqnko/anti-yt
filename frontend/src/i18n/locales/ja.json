@@ -95,10 +95,8 @@
       "title": "プロフィール情報",
       "subtitle": "まずは基本情報を設定しましょう。",
       "displayName": "表示名",
-      "displayNamePlaceholder": "例: 田中太郎",
-      "displayNameHint": "デイリーレポートでこの名前が使われます。",
-      "contentLanguage": "コンテンツの言語",
-      "contentLanguageHint": "この言語の教育コンテンツが優先的に表示されます。"
+      "displayNamePlaceholder": "例: ねこすきー",
+      "contentLanguage": "コンテンツの言語"
     },
     "restrictions": {
       "title": "初期制限",
@@ -133,7 +131,12 @@
       "history": "履歴",
       "settings": "設定",
       "sidebar": "サイドバーナビゲーション",
-      "mainNav": "メインナビゲーション"
+      "mainNav": "メインナビゲーション",
+      "bottomFeed": "フィード",
+      "bottomChannels": "チャンネル",
+      "bottomPlaylists": "再生リスト",
+      "bottomAnalytics": "分析",
+      "bottomProfile": "プロフィール"
     },
     "whitelistedChannels": "登録チャンネル",
     "requestChannel": "チャンネルを追加",
@@ -191,7 +194,7 @@
     }
   },
   "restrictions": {
-    "title": "制限設定",
+    "title": "制限",
     "subtitle": "使用制限とコンテンツフィルターを管理します。",
     "timeUsedToday": "今日の使用時間",
     "remaining": "残り",
@@ -228,16 +231,16 @@
   },
   "profile": {
     "pageTitle": "プロフィール",
-    "title": "プロフィール設定",
+    "title": "プロフィール",
     "subtitle": "アカウント情報とセキュリティを管理します。",
     "nav": {
       "restrictions": "制限設定",
-      "profileSettings": "プロフィール設定",
+      "profileSettings": "プロフィール",
       "security": "セキュリティ",
       "signOut": "ログアウト",
       "reportProblem": "問題を報告"
     },
-    "accountDetails": "アカウント情報",
+    "accountDetails": "アカウント",
     "displayName": "表示名",
     "displayNamePlaceholder": "あなたの名前",
     "language": "言語",
@@ -249,13 +252,14 @@
     "deleteAccountDesc": "アカウントを削除すると元に戻すことはできません。すべてのデータ、制限履歴、設定が完全に消去されます。",
     "deleteConfirmTitle": "アカウントを削除しますか？",
     "deleteConfirmDesc": "この操作は取り消せません。すべてのデータが完全に削除されます。",
+    "deleteConfirmInputLabel": "確認のため「Delete my account」と入力してください",
     "deleteConfirm": "完全に削除",
     "logoutConfirmTitle": "ログアウトしますか？",
     "logoutConfirmDesc": "アカウントからログアウトしてもよろしいですか？",
     "cancel": "キャンセル"
   },
   "security": {
-    "title": "セキュリティとセッション",
+    "title": "セキュリティ",
     "subtitle": "アクティブなセッションを管理して、アカウントを安全に保ちましょう。",
     "currentSession": "現在のセッション",
     "activeNow": "アクティブ",
@@ -287,9 +291,9 @@
     "colorModeDesc": "アプリケーションの表示テーマを選択します。"
   },
   "channelDetail": {
-    "pageTitle": "チャンネル詳細",
+    "pageTitle": "チャンネル",
     "backToDashboard": "ダッシュボード",
-    "channelDetails": "チャンネル詳細",
+    "channelDetails": "チャンネル",
     "subscribers": "登録者",
     "whitelistChannel": "チャンネルを許可",
     "whitelistDesc": "フィードに表示を許可する",
@@ -309,7 +313,7 @@
     "saveNote": "ノートを保存",
     "curatedPlaylist": "キュレーションプレイリスト",
     "viewPlaylist": "プレイリストを見る",
-    "addToPlaylist": "プレイリストに追加",
+    "addToPlaylist": "保存",
     "noPlaylists": "プレイリストがありません。",
     "remaining": "今日の残り",
     "mindfulMode": "マインドフルモード有効",
@@ -328,7 +332,7 @@
   },
   "analytics": {
     "pageTitle": "アナリティクス",
-    "title": "あなたのデジタルウェルネス",
+    "title": "アナリティクス",
     "timeWasted": "視聴時間",
     "dailyAverage": "1日の平均",
     "goalProgress": "目標達成度",
@@ -376,8 +380,8 @@
   },
   "playlists": {
     "pageTitle": "プレイリスト",
-    "title": "マイキュレーションライブラリ",
-    "createNew": "新しいプレイリストを作成",
+    "title": "再生リスト",
+    "createNew": "新規作成",
     "videoCount": "{{count}}本の動画",
     "lastUpdated": "最終更新: {{time}}",
     "createdAt": "作成日: {{time}}",
@@ -426,7 +430,7 @@
   },
   "explore": {
     "pageTitle": "チャンネルを探す",
-    "title": "有益なチャンネルを探す",
+    "title": "チャンネルを探す",
     "allCategories": "すべてのカテゴリ",
     "allCategoriesDesc": "厳選された有益なチャンネルを探索しましょう。",
     "addToWhitelist": "ホワイトリストに追加",

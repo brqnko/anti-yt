@@ -201,6 +201,8 @@ func run(ctx context.Context) int {
 		return 1
 	}
 
+	slog.Info("graceful shutdown ok")
+
 	return 0
 }
 

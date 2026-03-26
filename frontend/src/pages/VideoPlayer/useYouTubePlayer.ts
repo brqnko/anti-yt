@@ -119,23 +119,22 @@ export function useYouTubePlayer({
   const onStateChangeRef = useRef(onStateChange);
   onStateChangeRef.current = onStateChange;
 
-  // Sync time via rAF while playing (state updates only when displayed second changes)
-  const startTimeSync = useCallback(() => {
-    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    const tick = () => {
-      const p = playerRef.current;
-      if (p?.getCurrentTime) {
-        const t = p.getCurrentTime();
-        currentTimeRef.current = t;
-        const sec5 = Math.floor(t / 5);
-        if (sec5 !== lastRenderedSecondRef.current) {
-          lastRenderedSecondRef.current = sec5;
-          setCurrentTime(t);
-        }
+  // Sync time while playing.
+  // Two modes: rAF (high-frequency, for visible progress bar) and interval (low-frequency fallback).
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const highFreqRef = useRef(false);
+
+  const syncTick = useCallback(() => {
+    const p = playerRef.current;
+    if (p?.getCurrentTime) {
+      const t = p.getCurrentTime();
+      currentTimeRef.current = t;
+      const sec5 = Math.floor(t / 5);
+      if (sec5 !== lastRenderedSecondRef.current) {
+        lastRenderedSecondRef.current = sec5;
+        setCurrentTime(t);
       }
-      rafRef.current = requestAnimationFrame(tick);
-    };
-    rafRef.current = requestAnimationFrame(tick);
+    }
   }, []);
 
   const stopTimeSync = useCallback(() => {
@@ -143,7 +142,36 @@ export function useYouTubePlayer({
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    highFreqRef.current = false;
   }, []);
+
+  const startTimeSync = useCallback((highFreq: boolean) => {
+    stopTimeSync();
+    if (highFreq) {
+      highFreqRef.current = true;
+      const tick = () => {
+        syncTick();
+        rafRef.current = requestAnimationFrame(tick);
+      };
+      rafRef.current = requestAnimationFrame(tick);
+    } else {
+      highFreqRef.current = false;
+      syncTick();
+      intervalRef.current = setInterval(syncTick, 1000);
+    }
+  }, [syncTick, stopTimeSync]);
+
+  // Allow the parent to switch between high-freq (rAF) and low-freq (interval) sync
+  const setHighFreqSync = useCallback((enabled: boolean) => {
+    // Only switch if currently syncing and mode actually changed
+    if (rafRef.current === null && intervalRef.current === null) return;
+    if (enabled === highFreqRef.current) return;
+    startTimeSync(enabled);
+  }, [startTimeSync]);
 
   // Create the player once per container. Video changes are handled by a
   // separate effect that calls loadVideoById so the player instance (and its
@@ -231,7 +259,7 @@ export function useYouTubePlayer({
 
             if (state === PlayerState.PLAYING) {
               setDuration(player.getDuration());
-              startTimeSync();
+              startTimeSync(false);
             } else {
               stopTimeSync();
               if (player.getCurrentTime) {
@@ -330,5 +358,6 @@ export function useYouTubePlayer({
     seekTo,
     setVolume,
     toggleMute,
+    setHighFreqSync,
   };
 }

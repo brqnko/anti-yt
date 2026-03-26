@@ -95,10 +95,8 @@
       "title": "Profile Details",
       "subtitle": "Personalize your experience to get started.",
       "displayName": "Display Name",
-      "displayNamePlaceholder": "e.g. Alex Student",
-      "displayNameHint": "This is how we'll address you in your daily reports.",
-      "contentLanguage": "Content Language",
-      "contentLanguageHint": "We will prioritize educational content in this language."
+      "displayNamePlaceholder": "e.g. CoolCat42",
+      "contentLanguage": "Content Language"
     },
     "restrictions": {
       "title": "Initial Restrictions",
@@ -133,7 +131,12 @@
       "history": "History",
       "settings": "Settings",
       "sidebar": "Sidebar navigation",
-      "mainNav": "Main navigation"
+      "mainNav": "Main navigation",
+      "bottomFeed": "Feed",
+      "bottomChannels": "Channels",
+      "bottomPlaylists": "Playlist",
+      "bottomAnalytics": "Analytics",
+      "bottomProfile": "Profile"
     },
     "whitelistedChannels": "Whitelisted Channels",
     "requestChannel": "Request Channel",
@@ -191,7 +194,7 @@
     }
   },
   "restrictions": {
-    "title": "Restriction Settings",
+    "title": "Restrictions",
     "subtitle": "Manage your usage controls and content filters.",
     "timeUsedToday": "Time Used Today",
     "remaining": "remaining",
@@ -228,16 +231,16 @@
   },
   "profile": {
     "pageTitle": "Profile",
-    "title": "Profile Settings",
+    "title": "Profile",
     "subtitle": "Manage your identity and account security.",
     "nav": {
       "restrictions": "Restrictions",
-      "profileSettings": "Profile Settings",
+      "profileSettings": "Profile",
       "security": "Security",
       "signOut": "Sign Out",
       "reportProblem": "Report a Problem"
     },
-    "accountDetails": "Account Details",
+    "accountDetails": "Account",
     "displayName": "Display Name",
     "displayNamePlaceholder": "Your name",
     "language": "Language",
@@ -249,13 +252,14 @@
     "deleteAccountDesc": "Once you delete your account, there is no going back. All your data, restriction history, and preferences will be permanently erased.",
     "deleteConfirmTitle": "Delete Account?",
     "deleteConfirmDesc": "This action cannot be undone. All your data will be permanently deleted.",
+    "deleteConfirmInputLabel": "Type \"Delete my account\" to confirm",
     "deleteConfirm": "Delete Forever",
     "logoutConfirmTitle": "Sign Out?",
     "logoutConfirmDesc": "Are you sure you want to sign out of your account?",
     "cancel": "Cancel"
   },
   "security": {
-    "title": "Security & Sessions",
+    "title": "Security",
     "subtitle": "Manage your active sessions to keep your account safe.",
     "currentSession": "Current Session",
     "activeNow": "Active Now",
@@ -287,9 +291,9 @@
     "colorModeDesc": "Choose the display theme for the application."
   },
   "channelDetail": {
-    "pageTitle": "Channel Details",
+    "pageTitle": "Channel",
     "backToDashboard": "Dashboard",
-    "channelDetails": "Channel Details",
+    "channelDetails": "Channel",
     "subscribers": "Subscribers",
     "whitelistChannel": "Whitelist Channel",
     "whitelistDesc": "Allow into your feed",
@@ -309,7 +313,7 @@
     "saveNote": "Save Note",
     "curatedPlaylist": "Curated Playlist",
     "viewPlaylist": "View Full Playlist",
-    "addToPlaylist": "Add to Playlist",
+    "addToPlaylist": "Save",
     "noPlaylists": "No playlists yet.",
     "remaining": "Today's remaining",
     "mindfulMode": "Mindful Mode Active",
@@ -328,7 +332,7 @@
   },
   "analytics": {
     "pageTitle": "Analytics",
-    "title": "Your Digital Wellness",
+    "title": "Analytics",
     "timeWasted": "Time Watched",
     "dailyAverage": "Daily Average",
     "goalProgress": "Goal Progress",
@@ -376,8 +380,8 @@
   },
   "playlists": {
     "pageTitle": "Playlists",
-    "title": "My Curated Library",
-    "createNew": "Create New Playlist",
+    "title": "Playlists",
+    "createNew": "New Playlist",
     "videoCount_one": "{{count}} video",
     "videoCount_other": "{{count}} videos",
     "lastUpdated": "Last updated {{time}}",
@@ -427,7 +431,7 @@
   },
   "explore": {
     "pageTitle": "Explore Channels",
-    "title": "Explore Valuable Channels",
+    "title": "Explore Channels",
     "allCategories": "All Categories",
     "allCategoriesDesc": "Explore a curated mix of all valuable channels.",
     "addToWhitelist": "Add to Whitelist",

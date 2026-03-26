@@ -114,7 +114,7 @@ export default function ScreenTimeBlock({
   useTitle(t("screenTimeBlock.pageTitle"));
 
   return (
-    <div class="min-h-screen bg-background-light dark:bg-background-dark flex flex-col items-center justify-center px-6 py-12">
+    <div class="min-h-dvh bg-background-light dark:bg-background-dark flex flex-col items-center justify-center px-6 py-12">
       {/* Header */}
       <div class="text-center mb-10">
         <div class="inline-flex items-center justify-center size-16 rounded-full bg-primary/10 mb-4">

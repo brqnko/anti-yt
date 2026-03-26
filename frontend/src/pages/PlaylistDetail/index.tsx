@@ -22,11 +22,15 @@ import type {
 function useEscapeKey(open: boolean, onClose: () => void) {
   useEffect(() => {
     if (!open) return;
+    document.body.style.overflow = "hidden";
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [open, onClose]);
 }
 
