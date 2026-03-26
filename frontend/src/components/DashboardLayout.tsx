@@ -96,7 +96,7 @@ export function DashboardLayout({
             fixed top-[57px] bottom-0 z-40 bg-background-light dark:bg-background-dark
             lg:relative lg:top-auto lg:bottom-auto lg:z-auto
             ${sidebarOpen
-              ? "w-64 opacity-100 translate-x-0 overflow-y-auto"
+              ? "w-64 opacity-100 translate-x-0 overflow-y-auto overflow-x-hidden"
               : "w-0 opacity-0 -translate-x-full lg:translate-x-0 overflow-hidden"
             }`}
           role="navigation"

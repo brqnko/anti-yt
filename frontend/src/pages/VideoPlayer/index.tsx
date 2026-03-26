@@ -45,10 +45,12 @@ function VideoPlayerContent() {
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(false);
   const [isSeeking, setIsSeeking] = useState(false);
-  const [seekProgress, setSeekProgress] = useState<number | null>(null);
 
   const playerWrapperRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
+  const progressFillRef = useRef<HTMLDivElement>(null);
+  const progressKnobRef = useRef<HTMLDivElement>(null);
+  const isSeekingRef = useRef(false);
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const descRef = useRef<HTMLDivElement>(null);
   const [descOverflows, setDescOverflows] = useState(false);
@@ -75,7 +77,6 @@ function VideoPlayerContent() {
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
 
   // Refs for values used in keyboard handler / cleanup to avoid stale closures
-  const currentTimeRef = useRef(0);
   const durationRef = useRef(0);
   const volumeRef = useRef(100);
 
@@ -215,6 +216,7 @@ function VideoPlayerContent() {
     loadError,
     playerState,
     currentTime,
+    currentTimeRef,
     duration,
     volume,
     isMuted,
@@ -236,10 +238,30 @@ function VideoPlayerContent() {
     }
   }, [isReady, seekTo]);
 
+  // rAF-driven progress bar update (avoids per-frame re-renders)
+  useEffect(() => {
+    if (!isReady || !duration) return;
+    let raf: number;
+    const tick = () => {
+      if (!isSeekingRef.current) {
+        const progress = Math.min(currentTimeRef.current / duration, 1);
+        if (progressFillRef.current) {
+          progressFillRef.current.style.transform = `scaleX(${progress})`;
+        }
+        if (progressKnobRef.current) {
+          progressKnobRef.current.style.left = `${progress * 100}%`;
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [isReady, duration, currentTimeRef]);
+
   // Keep refs in sync with latest values
-  currentTimeRef.current = currentTime;
   durationRef.current = duration;
   volumeRef.current = volume;
+  isSeekingRef.current = isSeeking;
 
   const { remainingSeconds } = useHeartbeat({
     videoId: video?.video_id ?? null,
@@ -363,7 +385,10 @@ function VideoPlayerContent() {
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       setIsSeeking(true);
       const ratio = calcSeekRatio(e.clientX);
-      if (ratio !== null) setSeekProgress(ratio * 100);
+      if (ratio !== null) {
+        if (progressFillRef.current) progressFillRef.current.style.transform = `scaleX(${ratio})`;
+        if (progressKnobRef.current) progressKnobRef.current.style.left = `${ratio * 100}%`;
+      }
     },
     [duration, calcSeekRatio],
   );
@@ -372,7 +397,10 @@ function VideoPlayerContent() {
     (e: PointerEvent) => {
       if (!isSeeking || !duration) return;
       const ratio = calcSeekRatio(e.clientX);
-      if (ratio !== null) setSeekProgress(ratio * 100);
+      if (ratio !== null) {
+        if (progressFillRef.current) progressFillRef.current.style.transform = `scaleX(${ratio})`;
+        if (progressKnobRef.current) progressKnobRef.current.style.left = `${ratio * 100}%`;
+      }
     },
     [isSeeking, duration, calcSeekRatio],
   );
@@ -385,13 +413,11 @@ function VideoPlayerContent() {
       const ratio = calcSeekRatio(e.clientX);
       if (ratio !== null) {
         seekTo(ratio * duration);
-        setSeekProgress(null);
       }
     },
     [isSeeking, duration, calcSeekRatio, seekTo],
   );
 
-  const displayProgress = seekProgress ?? (duration > 0 ? (currentTime / duration) * 100 : 0);
   const isPlaying = playerState === PlayerState.PLAYING;
 
   if (isLoading) {
@@ -507,12 +533,14 @@ function VideoPlayerContent() {
                     onPointerUp={handleProgressPointerUp}
                   >
                     <div
-                      class="absolute inset-y-0 left-0 bg-primary rounded-full transition-[width] duration-100"
-                      style={{ width: `${displayProgress}%` }}
+                      ref={progressFillRef}
+                      class="absolute inset-y-0 left-0 w-full bg-primary rounded-full origin-left"
+                      style={{ transform: `scaleX(${duration > 0 ? Math.min(currentTime / duration, 1) : 0})` }}
                     />
                     <div
+                      ref={progressKnobRef}
                       class={`absolute top-1/2 size-4 bg-primary border-2 border-white rounded-full transition-transform -translate-x-1/2 -translate-y-1/2 ${isSeeking ? "scale-100" : "scale-0 group-hover/progress:scale-100"}`}
-                      style={{ left: `${displayProgress}%` }}
+                      style={{ left: `${duration > 0 ? Math.min(currentTime / duration, 1) * 100 : 0}%` }}
                     />
                   </div>
                 </div>
@@ -547,7 +575,7 @@ function VideoPlayerContent() {
                       max="100"
                       value={isMuted ? 0 : volume}
                       onInput={(e) => setVolume(Number((e.target as HTMLInputElement).value))}
-                      class="w-20 h-1 accent-primary cursor-pointer"
+                      class="w-20 h-1 accent-primary cursor-pointer hidden sm:block"
                       aria-label={t("videoPlayer.volume")}
                     />
                     <span class="font-mono text-xs opacity-80">
@@ -556,7 +584,7 @@ function VideoPlayerContent() {
                   </div>
                   <div class="flex items-center gap-4 md:gap-6">
                     {remainingSeconds !== null && (
-                      <span class="text-xs opacity-70">
+                      <span class="text-xs opacity-70 hidden sm:inline">
                         {t("videoPlayer.remaining")}: {formatDuration(remainingSeconds)}
                       </span>
                     )}

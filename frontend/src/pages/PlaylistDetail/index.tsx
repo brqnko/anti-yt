@@ -469,7 +469,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                   <img
                     src={playlistInfo.top_video_thumbnail_url}
                     alt={playlistInfo.playlist_title}
-                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/thumb:scale-105"
+                    class="absolute inset-0 w-full h-full object-cover"
                   />
                 ) : (
                   <div class="absolute inset-0 flex items-center justify-center">

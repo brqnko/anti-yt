@@ -127,7 +127,7 @@ function ProfileContent() {
             fixed top-[57px] bottom-0 z-40 bg-background-light dark:bg-background-dark
             lg:relative lg:top-auto lg:bottom-auto lg:z-auto
             ${sidebarOpen
-              ? "w-64 opacity-100 translate-x-0 overflow-y-auto"
+              ? "w-64 opacity-100 translate-x-0 overflow-y-auto overflow-x-hidden"
               : "w-0 opacity-0 -translate-x-full lg:translate-x-0 overflow-hidden"
             }`}
         >
@@ -190,10 +190,10 @@ function ProfileContent() {
         {/* Main Content */}
         <main class="flex-1 flex flex-col max-w-6xl w-full px-4 sm:px-6 lg:px-10 py-8 gap-6 overflow-y-auto">
           {/* Mobile tab navigation */}
-          <nav class="flex lg:hidden items-center gap-1 bg-background-light dark:bg-background-dark p-1 rounded-full border border-border-light dark:border-border-dark self-start">
+          <nav class="flex lg:hidden items-center gap-1 bg-background-light dark:bg-background-dark p-1 rounded-full border border-border-light dark:border-border-dark self-start overflow-x-auto">
             <button
               onClick={() => setActiveTab("profile")}
-              class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none ${
+              class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
                 activeTab === "profile"
                   ? "bg-card-light dark:bg-card-dark text-primary"
                   : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
@@ -203,7 +203,7 @@ function ProfileContent() {
             </button>
             <button
               onClick={() => setActiveTab("restrictions")}
-              class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none ${
+              class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
                 activeTab === "restrictions"
                   ? "bg-card-light dark:bg-card-dark text-primary"
                   : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
@@ -213,7 +213,7 @@ function ProfileContent() {
             </button>
             <button
               onClick={() => setActiveTab("security")}
-              class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none ${
+              class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
                 activeTab === "security"
                   ? "bg-card-light dark:bg-card-dark text-primary"
                   : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
