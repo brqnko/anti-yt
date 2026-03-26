@@ -31,7 +31,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (isLoading) {
     return (
-      <LoadingSpinner className="h-screen bg-background-light dark:bg-background-dark" />
+      <LoadingSpinner className="h-dvh bg-background-light dark:bg-background-dark" />
     );
   }
 

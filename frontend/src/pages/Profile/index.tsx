@@ -10,9 +10,10 @@ import { languages, modeIcons, REPORT_FORM_URL } from "../../constants";
 import { useColorMode, type ColorMode } from "../../hooks/useColorMode";
 import { RestrictionsTab } from "./RestrictionsTab";
 import { SecurityTab } from "./SecurityTab";
+import { HistoryTab } from "./HistoryTab";
 import { Icon } from "../../components/Icon";
 
-type Tab = "restrictions" | "profile" | "security";
+type Tab = "profile" | "security" | "history";
 
 function ProfileContent() {
   const { t, i18n } = useTranslation();
@@ -94,10 +95,10 @@ function ProfileContent() {
     <DashboardLayout>
       <div class="flex-1 max-w-6xl w-full px-4 sm:px-6 lg:px-10 py-8 flex flex-col gap-6">
         {/* Tab navigation */}
-        <nav class="flex items-center gap-1 bg-background-light dark:bg-background-dark p-1 rounded-full border border-border-light dark:border-border-dark self-start overflow-x-auto">
+        <nav class="flex items-center gap-1 bg-background-light dark:bg-background-dark p-1 rounded-full border border-border-light dark:border-border-dark overflow-x-auto">
           <button
             onClick={() => setActiveTab("profile")}
-            class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
+            class={`flex-1 px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
               activeTab === "profile"
                 ? "bg-card-light dark:bg-card-dark text-primary"
                 : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
@@ -106,18 +107,8 @@ function ProfileContent() {
             {t("profile.nav.profileSettings")}
           </button>
           <button
-            onClick={() => setActiveTab("restrictions")}
-            class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
-              activeTab === "restrictions"
-                ? "bg-card-light dark:bg-card-dark text-primary"
-                : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
-            }`}
-          >
-            {t("profile.nav.restrictions")}
-          </button>
-          <button
             onClick={() => setActiveTab("security")}
-            class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
+            class={`flex-1 px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
               activeTab === "security"
                 ? "bg-card-light dark:bg-card-dark text-primary"
                 : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
@@ -125,11 +116,21 @@ function ProfileContent() {
           >
             {t("profile.nav.security")}
           </button>
+          <button
+            onClick={() => setActiveTab("history")}
+            class={`flex-1 px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
+              activeTab === "history"
+                ? "bg-card-light dark:bg-card-dark text-primary"
+                : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
+            }`}
+          >
+            {t("dashboard.nav.history")}
+          </button>
         </nav>
 
-        {activeTab === "restrictions" && <RestrictionsTab />}
-
         {activeTab === "security" && <SecurityTab />}
+
+        {activeTab === "history" && <HistoryTab />}
 
         {activeTab === "profile" && (
           <>
@@ -258,6 +259,9 @@ function ProfileContent() {
                 </div>
               </div>
             </div>
+
+            {/* Restrictions */}
+            <RestrictionsTab />
 
             {/* Report */}
             <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">

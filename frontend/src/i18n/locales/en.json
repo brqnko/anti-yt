@@ -95,7 +95,7 @@
       "title": "Profile Details",
       "subtitle": "Personalize your experience to get started.",
       "displayName": "Display Name",
-      "displayNamePlaceholder": "e.g. Alex Student",
+      "displayNamePlaceholder": "e.g. CoolCat42",
       "displayNameHint": "This is how we'll address you in your daily reports.",
       "contentLanguage": "Content Language",
       "contentLanguageHint": "We will prioritize educational content in this language."
@@ -137,7 +137,7 @@
       "bottomFeed": "Feed",
       "bottomChannels": "Channels",
       "bottomPlaylists": "Playlist",
-      "bottomHistory": "History",
+      "bottomAnalytics": "Analytics",
       "bottomProfile": "Profile"
     },
     "whitelistedChannels": "Whitelisted Channels",
@@ -196,7 +196,7 @@
     }
   },
   "restrictions": {
-    "title": "Restriction Settings",
+    "title": "Restrictions",
     "subtitle": "Manage your usage controls and content filters.",
     "timeUsedToday": "Time Used Today",
     "remaining": "remaining",
@@ -233,16 +233,16 @@
   },
   "profile": {
     "pageTitle": "Profile",
-    "title": "Profile Settings",
+    "title": "Profile",
     "subtitle": "Manage your identity and account security.",
     "nav": {
       "restrictions": "Restrictions",
-      "profileSettings": "Profile Settings",
+      "profileSettings": "Profile",
       "security": "Security",
       "signOut": "Sign Out",
       "reportProblem": "Report a Problem"
     },
-    "accountDetails": "Account Details",
+    "accountDetails": "Account",
     "displayName": "Display Name",
     "displayNamePlaceholder": "Your name",
     "language": "Language",
@@ -261,7 +261,7 @@
     "cancel": "Cancel"
   },
   "security": {
-    "title": "Security & Sessions",
+    "title": "Security",
     "subtitle": "Manage your active sessions to keep your account safe.",
     "currentSession": "Current Session",
     "activeNow": "Active Now",
@@ -293,9 +293,9 @@
     "colorModeDesc": "Choose the display theme for the application."
   },
   "channelDetail": {
-    "pageTitle": "Channel Details",
+    "pageTitle": "Channel",
     "backToDashboard": "Dashboard",
-    "channelDetails": "Channel Details",
+    "channelDetails": "Channel",
     "subscribers": "Subscribers",
     "whitelistChannel": "Whitelist Channel",
     "whitelistDesc": "Allow into your feed",
@@ -334,7 +334,7 @@
   },
   "analytics": {
     "pageTitle": "Analytics",
-    "title": "Your Digital Wellness",
+    "title": "Analytics",
     "timeWasted": "Time Watched",
     "dailyAverage": "Daily Average",
     "goalProgress": "Goal Progress",
@@ -382,8 +382,8 @@
   },
   "playlists": {
     "pageTitle": "Playlists",
-    "title": "My Curated Library",
-    "createNew": "Create New Playlist",
+    "title": "Playlists",
+    "createNew": "New Playlist",
     "videoCount_one": "{{count}} video",
     "videoCount_other": "{{count}} videos",
     "lastUpdated": "Last updated {{time}}",

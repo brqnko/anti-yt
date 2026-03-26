@@ -226,13 +226,6 @@ export function RestrictionsTab() {
 
   return (
     <div class="flex flex-col gap-6 min-w-0 overflow-hidden">
-      <div class="flex flex-col gap-2">
-        <h1 class="text-3xl lg:text-4xl font-black leading-tight tracking-[-0.033em]">
-          {t("restrictions.title")}
-        </h1>
-      </div>
-
-      <div class="flex flex-col gap-6">
           {/* Time Constraints */}
           <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
             <div class="p-6 border-b border-border-light dark:border-border-dark">
@@ -440,8 +433,6 @@ export function RestrictionsTab() {
               </button>
             </div>
           </div>
-
-      </div>
 
       <AddChannelDialog
         open={showAddChannel}

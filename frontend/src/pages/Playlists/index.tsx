@@ -138,10 +138,10 @@ function PlaylistsContent() {
           </div>
           <div class="flex flex-wrap items-center gap-3">
             <button
-              class="flex items-center gap-2 h-12 px-6 rounded-lg bg-primary hover:bg-primary/90 text-white font-bold hover:-translate-y-px transition-all cursor-pointer border-none"
+              class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-bold hover:-translate-y-px transition-all cursor-pointer border-none"
               onClick={() => setShowAddPlaylist(true)}
             >
-              <Icon name="add" />
+              <Icon name="add" class="text-lg" />
               {t("playlists.createNew")}
             </button>
           </div>

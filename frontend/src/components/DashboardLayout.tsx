@@ -79,7 +79,7 @@ export function DashboardLayout({
   }, [url]);
 
   return (
-    <div class="relative flex h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
+    <div class="relative flex lg:h-dvh w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
       <DashboardHeader sidebarOpen={sidebarOpen} onToggleSidebar={toggleSidebar} />
 
       <div class="flex flex-1 w-full max-w-[1600px] mx-auto overflow-hidden">
@@ -298,16 +298,16 @@ export function DashboardLayout({
           {t("dashboard.nav.bottomPlaylists")}
         </a>
         <a
-          href="/history"
+          href="/analytics"
           class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors ${
-            url === "/history"
+            url === "/analytics"
               ? "text-primary font-bold"
               : "text-text-muted-light dark:text-text-muted-dark"
           }`}
-          aria-current={url === "/history" ? "page" : undefined}
+          aria-current={url === "/analytics" ? "page" : undefined}
         >
-          <Icon name="history" class="text-xl" />
-          {t("dashboard.nav.bottomHistory")}
+          <Icon name="analytics" class="text-xl" />
+          {t("dashboard.nav.bottomAnalytics")}
         </a>
         <a
           href="/profile"
