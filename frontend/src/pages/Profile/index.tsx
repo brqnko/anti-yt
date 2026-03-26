@@ -261,6 +261,11 @@ function ProfileContent() {
 
             {/* Report */}
             <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
+              <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
+                <h2 class="text-xl font-bold">
+                  {t("profile.nav.reportProblem")}
+                </h2>
+              </div>
               <div class="p-6 flex flex-col gap-1">
                 <a
                   href={REPORT_FORM_URL}
@@ -276,6 +281,11 @@ function ProfileContent() {
 
             {/* Logout */}
             <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
+              <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
+                <h2 class="text-xl font-bold">
+                  {t("profile.nav.signOut")}
+                </h2>
+              </div>
               <div class="p-6 flex flex-col gap-1">
                 <button
                   onClick={() => setShowLogoutConfirm(true)}
