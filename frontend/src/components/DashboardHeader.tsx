@@ -30,7 +30,7 @@ export function DashboardHeader({
       <div class="flex items-center gap-3 shrink-0">
         {onToggleSidebar && (
           <button
-            class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer text-charcoal dark:text-white"
+            class="hidden lg:inline-flex p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer text-charcoal dark:text-white"
             onClick={onToggleSidebar}
             aria-label={t("dashboard.toggleSidebar")}
             aria-expanded={sidebarOpen}
@@ -60,7 +60,7 @@ export function DashboardHeader({
         </div>
       </form>
 
-      <div class="flex items-center gap-4 shrink-0">
+      <div class="hidden lg:flex items-center gap-4 shrink-0">
         <a
           href="/profile"
           class="size-9 flex items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/20 cursor-pointer text-primary no-underline"

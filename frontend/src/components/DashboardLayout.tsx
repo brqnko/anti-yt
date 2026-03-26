@@ -83,22 +83,21 @@ export function DashboardLayout({
       <DashboardHeader sidebarOpen={sidebarOpen} onToggleSidebar={toggleSidebar} />
 
       <div class="flex flex-1 w-full max-w-[1600px] mx-auto overflow-hidden">
-        {/* Mobile backdrop */}
+        {/* Mobile backdrop (desktop only) */}
         {sidebarOpen && (
           <div
-            class="fixed inset-0 z-30 bg-black/40 lg:hidden"
+            class="fixed inset-0 z-30 bg-black/40 hidden lg:hidden"
             onClick={toggleSidebar}
           />
         )}
 
-        {/* Sidebar */}
+        {/* Sidebar (desktop only) */}
         <aside
-          class={`flex flex-col border-r border-border-light dark:border-border-dark shrink-0 transition-[width,opacity,transform] duration-200
-            fixed top-[57px] bottom-0 z-40 bg-background-light dark:bg-background-dark
+          class={`hidden lg:flex flex-col border-r border-border-light dark:border-border-dark shrink-0 transition-[width,opacity,transform] duration-200
             lg:relative lg:top-auto lg:bottom-auto lg:z-auto
             ${sidebarOpen
               ? "w-64 opacity-100 translate-x-0 overflow-y-auto overflow-x-hidden"
-              : "w-0 opacity-0 -translate-x-full lg:translate-x-0 overflow-hidden"
+              : "w-0 opacity-0 lg:translate-x-0 overflow-hidden"
             }`}
           role="navigation"
           aria-label={t("dashboard.nav.sidebar")}
@@ -252,10 +251,77 @@ export function DashboardLayout({
         </aside>
 
         {/* Main Content */}
-        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto overflow-x-hidden">
+        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto overflow-x-hidden pb-14 lg:pb-0">
           {children}
         </main>
       </div>
+
+      {/* Bottom Navigation (mobile only) */}
+      <nav
+        class="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-center justify-around border-t border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark"
+        aria-label={t("dashboard.nav.mainNav")}
+      >
+        <a
+          href="/dashboard"
+          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors ${
+            url === "/dashboard"
+              ? "text-primary font-bold"
+              : "text-text-muted-light dark:text-text-muted-dark"
+          }`}
+          aria-current={url === "/dashboard" ? "page" : undefined}
+        >
+          <Icon name="home" class="text-xl" />
+          {t("dashboard.nav.bottomFeed")}
+        </a>
+        <a
+          href="/channels"
+          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors ${
+            url === "/channels"
+              ? "text-primary font-bold"
+              : "text-text-muted-light dark:text-text-muted-dark"
+          }`}
+          aria-current={url === "/channels" ? "page" : undefined}
+        >
+          <Icon name="recommend" class="text-xl" />
+          {t("dashboard.nav.bottomChannels")}
+        </a>
+        <a
+          href="/playlists"
+          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors ${
+            url === "/playlists" || url.startsWith("/playlists/")
+              ? "text-primary font-bold"
+              : "text-text-muted-light dark:text-text-muted-dark"
+          }`}
+          aria-current={url === "/playlists" || url.startsWith("/playlists/") ? "page" : undefined}
+        >
+          <Icon name="playlist_play" class="text-xl" />
+          {t("dashboard.nav.bottomPlaylists")}
+        </a>
+        <a
+          href="/history"
+          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors ${
+            url === "/history"
+              ? "text-primary font-bold"
+              : "text-text-muted-light dark:text-text-muted-dark"
+          }`}
+          aria-current={url === "/history" ? "page" : undefined}
+        >
+          <Icon name="history" class="text-xl" />
+          {t("dashboard.nav.bottomHistory")}
+        </a>
+        <a
+          href="/profile"
+          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors ${
+            url === "/profile"
+              ? "text-primary font-bold"
+              : "text-text-muted-light dark:text-text-muted-dark"
+          }`}
+          aria-current={url === "/profile" ? "page" : undefined}
+        >
+          <Icon name="person" class="text-xl" />
+          {t("dashboard.nav.bottomProfile")}
+        </a>
+      </nav>
 
       <AddChannelDialog
         open={showAddChannel}

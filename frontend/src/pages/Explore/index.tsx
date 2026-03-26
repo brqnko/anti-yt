@@ -140,7 +140,7 @@ function ExploreContent() {
                       <a
                         key={ch.channel_id}
                         href={`/channels/${ch.channel_id}`}
-                        class="bg-card-light dark:bg-card-dark p-5 rounded-xl border border-border-light dark:border-border-dark hover:border-primary/50 dark:hover:border-primary/50 transition-colors flex flex-col gap-4 no-underline"
+                        class="bg-card-light dark:bg-card-dark p-6 rounded-xl border border-border-light dark:border-border-dark hover:border-primary/50 dark:hover:border-primary/50 transition-colors flex flex-col gap-4 no-underline min-h-[180px]"
                       >
                         <div class="flex items-center gap-3">
                           <img
@@ -160,7 +160,7 @@ function ExploreContent() {
                             </span>
                           </div>
                         </div>
-                        <p class="text-text-muted-light dark:text-text-muted-dark text-sm leading-relaxed line-clamp-2">
+                        <p class="text-text-muted-light dark:text-text-muted-dark text-sm leading-relaxed line-clamp-3">
                           {ch.valuable_description}
                         </p>
                       </a>

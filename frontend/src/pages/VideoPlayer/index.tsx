@@ -630,7 +630,6 @@ function VideoPlayerContent() {
                   class="flex items-center gap-2 h-10 px-4 rounded-lg bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white font-semibold text-sm transition-all cursor-pointer hover:-translate-y-px flex-shrink-0 self-end"
                   onClick={openPlaylistDialog}
                 >
-                  <Icon name="playlist_add" class="text-primary text-xl" />
                   {t("videoPlayer.addToPlaylist")}
                 </button>
               </div>
