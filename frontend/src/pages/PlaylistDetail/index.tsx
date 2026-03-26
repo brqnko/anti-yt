@@ -13,6 +13,7 @@ import { formatTimeAgo } from "../../utils/format";
 import { buildWatchUrl } from "../../utils/url";
 import { PAGE_SIZES } from "../../constants";
 import { Linkify } from "../../components/Linkify";
+import { Icon } from "../../components/Icon";
 import type {
   GetPlaylistsPlaylistId200,
   GetPlaylistsPlaylistIdVideos200ItemsItem,
@@ -395,9 +396,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
       <DashboardLayout>
         <div class="w-full max-w-[1200px] mx-auto px-6 py-10">
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-            <span class="material-symbols-outlined text-5xl mb-4">
-              playlist_remove
-            </span>
+            <Icon name="playlist_remove" class="text-5xl mb-4" />
             <p class="text-lg font-medium">
               {t("playlistDetail.notFound")}
             </p>
@@ -408,9 +407,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
               class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
               href="/playlists"
             >
-              <span class="material-symbols-outlined text-[18px]">
-                arrow_back
-              </span>
+              <Icon name="arrow_back" class="text-[18px]" />
               {t("playlistDetail.backToPlaylists")}
             </a>
           </div>
@@ -424,9 +421,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
       <DashboardLayout>
         <div class="w-full max-w-[1200px] mx-auto px-6 py-10">
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-            <span class="material-symbols-outlined text-5xl mb-4">
-              error_outline
-            </span>
+            <Icon name="error_outline" class="text-5xl mb-4" />
             <p class="text-lg font-medium">
               {t("playlistDetail.loadError")}
             </p>
@@ -450,9 +445,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
           href="/playlists"
           class="inline-flex items-center gap-1 text-sm text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors no-underline mb-6"
         >
-          <span class="material-symbols-outlined text-[18px]">
-            arrow_back
-          </span>
+          <Icon name="arrow_back" class="text-[18px]" />
           {t("playlistDetail.backToPlaylists")}
         </a>
 
@@ -473,24 +466,20 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                   />
                 ) : (
                   <div class="absolute inset-0 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-5xl text-text-muted-light dark:text-text-muted-dark">
-                      playlist_play
-                    </span>
+                    <Icon name="playlist_play" class="text-5xl text-text-muted-light dark:text-text-muted-dark" />
                   </div>
                 )}
                 <div class="absolute inset-0 bg-black/30 opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300" />
                 <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300 pointer-events-none">
                   <div class="size-12 rounded-full bg-primary/90 flex items-center justify-center text-white">
-                    <span class="material-symbols-outlined text-[28px] ml-1">play_arrow</span>
+                    <Icon name="play_arrow" class="text-[28px] ml-1" />
                   </div>
                 </div>
               </a>
             ) : (
               <div class="relative w-full sm:w-48 aspect-video flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
                 <div class="absolute inset-0 flex items-center justify-center">
-                  <span class="material-symbols-outlined text-5xl text-text-muted-light dark:text-text-muted-dark">
-                    playlist_play
-                  </span>
+                  <Icon name="playlist_play" class="text-5xl text-text-muted-light dark:text-text-muted-dark" />
                 </div>
               </div>
             )}
@@ -530,16 +519,14 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                 class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-transparent border border-border-light dark:border-border-dark text-sm font-medium text-charcoal dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                 onClick={() => setShowEdit(true)}
               >
-                <span class="material-symbols-outlined text-[18px]">edit</span>
+                <Icon name="edit" class="text-[18px]" />
                 {t("playlistDetail.edit")}
               </button>
               <button
                 class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-transparent border border-red-300 dark:border-red-800 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
                 onClick={() => setShowDelete(true)}
               >
-                <span class="material-symbols-outlined text-[18px]">
-                  delete
-                </span>
+                <Icon name="delete" class="text-[18px]" />
                 {t("playlistDetail.delete")}
               </button>
             </div>
@@ -582,9 +569,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                       onClick={() => setRemoveTarget(video)}
                       title={t("playlistDetail.removeVideo")}
                     >
-                      <span class="material-symbols-outlined text-[20px]">
-                        close
-                      </span>
+                      <Icon name="close" class="text-[20px]" />
                     </button>
                   </div>
                 ))}
@@ -601,9 +586,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
             </>
           ) : (
             <div class="flex flex-col items-center justify-center py-12 text-text-muted-light dark:text-text-muted-dark bg-card-light dark:bg-card-dark rounded-xl border border-border-light dark:border-border-dark">
-              <span class="material-symbols-outlined text-4xl mb-3">
-                playlist_play
-              </span>
+              <Icon name="playlist_play" class="text-4xl mb-3" />
               <p class="text-sm font-medium">
                 {t("playlistDetail.noVideos")}
               </p>

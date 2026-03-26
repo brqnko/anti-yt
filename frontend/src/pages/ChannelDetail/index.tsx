@@ -14,6 +14,7 @@ import type {
 } from "../../api/generated/antiYtApi.schemas";
 import { PAGE_SIZES } from "../../constants";
 import { Linkify } from "../../components/Linkify";
+import { Icon } from "../../components/Icon";
 
 function ExpandableDescription({ description }: { description: string }) {
   const { t } = useTranslation();
@@ -144,13 +145,13 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       <DashboardLayout>
         <div class="w-full max-w-[1200px] mx-auto px-6 py-10">
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-            <span class="material-symbols-outlined text-5xl mb-4">search_off</span>
+            <Icon name="search_off" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("channelDetail.notFound")}</p>
             <a
               class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
               href="/dashboard"
             >
-              <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+              <Icon name="arrow_back" class="text-[18px]" />
               {t("channelDetail.backToDashboard")}
             </a>
           </div>
@@ -258,7 +259,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
             </>
           ) : (
             <div class="flex flex-col items-center justify-center py-12 text-text-muted-light dark:text-text-muted-dark bg-card-light dark:bg-card-dark rounded-xl border border-border-light dark:border-border-dark">
-              <span class="material-symbols-outlined text-4xl mb-3">videocam_off</span>
+              <Icon name="videocam_off" class="text-4xl mb-3" />
               <p class="text-sm font-medium">{t("channelDetail.noVideos")}</p>
             </div>
           )}

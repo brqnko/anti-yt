@@ -7,6 +7,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { modeIcons, modeOrder, languages } from "../../constants";
 import { GoogleIcon } from "./GoogleIcon";
 import { GithubIcon } from "./GithubIcon";
+import { Icon } from "../../components/Icon";
 
 function DashboardPreview({ t }: { t: (key: string) => string }) {
   return (
@@ -42,9 +43,7 @@ function DashboardPreview({ t }: { t: (key: string) => string }) {
                   stroke-width="4"
                 />
               </svg>
-              <span class="material-symbols-outlined absolute text-primary text-xl">
-                timer
-              </span>
+              <Icon name="timer" class="absolute text-primary text-xl" />
             </div>
           </div>
 
@@ -117,7 +116,7 @@ function DashboardPreview({ t }: { t: (key: string) => string }) {
                 icon="https://yt3.googleusercontent.com/5iu-BPHEqMoHn2GOFBp_DYxRDZNFE6aOtOBIOHagsUWfbnhDf5W9izHd8y-ciah6qk2vjOdxOA=s88-c-k-c0x00ffffff-no-rj"
               />
               <div class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium">
-                <span class="material-symbols-outlined text-[18px]">add</span>
+                <Icon name="add" class="text-[18px]" />
                 <span>{t("dashboard.requestChannel")}</span>
               </div>
             </div>
@@ -189,7 +188,7 @@ export default function Home() {
       {/* Session expired banner */}
       {showExpiredBanner && (
         <div class="flex items-center justify-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-sm font-medium">
-          <span class="material-symbols-outlined text-base">warning</span>
+          <Icon name="warning" class="text-base" />
           {t("home.sessionExpired")}
         </div>
       )}
@@ -205,9 +204,7 @@ export default function Home() {
             title={t(`common.colorMode.${nextMode}`)}
             aria-label={`${t(`common.colorMode.${mode}`)} → ${t(`common.colorMode.${nextMode}`)}`}
           >
-            <span class="material-symbols-outlined text-xl">
-              {modeIcons[mode]}
-            </span>
+            <Icon name={modeIcons[mode]} class="text-xl" />
           </button>
           <div class="relative" ref={langRef}>
             <button
@@ -217,7 +214,7 @@ export default function Home() {
               aria-expanded={langOpen}
               aria-haspopup="true"
             >
-              <span class="material-symbols-outlined text-xl">translate</span>
+              <Icon name="translate" class="text-xl" />
             </button>
             {langOpen && (
               <div role="menu" class="absolute right-0 top-full mt-2 py-2 bg-white dark:bg-[#1a1a1a] rounded-xl ring-1 ring-black/5 dark:ring-white/5 border border-slate-200 dark:border-white/10 min-w-[180px] z-50">
@@ -236,9 +233,7 @@ export default function Home() {
                       setLangOpen(false);
                     }}
                   >
-                    <span class={`material-symbols-outlined text-base ${currentLang === lang.code ? "opacity-100" : "opacity-0"}`}>
-                      check
-                    </span>
+                    <Icon name="check" class={`text-base ${currentLang === lang.code ? "opacity-100" : "opacity-0"}`} />
                     {lang.label}
                   </button>
                 ))}

@@ -8,6 +8,7 @@ import { TimeRangeSlider } from "../../components/TimeRangeSlider";
 import { formatTime, parseTimeToMinutes } from "../../utils/format";
 import type { TimeRange } from "../../types/time-range";
 import type { GetChannelsSubscribed200ItemsItem } from "../../api/generated/antiYtApi.schemas";
+import { Icon } from "../../components/Icon";
 
 function RemoveChannelDialog({
   open,
@@ -64,7 +65,7 @@ function RemoveChannelDialog({
           class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
           onClick={onClose}
         >
-          <span class="material-symbols-outlined">close</span>
+          <Icon name="close" />
         </button>
         <div class="flex items-center gap-3 mb-4">
           <h2 class="text-lg font-bold text-charcoal dark:text-white">
@@ -264,9 +265,7 @@ export function RestrictionsTab() {
                   class="flex items-center justify-center gap-2 w-full py-3 border border-dashed border-border-light dark:border-border-dark rounded-lg text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 transition-all group cursor-pointer bg-transparent"
                   onClick={addRange}
                 >
-                  <span class="material-symbols-outlined group-hover:scale-110 transition-transform">
-                    add
-                  </span>
+                  <Icon name="add" class="group-hover:scale-110 transition-transform" />
                   <span class="text-sm font-bold">
                     {t("restrictions.addTimeRange")}
                   </span>
@@ -364,9 +363,7 @@ export function RestrictionsTab() {
                   )}
                   {saveError && (
                     <span class="text-sm text-red-500 font-medium flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[18px]">
-                        error
-                      </span>
+                      <Icon name="error" class="text-[18px]" />
                       {saveError}
                     </span>
                   )}
@@ -384,9 +381,7 @@ export function RestrictionsTab() {
             <div class="p-6 flex flex-col gap-6 grow">
               <div class="relative group">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <span class="material-symbols-outlined text-text-muted-light dark:text-text-muted-dark group-focus-within:text-primary transition-colors">
-                    search
-                  </span>
+                  <Icon name="search" class="text-text-muted-light dark:text-text-muted-dark group-focus-within:text-primary transition-colors" />
                 </div>
                 <input
                   class="block w-full p-4 pl-10 text-sm bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary outline-none placeholder-text-muted-light dark:placeholder-text-muted-dark transition-all"
@@ -426,9 +421,7 @@ export function RestrictionsTab() {
                       class="size-8 flex items-center justify-center rounded-full text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all cursor-pointer bg-transparent border-none"
                       onClick={() => setRemoveTarget(ch)}
                     >
-                      <span class="material-symbols-outlined text-[20px]">
-                        close
-                      </span>
+                      <Icon name="close" class="text-[20px]" />
                     </button>
                   </div>
                 ))}
@@ -438,9 +431,7 @@ export function RestrictionsTab() {
                 class="flex items-center justify-center gap-2 w-full py-3 border border-dashed border-border-light dark:border-border-dark rounded-lg text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 transition-all group cursor-pointer bg-transparent"
                 onClick={() => setShowAddChannel(true)}
               >
-                <span class="material-symbols-outlined group-hover:scale-110 transition-transform">
-                  add
-                </span>
+                <Icon name="add" class="group-hover:scale-110 transition-transform" />
                 <span class="text-sm font-bold">
                   {t("dashboard.requestChannel")}
                 </span>

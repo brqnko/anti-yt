@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { formatDuration, formatTimeAgo } from "../utils/format";
 import { buildWatchUrl } from "../utils/url";
+import { Icon } from "./Icon";
 
 export interface VideoCardProps {
   videoId: string;
@@ -56,13 +57,10 @@ function VideoThumbnail({
             size === "card" ? "size-12" : "size-10"
           }`}
         >
-          <span
-            class={`material-symbols-outlined ${
-              size === "card" ? "text-[28px] ml-1" : "text-[22px] ml-0.5"
-            }`}
-          >
-            play_arrow
-          </span>
+          <Icon
+            name="play_arrow"
+            class={size === "card" ? "text-[28px] ml-1" : "text-[22px] ml-0.5"}
+          />
         </div>
       </div>
       {progressPercent > 0 && (

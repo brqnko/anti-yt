@@ -2,6 +2,7 @@ import { useRef } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { formatTime } from "../utils/format";
 import type { TimeRange } from "../types/time-range";
+import { Icon } from "./Icon";
 
 interface TimeRangeSliderProps {
   range: TimeRange;
@@ -142,7 +143,7 @@ export function TimeRangeSlider({
           title={t("register.restrictions.removeRange")}
           onClick={onDelete}
         >
-          <span class="material-symbols-outlined text-xl">delete</span>
+          <Icon name="delete" class="text-xl" />
         </button>
       </div>
     );
@@ -163,7 +164,7 @@ export function TimeRangeSlider({
           class="size-8 flex items-center justify-center text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all cursor-pointer bg-transparent border-none"
           onClick={onDelete}
         >
-          <span class="material-symbols-outlined text-[18px]">delete</span>
+          <Icon name="delete" class="text-[18px]" />
         </button>
       </div>
       <div class="relative pt-2 px-1">

@@ -4,6 +4,7 @@ import { mutate } from "swr";
 import { getPlaylist } from "../api/generated/playlist";
 import { CACHE_KEYS } from "../api/cache-keys";
 import { getApiErrorCode } from "../utils/api-error";
+import { Icon } from "./Icon";
 
 interface AddPlaylistDialogProps {
   open: boolean;
@@ -85,7 +86,7 @@ export function AddPlaylistDialog({
           onClick={onClose}
           aria-label={t("dashboard.addPlaylistDialog.cancel")}
         >
-          <span class="material-symbols-outlined">close</span>
+          <Icon name="close" />
         </button>
         <h2 class="text-2xl font-bold text-charcoal dark:text-white mb-5">
           {t("dashboard.addPlaylistDialog.title")}
@@ -139,9 +140,7 @@ export function AddPlaylistDialog({
                   } catch {}
                 }}
               >
-                <span class="material-symbols-outlined text-[20px]">
-                  content_paste
-                </span>
+                <Icon name="content_paste" class="text-[20px]" />
               </button>
               <input
                 type="text"

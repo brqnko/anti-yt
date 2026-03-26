@@ -10,6 +10,7 @@ import Step1 from "./Step1";
 import Step2 from "./Step2";
 import type { TimeRange } from "../../types/time-range";
 import { formatTime } from "../../utils/format";
+import { Icon } from "../../components/Icon";
 
 export default function Register() {
   const { t, i18n } = useTranslation();
@@ -100,7 +101,7 @@ export default function Register() {
               class="absolute top-4 right-4 text-taupe hover:text-charcoal dark:hover:text-white transition-colors cursor-pointer"
               onClick={() => setError(null)}
             >
-              <span class="material-symbols-outlined">close</span>
+              <Icon name="close" />
             </button>
             <h3 class="text-xl font-black text-charcoal dark:text-white mb-2">
               {error.title}

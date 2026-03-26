@@ -19,6 +19,7 @@ import type {
 import { useYouTubePlayer, PlayerState } from "./useYouTubePlayer";
 import { useHeartbeat } from "./useHeartbeat";
 import { Linkify } from "../../components/Linkify";
+import { Icon } from "../../components/Icon";
 
 const PLAYER_CONTAINER_ID = "yt-player";
 
@@ -432,7 +433,7 @@ function VideoPlayerContent() {
     return (
       <DashboardLayout>
         <div class="flex flex-col items-center justify-center flex-1 text-text-muted-light dark:text-text-muted-dark">
-          <span class="material-symbols-outlined text-5xl mb-4">error</span>
+          <Icon name="error" class="text-5xl mb-4" />
           <p class="text-lg font-medium">{t("videoPlayer.notFound")}</p>
           <a
             href="/dashboard"
@@ -477,7 +478,7 @@ function VideoPlayerContent() {
                     onClick={togglePlay}
                     aria-label={t("videoPlayer.play")}
                   >
-                    <span class="material-symbols-outlined text-5xl">play_arrow</span>
+                    <Icon name="play_arrow" class="text-5xl" />
                   </button>
                 </div>
               )}
@@ -485,9 +486,7 @@ function VideoPlayerContent() {
               {/* Buffering spinner */}
               {isReady && playerState === PlayerState.BUFFERING && (
                 <div class="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-                  <span class="material-symbols-outlined text-5xl animate-spin text-white">
-                    progress_activity
-                  </span>
+                  <Icon name="progress_activity" class="text-5xl animate-spin text-white" />
                 </div>
               )}
 
@@ -501,11 +500,9 @@ function VideoPlayerContent() {
                   />
                   <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
                     {loadError ? (
-                      <span class="material-symbols-outlined text-5xl text-white">error</span>
+                      <Icon name="error" class="text-5xl text-white" />
                     ) : (
-                      <span class="material-symbols-outlined text-5xl animate-spin text-white">
-                        progress_activity
-                      </span>
+                      <Icon name="progress_activity" class="text-5xl animate-spin text-white" />
                     )}
                   </div>
                 </div>
@@ -552,22 +549,18 @@ function VideoPlayerContent() {
                       onClick={togglePlay}
                       aria-label={isPlaying ? t("videoPlayer.pause") : t("videoPlayer.play")}
                     >
-                      <span class="material-symbols-outlined">
-                        {isPlaying ? "pause" : "play_arrow"}
-                      </span>
+                      <Icon name={isPlaying ? "pause" : "play_arrow"} />
                     </button>
                     <button
                       class="bg-transparent border-none p-0 cursor-pointer text-white"
                       onClick={toggleMute}
                       aria-label={isMuted ? t("videoPlayer.unmute") : t("videoPlayer.mute")}
                     >
-                      <span class="material-symbols-outlined">
-                        {isMuted || volume === 0
+                      <Icon name={isMuted || volume === 0
                           ? "volume_off"
                           : volume < 50
                             ? "volume_down"
-                            : "volume_up"}
-                      </span>
+                            : "volume_up"} />
                     </button>
                     <input
                       type="range"
@@ -593,9 +586,7 @@ function VideoPlayerContent() {
                       onClick={toggleFullscreen}
                       aria-label={isFullscreen ? t("videoPlayer.exitFullscreen") : t("videoPlayer.fullscreen")}
                     >
-                      <span class="material-symbols-outlined">
-                        {isFullscreen ? "fullscreen_exit" : "fullscreen"}
-                      </span>
+                      <Icon name={isFullscreen ? "fullscreen_exit" : "fullscreen"} />
                     </button>
                   </div>
                 </div>
@@ -638,7 +629,7 @@ function VideoPlayerContent() {
                   class="flex items-center gap-2 h-10 px-4 rounded-lg bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white font-semibold text-sm transition-all cursor-pointer hover:-translate-y-px flex-shrink-0 self-end"
                   onClick={openPlaylistDialog}
                 >
-                  <span class="material-symbols-outlined text-primary text-xl">playlist_add</span>
+                  <Icon name="playlist_add" class="text-primary text-xl" />
                   {t("videoPlayer.addToPlaylist")}
                 </button>
               </div>
@@ -675,7 +666,7 @@ function VideoPlayerContent() {
             <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden">
               <div class="p-4 border-b border-border-light dark:border-border-dark flex items-center justify-between">
                 <h2 class="font-bold text-lg tracking-tight flex items-center gap-2">
-                  <span class="material-symbols-outlined text-primary">edit_note</span>
+                  <Icon name="edit_note" class="text-primary" />
                   {t("videoPlayer.quickNotes")}
                 </h2>
               </div>
@@ -685,21 +676,21 @@ function VideoPlayerContent() {
                   title="Bold"
                   disabled
                 >
-                  <span class="material-symbols-outlined text-xl">format_bold</span>
+                  <Icon name="format_bold" class="text-xl" />
                 </button>
                 <button
                   class="p-1.5 rounded transition-colors bg-transparent border-none text-charcoal/30 dark:text-white/30 cursor-not-allowed"
                   title="Italic"
                   disabled
                 >
-                  <span class="material-symbols-outlined text-xl">format_italic</span>
+                  <Icon name="format_italic" class="text-xl" />
                 </button>
                 <button
                   class="p-1.5 rounded transition-colors bg-transparent border-none text-charcoal/30 dark:text-white/30 cursor-not-allowed"
                   title="Bullet List"
                   disabled
                 >
-                  <span class="material-symbols-outlined text-xl">format_list_bulleted</span>
+                  <Icon name="format_list_bulleted" class="text-xl" />
                 </button>
                 <div class="w-px h-6 bg-border-light dark:bg-border-dark mx-1" />
                 <button
@@ -707,7 +698,7 @@ function VideoPlayerContent() {
                   title="Timestamp"
                   disabled
                 >
-                  <span class="material-symbols-outlined text-xl">schedule</span>
+                  <Icon name="schedule" class="text-xl" />
                 </button>
               </div>
               <div class="relative">
@@ -737,9 +728,7 @@ function VideoPlayerContent() {
                 {/* Playlist header */}
                 <div class="p-4 border-b border-border-light dark:border-border-dark flex items-center justify-between gap-3">
                   <div class="flex items-center gap-2 min-w-0">
-                    <span class="material-symbols-outlined text-primary text-xl flex-shrink-0">
-                      playlist_play
-                    </span>
+                    <Icon name="playlist_play" class="text-primary text-xl flex-shrink-0" />
                     <div class="min-w-0">
                       <h2 class="font-bold text-sm tracking-tight truncate">
                         {playlistInfo?.playlist_title ?? t("videoPlayer.curatedPlaylist")}
@@ -781,9 +770,7 @@ function VideoPlayerContent() {
                         >
                           <span class="text-xs text-text-muted-light dark:text-text-muted-dark w-5 flex-shrink-0 flex items-center justify-center pt-1">
                             {isCurrent ? (
-                              <span class="material-symbols-outlined text-primary text-base">
-                                play_arrow
-                              </span>
+                              <Icon name="play_arrow" class="text-primary text-base" />
                             ) : (
                               idx + 1
                             )}
@@ -822,7 +809,7 @@ function VideoPlayerContent() {
                             handleRemoveFromPlaylist(pv.video_id);
                           }}
                         >
-                          <span class="material-symbols-outlined text-[16px]">close</span>
+                          <Icon name="close" class="text-[16px]" />
                         </button>
                       </div>
                     );
@@ -852,7 +839,7 @@ function VideoPlayerContent() {
               class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
               onClick={() => setShowPlaylistDialog(false)}
             >
-              <span class="material-symbols-outlined">close</span>
+              <Icon name="close" />
             </button>
             <h2 class="text-xl font-bold text-charcoal dark:text-white mb-4">
               {t("videoPlayer.addToPlaylist")}
@@ -880,9 +867,7 @@ function VideoPlayerContent() {
                       disabled={alreadyAdded || addingToPlaylist === pl.playlist_id}
                       onClick={() => handleAddToPlaylist(pl.playlist_id)}
                     >
-                      <span class="material-symbols-outlined text-primary text-xl">
-                        playlist_play
-                      </span>
+                      <Icon name="playlist_play" class="text-primary text-xl" />
                       <div class="min-w-0 flex-1">
                         <p class="text-sm font-semibold text-charcoal dark:text-white truncate">
                           {pl.playlist_title}
@@ -894,21 +879,13 @@ function VideoPlayerContent() {
                         </p>
                       </div>
                       {alreadyAdded || addedToPlaylist === pl.playlist_id ? (
-                        <span class="material-symbols-outlined text-green-600 dark:text-green-400 text-xl">
-                          check_circle
-                        </span>
+                        <Icon name="check_circle" class="text-green-600 dark:text-green-400 text-xl" />
                       ) : failedToAddPlaylist === pl.playlist_id ? (
-                        <span class="material-symbols-outlined text-red-500 text-xl">
-                          error
-                        </span>
+                        <Icon name="error" class="text-red-500 text-xl" />
                       ) : addingToPlaylist === pl.playlist_id ? (
-                        <span class="material-symbols-outlined animate-spin text-primary text-xl">
-                          progress_activity
-                        </span>
+                        <Icon name="progress_activity" class="animate-spin text-primary text-xl" />
                       ) : (
-                        <span class="material-symbols-outlined text-text-muted-light dark:text-text-muted-dark text-xl">
-                          add
-                        </span>
+                        <Icon name="add" class="text-text-muted-light dark:text-text-muted-dark text-xl" />
                       )}
                     </button>
                   );

@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { TimeRangeSlider } from "../../components/TimeRangeSlider";
 import { hasOverlap, type TimeRange } from "../../types/time-range";
+import { Icon } from "../../components/Icon";
 
 interface Step2Props {
   isLimited: boolean;
@@ -84,7 +85,7 @@ export default function Step2({
             <div class="flex items-center justify-between mb-6">
               <div class="flex items-center gap-4">
                 <div class="size-10 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 flex items-center justify-center">
-                  <span class="material-symbols-outlined">timer</span>
+                  <Icon name="timer" />
                 </div>
                 <div>
                   <h3 class="font-bold text-lg text-charcoal dark:text-white leading-tight">
@@ -152,7 +153,7 @@ export default function Step2({
             <div class="flex items-center justify-between mb-6">
               <div class="flex items-center gap-4">
                 <div class="size-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center">
-                  <span class="material-symbols-outlined">calendar_clock</span>
+                  <Icon name="calendar_clock" />
                 </div>
                 <div>
                   <h3 class="font-bold text-lg text-charcoal dark:text-white leading-tight">
@@ -182,7 +183,7 @@ export default function Step2({
               class="mt-4 w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-dashed border-gray-300 dark:border-neutral-700 text-sm font-bold text-taupe hover:text-primary hover:border-primary hover:bg-primary/5 transition-all cursor-pointer"
               onClick={addRange}
             >
-              <span class="material-symbols-outlined text-lg">add_circle</span>
+              <Icon name="add_circle" class="text-lg" />
               {t("register.restrictions.addTimeRange")}
             </button>
           </div>
@@ -211,7 +212,7 @@ export default function Step2({
                 class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border-none"
               >
                 <span>{t("register.submit")}</span>
-                <span class="material-symbols-outlined text-lg">check</span>
+                <Icon name="check" class="text-lg" />
               </button>
             </div>
             <p class="text-xs text-taupe text-center">

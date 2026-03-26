@@ -10,6 +10,7 @@ import { languages, modeIcons, REPORT_FORM_URL } from "../../constants";
 import { useColorMode, type ColorMode } from "../../hooks/useColorMode";
 import { RestrictionsTab } from "./RestrictionsTab";
 import { SecurityTab } from "./SecurityTab";
+import { Icon } from "../../components/Icon";
 
 const SIDEBAR_STORAGE_KEY = "sidebar-open";
 
@@ -140,7 +141,7 @@ function ProfileContent() {
                 : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5"
             }`}
           >
-            <span class="material-symbols-outlined">person</span>
+            <Icon name="person" />
             {t("profile.nav.profileSettings")}
           </button>
           <button
@@ -151,7 +152,7 @@ function ProfileContent() {
                 : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5"
             }`}
           >
-            <span class="material-symbols-outlined">block</span>
+            <Icon name="block" />
             {t("profile.nav.restrictions")}
           </button>
           <button
@@ -162,7 +163,7 @@ function ProfileContent() {
                 : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5"
             }`}
           >
-            <span class="material-symbols-outlined">shield_lock</span>
+            <Icon name="shield_lock" />
             {t("profile.nav.security")}
           </button>
           <div class="mt-auto flex flex-col gap-1">
@@ -172,7 +173,7 @@ function ProfileContent() {
               rel="noopener noreferrer"
               class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-all font-bold no-underline"
             >
-              <span class="material-symbols-outlined">flag</span>
+              <Icon name="flag" />
               {t("profile.nav.reportProblem")}
             </a>
             <div class="border-t border-border-light dark:border-border-dark my-1" />
@@ -180,7 +181,7 @@ function ProfileContent() {
               onClick={() => setShowLogoutConfirm(true)}
               class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 text-text-muted-light dark:text-text-muted-dark hover:text-red-500 transition-all font-bold cursor-pointer bg-transparent border-none"
             >
-              <span class="material-symbols-outlined">logout</span>
+              <Icon name="logout" />
               {t("profile.nav.signOut")}
             </button>
           </div>
@@ -249,9 +250,7 @@ function ProfileContent() {
                     </label>
                     <div class="relative">
                       <span class="absolute inset-y-0 left-3 flex items-center text-text-muted-light dark:text-text-muted-dark">
-                        <span class="material-symbols-outlined text-[20px]">
-                          edit
-                        </span>
+                        <Icon name="edit" class="text-[20px]" />
                       </span>
                       <input
                         type="text"
@@ -278,9 +277,7 @@ function ProfileContent() {
                     </label>
                     <div class="relative">
                       <span class="absolute inset-y-0 left-3 flex items-center text-text-muted-light dark:text-text-muted-dark pointer-events-none">
-                        <span class="material-symbols-outlined text-[20px]">
-                          language
-                        </span>
+                        <Icon name="language" class="text-[20px]" />
                       </span>
                       <select
                         value={languageCode}
@@ -298,9 +295,7 @@ function ProfileContent() {
                         ))}
                       </select>
                       <span class="absolute inset-y-0 right-3 flex items-center text-text-muted-light dark:text-text-muted-dark pointer-events-none">
-                        <span class="material-symbols-outlined text-[20px]">
-                          expand_more
-                        </span>
+                        <Icon name="expand_more" class="text-[20px]" />
                       </span>
                     </div>
                   </div>
@@ -340,9 +335,7 @@ function ProfileContent() {
                     </label>
                     <div class="relative">
                       <span class="absolute inset-y-0 left-3 flex items-center text-text-muted-light dark:text-text-muted-dark pointer-events-none">
-                        <span class="material-symbols-outlined text-[20px]">
-                          {colorModes.find((m) => m.value === mode)?.icon}
-                        </span>
+                        <Icon name={colorModes.find((m) => m.value === mode)?.icon} class="text-[20px]" />
                       </span>
                       <select
                         value={mode}
@@ -356,9 +349,7 @@ function ProfileContent() {
                         ))}
                       </select>
                       <span class="absolute inset-y-0 right-3 flex items-center text-text-muted-light dark:text-text-muted-dark pointer-events-none">
-                        <span class="material-symbols-outlined text-[20px]">
-                          expand_more
-                        </span>
+                        <Icon name="expand_more" class="text-[20px]" />
                       </span>
                     </div>
                   </div>
@@ -441,9 +432,7 @@ function ProfileContent() {
                 class="px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold rounded-lg transition-colors cursor-pointer border-none flex items-center gap-2"
               >
                 {isDeleting && (
-                  <span class="material-symbols-outlined text-[18px] animate-spin">
-                    progress_activity
-                  </span>
+                  <Icon name="progress_activity" class="text-[18px] animate-spin" />
                 )}
                 {t("profile.deleteConfirm")}
               </button>

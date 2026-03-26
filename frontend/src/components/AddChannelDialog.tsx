@@ -4,6 +4,7 @@ import { mutate } from "swr";
 import { getChannel } from "../api/generated/channel";
 import { CACHE_KEYS } from "../api/cache-keys";
 import { getApiErrorCode } from "../utils/api-error";
+import { Icon } from "./Icon";
 
 interface AddChannelDialogProps {
   open: boolean;
@@ -77,7 +78,7 @@ export function AddChannelDialog({
           onClick={onClose}
           aria-label={t("dashboard.addChannelDialog.cancel")}
         >
-          <span class="material-symbols-outlined">close</span>
+          <Icon name="close" />
         </button>
         <h2 class="text-2xl font-bold text-charcoal dark:text-white mb-2">
           {t("dashboard.addChannelDialog.title")}
@@ -97,9 +98,7 @@ export function AddChannelDialog({
               } catch {}
             }}
           >
-            <span class="material-symbols-outlined text-[20px]">
-              content_paste
-            </span>
+            <Icon name="content_paste" class="text-[20px]" />
           </button>
           <input
             type="text"
