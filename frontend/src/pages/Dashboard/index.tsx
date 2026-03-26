@@ -9,6 +9,7 @@ import { VideoCard } from "../../components/VideoCard";
 import { getFeed } from "../../api/generated/feed";
 import { PAGE_SIZES } from "../../constants";
 import type { GetFeed200ItemsItem } from "../../api/generated/antiYtApi.schemas";
+import { Icon } from "../../components/Icon";
 
 function DashboardContent() {
   const { t } = useTranslation();
@@ -86,16 +87,14 @@ function DashboardContent() {
           </>
         ) : (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-            <span class="material-symbols-outlined text-5xl mb-4">
-              subscriptions
-            </span>
+            <Icon name="subscriptions" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("dashboard.noVideos")}</p>
             <p class="text-sm mt-1">{t("dashboard.noVideosDesc")}</p>
             <a
               class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
               href="/channels"
             >
-              <span class="material-symbols-outlined text-[18px]">recommend</span>
+              <Icon name="recommend" class="text-[18px]" />
               {t("dashboard.nav.recommendedChannels")}
             </a>
           </div>

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { getAuth } from "../../api/generated/auth";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import type { GetUsersMeSessions200ItemsItem } from "../../api/generated/antiYtApi.schemas";
+import { Icon } from "../../components/Icon";
 
 function getDeviceIcon(deviceType: string): string {
   const lower = deviceType.toLowerCase();
@@ -113,7 +114,7 @@ export function SecurityTab() {
       {/* Error banner */}
       {error && (
         <div class="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm font-medium">
-          <span class="material-symbols-outlined text-base">error</span>
+          <Icon name="error" class="text-base" />
           <span class="flex-1">{error}</span>
           <button
             onClick={() => { setError(null); setIsLoading(true); loadSessions(); }}
@@ -130,14 +131,12 @@ export function SecurityTab() {
           <h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">
             {t("security.currentSession")}
           </h3>
-          <div class="overflow-hidden rounded-xl border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark shadow-sm">
+          <div class="overflow-hidden rounded-xl border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark">
             {/* Main Row */}
             <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-6 border-b border-border-light dark:border-border-dark">
               <div class="flex items-center gap-4 flex-1">
                 <div class="flex items-center justify-center rounded-lg bg-primary/20 shrink-0 size-14">
-                  <span class="material-symbols-outlined text-2xl text-primary font-bold">
-                    {getDeviceIcon(currentSession.device_type)}
-                  </span>
+                  <Icon name={getDeviceIcon(currentSession.device_type)} class="text-2xl text-primary font-bold" />
                 </div>
                 <div class="flex flex-col justify-center">
                   <div class="flex items-center gap-2 flex-wrap">
@@ -203,13 +202,11 @@ export function SecurityTab() {
             {otherSessions.map((session) => (
               <div
                 key={session.id}
-                class="flex flex-col sm:flex-row sm:items-center gap-4 bg-card-light dark:bg-card-dark px-5 py-4 rounded-xl border border-border-light dark:border-border-dark shadow-sm justify-between group hover:border-primary/50 transition-colors"
+                class="flex flex-col sm:flex-row sm:items-center gap-4 bg-card-light dark:bg-card-dark px-5 py-4 rounded-xl border border-border-light dark:border-border-dark justify-between group hover:border-primary/50 transition-colors"
               >
                 <div class="flex items-center gap-4">
                   <div class="flex items-center justify-center rounded-lg bg-background-light dark:bg-background-dark shrink-0 size-12">
-                    <span class="material-symbols-outlined text-text-muted-light dark:text-text-muted-dark">
-                      {getDeviceIcon(session.device_type)}
-                    </span>
+                    <Icon name={getDeviceIcon(session.device_type)} class="text-text-muted-light dark:text-text-muted-dark" />
                   </div>
                   <div class="flex flex-col justify-center">
                     <p class="text-base font-bold leading-normal">
@@ -249,9 +246,7 @@ export function SecurityTab() {
             class="px-6 py-2.5 rounded-lg font-bold text-sm text-primary hover:bg-primary/10 transition-colors cursor-pointer bg-transparent border border-primary/30 disabled:opacity-50 flex items-center gap-2"
           >
             {isLoadingMore && (
-              <span class="material-symbols-outlined text-[18px] animate-spin">
-                progress_activity
-              </span>
+              <Icon name="progress_activity" class="text-[18px] animate-spin" />
             )}
             {t("security.loadMore")}
           </button>
@@ -261,7 +256,7 @@ export function SecurityTab() {
       {/* Empty state */}
       {sessions.length === 0 && (
         <div class="text-center py-12 text-text-muted-light dark:text-text-muted-dark">
-          <span class="material-symbols-outlined text-4xl mb-2">devices</span>
+          <Icon name="devices" class="text-4xl mb-2" />
           <p class="font-medium">{t("security.noSessions")}</p>
         </div>
       )}
@@ -271,15 +266,15 @@ export function SecurityTab() {
         const session = sessions.find((s) => s.id === confirmRevokeId);
         if (!session) return null;
         return (
-          <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => { if (revokingId === null) setConfirmRevokeId(null); }}>
-            <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-2xl border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
+          <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60" onClick={() => { if (revokingId === null) setConfirmRevokeId(null); }}>
+            <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
               <h3 class="text-lg font-bold">{t("security.revokeConfirmTitle")}</h3>
               <p class="text-sm text-text-muted-light dark:text-text-muted-dark leading-relaxed">
                 {t("security.revokeConfirmDesc", { name: session.browser_name })}
               </p>
               {revokeError && (
                 <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
-                  <span class="material-symbols-outlined text-base">error</span>
+                  <Icon name="error" class="text-base" />
                   {revokeError}
                 </div>
               )}
@@ -297,9 +292,7 @@ export function SecurityTab() {
                   class="px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold rounded-lg transition-colors cursor-pointer border-none flex items-center gap-2"
                 >
                   {revokingId === confirmRevokeId && (
-                    <span class="material-symbols-outlined text-[18px] animate-spin">
-                      progress_activity
-                    </span>
+                    <Icon name="progress_activity" class="text-[18px] animate-spin" />
                   )}
                   {t("security.revokeConfirm")}
                 </button>

@@ -2,6 +2,7 @@ import { useRef } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { formatTime } from "../utils/format";
 import type { TimeRange } from "../types/time-range";
+import { Icon } from "./Icon";
 
 interface TimeRangeSliderProps {
   range: TimeRange;
@@ -57,14 +58,14 @@ export function TimeRangeSlider({
   const thumbs = (
     <>
       <div
-        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full shadow-md cursor-grab z-10 hover:scale-110 active:scale-95 transition-transform touch-none`}
+        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full cursor-grab z-10 hover:scale-110 active:scale-95 transition-transform touch-none`}
         style={{ left: `${startPct}%` }}
         onPointerDown={handlePointerDown("start")}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
       />
       <div
-        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full shadow-md cursor-grab z-10 hover:scale-110 active:scale-95 transition-transform touch-none`}
+        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full cursor-grab z-10 hover:scale-110 active:scale-95 transition-transform touch-none`}
         style={{ left: `${endPct}%` }}
         onPointerDown={handlePointerDown("end")}
         onPointerMove={handlePointerMove}
@@ -92,7 +93,7 @@ export function TimeRangeSlider({
             class="absolute top-1 z-20 transition-all duration-200"
             style={{ left: `${startPct}%`, transform: "translateX(-50%)" }}
           >
-            <span class="bg-white dark:bg-[#2a2721] text-primary border border-gray-200 dark:border-neutral-700 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+            <span class="bg-white dark:bg-[#2a2721] text-primary border border-gray-200 dark:border-neutral-700 text-[10px] font-bold px-1.5 py-0.5 rounded">
               {formatTime(range.startMinutes)}
             </span>
           </div>
@@ -100,7 +101,7 @@ export function TimeRangeSlider({
             class="absolute top-1 z-20 transition-all duration-200"
             style={{ left: `${endPct}%`, transform: "translateX(-50%)" }}
           >
-            <span class="bg-white dark:bg-[#2a2721] text-primary border border-gray-200 dark:border-neutral-700 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+            <span class="bg-white dark:bg-[#2a2721] text-primary border border-gray-200 dark:border-neutral-700 text-[10px] font-bold px-1.5 py-0.5 rounded">
               {formatTime(range.endMinutes)}
             </span>
           </div>
@@ -126,7 +127,7 @@ export function TimeRangeSlider({
             />
             {/* Highlight bar */}
             <div
-              class="absolute top-[3px] bottom-[3px] bg-primary rounded-full shadow-sm pointer-events-none"
+              class="absolute top-[3px] bottom-[3px] bg-primary rounded-full pointer-events-none"
               style={{ left: `${startPct}%`, width: `${endPct - startPct}%` }}
             />
 
@@ -142,7 +143,7 @@ export function TimeRangeSlider({
           title={t("register.restrictions.removeRange")}
           onClick={onDelete}
         >
-          <span class="material-symbols-outlined text-xl">delete</span>
+          <Icon name="delete" class="text-xl" />
         </button>
       </div>
     );
@@ -163,7 +164,7 @@ export function TimeRangeSlider({
           class="size-8 flex items-center justify-center text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all cursor-pointer bg-transparent border-none"
           onClick={onDelete}
         >
-          <span class="material-symbols-outlined text-[18px]">delete</span>
+          <Icon name="delete" class="text-[18px]" />
         </button>
       </div>
       <div class="relative pt-2 px-1">

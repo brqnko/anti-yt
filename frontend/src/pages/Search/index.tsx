@@ -10,6 +10,7 @@ import { VideoCard } from "../../components/VideoCard";
 import { getFeed } from "../../api/generated/feed";
 import { PAGE_SIZES } from "../../constants";
 import type { GetSearch200ItemsItem } from "../../api/generated/antiYtApi.schemas";
+import { Icon } from "../../components/Icon";
 
 function SearchContent() {
   const { t } = useTranslation();
@@ -89,14 +90,14 @@ function SearchContent() {
 
         {!searchQuery.trim() ? (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-            <span class="material-symbols-outlined text-5xl mb-4">search</span>
+            <Icon name="search" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("search.placeholder")}</p>
           </div>
         ) : isLoading ? (
           <LoadingSpinner />
         ) : error ? (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-            <span class="material-symbols-outlined text-5xl mb-4">error_outline</span>
+            <Icon name="error_outline" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("search.loadError")}</p>
             <button
               class="mt-4 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer border-none"
@@ -136,7 +137,7 @@ function SearchContent() {
           </>
         ) : (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-            <span class="material-symbols-outlined text-5xl mb-4">search_off</span>
+            <Icon name="search_off" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("search.noResults")}</p>
             <p class="text-sm mt-1">{t("search.noResultsDesc")}</p>
           </div>

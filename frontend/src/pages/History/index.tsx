@@ -10,6 +10,7 @@ import { getHistory } from "../../api/generated/history";
 import { isoToDateStr, toUTCDateStr, todayUTC } from "../../utils/format";
 import { PAGE_SIZES } from "../../constants";
 import type { GetHistory200ItemsItem } from "../../api/generated/antiYtApi.schemas";
+import { Icon } from "../../components/Icon";
 
 function formatDateHeader(
   dateKey: string,
@@ -122,9 +123,7 @@ function HistoryContent() {
           <LoadingSpinner />
         ) : error ? (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-            <span class="material-symbols-outlined text-5xl mb-4">
-              error_outline
-            </span>
+            <Icon name="error_outline" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("history.loadError")}</p>
             <button
               onClick={loadInitial}
@@ -174,9 +173,7 @@ function HistoryContent() {
           </>
         ) : (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-            <span class="material-symbols-outlined text-5xl mb-4">
-              history
-            </span>
+            <Icon name="history" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("history.noHistory")}</p>
           </div>
         )}

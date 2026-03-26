@@ -8,6 +8,7 @@ import { TimeRangeSlider } from "../../components/TimeRangeSlider";
 import { formatTime, parseTimeToMinutes } from "../../utils/format";
 import type { TimeRange } from "../../types/time-range";
 import type { GetChannelsSubscribed200ItemsItem } from "../../api/generated/antiYtApi.schemas";
+import { Icon } from "../../components/Icon";
 
 function RemoveChannelDialog({
   open,
@@ -58,13 +59,13 @@ function RemoveChannelDialog({
 
   return (
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 p-8 max-w-sm w-full">
+      <div class="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl ring-1 ring-black/10 dark:ring-white/10 border border-gray-100 dark:border-neutral-800 p-8 max-w-sm w-full">
         <button
           class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
           onClick={onClose}
         >
-          <span class="material-symbols-outlined">close</span>
+          <Icon name="close" />
         </button>
         <div class="flex items-center gap-3 mb-4">
           <h2 class="text-lg font-bold text-charcoal dark:text-white">
@@ -75,6 +76,7 @@ function RemoveChannelDialog({
           <img
             src={channel.external_channel_icon_url}
             alt=""
+            loading="lazy"
             class="rounded-full size-10 shrink-0 border border-border-light dark:border-border-dark object-cover"
           />
           <div class="flex flex-col min-w-0">
@@ -223,8 +225,8 @@ export function RestrictionsTab() {
   };
 
   return (
-    <>
-      <div class="flex flex-col gap-2 mb-2">
+    <div class="flex flex-col gap-6 min-w-0 overflow-hidden">
+      <div class="flex flex-col gap-2">
         <h1 class="text-3xl lg:text-4xl font-black leading-tight tracking-[-0.033em]">
           {t("restrictions.title")}
         </h1>
@@ -232,7 +234,7 @@ export function RestrictionsTab() {
 
       <div class="flex flex-col gap-6">
           {/* Time Constraints */}
-          <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
+          <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
             <div class="p-6 border-b border-border-light dark:border-border-dark">
               <h2 class="text-xl font-bold">
                 {t("restrictions.timeConstraints")}
@@ -264,9 +266,7 @@ export function RestrictionsTab() {
                   class="flex items-center justify-center gap-2 w-full py-3 border border-dashed border-border-light dark:border-border-dark rounded-lg text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 transition-all group cursor-pointer bg-transparent"
                   onClick={addRange}
                 >
-                  <span class="material-symbols-outlined group-hover:scale-110 transition-transform">
-                    add
-                  </span>
+                  <Icon name="add" class="group-hover:scale-110 transition-transform" />
                   <span class="text-sm font-bold">
                     {t("restrictions.addTimeRange")}
                   </span>
@@ -292,7 +292,7 @@ export function RestrictionsTab() {
                     }`}
                   >
                     <span
-                      class={`inline-block size-5 rounded-full bg-white shadow-sm transition-transform ${
+                      class={`inline-block size-5 rounded-full bg-white transition-transform ${
                         !isUnlimited ? "translate-x-6" : "translate-x-1"
                       }`}
                     />
@@ -364,9 +364,7 @@ export function RestrictionsTab() {
                   )}
                   {saveError && (
                     <span class="text-sm text-red-500 font-medium flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[18px]">
-                        error
-                      </span>
+                      <Icon name="error" class="text-[18px]" />
                       {saveError}
                     </span>
                   )}
@@ -375,7 +373,7 @@ export function RestrictionsTab() {
             </div>
           </div>
           {/* Whitelist */}
-          <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
+          <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
             <div class="p-6 border-b border-border-light dark:border-border-dark">
               <h2 class="text-xl font-bold">
                 {t("restrictions.whitelist")}
@@ -384,9 +382,7 @@ export function RestrictionsTab() {
             <div class="p-6 flex flex-col gap-6 grow">
               <div class="relative group">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <span class="material-symbols-outlined text-text-muted-light dark:text-text-muted-dark group-focus-within:text-primary transition-colors">
-                    search
-                  </span>
+                  <Icon name="search" class="text-text-muted-light dark:text-text-muted-dark group-focus-within:text-primary transition-colors" />
                 </div>
                 <input
                   class="block w-full p-4 pl-10 text-sm bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary outline-none placeholder-text-muted-light dark:placeholder-text-muted-dark transition-all"
@@ -412,6 +408,7 @@ export function RestrictionsTab() {
                     <img
                       src={ch.external_channel_icon_url}
                       alt=""
+                      loading="lazy"
                       class="rounded-full size-12 shrink-0 border border-border-light dark:border-border-dark object-cover"
                     />
                     <div class="flex flex-col grow min-w-0">
@@ -426,9 +423,7 @@ export function RestrictionsTab() {
                       class="size-8 flex items-center justify-center rounded-full text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all cursor-pointer bg-transparent border-none"
                       onClick={() => setRemoveTarget(ch)}
                     >
-                      <span class="material-symbols-outlined text-[20px]">
-                        close
-                      </span>
+                      <Icon name="close" class="text-[20px]" />
                     </button>
                   </div>
                 ))}
@@ -438,9 +433,7 @@ export function RestrictionsTab() {
                 class="flex items-center justify-center gap-2 w-full py-3 border border-dashed border-border-light dark:border-border-dark rounded-lg text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 transition-all group cursor-pointer bg-transparent"
                 onClick={() => setShowAddChannel(true)}
               >
-                <span class="material-symbols-outlined group-hover:scale-110 transition-transform">
-                  add
-                </span>
+                <Icon name="add" class="group-hover:scale-110 transition-transform" />
                 <span class="text-sm font-bold">
                   {t("dashboard.requestChannel")}
                 </span>
@@ -462,6 +455,6 @@ export function RestrictionsTab() {
         onClose={() => setRemoveTarget(null)}
         onConfirm={() => handleUnsubscribe(removeTarget!.channel_id)}
       />
-    </>
+    </div>
   );
 }

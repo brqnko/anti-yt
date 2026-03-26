@@ -4,6 +4,7 @@ import { mutate } from "swr";
 import { getPlaylist } from "../api/generated/playlist";
 import { CACHE_KEYS } from "../api/cache-keys";
 import { getApiErrorCode } from "../utils/api-error";
+import { Icon } from "./Icon";
 
 interface AddPlaylistDialogProps {
   open: boolean;
@@ -76,16 +77,16 @@ export function AddPlaylistDialog({
       aria-label={t("dashboard.addPlaylistDialog.title")}
     >
       <div
-        class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        class="absolute inset-0 bg-black/60"
         onClick={onClose}
       />
-      <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 p-8 max-w-md w-full">
+      <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl ring-1 ring-black/10 dark:ring-white/10 border border-gray-100 dark:border-neutral-800 p-8 max-w-md w-full">
         <button
           class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
           onClick={onClose}
           aria-label={t("dashboard.addPlaylistDialog.cancel")}
         >
-          <span class="material-symbols-outlined">close</span>
+          <Icon name="close" />
         </button>
         <h2 class="text-2xl font-bold text-charcoal dark:text-white mb-5">
           {t("dashboard.addPlaylistDialog.title")}
@@ -99,7 +100,7 @@ export function AddPlaylistDialog({
             </label>
             <input
               type="text"
-              class="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all shadow-sm"
+              class="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
               placeholder={`${t("dashboard.addPlaylistDialog.titlePlaceholder")} (${t("dashboard.addPlaylistDialog.required")})`}
               value={title}
               onInput={(e) => setTitle((e.target as HTMLInputElement).value)}
@@ -112,7 +113,7 @@ export function AddPlaylistDialog({
               {t("dashboard.addPlaylistDialog.descriptionLabel")}
             </label>
             <textarea
-              class="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all shadow-sm resize-none"
+              class="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all resize-none"
               rows={3}
               placeholder={t("dashboard.addPlaylistDialog.descriptionPlaceholder")}
               value={description}
@@ -139,13 +140,11 @@ export function AddPlaylistDialog({
                   } catch {}
                 }}
               >
-                <span class="material-symbols-outlined text-[20px]">
-                  content_paste
-                </span>
+                <Icon name="content_paste" class="text-[20px]" />
               </button>
               <input
                 type="text"
-                class="w-full pl-10 pr-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all shadow-sm"
+                class="w-full pl-10 pr-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                 placeholder={t("dashboard.addPlaylistDialog.importPlaceholder")}
                 value={importUrl}
                 onInput={(e) => setImportUrl((e.target as HTMLInputElement).value)}

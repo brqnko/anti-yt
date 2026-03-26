@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import preact from "@preact/preset-vite";
 import tailwindcss from "@tailwindcss/vite";
+import Icons from "unplugin-icons/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -11,6 +12,7 @@ export default defineConfig({
     allowedHosts: ["frontend"],
   },
   plugins: [
+    Icons({ compiler: "raw" }),
     tailwindcss(),
     preact({
       prerender: {

@@ -12,7 +12,7 @@ CHANNEL_ID="$1"
 BASE_URL="${BASE_URL:-http://localhost:8080}"
 ADMIN_API_KEY="${ADMIN_API_KEY:?ADMIN_API_KEY is required}"
 
-RES=$(curl -s -X DELETE "${BASE_URL}/admin/valuable" \
+RES=$(curl -s -X DELETE "${BASE_URL}/api/admin/valuable" \
   -H "Authorization: Bearer ${ADMIN_API_KEY}" \
   -H "Content-Type: application/json" \
   -d "$(jq -n --arg c "$CHANNEL_ID" '{external_channel_id: $c}')")

@@ -9,6 +9,7 @@ import { AddPlaylistDialog } from "./AddPlaylistDialog";
 import { getChannel } from "../api/generated/channel";
 import { getPlaylist } from "../api/generated/playlist";
 import { CACHE_KEYS } from "../api/cache-keys";
+import { Icon } from "./Icon";
 import type {
   GetChannelsSubscribed200ItemsItem,
   GetPlaylists200ItemsItem,
@@ -96,7 +97,7 @@ export function DashboardLayout({
             fixed top-[57px] bottom-0 z-40 bg-background-light dark:bg-background-dark
             lg:relative lg:top-auto lg:bottom-auto lg:z-auto
             ${sidebarOpen
-              ? "w-64 opacity-100 translate-x-0 overflow-y-auto"
+              ? "w-64 opacity-100 translate-x-0 overflow-y-auto overflow-x-hidden"
               : "w-0 opacity-0 -translate-x-full lg:translate-x-0 overflow-hidden"
             }`}
           role="navigation"
@@ -113,7 +114,7 @@ export function DashboardLayout({
                 href="/dashboard"
                 aria-current={url === "/dashboard" ? "page" : undefined}
               >
-                <span class="material-symbols-outlined">home</span>
+                <Icon name="home" />
                 {t("dashboard.nav.mainFeed")}
               </a>
               <a
@@ -125,7 +126,7 @@ export function DashboardLayout({
                 href="/analytics"
                 aria-current={url === "/analytics" ? "page" : undefined}
               >
-                <span class="material-symbols-outlined">analytics</span>
+                <Icon name="analytics" />
                 {t("dashboard.nav.analytics")}
               </a>
               <a
@@ -137,7 +138,7 @@ export function DashboardLayout({
                 href="/channels"
                 aria-current={url === "/channels" ? "page" : undefined}
               >
-                <span class="material-symbols-outlined">recommend</span>
+                <Icon name="recommend" />
                 {t("dashboard.nav.recommendedChannels")}
               </a>
               <a
@@ -149,7 +150,7 @@ export function DashboardLayout({
                 href="/playlists"
                 aria-current={url === "/playlists" || url.startsWith("/playlists/") ? "page" : undefined}
               >
-                <span class="material-symbols-outlined">playlist_play</span>
+                <Icon name="playlist_play" />
                 {t("dashboard.nav.playlists")}
               </a>
               <a
@@ -161,7 +162,7 @@ export function DashboardLayout({
                 href="/history"
                 aria-current={url === "/history" ? "page" : undefined}
               >
-                <span class="material-symbols-outlined">history</span>
+                <Icon name="history" />
                 {t("dashboard.nav.history")}
               </a>
             </nav>
@@ -186,6 +187,7 @@ export function DashboardLayout({
                     <div class="size-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden shrink-0">
                       <img
                         alt={sub.external_channel_display_name}
+                        loading="lazy"
                         class="w-full h-full object-cover"
                         src={sub.external_channel_icon_url}
                       />
@@ -204,7 +206,7 @@ export function DashboardLayout({
                   class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium mt-1 cursor-pointer bg-transparent border-none group/add"
                   onClick={() => setShowAddChannel(true)}
                 >
-                  <span class="material-symbols-outlined text-[18px]">add</span>
+                  <Icon name="add" class="text-[18px]" />
                   <span class="group-hover/add:underline">{t("dashboard.requestChannel")}</span>
                 </button>
               </div>
@@ -226,9 +228,7 @@ export function DashboardLayout({
                     }`}
                     href={`/playlists/${pl.playlist_id}`}
                   >
-                    <span class="material-symbols-outlined text-text-muted-light dark:text-text-muted-dark group-hover:text-primary">
-                      playlist_play
-                    </span>
+                    <Icon name="playlist_play" class="text-text-muted-light dark:text-text-muted-dark group-hover:text-primary" />
                     <span class="text-sm font-medium text-charcoal dark:text-white truncate">
                       {pl.playlist_title}
                     </span>
@@ -243,7 +243,7 @@ export function DashboardLayout({
                   class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium mt-1 cursor-pointer bg-transparent border-none group/add"
                   onClick={() => setShowAddPlaylist(true)}
                 >
-                  <span class="material-symbols-outlined text-[18px]">add</span>
+                  <Icon name="add" class="text-[18px]" />
                   <span class="group-hover/add:underline">{t("dashboard.addPlaylist")}</span>
                 </button>
               </div>
@@ -252,7 +252,7 @@ export function DashboardLayout({
         </aside>
 
         {/* Main Content */}
-        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto overflow-x-hidden">
           {children}
         </main>
       </div>

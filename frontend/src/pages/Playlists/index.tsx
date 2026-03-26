@@ -11,26 +11,26 @@ import { getPlaylist } from "../../api/generated/playlist";
 import { formatTimeAgo } from "../../utils/format";
 import { PAGE_SIZES } from "../../constants";
 import type { GetPlaylists200ItemsItem } from "../../api/generated/antiYtApi.schemas";
+import { Icon } from "../../components/Icon";
 
 function PlaylistCard({ playlist }: { playlist: GetPlaylists200ItemsItem }) {
   const { t } = useTranslation();
   return (
     <a
       href={`/playlists/${playlist.playlist_id}`}
-      class="group relative flex flex-col bg-card-light dark:bg-card-dark rounded-xl shadow-sm hover:shadow-lg border border-transparent hover:border-primary/20 transition-all duration-300 overflow-hidden no-underline"
+      class="group relative flex flex-col bg-card-light dark:bg-card-dark rounded-xl hover:-translate-y-0.5 border border-transparent hover:border-primary/20 transition-all duration-300 overflow-hidden no-underline"
     >
       <div class="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
         {playlist.top_video_thumbnail_url ? (
           <img
             src={playlist.top_video_thumbnail_url}
             alt={playlist.playlist_title}
+            loading="lazy"
             class="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
           <div class="absolute inset-0 flex items-center justify-center">
-            <span class="material-symbols-outlined text-5xl text-text-muted-light dark:text-text-muted-dark">
-              playlist_play
-            </span>
+            <Icon name="playlist_play" class="text-5xl text-text-muted-light dark:text-text-muted-dark" />
           </div>
         )}
         <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
@@ -138,10 +138,10 @@ function PlaylistsContent() {
           </div>
           <div class="flex flex-wrap items-center gap-3">
             <button
-              class="flex items-center gap-2 h-12 px-6 rounded-lg bg-primary hover:bg-primary/90 text-white font-bold shadow-sm hover:shadow-md transition-all cursor-pointer border-none"
+              class="flex items-center gap-2 h-12 px-6 rounded-lg bg-primary hover:bg-primary/90 text-white font-bold hover:-translate-y-px transition-all cursor-pointer border-none"
               onClick={() => setShowAddPlaylist(true)}
             >
-              <span class="material-symbols-outlined">add</span>
+              <Icon name="add" />
               {t("playlists.createNew")}
             </button>
           </div>
@@ -152,9 +152,7 @@ function PlaylistsContent() {
           <LoadingSpinner />
         ) : error ? (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-            <span class="material-symbols-outlined text-5xl mb-4">
-              error_outline
-            </span>
+            <Icon name="error_outline" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("playlists.loadError")}</p>
             <button
               onClick={loadInitial}
@@ -178,9 +176,7 @@ function PlaylistsContent() {
           </>
         ) : (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-            <span class="material-symbols-outlined text-5xl mb-4">
-              playlist_play
-            </span>
+            <Icon name="playlist_play" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("playlists.empty")}</p>
           </div>
         )}

@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { formatDuration, formatTimeAgo } from "../utils/format";
 import { buildWatchUrl } from "../utils/url";
+import { Icon } from "./Icon";
 
 export interface VideoCardProps {
   videoId: string;
@@ -38,13 +39,14 @@ function VideoThumbnail({
     <a
       href={watchUrl}
       class={`group/thumb relative aspect-video overflow-hidden bg-gray-200 dark:bg-gray-800 block no-underline ${
-        size === "card" ? "rounded-xl" : "w-60 flex-shrink-0 rounded-lg"
+        size === "card" ? "rounded-xl" : "rounded-xl sm:w-48 sm:flex-shrink-0 sm:rounded-lg md:w-60"
       }`}
     >
       <img
         src={thumbnailUrl}
         alt={title}
-        class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/thumb:scale-105"
+        loading="lazy"
+        class="absolute inset-0 w-full h-full object-cover"
       />
       <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300" />
       <span class="absolute bottom-2 right-2 bg-black/80 text-white text-xs font-bold px-1.5 py-0.5 rounded">
@@ -52,17 +54,14 @@ function VideoThumbnail({
       </span>
       <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300 pointer-events-none">
         <div
-          class={`rounded-full bg-primary/90 flex items-center justify-center text-white shadow-lg transform scale-90 group-hover/thumb:scale-100 transition-transform ${
+          class={`rounded-full bg-primary/90 flex items-center justify-center text-white ${
             size === "card" ? "size-12" : "size-10"
           }`}
         >
-          <span
-            class={`material-symbols-outlined ${
-              size === "card" ? "text-[28px] ml-1" : "text-[22px] ml-0.5"
-            }`}
-          >
-            play_arrow
-          </span>
+          <Icon
+            name="play_arrow"
+            class={size === "card" ? "text-[28px] ml-1" : "text-[22px] ml-0.5"}
+          />
         </div>
       </div>
       {progressPercent > 0 && (
@@ -109,12 +108,12 @@ export function VideoCard({
 
   if (layout === "row") {
     return (
-      <article class="flex gap-4 group">
+      <article class="flex flex-col sm:flex-row gap-3 sm:gap-4 group">
         {thumbnail}
-        <div class="flex flex-col gap-3 min-w-0 flex-1 py-1">
+        <div class="flex flex-col gap-2 sm:gap-3 min-w-0 flex-1 sm:py-1">
           <a
             href={watchUrl}
-            class="text-lg font-bold text-charcoal dark:text-white leading-snug line-clamp-2 no-underline hover:text-primary transition-colors"
+            class="text-base sm:text-lg font-bold text-charcoal dark:text-white leading-snug line-clamp-2 no-underline hover:text-primary transition-colors"
           >
             {title}
           </a>
@@ -123,11 +122,12 @@ export function VideoCard({
               <div class="flex items-center gap-2 text-sm text-text-muted-light dark:text-text-muted-dark">
                 <a
                   href={`/channels/${channel.channelId}`}
-                  class="flex items-center gap-1.5 no-underline text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors"
+                  class="flex items-center gap-1.5 min-w-0 overflow-hidden no-underline text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors"
                 >
                   <img
                     src={channel.iconUrl}
                     alt={channel.displayName}
+                    loading="lazy"
                     class="size-5 rounded-full object-cover"
                   />
                   <span class="truncate">{channel.displayName}</span>
@@ -161,6 +161,7 @@ export function VideoCard({
           >
             <img
               alt={channel.displayName}
+              loading="lazy"
               class="w-full h-full object-cover"
               src={channel.iconUrl}
             />

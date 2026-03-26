@@ -10,6 +10,7 @@ import { languages, modeIcons, REPORT_FORM_URL } from "../../constants";
 import { useColorMode, type ColorMode } from "../../hooks/useColorMode";
 import { RestrictionsTab } from "./RestrictionsTab";
 import { SecurityTab } from "./SecurityTab";
+import { Icon } from "../../components/Icon";
 
 const SIDEBAR_STORAGE_KEY = "sidebar-open";
 
@@ -112,7 +113,7 @@ function ProfileContent() {
     <div class="relative flex h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
       <DashboardHeader sidebarOpen={sidebarOpen} onToggleSidebar={toggleSidebar} />
 
-      <div class="flex flex-1 w-full max-w-[1600px] mx-auto overflow-hidden">
+      <div class="flex flex-1 w-full max-w-[1600px] mx-auto overflow-hidden min-h-0">
         {/* Mobile backdrop */}
         {sidebarOpen && (
           <div
@@ -127,7 +128,7 @@ function ProfileContent() {
             fixed top-[57px] bottom-0 z-40 bg-background-light dark:bg-background-dark
             lg:relative lg:top-auto lg:bottom-auto lg:z-auto
             ${sidebarOpen
-              ? "w-64 opacity-100 translate-x-0 overflow-y-auto"
+              ? "w-64 opacity-100 translate-x-0 overflow-y-auto overflow-x-hidden"
               : "w-0 opacity-0 -translate-x-full lg:translate-x-0 overflow-hidden"
             }`}
         >
@@ -140,7 +141,7 @@ function ProfileContent() {
                 : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5"
             }`}
           >
-            <span class="material-symbols-outlined">person</span>
+            <Icon name="person" />
             {t("profile.nav.profileSettings")}
           </button>
           <button
@@ -151,7 +152,7 @@ function ProfileContent() {
                 : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5"
             }`}
           >
-            <span class="material-symbols-outlined">block</span>
+            <Icon name="block" />
             {t("profile.nav.restrictions")}
           </button>
           <button
@@ -162,7 +163,7 @@ function ProfileContent() {
                 : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5"
             }`}
           >
-            <span class="material-symbols-outlined">shield_lock</span>
+            <Icon name="shield_lock" />
             {t("profile.nav.security")}
           </button>
           <div class="mt-auto flex flex-col gap-1">
@@ -172,7 +173,7 @@ function ProfileContent() {
               rel="noopener noreferrer"
               class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-all font-bold no-underline"
             >
-              <span class="material-symbols-outlined">flag</span>
+              <Icon name="flag" />
               {t("profile.nav.reportProblem")}
             </a>
             <div class="border-t border-border-light dark:border-border-dark my-1" />
@@ -180,7 +181,7 @@ function ProfileContent() {
               onClick={() => setShowLogoutConfirm(true)}
               class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 text-text-muted-light dark:text-text-muted-dark hover:text-red-500 transition-all font-bold cursor-pointer bg-transparent border-none"
             >
-              <span class="material-symbols-outlined">logout</span>
+              <Icon name="logout" />
               {t("profile.nav.signOut")}
             </button>
           </div>
@@ -188,14 +189,14 @@ function ProfileContent() {
         </aside>
 
         {/* Main Content */}
-        <main class="flex-1 flex flex-col max-w-6xl w-full px-4 sm:px-6 lg:px-10 py-8 gap-6 overflow-y-auto">
+        <main class="flex-1 flex flex-col min-h-0 max-w-6xl w-full px-4 sm:px-6 lg:px-10 py-8 gap-6 overflow-y-auto">
           {/* Mobile tab navigation */}
-          <nav class="flex lg:hidden items-center gap-1 bg-background-light dark:bg-background-dark p-1 rounded-full border border-border-light dark:border-border-dark self-start">
+          <nav class="flex lg:hidden items-center gap-1 bg-background-light dark:bg-background-dark p-1 rounded-full border border-border-light dark:border-border-dark self-start overflow-x-auto">
             <button
               onClick={() => setActiveTab("profile")}
-              class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none ${
+              class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
                 activeTab === "profile"
-                  ? "bg-card-light dark:bg-card-dark shadow-sm text-primary"
+                  ? "bg-card-light dark:bg-card-dark text-primary"
                   : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
               }`}
             >
@@ -203,9 +204,9 @@ function ProfileContent() {
             </button>
             <button
               onClick={() => setActiveTab("restrictions")}
-              class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none ${
+              class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
                 activeTab === "restrictions"
-                  ? "bg-card-light dark:bg-card-dark shadow-sm text-primary"
+                  ? "bg-card-light dark:bg-card-dark text-primary"
                   : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
               }`}
             >
@@ -213,9 +214,9 @@ function ProfileContent() {
             </button>
             <button
               onClick={() => setActiveTab("security")}
-              class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none ${
+              class={`px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
                 activeTab === "security"
-                  ? "bg-card-light dark:bg-card-dark shadow-sm text-primary"
+                  ? "bg-card-light dark:bg-card-dark text-primary"
                   : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
               }`}
             >
@@ -236,7 +237,7 @@ function ProfileContent() {
               </div>
 
               {/* Account Details */}
-              <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
+              <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
                 <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
                   <h2 class="text-xl font-bold">
                     {t("profile.accountDetails")}
@@ -249,9 +250,7 @@ function ProfileContent() {
                     </label>
                     <div class="relative">
                       <span class="absolute inset-y-0 left-3 flex items-center text-text-muted-light dark:text-text-muted-dark">
-                        <span class="material-symbols-outlined text-[20px]">
-                          edit
-                        </span>
+                        <Icon name="edit" class="text-[20px]" />
                       </span>
                       <input
                         type="text"
@@ -278,9 +277,7 @@ function ProfileContent() {
                     </label>
                     <div class="relative">
                       <span class="absolute inset-y-0 left-3 flex items-center text-text-muted-light dark:text-text-muted-dark pointer-events-none">
-                        <span class="material-symbols-outlined text-[20px]">
-                          language
-                        </span>
+                        <Icon name="language" class="text-[20px]" />
                       </span>
                       <select
                         value={languageCode}
@@ -298,9 +295,7 @@ function ProfileContent() {
                         ))}
                       </select>
                       <span class="absolute inset-y-0 right-3 flex items-center text-text-muted-light dark:text-text-muted-dark pointer-events-none">
-                        <span class="material-symbols-outlined text-[20px]">
-                          expand_more
-                        </span>
+                        <Icon name="expand_more" class="text-[20px]" />
                       </span>
                     </div>
                   </div>
@@ -327,7 +322,7 @@ function ProfileContent() {
               </div>
 
               {/* Appearance */}
-              <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
+              <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
                 <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
                   <h2 class="text-xl font-bold">
                     {t("appearance.title")}
@@ -340,9 +335,7 @@ function ProfileContent() {
                     </label>
                     <div class="relative">
                       <span class="absolute inset-y-0 left-3 flex items-center text-text-muted-light dark:text-text-muted-dark pointer-events-none">
-                        <span class="material-symbols-outlined text-[20px]">
-                          {colorModes.find((m) => m.value === mode)?.icon}
-                        </span>
+                        <Icon name={colorModes.find((m) => m.value === mode)?.icon} class="text-[20px]" />
                       </span>
                       <select
                         value={mode}
@@ -356,9 +349,7 @@ function ProfileContent() {
                         ))}
                       </select>
                       <span class="absolute inset-y-0 right-3 flex items-center text-text-muted-light dark:text-text-muted-dark pointer-events-none">
-                        <span class="material-symbols-outlined text-[20px]">
-                          expand_more
-                        </span>
+                        <Icon name="expand_more" class="text-[20px]" />
                       </span>
                     </div>
                   </div>
@@ -391,8 +382,8 @@ function ProfileContent() {
 
       {/* Logout Confirmation Dialog */}
       {showLogoutConfirm && (
-        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowLogoutConfirm(false)}>
-          <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-2xl border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
+        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60" onClick={() => setShowLogoutConfirm(false)}>
+          <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
             <h3 class="text-lg font-bold text-charcoal dark:text-white">
               {t("profile.logoutConfirmTitle")}
             </h3>
@@ -419,8 +410,8 @@ function ProfileContent() {
 
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
-        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => { if (!isDeleting) setShowDeleteConfirm(false); }}>
-          <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-2xl border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
+        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60" onClick={() => { if (!isDeleting) setShowDeleteConfirm(false); }}>
+          <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
             <h3 class="text-lg font-bold text-red-600 dark:text-red-400">
               {t("profile.deleteConfirmTitle")}
             </h3>
@@ -441,9 +432,7 @@ function ProfileContent() {
                 class="px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold rounded-lg transition-colors cursor-pointer border-none flex items-center gap-2"
               >
                 {isDeleting && (
-                  <span class="material-symbols-outlined text-[18px] animate-spin">
-                    progress_activity
-                  </span>
+                  <Icon name="progress_activity" class="text-[18px] animate-spin" />
                 )}
                 {t("profile.deleteConfirm")}
               </button>
