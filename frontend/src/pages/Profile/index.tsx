@@ -19,7 +19,7 @@ function getStoredSidebarState(): boolean {
     const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
     if (stored !== null) return stored === "true";
   } catch {}
-  return true;
+  return window.innerWidth >= 1024;
 }
 
 type Tab = "restrictions" | "profile" | "security";
@@ -110,10 +110,10 @@ function ProfileContent() {
   };
 
   return (
-    <div class="relative flex h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
+    <div class="relative flex lg:h-dvh w-full flex-col bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
       <DashboardHeader sidebarOpen={sidebarOpen} onToggleSidebar={toggleSidebar} />
 
-      <div class="flex flex-1 w-full max-w-[1600px] mx-auto overflow-hidden min-h-0">
+      <div class="flex flex-1 w-full max-w-[1600px] mx-auto lg:overflow-hidden min-h-0">
         {/* Mobile backdrop */}
         {sidebarOpen && (
           <div
@@ -189,7 +189,7 @@ function ProfileContent() {
         </aside>
 
         {/* Main Content */}
-        <main class="flex-1 flex flex-col min-h-0 max-w-6xl w-full px-4 sm:px-6 lg:px-10 py-8 gap-6 overflow-y-auto">
+        <main class="flex-1 flex flex-col min-h-0 max-w-6xl w-full px-4 sm:px-6 lg:px-10 py-8 gap-6 lg:overflow-y-auto">
           {/* Mobile tab navigation */}
           <nav class="flex lg:hidden items-center gap-1 bg-background-light dark:bg-background-dark p-1 rounded-full border border-border-light dark:border-border-dark self-start overflow-x-auto">
             <button
