@@ -41,7 +41,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     post:
       summary: Refresh access token
       description: リフレッシュトークンを用いて新しいアクセストークンを発行する。
@@ -171,7 +171,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     post:
       tags: [ auth ]
       summary: Logout
@@ -202,7 +202,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     get:
       tags: [ auth ]
       summary: User session list
@@ -300,7 +300,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     delete:
       tags: [ auth ]
       summary: Delete session
@@ -341,7 +341,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     get:
       summary: Health check
       description: APIサーバーのヘルスチェックを行う。
@@ -380,7 +380,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     get:
       tags: [ channel ]
       summary: Get channels
@@ -444,7 +444,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     get:
       tags: [ channel ]
       summary: Get channel detail
@@ -501,7 +501,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     get:
       tags: [ channel ]
       summary: Get latest channel uploads
@@ -589,7 +589,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     get:
       tags: [ channel ]
       summary: Get subscribed channels
@@ -679,7 +679,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     post:
       tags: [ channel ]
       summary: Subscribe new channel
@@ -762,7 +762,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     delete:
       tags: [ channel ]
       summary: Unsubscribe channel
@@ -804,7 +804,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     get:
       tags: [ feed ]
       summary: Get search result
@@ -950,7 +950,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     get:
       tags: [ feed ]
       summary: Get latest videos
@@ -1048,7 +1048,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     get:
       tags: [ video ]
       summary: Get video detail
@@ -1119,7 +1119,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     post:
       tags: [ history ]
       summary: Heartbeats
@@ -1175,7 +1175,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     post:
       tags: [ user ]
       summary: Create a new account
@@ -1235,7 +1235,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     get:
       tags: [ user ]
       summary: Get Current User's Status
@@ -1348,7 +1348,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     get:
       tags: [ history ]
       summary: Get video history
@@ -1365,7 +1365,7 @@ paths:
             maximum: 50
             default: 20
         - name: cursor
-          description: 最後に取得した動画内部ID(ページネーション)
+          description: 最後に取得した視聴履歴のwatch_id(ページネーション)
           in: query
           required: false
           schema:
@@ -1391,6 +1391,10 @@ paths:
                     items:
                       type: object
                       properties:
+                        watch_id:
+                          type: string
+                          format: uuid
+                          description: 視聴履歴の内部ID(ページネーション用)
                         video_id:
                           type: string
                           format: uuid
@@ -1425,7 +1429,7 @@ paths:
                         external_channel_display_name:
                           type: string
                           description: チャンネルの表示名
-                      required: [ video_id, watch_position_seconds, watched_at, external_video_thumbnail_url, external_video_title, external_video_length_seconds, channel_id, external_channel_display_name, external_channel_icon_url ]
+                      required: [ watch_id, video_id, watch_position_seconds, watched_at, external_video_thumbnail_url, external_video_title, external_video_length_seconds, channel_id, external_channel_display_name, external_channel_icon_url ]
                     uniqueItems: true
                 required: [ item_count, has_next, items ]
         "400":
@@ -1450,7 +1454,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     get:
       tags: [ history ]
       summary: Get User Statistics by week
@@ -1526,7 +1530,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     get:
       tags: [ playlist ]
       summary: Get playlists
@@ -1689,7 +1693,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     get:
       tags: [ playlist ]
       summary: Get playlist info
@@ -1824,7 +1828,7 @@ paths:
       - $ref: '#/components/parameters/HeaderCfRay'
       - $ref: '#/components/parameters/HeaderUserAgent'
       - $ref: '#/components/parameters/HeaderDeviceFingerprint'
-      - $ref: '#/components/parameters/HeaderTimezoneOffset'
+      - $ref: '#/components/parameters/HeaderTimezone'
     get:
       tags: [ playlist ]
       summary: Get playlist videos
@@ -2178,13 +2182,13 @@ components:
       schema:
         type: string
 
-    HeaderTimezoneOffset:
-      name: X-Timezone-Offset
+    HeaderTimezone:
+      name: X-Timezone
       in: header
       required: true
       schema:
-        type: integer
-        description: クライアントのタイムゾーンオフセット（分）。JavaScriptのgetTimezoneOffset()の値。
+        type: string
+        description: クライアントのIANAタイムゾーン名（例：Asia/Tokyo）
 
   securitySchemes:
     CookieJwtAuth:

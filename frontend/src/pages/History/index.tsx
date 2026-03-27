@@ -7,7 +7,7 @@ import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
 import { getHistory } from "../../api/generated/history";
-import { isoToDateStr, toUTCDateStr, todayUTC } from "../../utils/format";
+import { isoToDateStr, toDateStr, today } from "../../utils/format";
 import { PAGE_SIZES } from "../../constants";
 import type { GetHistory200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
@@ -17,22 +17,21 @@ function formatDateHeader(
   t: (key: string) => string,
   locale: string,
 ): string {
-  const today = todayUTC();
-  const todayKey = toUTCDateStr(today);
+  const todayDate = today();
+  const todayKey = toDateStr(todayDate);
 
-  const yesterday = new Date(today.getTime() - 86400000);
-  const yesterdayKey = toUTCDateStr(yesterday);
+  const yesterday = new Date(todayDate.getTime() - 86400000);
+  const yesterdayKey = toDateStr(yesterday);
 
   if (dateKey === todayKey) return t("history.today");
   if (dateKey === yesterdayKey) return t("history.yesterday");
 
   const [y, m, d] = dateKey.split("-").map(Number);
-  const date = new Date(Date.UTC(y, m - 1, d));
+  const date = new Date(y, m - 1, d);
   return date.toLocaleDateString(locale, {
     month: "long",
     day: "numeric",
-    timeZone: "UTC",
-    ...(y !== today.getUTCFullYear() ? { year: "numeric" } : {}),
+    ...(y !== todayDate.getFullYear() ? { year: "numeric" } : {}),
   });
 }
 
@@ -57,7 +56,7 @@ function HistoryContent() {
       setItems(res.items);
       setHasNext(res.has_next);
       hasNextRef.current = res.has_next;
-      cursorRef.current = res.items[res.items.length - 1]?.video_id;
+      cursorRef.current = res.items[res.items.length - 1]?.watch_id;
     } catch {
       setError(true);
     } finally {
@@ -81,7 +80,7 @@ function HistoryContent() {
       setItems((prev) => [...prev, ...res.items]);
       setHasNext(res.has_next);
       hasNextRef.current = res.has_next;
-      cursorRef.current = res.items[res.items.length - 1]?.video_id;
+      cursorRef.current = res.items[res.items.length - 1]?.watch_id;
     } catch {
       // 追加ロードのエラーは静かに無視（次回スクロールで再試行される）
     } finally {
@@ -142,7 +141,7 @@ function HistoryContent() {
                   </h2>
                   <div class="flex flex-col divide-y divide-gray-200 dark:divide-gray-800">
                     {group.items.map((item) => (
-                      <div key={`${item.video_id}-${item.watched_at}`} class="py-4 first:pt-0">
+                      <div key={item.watch_id} class="py-4 first:pt-0">
                         <VideoCard
                           layout="row"
                           videoId={item.video_id}

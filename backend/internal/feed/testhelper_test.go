@@ -63,7 +63,7 @@ func defaultYTMock() *ServiceMock {
 		FetchRSSFeedFunc: func(ctx context.Context, channelID youtube_d.ChannelID) ([]youtube_d.VideoID, error) {
 			return []youtube_d.VideoID{"dQw4w9WgXcQ"}, nil
 		},
-		SearchVideoIDsFunc: func(ctx context.Context, query string, pageToken string, language *string) ([]youtube_d.VideoID, string, error) {
+		SearchVideoIDsFunc: func(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
 			return []youtube_d.VideoID{"dQw4w9WgXcQ"}, "", nil
 		},
 	}

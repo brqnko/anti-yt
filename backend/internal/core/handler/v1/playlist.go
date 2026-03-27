@@ -36,6 +36,7 @@ func (h *APIHandler) GetPlaylists(ctx context.Context, request GetPlaylistsReque
 		}, len(playlists)),
 	}
 
+	loc := hutil.TimezoneFromContext(ctx)
 	for i, pl := range playlists {
 		resp.Items[i].PlaylistId = pl.PlaylistId
 		resp.Items[i].PlaylistTitle = pl.PlaylistTitle
@@ -43,8 +44,8 @@ func (h *APIHandler) GetPlaylists(ctx context.Context, request GetPlaylistsReque
 		resp.Items[i].PlaylistType = PlaylistType(pl.PlaylistType)
 		resp.Items[i].PlaylistVisibility = PlaylistVisibility(pl.PlaylistVisibility)
 		resp.Items[i].PlaylistVideoCount = pl.PlaylistVideoCount
-		resp.Items[i].PlaylistRegisteredAt = pl.PlaylistRegisteredAt
-		resp.Items[i].PlaylistUpdatedAt = pl.PlaylistUpdatedAt
+		resp.Items[i].PlaylistRegisteredAt = pl.PlaylistRegisteredAt.In(loc)
+		resp.Items[i].PlaylistUpdatedAt = pl.PlaylistUpdatedAt.In(loc)
 		resp.Items[i].TopVideoThumbnailUrl = pl.TopVideoThumbnailUrl
 	}
 
@@ -77,10 +78,10 @@ func (h *APIHandler) PostPlaylists(ctx context.Context, request PostPlaylistsReq
 		PlaylistTitle:        string(created.Title),
 		PlaylistDescription:  string(created.Description),
 		PlaylistVideoCount:   created.VideoCount,
-		PlaylistRegisteredAt: created.RegisteredAt,
+		PlaylistRegisteredAt: created.RegisteredAt.In(hutil.TimezoneFromContext(ctx)),
 		// TODO: updated_atは物理カラムとして存在するがドメインには含めていない。
 		// QueryServiceではSQLから直接updated_atを取得して誤魔化しているが、ここではドメイン経由のためRegisteredAtで代用している。
-		PlaylistUpdatedAt: created.RegisteredAt,
+		PlaylistUpdatedAt: created.RegisteredAt.In(hutil.TimezoneFromContext(ctx)),
 	}, nil
 }
 
@@ -115,8 +116,8 @@ func (h *APIHandler) GetPlaylistsPlaylistId(ctx context.Context, request GetPlay
 		PlaylistType:         PlaylistType(pl.PlaylistType),
 		PlaylistVisibility:   PlaylistVisibility(pl.PlaylistVisibility),
 		PlaylistVideoCount:   pl.PlaylistVideoCount,
-		PlaylistRegisteredAt: pl.PlaylistRegisteredAt,
-		PlaylistUpdatedAt:    pl.PlaylistUpdatedAt,
+		PlaylistRegisteredAt: pl.PlaylistRegisteredAt.In(hutil.TimezoneFromContext(ctx)),
+		PlaylistUpdatedAt:    pl.PlaylistUpdatedAt.In(hutil.TimezoneFromContext(ctx)),
 		TopVideoThumbnailUrl: pl.TopVideoThumbnailUrl,
 	}, nil
 }
@@ -148,12 +149,13 @@ func (h *APIHandler) GetPlaylistsPlaylistIdVideos(ctx context.Context, request G
 		}, len(videos)),
 	}
 
+	loc := hutil.TimezoneFromContext(ctx)
 	for i, v := range videos {
 		resp.Items[i].VideoId = v.VideoId
 		resp.Items[i].ChannelId = v.ChannelId
 		resp.Items[i].ExternalVideoThumbnailUrl = v.ExternalVideoThumbnailUrl
 		resp.Items[i].ExternalVideoTitle = v.ExternalVideoTitle
-		resp.Items[i].ExternalVideoCreatedAt = v.ExternalVideoCreatedAt
+		resp.Items[i].ExternalVideoCreatedAt = v.ExternalVideoCreatedAt.In(loc)
 		resp.Items[i].ExternalVideoLengthSeconds = v.ExternalVideoLengthSeconds
 		resp.Items[i].ExternalChannelIconUrl = v.ExternalChannelIconUrl
 		resp.Items[i].ExternalChannelDisplayName = v.ExternalChannelDisplayName
@@ -207,6 +209,6 @@ func (h *APIHandler) PostPlaylistsPlaylistIdVideos(ctx context.Context, request 
 	return PostPlaylistsPlaylistIdVideos201JSONResponse{
 		PlaylistId: request.PlaylistId,
 		VideoId:    request.Body.VideoId,
-		InsertedAt: time.Now().UTC(),
+		InsertedAt: time.Now().In(hutil.TimezoneFromContext(ctx)),
 	}, nil
 }

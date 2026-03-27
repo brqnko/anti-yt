@@ -6,7 +6,7 @@ import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getHistory } from "../../api/generated/history";
 import { getUser } from "../../api/generated/user";
-import { toUTCDateStr, getLastNDaysUTC, isoToDateStr, formatUTCDateLabel } from "../../utils/format";
+import { toDateStr, getLastNDays, isoToDateStr, formatDateLabel } from "../../utils/format";
 import type { GetStatisticsWeekly200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
 
@@ -24,9 +24,9 @@ function AnalyticsContent() {
     setIsLoading(true);
     setError(false);
     try {
-      const startDay = getLastNDaysUTC(7)[0];
+      const startDay = getLastNDays(7)[0];
       const [weeklyData, userData] = await Promise.all([
-        getHistory().getStatisticsWeekly({ target_week: toUTCDateStr(startDay) }),
+        getHistory().getStatisticsWeekly({ target_week: toDateStr(startDay) }),
         getUser().getUsersMeStatus(),
       ]);
       setItems(weeklyData.items);
@@ -46,16 +46,16 @@ function AnalyticsContent() {
   const dailyLimitHours = dailyLimitSeconds != null ? dailyLimitSeconds / 3600 : null;
 
   const dailyBars = useMemo(() => {
-    const days = getLastNDaysUTC(7);
-    const todayStr = toUTCDateStr(new Date());
+    const days = getLastNDays(7);
+    const todayStr = toDateStr(new Date());
     return days.map((date) => {
-      const dayStr = toUTCDateStr(date);
+      const dayStr = toDateStr(date);
       const item = items.find((it) => isoToDateStr(it.target_day) === dayStr);
       const seconds = item?.video_watch_seconds ?? 0;
       const hours = seconds / 3600;
       const videos = item?.video_watch_count ?? 0;
       const isToday = dayStr === todayStr;
-      const label = formatUTCDateLabel(date);
+      const label = formatDateLabel(date);
       return { hours, seconds, videos, label, isToday };
     });
   }, [items, isLoading]);
@@ -115,9 +115,9 @@ function AnalyticsContent() {
   // e.g. limit=1h, watched=30m → 200%, limit=1h, watched=1h → 100%, limit=1h, watched=2h → 50%
   const goalProgress = useMemo(() => {
     if (dailyLimitSeconds == null || dailyLimitSeconds === 0) return null;
-    const days = getLastNDaysUTC(7);
+    const days = getLastNDays(7);
     const scores = days.map((date) => {
-      const dayStr = toUTCDateStr(date);
+      const dayStr = toDateStr(date);
       const item = items.find((it) => isoToDateStr(it.target_day) === dayStr);
       const watched = item?.video_watch_seconds ?? 0;
       if (watched === 0) return 100;

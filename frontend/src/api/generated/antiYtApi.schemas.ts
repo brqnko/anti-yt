@@ -150,6 +150,8 @@ export type HeaderCSRFTokenParameter = string;
 
 export type HeaderDeviceFingerprintParameter = string;
 
+export type HeaderTimezoneParameter = string;
+
 export type GetAuthGoogleCallbackParams = {
 /**
  * Googleから発行された認可コード
@@ -545,12 +547,14 @@ export type GetHistoryParams = {
  */
 limit?: number;
 /**
- * 最後に取得した動画内部ID(ページネーション)
+ * 最後に取得した視聴履歴のwatch_id(ページネーション)
  */
 cursor?: string;
 };
 
 export type GetHistory200ItemsItem = {
+  /** 視聴履歴の内部ID(ページネーション用) */
+  watch_id: string;
   /** 内部ID */
   video_id: string;
   /**

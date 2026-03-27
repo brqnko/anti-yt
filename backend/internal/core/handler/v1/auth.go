@@ -198,15 +198,16 @@ func (h *APIHandler) GetUsersMeSessions(ctx context.Context, request GetUsersMeS
 		HasNext: hasNext,
 	}
 
+	loc := hutil.TimezoneFromContext(ctx)
 	for i, session := range sessions {
 		resp.Items[i].BrowserName = session.BrowserName
 		resp.Items[i].CityName = session.CityName
 		resp.Items[i].CountryCode = session.CountryCode
-		resp.Items[i].CreatedAt = session.ActivatedAt
+		resp.Items[i].CreatedAt = session.ActivatedAt.In(loc)
 		resp.Items[i].DeviceType = session.DeviceType
 		resp.Items[i].Id = session.ID
 		resp.Items[i].IpAddress = session.IpAddress
-		resp.Items[i].LastLoggedInAt = session.LastLoggedInAt
+		resp.Items[i].LastLoggedInAt = session.LastLoggedInAt.In(loc)
 		resp.Items[i].UserAgent = session.UserAgent
 	}
 

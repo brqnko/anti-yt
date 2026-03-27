@@ -45,11 +45,12 @@ func (h *APIHandler) GetChannelsChannelIdVideos(ctx context.Context, request Get
 		VideoId                    uuid.UUID `json:"video_id"`
 	}, len(videos))
 
+	loc := hutil.TimezoneFromContext(ctx)
 	for i, v := range videos {
 		items[i].VideoId = v.VideoId
 		items[i].ExternalVideoThumbnailUrl = v.ExternalVideoThumbnailUrl
 		items[i].ExternalVideoTitle = v.ExternalVideoTitle
-		items[i].ExternalVideoCreatedAt = v.ExternalVideoCreatedAt
+		items[i].ExternalVideoCreatedAt = v.ExternalVideoCreatedAt.In(loc)
 		items[i].ExternalVideoLengthSeconds = v.ExternalVideoLengthSeconds
 		items[i].LastWatchSeconds = v.LastWatchSeconds
 	}
@@ -149,7 +150,7 @@ func (h *APIHandler) PostChannelsSubscribe(ctx context.Context, request PostChan
 			ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
 			ExternalChannelId          string    `json:"external_channel_id"`
 		}{
-			ChannelCreatedAt:           subscribed.Channel.CreatedAt,
+			ChannelCreatedAt:           subscribed.Channel.CreatedAt.In(hutil.TimezoneFromContext(ctx)),
 			ChannelCustomId:            subscribed.Channel.CustomID,
 			ChannelDescription:         subscribed.Channel.Description,
 			ChannelId:                  subscribed.ID,

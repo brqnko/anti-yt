@@ -11,6 +11,7 @@ import (
 )
 
 type GetHistoryView struct {
+	WatchId                    uuid.UUID
 	VideoId                    uuid.UUID
 	ExternalVideoTitle         string
 	ExternalVideoThumbnailUrl  string
@@ -36,7 +37,7 @@ type GetTotalWatchSecondsView struct {
 type HistoryQueryService interface {
 	FindHistory(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetHistoryView, error)
 	FindStatisticsByWeek(ctx context.Context, userID uuid.UUID, startDate time.Time) (*string, []GetStatisticsWeeklyView, error)
-	FindTotalWatchSeconds(ctx context.Context, userID uuid.UUID) (GetTotalWatchSecondsView, error)
+	FindTotalWatchSeconds(ctx context.Context, userID uuid.UUID, loc *time.Location) (GetTotalWatchSecondsView, error)
 }
 
 type historyQueryServiceImpl struct {
@@ -64,6 +65,7 @@ func (h *historyQueryServiceImpl) FindHistory(ctx context.Context, userID uuid.U
 	views := make([]GetHistoryView, len(rows))
 	for i, row := range rows {
 		views[i] = GetHistoryView{
+			WatchId:                    row.WatchID,
 			VideoId:                    row.VideoID,
 			ExternalVideoTitle:         row.ExternalVideoTitle,
 			ExternalVideoThumbnailUrl:  row.ExternalVideoThumbnailUrl,
@@ -81,7 +83,9 @@ func (h *historyQueryServiceImpl) FindHistory(ctx context.Context, userID uuid.U
 func (h *historyQueryServiceImpl) FindStatisticsByWeek(ctx context.Context, userID uuid.UUID, startDate time.Time) (_ *string, _ []GetStatisticsWeeklyView, err error) {
 	defer util.Wrap(&err, "historyQueryService.FindStatisticsByWeek(userID=%s)", userID)
 
+	_, offsetSec := startDate.Zone()
 	rows, err := h.q.ListDailyWatchStatsByRange(ctx, sqlc.ListDailyWatchStatsByRangeParams{
+		TzOffset:  offsetSec,
 		UserID:    userID,
 		StartDate: startDate,
 		EndDate:   startDate.Add(7 * 24 * time.Hour), // NOTE: postgresql側で+ '7 days'するとsqlcがパースエラー起こす
@@ -109,10 +113,16 @@ func (h *historyQueryServiceImpl) FindStatisticsByWeek(ctx context.Context, user
 	return aiSummary, views, nil
 }
 
-func (h *historyQueryServiceImpl) FindTotalWatchSeconds(ctx context.Context, userID uuid.UUID) (_ GetTotalWatchSecondsView, err error) {
+func (h *historyQueryServiceImpl) FindTotalWatchSeconds(ctx context.Context, userID uuid.UUID, loc *time.Location) (_ GetTotalWatchSecondsView, err error) {
 	defer util.Wrap(&err, "historyQueryService.FindTotalWatchSeconds(userID=%s)", userID)
 
-	row, err := h.q.GetDailyWatchSummary(ctx, userID)
+	now := time.Now().In(loc)
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+
+	row, err := h.q.GetDailyWatchSummary(ctx, sqlc.GetDailyWatchSummaryParams{
+		PublicID:    userID,
+		TodayStart: todayStart,
+	})
 	if err != nil {
 		return GetTotalWatchSecondsView{}, err
 	}

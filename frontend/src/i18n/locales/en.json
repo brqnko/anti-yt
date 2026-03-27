@@ -1,6 +1,5 @@
 {
   "common": {
-    "home": "Home",
     "notFoundMessage": "The page you requested doesn't exist. Let's get you back on track.",
     "returnHome": "Return to Home",
     "colorMode": {
@@ -118,10 +117,6 @@
   },
   "dashboard": {
     "pageTitle": "Dashboard",
-    "safeModeActive": "Safe Mode Active",
-    "remaining": "Remaining",
-    "timeLeft": "Time Left",
-    "logout": "Log out",
     "toggleSidebar": "Toggle sidebar",
     "nav": {
       "mainFeed": "Main Feed",
@@ -129,7 +124,6 @@
       "recommendedChannels": "Recommended Channels",
       "playlists": "Playlists",
       "history": "History",
-      "settings": "Settings",
       "sidebar": "Sidebar navigation",
       "mainNav": "Main navigation",
       "bottomFeed": "Feed",
@@ -155,7 +149,6 @@
     "addPlaylist": "Create Playlist",
     "addPlaylistDialog": {
       "title": "New Playlist",
-      "description": "Enter a title and description for your playlist.",
       "titleLabel": "Title",
       "titlePlaceholder": "Enter playlist name",
       "descriptionLabel": "Description",
@@ -170,19 +163,9 @@
       "required": "required"
     },
     "noPlaylists": "No playlists yet.",
-    "views": "views",
     "noVideos": "No videos yet",
     "noVideosDesc": "Subscribe to channels to see their latest videos here.",
     "endOfFeed": "You're all caught up",
-    "dailyProgress": "Daily Progress",
-    "used": "used",
-    "onTrack": "You're on track to stay under your limit.",
-    "almostLimit": "You're approaching your daily limit.",
-    "focusTip": "Focus Tip",
-    "focusQuote": "\"The most valuable currency in the modern world is not money, but attention.\"",
-    "todaysInterventions": "Today's Interventions",
-    "shortsBlocked": "Shorts Blocked",
-    "blockedAttempts": "Blocked automatically",
     "timeAgo": {
       "justNow": "just now",
       "minutes": "{{count}}m ago",
@@ -194,29 +177,20 @@
     }
   },
   "restrictions": {
-    "title": "Restrictions",
-    "subtitle": "Manage your usage controls and content filters.",
-    "timeUsedToday": "Time Used Today",
-    "remaining": "remaining",
-    "dailyAllowance": "Daily Allowance",
-    "strictMode": "Strict Mode",
     "timeConstraints": "Time Constraints",
     "permittedHours": "Permitted Hours",
     "permittedHoursDesc": "Define windows when viewing is allowed",
     "addTimeRange": "Add another time range",
     "removeRange": "Remove time range",
     "dailyCapLimit": "Daily Cap Limit",
-    "unlimited": "Unlimited",
     "enableLimit": "Enable limit",
     "hr": "HR",
     "min": "MIN",
     "save": "Save",
     "saving": "Saving...",
     "saved": "Saved!",
-    "overlapError": "Time ranges must not overlap.",
     "zeroTimeError": "Daily cap limit must be greater than 0 minutes.",
     "whitelist": "Whitelist",
-    "whitelistDesc": "Only content from these channels is allowed.",
     "searchChannels": "Search channels...",
     "noChannels": "No channels subscribed yet.",
     "saveError": "Failed to save. Please try again.",
@@ -232,9 +206,7 @@
   "profile": {
     "pageTitle": "Profile",
     "title": "Profile",
-    "subtitle": "Manage your identity and account security.",
     "nav": {
-      "restrictions": "Restrictions",
       "profileSettings": "Profile",
       "security": "Security",
       "signOut": "Sign Out",
@@ -247,7 +219,6 @@
     "saveChanges": "Save Changes",
     "saving": "Saving...",
     "saved": "Saved!",
-    "dangerZone": "Danger Zone",
     "deleteAccount": "Delete Account",
     "deleteAccountDesc": "Once you delete your account, there is no going back. All your data, restriction history, and preferences will be permanently erased.",
     "deleteConfirmTitle": "Delete Account?",
@@ -260,13 +231,11 @@
   },
   "security": {
     "title": "Security",
-    "subtitle": "Manage your active sessions to keep your account safe.",
     "currentSession": "Current Session",
     "activeNow": "Active Now",
     "loggedInAt": "Logged In",
     "lastActivity": "Last Activity",
     "ipAddress": "IP Address",
-    "deviceType": "Device",
     "userAgent": "User Agent",
     "otherSessions": "Other Active Sessions",
     "revoke": "Revoke",
@@ -287,21 +256,17 @@
   },
   "appearance": {
     "title": "Appearance",
-    "colorMode": "Color Mode",
-    "colorModeDesc": "Choose the display theme for the application."
+    "colorMode": "Color Mode"
   },
   "channelDetail": {
     "pageTitle": "Channel",
     "backToDashboard": "Dashboard",
-    "channelDetails": "Channel",
     "subscribers": "Subscribers",
     "whitelistChannel": "Whitelist Channel",
     "whitelistDesc": "Allow into your feed",
-    "about": "About",
     "latestUploads": "Latest Uploads",
     "noVideos": "No videos available",
     "notFound": "Channel not found",
-    "notFoundDesc": "This channel could not be found.",
     "showMore": "Show more",
     "showLess": "Show less"
   },
@@ -316,10 +281,6 @@
     "addToPlaylist": "Save",
     "noPlaylists": "No playlists yet.",
     "remaining": "Today's remaining",
-    "mindfulMode": "Mindful Mode Active",
-    "noDistractions": "No distractions detected",
-    "quality": "Quality",
-    "qualityAuto": "Auto",
     "play": "Play",
     "pause": "Pause",
     "mute": "Mute",
@@ -327,33 +288,19 @@
     "volume": "Volume",
     "fullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
-    "seekBar": "Seek bar",
-    "seconds": "s"
+    "seekBar": "Seek bar"
   },
   "analytics": {
     "pageTitle": "Analytics",
     "title": "Analytics",
     "timeWasted": "Time Watched",
     "dailyAverage": "Daily Average",
-    "goalProgress": "Goal Progress",
     "weeklyAverageGoal": "Weekly Avg Goal",
-    "lessVsLastMonth": "{{percent}}% less vs last month",
-    "onTrackToMeetGoal": "On track to meet goal",
-    "weeklyGoalOnTrack": "On track (weekly avg)",
     "weeklyUsageTrends": "This Week's Usage",
-    "actualUsage": "Actual Usage",
-    "limit": "Limit",
     "dailyLimit": "Daily Limit ({{hours}}h)",
     "tooltipVideos": "{{count}} videos",
-    "tooltipHours": "{{hours}}h",
-    "focusAI": "FocusAI Assistant",
-    "newInsight": "NEW INSIGHT",
-    "insightMessage": "You watched <strong>{{hours}} hours</strong> this month! That is <strong>{{less}} hours less</strong> than last month. Keep it up!",
     "loadError": "Failed to load data",
-    "retry": "Retry",
-    "daysActive": "{{count}} days active",
-    "weeklyGoalBehind": "Behind goal",
-    "noLimitSet": "No limit set"
+    "retry": "Retry"
   },
   "screenTimeBlock": {
     "pageTitle": "Screen Time Limit",
@@ -386,7 +333,6 @@
     "videoCount_other": "{{count}} videos",
     "lastUpdated": "Last updated {{time}}",
     "createdAt": "Created {{time}}",
-    "play": "Play",
     "empty": "No playlists yet",
     "loadError": "Failed to load playlists",
     "retry": "Retry"
@@ -433,12 +379,6 @@
     "pageTitle": "Explore Channels",
     "title": "Explore Channels",
     "allCategories": "All Categories",
-    "allCategoriesDesc": "Explore a curated mix of all valuable channels.",
-    "addToWhitelist": "Add to Whitelist",
-    "removeFromWhitelist": "Remove from Whitelist",
-    "added": "Added",
-    "adding": "Adding...",
-    "removing": "Removing...",
     "noChannels": "No channels found",
     "loadError": "Failed to load channels",
     "retry": "Retry",
@@ -449,13 +389,6 @@
       "economy": "Economy",
       "politics": "Politics",
       "music": "Music"
-    },
-    "categoryDescriptions": {
-      "education": "Expand your understanding of the world.",
-      "technology": "Keep up with the latest innovations and tech.",
-      "economy": "Learn about finance and economic trends.",
-      "politics": "Stay informed about political developments.",
-      "music": "Theory, composition, and appreciation."
     }
   },
   "search": {
@@ -526,7 +459,6 @@
     "heroDescription": "Reclaim your time from the algorithm. Strict time controls, intelligent filtering, and distraction-free focus zones designed for a clearer mind.",
     "signInWithGoogle": "Sign in with Google",
     "dashboard": "Go to Dashboard",
-    "logout": "Log out",
     "privacy": "Privacy",
     "terms": "Terms",
     "dailyAllowance": "Daily Allowance",

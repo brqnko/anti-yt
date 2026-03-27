@@ -47,6 +47,7 @@ func (h *APIHandler) GetSearch(ctx context.Context, request GetSearchRequestObje
 		}, len(items)),
 	}
 
+	loc := hutil.TimezoneFromContext(ctx)
 	for i, item := range items {
 		resp.Items[i].VideoId = item.VideoID
 		resp.Items[i].ChannelId = item.ChannelID
@@ -57,7 +58,7 @@ func (h *APIHandler) GetSearch(ctx context.Context, request GetSearchRequestObje
 		resp.Items[i].ExternalVideoThumbnailUrl = item.ExternalVideoThumbnailUrl
 		resp.Items[i].ExternalChannelDisplayName = item.ExternalChannelDisplayName
 		resp.Items[i].ExternalChannelIconUrl = item.ExternalChannelIconUrl
-		resp.Items[i].ExternalVideoCreatedAt = item.ExternalVideoCreatedAt
+		resp.Items[i].ExternalVideoCreatedAt = item.ExternalVideoCreatedAt.In(loc)
 		resp.Items[i].ExternalVideoLengthSeconds = item.ExternalVideoLengthSeconds
 	}
 
@@ -87,6 +88,7 @@ func (h *APIHandler) GetFeed(ctx context.Context, request GetFeedRequestObject) 
 		VideoId                    uuid.UUID `json:"video_id"`
 	}, len(videos))
 
+	loc := hutil.TimezoneFromContext(ctx)
 	for i, v := range videos {
 		items[i].VideoId = v.VideoId
 		items[i].ChannelId = v.ChannelId
@@ -94,7 +96,7 @@ func (h *APIHandler) GetFeed(ctx context.Context, request GetFeedRequestObject) 
 		items[i].ExternalChannelDisplayName = v.ExternalChannelDisplayName
 		items[i].ExternalVideoThumbnailUrl = v.ExternalVideoThumbnailUrl
 		items[i].ExternalVideoTitle = v.ExternalVideoTitle
-		items[i].ExternalVideoCreatedAt = v.ExternalVideoCreatedAt
+		items[i].ExternalVideoCreatedAt = v.ExternalVideoCreatedAt.In(loc)
 		items[i].ExternalVideoLengthSeconds = v.ExternalVideoLengthSeconds
 		items[i].LastWatchSeconds = v.LastWatchSeconds
 	}

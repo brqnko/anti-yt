@@ -1,30 +1,30 @@
-// ── UTC date utilities ──
+// ── Date utilities ──
 
-/** Format a Date as YYYY-MM-DD in UTC. */
-export function toUTCDateStr(d: Date): string {
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+/** Format a Date as YYYY-MM-DD in local time. */
+export function toDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-/** Get today's date at 00:00 UTC as a Date object. */
-export function todayUTC(): Date {
+/** Get today's date at 00:00 local time as a Date object. */
+export function today(): Date {
   const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
 
-/** Return the N dates ending today in UTC. */
-export function getLastNDaysUTC(n: number): Date[] {
-  const today = todayUTC().getTime();
-  return Array.from({ length: n }, (_, i) => new Date(today + (i - n + 1) * 86400000));
+/** Return the N dates ending today in local time. */
+export function getLastNDays(n: number): Date[] {
+  const t = today().getTime();
+  return Array.from({ length: n }, (_, i) => new Date(t + (i - n + 1) * 86400000));
 }
 
-/** Extract YYYY-MM-DD from an ISO timestamp string (e.g. "2026-03-25T00:00:00Z" → "2026-03-25"). */
+/** Extract YYYY-MM-DD from an ISO timestamp string (e.g. "2026-03-25T09:00:00+09:00" → "2026-03-25"). */
 export function isoToDateStr(iso: string): string {
   return iso.slice(0, 10);
 }
 
-/** Format a UTC Date as a local display label (e.g. "3/25"). */
-export function formatUTCDateLabel(d: Date): string {
-  return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+/** Format a Date as a local display label (e.g. "3/25"). */
+export function formatDateLabel(d: Date): string {
+  return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
 // ── Duration / time formatting ──

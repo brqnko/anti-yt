@@ -196,6 +196,7 @@ func run(ctx context.Context) int {
 			middleware_d.AuthTokensMiddleware,
 			middleware_d.RequestIDMiddleware,
 			middleware_d.UserRatelimitMiddleware(r, db),
+			middleware_d.TimezoneMiddleware,
 		}), r)
 
 	srv := &http.Server{
