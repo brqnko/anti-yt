@@ -257,7 +257,8 @@ WITH resolved_user AS (
 ),
 resolved_video AS (
     SELECT
-        m_video_id
+        m_video_id,
+        external_length_seconds
     FROM
         m_video
     WHERE
@@ -315,7 +316,11 @@ update_same AS (
     UPDATE
         t_video_watch
     SET
-        watch_position_seconds = $3,
+        watch_position_seconds = CASE
+            WHEN $3::int >= (SELECT external_length_seconds FROM resolved_video)
+            THEN 0
+            ELSE $3::int
+        END,
         updated_at = CURRENT_TIMESTAMP
     FROM
         latest_active
@@ -342,7 +347,11 @@ do_insert AS (
         $4,
         $5,
         $6,
-        $3
+        CASE
+            WHEN $3::int >= (SELECT external_length_seconds FROM resolved_video)
+            THEN 0
+            ELSE $3::int
+        END
     WHERE
         NOT EXISTS (SELECT 1 FROM update_same)
     RETURNING
