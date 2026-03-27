@@ -16,6 +16,7 @@ function sendBeaconHeartbeat(videoId: string, positionSeconds: number): void {
   if (csrfToken) headers["x-csrf-token"] = csrfToken;
   const visitorId = getCachedVisitorId();
   if (visitorId) headers["X-Device-Fingerprint"] = visitorId;
+  headers["X-Timezone"] = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   try {
     fetch(url, {
@@ -105,6 +106,7 @@ export function useHeartbeat({
 
     // Reset guard — playback resumed, allow a new final heartbeat on next pause/unload
     finalHeartbeatSentRef.current = false;
+    heartbeatFailCountRef.current = 0;
 
     const sendHeartbeat = () => {
       getHistory()
