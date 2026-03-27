@@ -448,7 +448,7 @@ function VideoPlayerContent() {
 
   const isPlaying = playerState === PlayerState.PLAYING;
 
-  if (isLoading) {
+  if (isLoading && !video) {
     return (
       <DashboardLayout>
         <LoadingSpinner className="flex-1" />
