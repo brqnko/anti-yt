@@ -18,6 +18,8 @@ import Error from "~icons/material-symbols/error-outline";
 import ExpandMore from "~icons/material-symbols/expand-more";
 import Flag from "~icons/material-symbols/flag-outline";
 import FormatBold from "~icons/material-symbols/format-bold";
+import Fullscreen from "~icons/material-symbols/fullscreen";
+import FullscreenExit from "~icons/material-symbols/fullscreen-exit";
 import FormatItalic from "~icons/material-symbols/format-italic";
 import FormatListBulleted from "~icons/material-symbols/format-list-bulleted";
 import Gavel from "~icons/material-symbols/gavel";
@@ -31,6 +33,7 @@ import Logout from "~icons/material-symbols/logout";
 import Memory from "~icons/material-symbols/memory-outline";
 import Menu from "~icons/material-symbols/menu";
 import MusicNote from "~icons/material-symbols/music-note";
+import Pause from "~icons/material-symbols/pause-outline";
 import Person from "~icons/material-symbols/person-outline";
 import PlayArrow from "~icons/material-symbols/play-arrow-outline";
 import PlaylistPlay from "~icons/material-symbols/playlist-play";
@@ -48,6 +51,9 @@ import Translate from "~icons/material-symbols/translate";
 import Tune from "~icons/material-symbols/tune";
 import TrendingUp from "~icons/material-symbols/trending-up";
 import VideocamOff from "~icons/material-symbols/videocam-off-outline";
+import VolumeDown from "~icons/material-symbols/volume-down-outline";
+import VolumeOff from "~icons/material-symbols/volume-off-outline";
+import VolumeUp from "~icons/material-symbols/volume-up-outline";
 import Warning from "~icons/material-symbols/warning-outline";
 
 const iconMap: Record<string, string> = {
@@ -74,6 +80,8 @@ const iconMap: Record<string, string> = {
   format_bold: FormatBold,
   format_italic: FormatItalic,
   format_list_bulleted: FormatListBulleted,
+  fullscreen: Fullscreen,
+  fullscreen_exit: FullscreenExit,
   gavel: Gavel,
   grass: Grass,
   grid_view: GridView,
@@ -85,6 +93,7 @@ const iconMap: Record<string, string> = {
   memory: Memory,
   menu: Menu,
   music_note: MusicNote,
+  pause: Pause,
   person: Person,
   play_arrow: PlayArrow,
   playlist_play: PlaylistPlay,
@@ -102,6 +111,9 @@ const iconMap: Record<string, string> = {
   tune: Tune,
   trending_up: TrendingUp,
   videocam_off: VideocamOff,
+  volume_down: VolumeDown,
+  volume_off: VolumeOff,
+  volume_up: VolumeUp,
   warning: Warning,
 };
 
