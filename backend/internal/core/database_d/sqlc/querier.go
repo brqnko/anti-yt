@@ -59,6 +59,7 @@ type Querier interface {
 	// ユーザーを作成する。
 	InsertUser(ctx context.Context, arg InsertUserParams) (int64, error)
 	ListChannelVideos(ctx context.Context, arg ListChannelVideosParams) ([]ListChannelVideosRow, error)
+	ListChannelVideosOlder(ctx context.Context, arg ListChannelVideosOlderParams) ([]ListChannelVideosOlderRow, error)
 	ListDailyWatchStatsByRange(ctx context.Context, arg ListDailyWatchStatsByRangeParams) ([]ListDailyWatchStatsByRangeRow, error)
 	ListPlaylistVideos(ctx context.Context, arg ListPlaylistVideosParams) ([]ListPlaylistVideosRow, error)
 	// userテーブルのpublic_idから、そのリフレッシュトークンの一覧を返します。

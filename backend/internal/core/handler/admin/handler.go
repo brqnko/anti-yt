@@ -113,6 +113,36 @@ func (h *handler) removeValuableChannel(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (h *handler) importChannelVideos(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		ExternalChannelID string `json:"external_channel_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeErrorJSON(w, http.StatusBadRequest, "Bad Request", "invalid request body")
+		return
+	}
+
+	savedCount, err := h.adminService.ImportChannelVideos(r.Context(), body.ExternalChannelID)
+	if err != nil {
+		var domainErr *core.DomainError
+		if errors.As(err, &domainErr) {
+			writeErrorJSON(w, http.StatusBadRequest, domainErr.Code(), domainErr.Error())
+			return
+		}
+		slog.Error("failed to import channel videos", "error", err)
+		writeErrorJSON(w, http.StatusInternalServerError, "Internal Server Error", "an unexpected error has occurred")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(struct {
+		SavedCount int `json:"saved_count"`
+	}{
+		SavedCount: savedCount,
+	})
+}
+
 func writeErrorJSON(w http.ResponseWriter, statusCode int, title, detail string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)

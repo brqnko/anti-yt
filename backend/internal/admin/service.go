@@ -175,6 +175,77 @@ func (s *Service) UpdateValuableChannel(ctx context.Context, externalChannelID s
 	return vc, nil
 }
 
+func (s *Service) ImportChannelVideos(ctx context.Context, externalChannelID string) (_ int, err error) {
+	defer util.Wrap(&err, "Service.ImportChannelVideos")
+
+	channelIDOrHandle, err := youtube_d.ExtractChannelIDOrHandle(externalChannelID)
+	if err != nil {
+		return 0, err
+	}
+
+	q := sqlc.New(s.db)
+
+	foundChannel, err := channel.NewChannelRepository(q).FindByIdOrHandle(ctx, channelIDOrHandle)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return 0, err
+	}
+	if errors.Is(err, pgx.ErrNoRows) {
+		channelDetail, err := s.ytService.FetchChannelDetailByIDOrHandle(ctx, channelIDOrHandle)
+		fetchedAt := time.Now().UTC()
+		if err != nil {
+			return 0, err
+		}
+
+		ch, err := channel.NewChannel(fetchedAt, fetchedAt, channelDetail)
+		if err != nil {
+			return 0, err
+		}
+
+		if _, err := channel.NewChannelRepository(q).Save(ctx, ch); err != nil {
+			return 0, err
+		}
+
+		foundChannel = ch
+	}
+
+	fetchedAt := time.Now().UTC()
+	savedCount := 0
+	pageToken := ""
+	for {
+		videoIDs, nextPageToken, err := s.ytService.FetchPlaylistVideoIDs(ctx, string(foundChannel.Channel.UploadsPlaylistID), pageToken)
+		if err != nil {
+			return savedCount, err
+		}
+
+		if len(videoIDs) > 0 {
+			videoDetails, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
+			if err != nil {
+				slog.Error("failed to fetch video detail", "error", err)
+			} else {
+				for _, vd := range videoDetails {
+					v, err := video.NewVideo(foundChannel.ID, fetchedAt, vd)
+					if err != nil {
+						slog.Info("failed to newVideo", "error", err)
+						continue
+					}
+					if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
+						slog.Info("failed to save video", "error", err)
+						continue
+					}
+					savedCount++
+				}
+			}
+		}
+
+		if nextPageToken == "" {
+			break
+		}
+		pageToken = nextPageToken
+	}
+
+	return savedCount, nil
+}
+
 func (s *Service) RemoveValuableChannel(ctx context.Context, externalChannelID string) (err error) {
 	defer util.Wrap(&err, "Service.RemoveValuableChannel")
 

@@ -23,7 +23,7 @@ type GetSubscriptionsView struct {
 type ChannelQueryService interface {
 	GetSubscriptions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetSubscriptionsView, error)
 	GetChannelDetail(ctx context.Context, channelID uuid.UUID) (GetChannelDetailView, error)
-	GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetChannelUploadsView, error)
+	GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32, order string) ([]GetChannelUploadsView, error)
 }
 
 type channelQueryServiceImpl struct {
@@ -143,8 +143,37 @@ type GetChannelUploadsView struct {
 	VideoId                    uuid.UUID
 }
 
-func (c *channelQueryServiceImpl) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetChannelUploadsView, err error) {
+func (c *channelQueryServiceImpl) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32, order string) (_ []GetChannelUploadsView, err error) {
 	defer util.Wrap(&err, "channelQueryService.GetChannelUploads(userID=%s, channelID=%s)", userID, channelID)
+
+	if order == "older" {
+		rows, err := c.q.ListChannelVideosOlder(ctx, sqlc.ListChannelVideosOlderParams{
+			UserID:     userID,
+			ChannelID:  channelID,
+			Cursor:     cursor,
+			QueryLimit: limit,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		views := make([]GetChannelUploadsView, len(rows))
+		for i, row := range rows {
+			var lastWatchSeconds *int
+			if row.LastWatchSeconds != 0 {
+				lastWatchSeconds = &row.LastWatchSeconds
+			}
+			views[i] = GetChannelUploadsView{
+				ExternalVideoCreatedAt:     row.ExternalCreatedAt,
+				ExternalVideoLengthSeconds: row.ExternalLengthSeconds,
+				ExternalVideoThumbnailUrl:  row.ExternalThumbnailUrl,
+				ExternalVideoTitle:         row.ExternalTitle,
+				LastWatchSeconds:           lastWatchSeconds,
+				VideoId:                    row.PublicID,
+			}
+		}
+		return views, nil
+	}
 
 	rows, err := c.q.ListChannelVideos(ctx, sqlc.ListChannelVideosParams{
 		UserID:     userID,

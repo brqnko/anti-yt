@@ -234,7 +234,7 @@ func TestService_GetChannelUploads(t *testing.T) {
 			ch := seedSubscription(t, pool, ytMock, userID)
 
 			svc := newTestService(t, pool, ytMock)
-			videos, _, err := svc.GetChannelUploads(ctx, userID, ch.ID, nil, tt.limit)
+			videos, _, err := svc.GetChannelUploads(ctx, userID, ch.ID, nil, tt.limit, "")
 
 			if tt.wantErr {
 				if err == nil {
@@ -260,7 +260,7 @@ func TestService_GetChannelUploads_NotFound(t *testing.T) {
 	ytMock := defaultYTMock()
 	svc := newTestService(t, pool, ytMock)
 
-	_, _, err := svc.GetChannelUploads(ctx, userID, uuid.Must(uuid.NewV7()), nil, 10)
+	_, _, err := svc.GetChannelUploads(ctx, userID, uuid.Must(uuid.NewV7()), nil, 10, "")
 	if err == nil {
 		t.Fatal("expected error for non-existent channel, got nil")
 	}

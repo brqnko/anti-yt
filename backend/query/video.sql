@@ -111,6 +111,76 @@ ORDER BY
 LIMIT
     @query_limit;
 
+-- name: ListChannelVideosOlder :many
+SELECT
+    m_video.public_id,
+    m_video.external_thumbnail_url,
+    m_video.external_title,
+    m_video.external_created_at,
+    m_video.external_length_seconds,
+    COALESCE((
+        SELECT
+            t_video_watch.watch_position_seconds
+        FROM
+            t_video_watch
+        WHERE
+            t_video_watch.m_user_id = (
+                SELECT
+                    m_user.m_user_id
+                FROM
+                    m_user
+                WHERE
+                    m_user.public_id = @user_id
+                LIMIT
+                    1
+            )
+            AND t_video_watch.m_video_id = m_video.m_video_id
+        ORDER BY
+            t_video_watch.m_user_id,
+            t_video_watch.m_video_id,
+            t_video_watch.watch_start_at DESC
+        LIMIT
+            1
+    ), 0)::int AS last_watch_seconds
+FROM
+    m_video
+    INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
+WHERE
+    m_channel.public_id = @channel_id
+    AND (
+        sqlc.narg('cursor')::uuid IS NULL
+        OR (
+            m_video.external_created_at > (
+                SELECT
+                    mv.external_created_at
+                FROM
+                    m_video mv
+                WHERE
+                    mv.public_id = sqlc.narg('cursor')::uuid
+                LIMIT
+                    1
+            )
+        )
+        OR (
+            m_video.external_created_at = (
+                SELECT
+                    mv.external_created_at
+                FROM
+                    m_video mv
+                WHERE
+                    mv.public_id = sqlc.narg('cursor')::uuid
+                LIMIT
+                    1
+            )
+            AND m_video.public_id > sqlc.narg('cursor')::uuid
+        )
+    )
+ORDER BY
+    m_video.external_created_at ASC,
+    m_video.public_id ASC
+LIMIT
+    @query_limit;
+
 -- ユーザーが登録しているチャンネルがだしている動画を最新順(public_id)で取得する。
 -- name: ListSubscriptionFeed :many
 SELECT

@@ -14,6 +14,7 @@ func HandleAdminEndpoints(m *chi.Mux, db *pgxpool.Pool, ytService youtube_d.Serv
 
 	m.Route("/api/admin", func(r chi.Router) {
 		r.Use(adminAPIKeyAuthMiddleware(adminAPIKey))
+		r.Post("/channel/import", h.importChannelVideos)
 		r.Post("/valuable", h.createValuableChannel)
 		r.Patch("/valuable", h.updateValuableChannel)
 		r.Delete("/valuable", h.removeValuableChannel)
