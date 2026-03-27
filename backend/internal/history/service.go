@@ -12,11 +12,13 @@ import (
 )
 
 type Service struct {
-	db        *pgxpool.Pool
+	db *pgxpool.Pool
+
 	historyQS HistoryQueryService
 }
 
 func NewService(db *pgxpool.Pool) *Service {
+
 	return &Service{
 		db:        db,
 		historyQS: NewHistoryQueryService(db),
@@ -56,12 +58,12 @@ func (s *Service) GetHistory(ctx context.Context, userID uuid.UUID, limit int, c
 	return views, false, nil
 }
 
-func (s *Service) GetStatisticsByWeek(ctx context.Context, userID uuid.UUID, targetWeek time.Time) (_ []GetStatisticsWeeklyView, err error) {
+func (s *Service) GetStatisticsByWeek(ctx context.Context, userID uuid.UUID, targetWeek time.Time) (_ *string, _ []GetStatisticsWeeklyView, err error) {
 	defer util.Wrap(&err, "Service.GetStatisticsByWeek")
 
-	views, err := s.historyQS.FindStatisticsByWeek(ctx, userID, targetWeek)
+	aiSummary, views, err := s.historyQS.FindStatisticsByWeek(ctx, userID, targetWeek)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return views, nil
+	return aiSummary, views, nil
 }

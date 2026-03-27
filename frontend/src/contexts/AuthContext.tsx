@@ -14,6 +14,7 @@ interface AuthState {
   screenTimeBlockReason: "limit_exceeded" | "outside_time_range" | null;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
+  clearScreenTimeBlock: () => void;
 }
 
 const AuthContext = createContext<AuthState>({
@@ -25,6 +26,7 @@ const AuthContext = createContext<AuthState>({
   screenTimeBlockReason: null,
   logout: async () => {},
   refreshAuth: async () => {},
+  clearScreenTimeBlock: () => {},
 });
 
 export function AuthProvider({ children }: { children: ComponentChildren }) {
@@ -50,6 +52,13 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
       await getUsersMeStatus();
       setIsAuthenticated(true);
     } catch (err: unknown) {
+      if (err instanceof AxiosError && err.response?.status === 403) {
+        const title = err.response?.data?.title;
+        if (title === "screen_time_limit_exceeded" || title === "outside_allowed_time_range") {
+          setIsAuthenticated(true);
+          return;
+        }
+      }
       setIsAuthenticated(false);
       if (!(err instanceof AxiosError) || err.response?.status !== 401) {
         setError(
@@ -59,6 +68,11 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  const clearScreenTimeBlock = useCallback(() => {
+    setScreenTimeBlocked(false);
+    setScreenTimeBlockReason(null);
   }, []);
 
   const logout = useCallback(async () => {
@@ -110,6 +124,7 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
         screenTimeBlockReason,
         logout,
         refreshAuth: checkAuth,
+        clearScreenTimeBlock,
       }}
     >
       {children}

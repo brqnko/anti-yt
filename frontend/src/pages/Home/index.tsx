@@ -103,18 +103,9 @@ function DashboardPreview({ t }: { t: (key: string) => string }) {
               {t("home.whitelist")}
             </h3>
             <div class="flex flex-col gap-2">
-              <WhitelistItem
-                name="Veritasium"
-                icon="https://yt3.googleusercontent.com/ytc/AIdro_kKGORhjYOG2LfCpG2ZhqjqKMGaMMuGMsIP3IpABB1fxZk=s88-c-k-c0x00ffffff-no-rj"
-              />
-              <WhitelistItem
-                name="Kurzgesagt"
-                icon="https://yt3.googleusercontent.com/ytc/AIdro_lGRv1CtMpCdYK7jBMG3l1zXEYPjo7v0jS0JHkMGkADMg0=s88-c-k-c0x00ffffff-no-rj"
-              />
-              <WhitelistItem
-                name="Huberman Lab"
-                icon="https://yt3.googleusercontent.com/5iu-BPHEqMoHn2GOFBp_DYxRDZNFE6aOtOBIOHagsUWfbnhDf5W9izHd8y-ciah6qk2vjOdxOA=s88-c-k-c0x00ffffff-no-rj"
-              />
+              <WhitelistItem name="Veritasium" />
+              <WhitelistItem name="Kurzgesagt" />
+              <WhitelistItem name="Huberman Lab" />
               <div class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium">
                 <Icon name="add" class="text-[18px]" />
                 <span>{t("dashboard.requestChannel")}</span>
@@ -127,18 +118,10 @@ function DashboardPreview({ t }: { t: (key: string) => string }) {
   );
 }
 
-function WhitelistItem({
-  name,
-  icon,
-}: {
-  name: string;
-  icon: string;
-}) {
+function WhitelistItem({ name }: { name: string }) {
   return (
     <div class="flex items-center gap-3 px-3 py-2 rounded-lg">
-      <div class="size-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden shrink-0">
-        <img alt={name} loading="lazy" class="w-full h-full object-cover" src={icon} />
-      </div>
+      <div class="size-8 rounded-full bg-gray-200 dark:bg-gray-700 shrink-0" />
       <span class="text-sm font-medium text-slate-700 dark:text-white truncate">
         {name}
       </span>
@@ -184,7 +167,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div class="flex flex-col min-h-dvh w-full overflow-hidden font-display antialiased">
+    <div class="flex flex-col h-dvh w-full overflow-hidden font-display antialiased">
       {/* Session expired banner */}
       {showExpiredBanner && (
         <div class="flex items-center justify-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-sm font-medium">

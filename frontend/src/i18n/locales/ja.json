@@ -357,15 +357,15 @@
   },
   "screenTimeBlock": {
     "pageTitle": "視聴制限",
-    "title": "フォーカスゾーン",
-    "limitExceeded": "1日の視聴時間制限に達しました。休憩して明日また来てください — または、ちょっとした禅の時間をお楽しみください。",
+    "title": "視聴制限中",
+    "limitExceeded": "1日の視聴時間制限に達しました。休憩して明日また来てください。",
     "outsideTimeRange": "現在は視聴できません。スケジュールされたアクセス時間外です。",
     "mowTheLawn": "芝を刈ろう",
     "tapTheGrass": "芝をタップして心をリフレッシュ",
     "reset": "リセット",
-    "zenMode": "禅モード有効",
     "mowTile": "この芝を刈る",
-    "mownTile": "刈り済み"
+    "mownTile": "刈り済み",
+    "goToSettings": "視聴制限の設定"
   },
   "history": {
     "pageTitle": "視聴履歴",
@@ -466,7 +466,38 @@
     "noResultsDesc": "別のキーワードで検索してみてください。",
     "endOfResults": "すべての検索結果を読み込みました",
     "loadError": "検索に失敗しました",
-    "retry": "再試行"
+    "retry": "再試行",
+    "filters": {
+      "title": "検索フィルター",
+      "close": "閉じる",
+      "order": "並び順",
+      "orderDefault": "デフォルト（関連度順）",
+      "orderOptions": {
+        "date": "アップロード日",
+        "rating": "評価",
+        "relevance": "関連度",
+        "title": "タイトル",
+        "videoCount": "動画数",
+        "viewCount": "再生回数"
+      },
+      "publishedAfter": "公開日（以降）",
+      "publishedBefore": "公開日（以前）",
+      "regionCode": "地域",
+      "regionDefault": "すべての地域",
+      "regions": {
+        "JP": "日本",
+        "US": "アメリカ"
+      },
+      "relevanceLanguage": "優先言語",
+      "languageDefault": "すべての言語",
+      "languages": {
+        "ja": "日本語",
+        "en": "英語"
+      },
+      "apply": "適用",
+      "cancel": "キャンセル",
+      "reset": "リセット"
+    }
   },
   "apiErrors": {
     "channel.invalid_youtube_url": "無効なYouTube URLまたはサポートされていない形式です。",

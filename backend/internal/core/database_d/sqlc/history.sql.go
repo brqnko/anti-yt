@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getDailyWatchSummary = `-- name: GetDailyWatchSummary :one
@@ -64,6 +63,33 @@ func (q *Queries) GetDailyWatchSummary(ctx context.Context, publicID uuid.UUID) 
 	return i, err
 }
 
+const getLatestMonthlyVideoWatchSummary = `-- name: GetLatestMonthlyVideoWatchSummary :one
+SELECT
+    s.ai_summary_title,
+    s.ai_summary_description,
+    s.created_at
+FROM
+    s_monthly_video_watch s
+WHERE
+    s.m_user_id = (SELECT u.m_user_id FROM m_user u WHERE u.public_id = $1 LIMIT 1)
+ORDER BY
+    s.target_month DESC
+LIMIT 1
+`
+
+type GetLatestMonthlyVideoWatchSummaryRow struct {
+	AiSummaryTitle       string
+	AiSummaryDescription string
+	CreatedAt            time.Time
+}
+
+func (q *Queries) GetLatestMonthlyVideoWatchSummary(ctx context.Context, userID uuid.UUID) (GetLatestMonthlyVideoWatchSummaryRow, error) {
+	row := q.db.QueryRow(ctx, getLatestMonthlyVideoWatchSummary, userID)
+	var i GetLatestMonthlyVideoWatchSummaryRow
+	err := row.Scan(&i.AiSummaryTitle, &i.AiSummaryDescription, &i.CreatedAt)
+	return i, err
+}
+
 const listDailyWatchStatsByRange = `-- name: ListDailyWatchStatsByRange :many
 SELECT
     DATE(video_watch.watch_start_at) AS watch_date,
@@ -95,7 +121,7 @@ type ListDailyWatchStatsByRangeParams struct {
 }
 
 type ListDailyWatchStatsByRangeRow struct {
-	WatchDate  pgtype.Date
+	WatchDate  time.Time
 	VideoCount int64
 	WatchSum   int64
 }

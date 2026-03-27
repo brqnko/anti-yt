@@ -7,10 +7,22 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
+	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 )
 
 func (h *APIHandler) GetSearch(ctx context.Context, request GetSearchRequestObject) (GetSearchResponseObject, error) {
-	items, hasNext, nextCursor, err := h.feedService.Search(ctx, request.Params.Query, request.Params.Limit, request.Params.Cursor, request.Params.Language)
+	opts := youtube_d.SearchOptions{
+		Language:          request.Params.Language,
+		PublishedBefore:   request.Params.PublishedBefore,
+		PublishedAfter:    request.Params.PublishedAfter,
+		RegionCode:        request.Params.RegionCode,
+		RelevanceLanguage: request.Params.RelevanceLanguage,
+	}
+	if request.Params.Order != nil {
+		s := string(*request.Params.Order)
+		opts.Order = &s
+	}
+	items, hasNext, nextCursor, err := h.feedService.Search(ctx, request.Params.Query, request.Params.Limit, request.Params.Cursor, opts)
 	if err != nil {
 		return nil, err
 	}

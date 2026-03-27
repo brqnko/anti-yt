@@ -15,8 +15,19 @@ import { Icon } from "../../components/Icon";
 function SearchContent() {
   const { t } = useTranslation();
   const { query: urlQuery } = useLocation();
-  const searchQuery = new URLSearchParams(urlQuery).get("q") || "";
+  const params = new URLSearchParams(urlQuery);
+  const searchQuery = params.get("q") || "";
   useTitle(searchQuery ? `${searchQuery} - ${t("search.pageTitle")}` : t("search.pageTitle"));
+
+  // Read filter params from URL
+  const order = params.get("order") || undefined;
+  const published_after = params.get("published_after") || undefined;
+  const published_before = params.get("published_before") || undefined;
+  const region_code = params.get("region_code") || undefined;
+  const relevance_language = params.get("relevance_language") || undefined;
+
+  // Serialize filters into a stable key so useEffect re-fires on filter changes
+  const filterKey = JSON.stringify({ order, published_after, published_before, region_code, relevance_language });
 
   const [videos, setVideos] = useState<GetSearch200ItemsItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,6 +36,21 @@ function SearchContent() {
   const [error, setError] = useState(false);
   const cursorRef = useRef<string | undefined>(undefined);
   const currentQueryRef = useRef<string>("");
+
+  const buildParams = useCallback(
+    (cursor?: string) => ({
+      query: searchQuery,
+      limit: PAGE_SIZES.SEARCH,
+      language: navigator.language,
+      cursor,
+      order: order as any,
+      published_after: published_after ? `${published_after}T00:00:00Z` : undefined,
+      published_before: published_before ? `${published_before}T23:59:59Z` : undefined,
+      region_code,
+      relevance_language,
+    }),
+    [searchQuery, order, published_after, published_before, region_code, relevance_language],
+  );
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -45,7 +71,7 @@ function SearchContent() {
 
     const load = async () => {
       try {
-        const res = await getFeed().getSearch({ query: searchQuery, limit: PAGE_SIZES.SEARCH, language: navigator.language });
+        const res = await getFeed().getSearch(buildParams());
         if (currentQueryRef.current !== searchQuery) return;
         setVideos(res.items);
         setHasNext(res.has_next);
@@ -57,25 +83,20 @@ function SearchContent() {
       }
     };
     load();
-  }, [searchQuery]);
+  }, [searchQuery, filterKey]);
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasNext || !searchQuery.trim()) return;
     setIsLoadingMore(true);
     try {
-      const res = await getFeed().getSearch({
-        query: searchQuery,
-        limit: PAGE_SIZES.SEARCH,
-        cursor: cursorRef.current,
-        language: navigator.language,
-      });
+      const res = await getFeed().getSearch(buildParams(cursorRef.current));
       setVideos((prev) => [...prev, ...res.items]);
       setHasNext(res.has_next);
       cursorRef.current = res.cursor;
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoadingMore, hasNext, searchQuery]);
+  }, [isLoadingMore, hasNext, searchQuery, buildParams]);
 
   const sentinelRef = useInfiniteScroll(loadMore);
 

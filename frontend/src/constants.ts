@@ -16,7 +16,7 @@ export const languages = [
 export const REPORT_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfbAk6J4jSW83eKe1CeGCCqqHI517STCPh3hE2zRbWedbdcCQ/viewform?usp=dialog";
 
 export const PAGE_SIZES = {
-  FEED: 25,
+  FEED: 50,
   PLAYLISTS: 25,
   HISTORY: 25,
   CHANNEL_VIDEOS: 25,

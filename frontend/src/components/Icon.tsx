@@ -55,6 +55,7 @@ import TabletMac from "~icons/material-symbols/tablet-mac-outline";
 import Timer from "~icons/material-symbols/timer-outline";
 import TimerOff from "~icons/material-symbols/timer-off-outline";
 import Translate from "~icons/material-symbols/translate";
+import Tune from "~icons/material-symbols/tune";
 import TrendingUp from "~icons/material-symbols/trending-up";
 import VideocamOff from "~icons/material-symbols/videocam-off-outline";
 import VolumeDown from "~icons/material-symbols/volume-down-outline";
@@ -121,6 +122,7 @@ const iconMap: Record<string, string> = {
   timer: Timer,
   timer_off: TimerOff,
   translate: Translate,
+  tune: Tune,
   trending_up: TrendingUp,
   videocam_off: VideocamOff,
   volume_down: VolumeDown,

@@ -217,7 +217,7 @@ function AnalyticsContent() {
                     style={{ top: `${(1 - dailyLimitHours / maxHours) * 100}%` }}
                   >
                     <span class="absolute -top-6 right-0 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                      {t("analytics.dailyLimit", { hours: dailyLimitHours })}
+                      {t("analytics.dailyLimit", { hours: Math.round(dailyLimitHours * 10) / 10 })}
                     </span>
                   </div>
                 )}

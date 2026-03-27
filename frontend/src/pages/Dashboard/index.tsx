@@ -40,7 +40,7 @@ function DashboardContent() {
     if (isLoadingMore || !hasNext) return;
     setIsLoadingMore(true);
     try {
-      const res = await getFeed().getFeed({ limit: 12, cursor: cursorRef.current });
+      const res = await getFeed().getFeed({ limit: PAGE_SIZES.FEED, cursor: cursorRef.current });
       setFeedVideos((prev) => [...prev, ...res.items]);
       setHasNext(res.has_next);
       const lastItem = res.items[res.items.length - 1];

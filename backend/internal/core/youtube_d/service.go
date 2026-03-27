@@ -32,7 +32,16 @@ type Service interface {
 	FetchRSSFeed(ctx context.Context, channelID ChannelID) ([]VideoID, error)
 	FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (map[VideoID]Video, error)
 	FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error)
-	SearchVideoIDs(ctx context.Context, query string, pageToken string, language *string) (_ []VideoID, _ string, err error)
+	SearchVideoIDs(ctx context.Context, query string, pageToken string, opts SearchOptions) (_ []VideoID, _ string, err error)
+}
+
+type SearchOptions struct {
+	Language          *string
+	Order             *string
+	PublishedBefore   *time.Time
+	PublishedAfter    *time.Time
+	RegionCode        *string
+	RelevanceLanguage *string
 }
 
 var _ Service = (*serviceImpl)(nil)
@@ -360,7 +369,7 @@ func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID stri
 	return videoIDs, res.NextPageToken, nil
 }
 
-func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToken string, language *string) (_ []VideoID, _ string, err error) {
+func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToken string, opts SearchOptions) (_ []VideoID, _ string, err error) {
 	defer util.Wrap(&err, "youTubeAPIService.SearchVideoIDs")
 
 	if err := s.tryConsumeQuota(100); err != nil {
@@ -376,8 +385,23 @@ func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToke
 	if pageToken != "" {
 		call = call.PageToken(pageToken)
 	}
-	if language != nil && *language != "" {
-		call = call.RelevanceLanguage(*language)
+	if opts.Language != nil && *opts.Language != "" {
+		call = call.RelevanceLanguage(*opts.Language)
+	}
+	if opts.Order != nil && *opts.Order != "" {
+		call = call.Order(*opts.Order)
+	}
+	if opts.PublishedBefore != nil {
+		call = call.PublishedBefore(opts.PublishedBefore.Format(time.RFC3339))
+	}
+	if opts.PublishedAfter != nil {
+		call = call.PublishedAfter(opts.PublishedAfter.Format(time.RFC3339))
+	}
+	if opts.RegionCode != nil && *opts.RegionCode != "" {
+		call = call.RegionCode(*opts.RegionCode)
+	}
+	if opts.RelevanceLanguage != nil && *opts.RelevanceLanguage != "" {
+		call = call.RelevanceLanguage(*opts.RelevanceLanguage)
 	}
 
 	res, err := call.Do()

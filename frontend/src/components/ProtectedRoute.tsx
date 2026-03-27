@@ -21,7 +21,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     screenTimeBlocked,
     screenTimeBlockReason,
   } = useAuth();
-  const { route } = useLocation();
+  const { route, url } = useLocation();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -39,7 +39,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return null;
   }
 
-  if (screenTimeBlocked) {
+  if (screenTimeBlocked && url !== "/screen-time-settings") {
     return (
       <ScreenTimeBlock reason={screenTimeBlockReason ?? "limit_exceeded"} />
     );

@@ -75,7 +75,7 @@ func (h *APIHandler) GetStatisticsWeekly(ctx context.Context, request GetStatist
 
 	targetWeek := request.Params.TargetWeek
 
-	views, err := h.historyService.GetStatisticsByWeek(ctx, userID, targetWeek)
+	aiSummary, views, err := h.historyService.GetStatisticsByWeek(ctx, userID, targetWeek)
 	if err != nil {
 		return nil, err
 	}
@@ -96,5 +96,6 @@ func (h *APIHandler) GetStatisticsWeekly(ctx context.Context, request GetStatist
 		TargetWeek: targetWeek,
 		ItemCount:  len(items),
 		Items:      items,
+		AiSummary:  aiSummary,
 	}, nil
 }

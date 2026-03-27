@@ -86,6 +86,7 @@ function VideoPlayerContent() {
   // Refs for values used in keyboard handler / cleanup to avoid stale closures
   const durationRef = useRef(0);
   const volumeRef = useRef(100);
+  const tickRemainingRef = useRef<(() => void) | null>(null);
 
   // Refs for auto-play next video in playlist
   const playlistVideosRef = useRef(playlistVideos);
@@ -236,6 +237,7 @@ function VideoPlayerContent() {
     videoId: video?.external_video_id ?? "",
     containerId: PLAYER_CONTAINER_ID,
     onStateChange: handlePlayerStateChange,
+    onSyncTick: () => tickRemainingRef.current?.(),
   });
 
   // Seek to start time from ?t= query param once player is ready
@@ -281,12 +283,13 @@ function VideoPlayerContent() {
   volumeRef.current = volume;
   isSeekingRef.current = isSeeking;
 
-  const { remainingSeconds } = useHeartbeat({
+  const { remainingSeconds, tickRemaining } = useHeartbeat({
     videoId: video?.video_id ?? null,
     playerState,
     currentTimeRef,
     togglePlay,
   });
+  tickRemainingRef.current = tickRemaining;
 
   // Check if description overflows (ResizeObserver for font-load safety)
   useEffect(() => {

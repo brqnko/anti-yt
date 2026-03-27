@@ -1,7 +1,33 @@
-import { useState } from "preact/hooks";
+import { useState, useMemo } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./Icon";
+import { SearchFilterDialog } from "./SearchFilterDialog";
+import type { SearchFilters } from "./SearchFilterDialog";
+
+/** Read filter params from the current URL query string. */
+function parseFiltersFromURL(qs: string): SearchFilters {
+  const p = new URLSearchParams(qs);
+  const filters: SearchFilters = {};
+  if (p.get("order")) filters.order = p.get("order")!;
+  if (p.get("published_after")) filters.published_after = p.get("published_after")!;
+  if (p.get("published_before")) filters.published_before = p.get("published_before")!;
+  if (p.get("region_code")) filters.region_code = p.get("region_code")!;
+  if (p.get("relevance_language")) filters.relevance_language = p.get("relevance_language")!;
+  return filters;
+}
+
+/** Build a URL search string from query + filters. */
+function buildSearchURL(query: string, filters: SearchFilters): string {
+  const p = new URLSearchParams();
+  p.set("q", query);
+  if (filters.order) p.set("order", filters.order);
+  if (filters.published_after) p.set("published_after", filters.published_after);
+  if (filters.published_before) p.set("published_before", filters.published_before);
+  if (filters.region_code) p.set("region_code", filters.region_code);
+  if (filters.relevance_language) p.set("relevance_language", filters.relevance_language);
+  return `/search?${p.toString()}`;
+}
 
 export function DashboardHeader({
   sidebarOpen = false,
@@ -12,16 +38,31 @@ export function DashboardHeader({
 }) {
   const { t } = useTranslation();
   const { url, route } = useLocation();
+  const qs = url.split("?")[1] || "";
   const initialQuery = url.startsWith("/search")
-    ? new URLSearchParams(url.split("?")[1] || "").get("q") || ""
+    ? new URLSearchParams(qs).get("q") || ""
     : "";
   const [searchInput, setSearchInput] = useState(initialQuery);
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  const currentFilters = useMemo(() => parseFiltersFromURL(qs), [qs]);
+  const activeFilterCount = useMemo(
+    () => Object.values(currentFilters).filter(Boolean).length,
+    [currentFilters],
+  );
 
   const handleSearch = (e: Event) => {
     e.preventDefault();
     const q = searchInput.trim();
     if (q) {
-      route(`/search?q=${encodeURIComponent(q)}`);
+      route(buildSearchURL(q, currentFilters));
+    }
+  };
+
+  const handleApplyFilters = (filters: SearchFilters) => {
+    const q = searchInput.trim();
+    if (q) {
+      route(buildSearchURL(q, filters));
     }
   };
 
@@ -44,11 +85,11 @@ export function DashboardHeader({
       </div>
 
       <form
-        class="flex-1 min-w-0 max-w-xl mx-auto flex"
+        class="flex-1 min-w-0 max-w-xl mx-auto flex gap-2 items-center"
         onSubmit={handleSearch}
         role="search"
       >
-        <div class="flex w-full rounded-full border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark overflow-hidden focus-within:border-primary transition-colors">
+        <div class="flex flex-1 min-w-0 rounded-full border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark overflow-hidden focus-within:border-primary transition-colors">
           <input
             type="text"
             value={searchInput}
@@ -58,7 +99,27 @@ export function DashboardHeader({
             aria-label={t("search.inputPlaceholder")}
           />
         </div>
+        <button
+          type="button"
+          class="relative shrink-0 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer text-charcoal dark:text-white"
+          onClick={() => setFilterOpen(true)}
+          aria-label={t("search.filters.title")}
+        >
+          <Icon name="tune" class="text-xl" />
+          {activeFilterCount > 0 && (
+            <span class="absolute -top-0.5 -right-0.5 size-4 flex items-center justify-center rounded-full bg-primary text-white text-[10px] font-bold leading-none">
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
       </form>
+
+      <SearchFilterDialog
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        filters={currentFilters}
+        onApply={handleApplyFilters}
+      />
 
       <div class="hidden lg:flex items-center gap-4 shrink-0">
         <a

@@ -3,15 +3,27 @@ package middleware_d
 import (
 	"context"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
+	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 	"github.com/brqnko/anti-yt/backend/internal/history"
 	"github.com/brqnko/anti-yt/backend/internal/user"
-	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+var screenTimeIgnoreOperations = map[string]struct{}{
+	"GetAuthGoogle":         {},
+	"GetAuthGoogleCallback": {},
+	"PostAuthLogout":        {},
+	"PostAuthRefresh":       {},
+	"PostUsersMe":           {},
+	"GetUsersMeStatus":      {},
+	"PatchUsersMeStatus":    {},
+	"GetHealth":             {},
+}
 
 func ScreenTimeMiddleware(db *pgxpool.Pool) func(v1.StrictHandlerFunc, string) v1.StrictHandlerFunc {
 	q := sqlc.New(db)
@@ -19,6 +31,10 @@ func ScreenTimeMiddleware(db *pgxpool.Pool) func(v1.StrictHandlerFunc, string) v
 	historyQS := history.NewHistoryQueryService(db)
 
 	return func(f v1.StrictHandlerFunc, operationID string) v1.StrictHandlerFunc {
+		if _, ok := screenTimeIgnoreOperations[operationID]; ok {
+			return f
+		}
+
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
 			userID, err := hutil.UserIDFromContext(ctx)
 			if err != nil {

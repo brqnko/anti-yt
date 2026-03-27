@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "preact/hooks";
 import type { RefObject } from "preact";
 import { getHistory } from "../../api/generated/history";
 import { getCookie } from "../../utils/cookie";
+import { getCachedVisitorId } from "../../api/axios-instance";
 
 const HEARTBEAT_INTERVAL_MS = 60_000;
 const HEARTBEAT_DEBOUNCE_MS = 2_000;
@@ -13,6 +14,8 @@ function sendBeaconHeartbeat(videoId: string, positionSeconds: number): void {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   const csrfToken = getCookie("csrf_token");
   if (csrfToken) headers["x-csrf-token"] = csrfToken;
+  const visitorId = getCachedVisitorId();
+  if (visitorId) headers["X-Device-Fingerprint"] = visitorId;
 
   try {
     fetch(url, {
@@ -45,7 +48,10 @@ export function useHeartbeat({
   playerState,
   currentTimeRef,
   togglePlay,
-}: UseHeartbeatOptions): { remainingSeconds: number | null } {
+}: UseHeartbeatOptions): {
+  remainingSeconds: number | null;
+  tickRemaining: () => void;
+} {
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -111,6 +117,9 @@ export function useHeartbeat({
           setRemainingSeconds(remaining);
           if (remaining !== null && remaining <= 0) {
             togglePlay();
+            window.dispatchEvent(
+              new CustomEvent("screen-time:blocked", { detail: { reason: "limit_exceeded" } }),
+            );
           }
         })
         .catch((err: unknown) => {
@@ -143,21 +152,20 @@ export function useHeartbeat({
     };
   }, [videoId, isPlaying, togglePlay, sendFinalHeartbeat, currentTimeRef]);
 
-  // Local countdown: decrement remainingSeconds every second while playing
-  useEffect(() => {
-    if (remainingSeconds === null || !isPlaying) return;
-    const timer = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev === null) return null;
-        if (prev <= 1) {
-          togglePlay();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [remainingSeconds !== null, isPlaying, togglePlay]);
+  // Called by the player's syncTick so remaining countdown shares the same timer.
+  const tickRemaining = useCallback(() => {
+    setRemainingSeconds((prev) => {
+      if (prev === null) return null;
+      if (prev <= 1) {
+        togglePlay();
+        window.dispatchEvent(
+          new CustomEvent("screen-time:blocked", { detail: { reason: "limit_exceeded" } }),
+        );
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, [togglePlay]);
 
-  return { remainingSeconds };
+  return { remainingSeconds, tickRemaining };
 }
