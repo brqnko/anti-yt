@@ -241,6 +241,7 @@ export function useYouTubePlayer({
           disablekb: 1,
           iv_load_policy: 3,
           playsinline: 1,
+          origin: window.location.origin,
         },
         events: {
           onReady: () => {
