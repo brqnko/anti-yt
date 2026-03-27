@@ -19,4 +19,12 @@ i18n.use(initReactI18next).init({
   },
 });
 
+if (typeof document !== "undefined") {
+  const setLang = (lng: string) => {
+    document.documentElement.lang = lng.startsWith("ja") ? "ja" : "en";
+  };
+  setLang(i18n.language);
+  i18n.on("languageChanged", setLang);
+}
+
 export default i18n;

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "preact-iso";
 import { useTitle } from "../../hooks/useTitle";
+import { useCanonical } from "../../hooks/useCanonical";
 import { useColorMode } from "../../hooks/useColorMode";
 import { useAuth } from "../../contexts/AuthContext";
 import { modeIcons, modeOrder, languages } from "../../constants";
@@ -132,7 +133,7 @@ function WhitelistItem({ name }: { name: string }) {
 export default function Home() {
   const { t, i18n } = useTranslation();
   const { mode, setMode } = useColorMode();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const { query } = useLocation();
   const showExpiredBanner = useMemo(() => {
     if (typeof query === "string") {
@@ -141,6 +142,7 @@ export default function Home() {
     return (query as Record<string, string>)?.expired === "1";
   }, [query]);
   useTitle("");
+  useCanonical("/");
 
   const nextMode = modeOrder[(modeOrder.indexOf(mode) + 1) % modeOrder.length];
   const cycleMode = () => setMode(nextMode);
@@ -250,7 +252,11 @@ export default function Home() {
             </p>
 
             <div class="flex flex-col gap-4 pt-8">
-              {isAuthenticated ? (
+              {isLoading ? (
+                <div class="flex w-full sm:w-auto items-center justify-center rounded-xl bg-white dark:bg-[#242424] px-8 py-4 border border-slate-200 dark:border-slate-700">
+                  <div class="w-5 h-5 rounded-full border-2 border-slate-300 dark:border-slate-600 border-t-primary animate-spin" />
+                </div>
+              ) : isAuthenticated ? (
                 <a
                   href="/dashboard"
                   class="flex w-full sm:w-auto items-center justify-center rounded-xl bg-primary px-8 py-4 text-base font-bold text-white hover:bg-primary/90 transition-all hover:-translate-y-0.5 no-underline cursor-pointer"

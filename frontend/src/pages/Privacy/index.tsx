@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { LegalLayout } from "../../components/LegalLayout";
 import { useTitle } from "../../hooks/useTitle";
+import { useCanonical } from "../../hooks/useCanonical";
 
 const sections = [
   { num: "01", key: "dataCollection" },
@@ -15,6 +16,7 @@ const sections = [
 export default function Privacy() {
   const { t } = useTranslation();
   useTitle("Privacy Policy");
+  useCanonical("/privacy");
 
   return (
     <LegalLayout>
