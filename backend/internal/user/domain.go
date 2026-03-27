@@ -243,10 +243,12 @@ func NewDailyScreenTimeLimitRangeSet(screenLimits []struct{ Start, End int }, lo
 }
 
 // BlockedUntil は現在時刻が許可された時間範囲外の場合、次の許可開始時刻を返す。
-// 範囲が空の場合はnil（制限なし）を返す。
+// 範囲が空の場合は許可時間帯が存在しないため常にブロックする。
 func (s *DailyScreenTimeLimitRangeSet) BlockedUntil(now time.Time) *time.Time {
 	if len(s.Ranges) == 0 {
-		return nil
+		// 許可時間帯が一つもない場合は常にブロック
+		sentinel := time.Date(9999, 12, 31, 23, 59, 59, 0, time.UTC)
+		return &sentinel
 	}
 
 	nowSeconds := now.Hour()*3600 + now.Minute()*60 + now.Second()
