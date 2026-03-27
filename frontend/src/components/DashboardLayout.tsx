@@ -173,7 +173,7 @@ export function DashboardLayout({
               <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark px-3">
                 {t("dashboard.whitelistedChannels")}
               </h3>
-              <div class="flex flex-col gap-2 max-h-36 overflow-y-auto">
+              <div class="flex flex-col gap-2 max-h-32 overflow-y-auto">
                 {subscriptions.map((sub) => (
                   <a
                     key={sub.channel_id}

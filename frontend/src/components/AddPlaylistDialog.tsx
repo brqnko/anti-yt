@@ -39,6 +39,11 @@ export function AddPlaylistDialog({
     document.body.style.overflow = "hidden";
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
+      if (e.key === "a" && (e.metaKey || e.ctrlKey)) {
+        const target = e.target as HTMLElement;
+        const isEditable = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
+        if (!isEditable) e.preventDefault();
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => {
