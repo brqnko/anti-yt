@@ -3,6 +3,8 @@ package v1
 import (
 	"context"
 	"net/http"
+	"sort"
+	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -32,11 +34,54 @@ func (h *APIHandler) GetUsersMeStatus(ctx context.Context, request GetUsersMeSta
 		return nil, err
 	}
 
-	screenTime := make([]ScreenTimeSlot, len(user.ScreenTimeLimitRange))
-	for i, v := range user.ScreenTimeLimitRange {
+	loc := hutil.TimezoneFromContext(ctx)
+	_, offsetSec := time.Now().In(loc).Zone()
+	const daySec = 24 * 60 * 60
+
+	// UTC HH:mm → ローカル秒に変換
+	type secRange struct{ start, end int }
+	localRanges := make([]secRange, 0, len(user.ScreenTimeLimitRange))
+	for _, v := range user.ScreenTimeLimitRange {
+		startMin, err := util.HHmmToInt(v.StartTime)
+		if err != nil {
+			return nil, err
+		}
+		endMin, err := util.HHmmToInt(v.EndTime)
+		if err != nil {
+			return nil, err
+		}
+		localRanges = append(localRanges, secRange{
+			start: ((startMin*60 + offsetSec) % daySec + daySec) % daySec,
+			end:   ((endMin*60 + offsetSec) % daySec + daySec) % daySec,
+		})
+	}
+
+	// ソートしてマージ
+	sort.Slice(localRanges, func(i, j int) bool { return localRanges[i].start < localRanges[j].start })
+	var merged []secRange
+	for _, r := range localRanges {
+		if len(merged) > 0 && r.start <= merged[len(merged)-1].end+1 {
+			if r.end > merged[len(merged)-1].end {
+				merged[len(merged)-1].end = r.end
+			}
+		} else {
+			merged = append(merged, r)
+		}
+	}
+
+	screenTime := make([]ScreenTimeSlot, len(merged))
+	for i, r := range merged {
+		startStr, err := util.IntToHHmm(r.start / 60)
+		if err != nil {
+			return nil, err
+		}
+		endStr, err := util.IntToHHmm(r.end / 60)
+		if err != nil {
+			return nil, err
+		}
 		screenTime[i] = ScreenTimeSlot{
-			EndTime:   v.EndTime,
-			StartTime: v.StartTime,
+			StartTime: startStr,
+			EndTime:   endStr,
 		}
 	}
 
@@ -44,7 +89,7 @@ func (h *APIHandler) GetUsersMeStatus(ctx context.Context, request GetUsersMeSta
 		DailyScreenSeconds: user.DailyScreenSeconds,
 		DisplayName:        user.DisplayName,
 		Id:                 user.UserID,
-		JoinedAt:           user.JoinedAt,
+		JoinedAt:           user.JoinedAt.In(loc),
 		LanguageCode:       user.LanguageCode,
 		ScreenTime:         screenTime,
 	}, nil
@@ -64,7 +109,7 @@ func (h *APIHandler) PatchUsersMeStatus(ctx context.Context, request PatchUsersM
 		return nil, err
 	}
 
-	u, err := h.userService.EditUser(ctx, userID, request.Body.DisplayName, request.Body.LanguageCode, request.Body.DailyScreenSeconds, screenTimeDto)
+	u, err := h.userService.EditUser(ctx, userID, request.Body.DisplayName, request.Body.LanguageCode, request.Body.DailyScreenSeconds, screenTimeDto, hutil.TimezoneFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +118,7 @@ func (h *APIHandler) PatchUsersMeStatus(ctx context.Context, request PatchUsersM
 		DailyScreenSeconds: u.ScreenTimeLimit.ToIntPtr(),
 		DisplayName:        u.DisplayName.String(),
 		Id:                 u.ID,
-		JoinedAt:           u.JoinedAt,
+		JoinedAt:           u.JoinedAt.In(hutil.TimezoneFromContext(ctx)),
 		LanguageCode:       u.LanguageCode.String(),
 	}, nil
 }
@@ -88,7 +133,7 @@ func (h *APIHandler) PostUsersMe(ctx context.Context, request PostUsersMeRequest
 		return nil, hutil.ErrUserIDNotFoundInContext
 	}
 
-	u, newAccessToken, accessTokenExpiresAt, err := h.userService.CreateNewUser(ctx, accessToken, request.Body.DailyScreenSeconds, screenTimeDto, request.Body.DisplayName, request.Body.LanguageCode)
+	u, newAccessToken, accessTokenExpiresAt, err := h.userService.CreateNewUser(ctx, accessToken, request.Body.DailyScreenSeconds, screenTimeDto, request.Body.DisplayName, request.Body.LanguageCode, hutil.TimezoneFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +153,7 @@ func (h *APIHandler) PostUsersMe(ctx context.Context, request PostUsersMeRequest
 		DailyScreenSeconds: u.ScreenTimeLimit.ToIntPtr(),
 		DisplayName:        u.DisplayName.String(),
 		Id:                 u.ID,
-		JoinedAt:           u.JoinedAt,
+		JoinedAt:           u.JoinedAt.In(hutil.TimezoneFromContext(ctx)),
 		LanguageCode:       u.LanguageCode.String(),
 	}, nil
 }
@@ -124,7 +169,7 @@ func screenTimeSlotsToDto(slots []ScreenTimeSlot) ([]struct{ Start, End int }, e
 		if err != nil {
 			return nil, err
 		}
-		result[i] = struct{ Start, End int }{start, end}
+		result[i] = struct{ Start, End int }{start * 60, end * 60}
 	}
 	return result, nil
 }

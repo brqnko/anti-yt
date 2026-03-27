@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/testutil"
 	"github.com/google/uuid"
@@ -84,7 +85,7 @@ func TestService_CreateNewUser(t *testing.T) {
 
 			svc := newTestService(t, pool, jwtMock)
 
-			user, accessToken, expiresAt, err := svc.CreateNewUser(ctx, "register-token", tt.dailyScreenLimit, tt.screenLimits, tt.displayName, tt.languageCode)
+			user, accessToken, expiresAt, err := svc.CreateNewUser(ctx, "register-token", tt.dailyScreenLimit, tt.screenLimits, tt.displayName, tt.languageCode, time.UTC)
 
 			if tt.wantErr {
 				if err == nil {
@@ -130,13 +131,13 @@ func TestService_CreateNewUser_AlreadyRegistered(t *testing.T) {
 	svc := newTestService(t, pool, jwtMock)
 
 	// 1回目: 成功
-	_, _, _, err := svc.CreateNewUser(ctx, "register-token", nil, nil, "Test User", "ja")
+	_, _, _, err := svc.CreateNewUser(ctx, "register-token", nil, nil, "Test User", "ja", time.UTC)
 	if err != nil {
 		t.Fatalf("first CreateNewUser failed: %v", err)
 	}
 
 	// 2回目: 既に登録済み
-	_, _, _, err = svc.CreateNewUser(ctx, "register-token", nil, nil, "Test User 2", "ja")
+	_, _, _, err = svc.CreateNewUser(ctx, "register-token", nil, nil, "Test User 2", "ja", time.UTC)
 	if err == nil {
 		t.Fatal("expected error for already registered, got nil")
 	}
@@ -197,12 +198,12 @@ func TestService_EditUser(t *testing.T) {
 			svc := newTestService(t, pool, jwtMock)
 
 			// セットアップ: ユーザー作成
-			created, _, _, err := svc.CreateNewUser(ctx, "register-token", nil, nil, "Original Name", "ja")
+			created, _, _, err := svc.CreateNewUser(ctx, "register-token", nil, nil, "Original Name", "ja", time.UTC)
 			if err != nil {
 				t.Fatalf("setup: CreateNewUser failed: %v", err)
 			}
 
-			updated, err := svc.EditUser(ctx, created.ID, tt.newDisplayName, tt.newLanguageCode, tt.newScreenLimit, tt.newScreenRanges)
+			updated, err := svc.EditUser(ctx, created.ID, tt.newDisplayName, tt.newLanguageCode, tt.newScreenLimit, tt.newScreenRanges, time.UTC)
 
 			if tt.wantErr {
 				if err == nil {
@@ -236,7 +237,7 @@ func TestService_EditUser_NotFound(t *testing.T) {
 	svc := newTestService(t, pool, jwtMock)
 
 	name := "New Name"
-	_, err := svc.EditUser(ctx, uuid.Must(uuid.NewV7()), &name, nil, nil, nil)
+	_, err := svc.EditUser(ctx, uuid.Must(uuid.NewV7()), &name, nil, nil, nil, time.UTC)
 	if err == nil {
 		t.Fatal("expected error for non-existent user, got nil")
 	}
@@ -285,7 +286,7 @@ func TestService_GetUserStatus(t *testing.T) {
 
 			svc := newTestService(t, pool, jwtMock)
 
-			created, _, _, err := svc.CreateNewUser(ctx, "register-token", tt.screenLimit, tt.screenRanges, "Test User", "ja")
+			created, _, _, err := svc.CreateNewUser(ctx, "register-token", tt.screenLimit, tt.screenRanges, "Test User", "ja", time.UTC)
 			if err != nil {
 				t.Fatalf("setup: CreateNewUser failed: %v", err)
 			}
@@ -362,7 +363,7 @@ func TestService_RemoveUser(t *testing.T) {
 
 			svc := newTestService(t, pool, jwtMock)
 
-			created, _, _, err := svc.CreateNewUser(ctx, "register-token", nil, nil, "Test User", "ja")
+			created, _, _, err := svc.CreateNewUser(ctx, "register-token", nil, nil, "Test User", "ja", time.UTC)
 			if err != nil {
 				t.Fatalf("setup: CreateNewUser failed: %v", err)
 			}

@@ -45,9 +45,14 @@ WHERE
         LIMIT
             1
     )
-    AND CURRENT_DATE <= t_video_watch.watch_start_at
-    AND t_video_watch.watch_start_at < CURRENT_DATE + INTERVAL '1 day'
+    AND $2 <= t_video_watch.watch_start_at
+    AND t_video_watch.watch_start_at < $2 + INTERVAL '1 day'
 `
+
+type GetDailyWatchSummaryParams struct {
+	PublicID   uuid.UUID
+	TodayStart time.Time
+}
 
 type GetDailyWatchSummaryRow struct {
 	DailyLimitSeconds int
@@ -56,8 +61,8 @@ type GetDailyWatchSummaryRow struct {
 
 // m_user.public_idから、そのユーザーが今日視聴していた合計時間(seconds)と設定している制限時間を返す。
 // その日に一本も動画を視聴していない場合は0を返します。
-func (q *Queries) GetDailyWatchSummary(ctx context.Context, publicID uuid.UUID) (GetDailyWatchSummaryRow, error) {
-	row := q.db.QueryRow(ctx, getDailyWatchSummary, publicID)
+func (q *Queries) GetDailyWatchSummary(ctx context.Context, arg GetDailyWatchSummaryParams) (GetDailyWatchSummaryRow, error) {
+	row := q.db.QueryRow(ctx, getDailyWatchSummary, arg.PublicID, arg.TodayStart)
 	var i GetDailyWatchSummaryRow
 	err := row.Scan(&i.DailyLimitSeconds, &i.TodayWatchTotal)
 	return i, err
@@ -92,7 +97,7 @@ func (q *Queries) GetLatestMonthlyVideoWatchSummary(ctx context.Context, userID 
 
 const listDailyWatchStatsByRange = `-- name: ListDailyWatchStatsByRange :many
 SELECT
-    DATE(video_watch.watch_start_at) AS watch_date,
+    DATE(video_watch.watch_start_at + make_interval(secs => $1::int)) AS watch_date,
     COUNT(DISTINCT video_watch.m_video_id) AS video_count,
     EXTRACT(EPOCH FROM SUM(video_watch.watch_end_at - video_watch.watch_start_at))::bigint AS watch_sum
 FROM
@@ -104,17 +109,18 @@ WHERE
         FROM
             m_user u
         WHERE
-            u.public_id = $1
+            u.public_id = $2
         LIMIT
             1
     )
-    AND video_watch.watch_start_at BETWEEN $2 AND $3
+    AND video_watch.watch_start_at BETWEEN $3 AND $4
     AND video_watch.watch_end_at <= CURRENT_TIMESTAMP
 GROUP BY
-    DATE(video_watch.watch_start_at)
+    DATE(video_watch.watch_start_at + make_interval(secs => $1::int))
 `
 
 type ListDailyWatchStatsByRangeParams struct {
+	TzOffset  int
 	UserID    uuid.UUID
 	StartDate time.Time
 	EndDate   time.Time
@@ -127,7 +133,12 @@ type ListDailyWatchStatsByRangeRow struct {
 }
 
 func (q *Queries) ListDailyWatchStatsByRange(ctx context.Context, arg ListDailyWatchStatsByRangeParams) ([]ListDailyWatchStatsByRangeRow, error) {
-	rows, err := q.db.Query(ctx, listDailyWatchStatsByRange, arg.UserID, arg.StartDate, arg.EndDate)
+	rows, err := q.db.Query(ctx, listDailyWatchStatsByRange,
+		arg.TzOffset,
+		arg.UserID,
+		arg.StartDate,
+		arg.EndDate,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -148,6 +159,7 @@ func (q *Queries) ListDailyWatchStatsByRange(ctx context.Context, arg ListDailyW
 
 const listWatchHistory = `-- name: ListWatchHistory :many
 SELECT
+    t_video_watch.public_id AS watch_id,
     m_video.public_id AS video_id,
     m_video.external_title AS external_video_title,
     m_video.external_thumbnail_url AS external_video_thumbnail_url,
@@ -189,6 +201,7 @@ type ListWatchHistoryParams struct {
 }
 
 type ListWatchHistoryRow struct {
+	WatchID                    uuid.UUID
 	VideoID                    uuid.UUID
 	ExternalVideoTitle         string
 	ExternalVideoThumbnailUrl  string
@@ -210,6 +223,7 @@ func (q *Queries) ListWatchHistory(ctx context.Context, arg ListWatchHistoryPara
 	for rows.Next() {
 		var i ListWatchHistoryRow
 		if err := rows.Scan(
+			&i.WatchID,
 			&i.VideoID,
 			&i.ExternalVideoTitle,
 			&i.ExternalVideoThumbnailUrl,

@@ -25,14 +25,14 @@ func NewService(db *pgxpool.Pool) *Service {
 	}
 }
 
-func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, positionSeconds int) (_ *int, err error) {
+func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, positionSeconds int, loc *time.Location) (_ *int, err error) {
 	defer util.Wrap(&err, "Service.Heartbeat")
 
 	if err := NewHistoryRepository(sqlc.New(s.db)).Heartbeat(ctx, userID, videoID, positionSeconds); err != nil {
 		return nil, err
 	}
 
-	watchStats, err := s.historyQS.FindTotalWatchSeconds(ctx, userID)
+	watchStats, err := s.historyQS.FindTotalWatchSeconds(ctx, userID, loc)
 	if err != nil {
 		return nil, err
 	}
@@ -44,12 +44,16 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 	return &remaining, nil
 }
 
-func (s *Service) GetHistory(ctx context.Context, userID uuid.UUID, limit int, cursor *uuid.UUID) (_ []GetHistoryView, _ bool, err error) {
+func (s *Service) GetHistory(ctx context.Context, userID uuid.UUID, limit int, cursor *uuid.UUID, loc *time.Location) (_ []GetHistoryView, _ bool, err error) {
 	defer util.Wrap(&err, "Service.GetHistory")
 
 	views, err := s.historyQS.FindHistory(ctx, userID, cursor, int32(limit+1))
 	if err != nil {
 		return nil, false, err
+	}
+
+	for i := range views {
+		views[i].WatchedAt = views[i].WatchedAt.In(loc)
 	}
 
 	if len(views) > limit {
@@ -58,12 +62,17 @@ func (s *Service) GetHistory(ctx context.Context, userID uuid.UUID, limit int, c
 	return views, false, nil
 }
 
-func (s *Service) GetStatisticsByWeek(ctx context.Context, userID uuid.UUID, targetWeek time.Time) (_ *string, _ []GetStatisticsWeeklyView, err error) {
+func (s *Service) GetStatisticsByWeek(ctx context.Context, userID uuid.UUID, targetWeek time.Time, loc *time.Location) (_ *string, _ []GetStatisticsWeeklyView, err error) {
 	defer util.Wrap(&err, "Service.GetStatisticsByWeek")
 
 	aiSummary, views, err := s.historyQS.FindStatisticsByWeek(ctx, userID, targetWeek)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	for i := range views {
+		views[i].WatchDate = views[i].WatchDate.In(loc)
+	}
+
 	return aiSummary, views, nil
 }

@@ -36,7 +36,7 @@ func NewService(db *pgxpool.Pool, jwtService jwt_d.Service, serverURL string) *S
 	}
 }
 
-func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailyScreenLimit *int, screenLimits []struct{ Start, End int }, displayName string, languageCode string) (_ *User, _ string, _ time.Time, err error) {
+func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailyScreenLimit *int, screenLimits []struct{ Start, End int }, displayName string, languageCode string, loc *time.Location) (_ *User, _ string, _ time.Time, err error) {
 	defer util.Wrap(&err, "Service.CreateNewUser")
 
 	authorizationID, jti, err := s.jwtService.VerifyRegisterToken(accessToken)
@@ -48,7 +48,7 @@ func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailySc
 	if err != nil {
 		return nil, "", time.Time{}, err
 	}
-	rangeSet, err := NewDailyScreenTimeLimitRangeSet(screenLimits)
+	rangeSet, err := NewDailyScreenTimeLimitRangeSet(screenLimits, loc)
 	if err != nil {
 		return nil, "", time.Time{}, err
 	}
@@ -102,7 +102,7 @@ func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailySc
 	return user, newAccessToken, accessTokenExpiresAt, nil
 }
 
-func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName, newLanguageCode *string, newDailyScreenLimit *int, newScreenLimits *[]struct{ Start, End int }) (_ *User, err error) {
+func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName, newLanguageCode *string, newDailyScreenLimit *int, newScreenLimits *[]struct{ Start, End int }, loc *time.Location) (_ *User, err error) {
 	defer util.Wrap(&err, "Service.EditUser(userID=%s)", userID)
 
 	tx, err := s.db.Begin(ctx)
@@ -137,7 +137,7 @@ func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName
 	}
 
 	if newScreenLimits != nil {
-		rangeSet, err := NewDailyScreenTimeLimitRangeSet(*newScreenLimits)
+		rangeSet, err := NewDailyScreenTimeLimitRangeSet(*newScreenLimits, loc)
 		if err != nil {
 			return nil, err
 		}

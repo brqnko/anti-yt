@@ -36,7 +36,7 @@ type Querier interface {
 	GetChannelForUpdate(ctx context.Context, channelID uuid.UUID) (GetChannelForUpdateRow, error)
 	// m_user.public_idから、そのユーザーが今日視聴していた合計時間(seconds)と設定している制限時間を返す。
 	// その日に一本も動画を視聴していない場合は0を返します。
-	GetDailyWatchSummary(ctx context.Context, publicID uuid.UUID) (GetDailyWatchSummaryRow, error)
+	GetDailyWatchSummary(ctx context.Context, arg GetDailyWatchSummaryParams) (GetDailyWatchSummaryRow, error)
 	GetLatestMonthlyVideoWatchSummary(ctx context.Context, userID uuid.UUID) (GetLatestMonthlyVideoWatchSummaryRow, error)
 	GetPlaylistForUpdate(ctx context.Context, arg GetPlaylistForUpdateParams) (GetPlaylistForUpdateRow, error)
 	GetPlaylistWithThumbnail(ctx context.Context, arg GetPlaylistWithThumbnailParams) (GetPlaylistWithThumbnailRow, error)

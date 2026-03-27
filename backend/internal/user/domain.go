@@ -1,6 +1,7 @@
 package user
 
 import (
+	"sort"
 	"strings"
 	"time"
 
@@ -68,12 +69,12 @@ type DailyScreenTimeLimit struct {
 func NewDailyScreenTimeLimit(seconds *int) (_ DailyScreenTimeLimit, err error) {
 	defer util.Wrap(&err, "NewDailyScreenTimeLimit")
 
-	if seconds == nil {
+	if seconds == nil || *seconds >= int((24 * time.Hour).Seconds()) {
 		return DailyScreenTimeLimit{duration: nil}, nil
 	}
 
 	value := time.Duration(*seconds) * time.Second
-	if value < 0 || value >= 24*time.Hour {
+	if value < 0 {
 		return DailyScreenTimeLimit{}, ErrDailyScreenTimeOutOfRange
 	}
 
@@ -163,7 +164,7 @@ func NewDailyScreenTimeLimitRange(startTimeSeconds, endTimeSeconds int) (_ Daily
 	if startTimeSeconds < 0 || time.Duration(startTimeSeconds)*time.Second >= 24*time.Hour {
 		return DailyScreenTimeLimitRange{}, ErrDailyScreenTimeLimitOutOfRange
 	}
-	if endTimeSeconds < 0 || time.Duration(endTimeSeconds)*time.Second >= 24*time.Hour {
+	if endTimeSeconds < 0 || time.Duration(endTimeSeconds)*time.Second > 24*time.Hour {
 		return DailyScreenTimeLimitRange{}, ErrDailyScreenTimeLimitOutOfRange
 	}
 
@@ -183,20 +184,61 @@ type DailyScreenTimeLimitRangeSet struct {
 	Ranges []DailyScreenTimeLimitRange
 }
 
-func NewDailyScreenTimeLimitRangeSet(screenLimits []struct{ Start, End int }) (_ *DailyScreenTimeLimitRangeSet, err error) {
+func NewDailyScreenTimeLimitRangeSet(screenLimits []struct{ Start, End int }, loc *time.Location) (_ *DailyScreenTimeLimitRangeSet, err error) {
 	defer util.Wrap(&err, "NewDailyScreenTimeLimitRangeSet")
 
+	// ローカル時刻の秒数をUTC秒数に変換する。
+	// 基準日はタイムゾーンオフセットの計算にのみ使うため任意の日付でよい。
+	ref := time.Date(2000, 1, 1, 0, 0, 0, 0, loc)
+	_, offsetSec := ref.Zone()
+	const daySeconds = 24 * 60 * 60
+
+	wrap := func(s int) int { return ((s % daySeconds) + daySeconds) % daySeconds }
+
 	// NOTE: UX的に、時間範囲の重複は許容する
-	ranges := make([]DailyScreenTimeLimitRange, len(screenLimits))
-	for i, r := range screenLimits {
-		domainRange, err := NewDailyScreenTimeLimitRange(r.Start, r.End)
-		if err != nil {
-			return nil, err
+	var ranges []DailyScreenTimeLimitRange
+	for _, r := range screenLimits {
+		utcStart := wrap(r.Start - offsetSec)
+		utcEnd := wrap(r.End - offsetSec)
+
+		if utcStart < utcEnd {
+			// 日付を跨がない
+			domainRange, err := NewDailyScreenTimeLimitRange(utcStart, utcEnd)
+			if err != nil {
+				return nil, err
+			}
+			ranges = append(ranges, domainRange)
+		} else {
+			// 日付を跨ぐ: [utcStart, 24h] と [0, utcEnd)
+			r1, err := NewDailyScreenTimeLimitRange(utcStart, daySeconds)
+			if err != nil {
+				return nil, err
+			}
+			ranges = append(ranges, r1)
+			if utcEnd > 0 {
+				r2, err := NewDailyScreenTimeLimitRange(0, utcEnd)
+				if err != nil {
+					return nil, err
+				}
+				ranges = append(ranges, r2)
+			}
 		}
-		ranges[i] = domainRange
 	}
+	// ソートしてマージ
+	sort.Slice(ranges, func(i, j int) bool { return ranges[i].StartTimeSeconds < ranges[j].StartTimeSeconds })
+	var merged []DailyScreenTimeLimitRange
+	for _, r := range ranges {
+		if len(merged) > 0 && r.StartTimeSeconds <= merged[len(merged)-1].EndTimeSeconds+1 {
+			if r.EndTimeSeconds > merged[len(merged)-1].EndTimeSeconds {
+				merged[len(merged)-1].EndTimeSeconds = r.EndTimeSeconds
+			}
+		} else {
+			merged = append(merged, r)
+		}
+	}
+
 	return &DailyScreenTimeLimitRangeSet{
-		Ranges: ranges,
+		Ranges: merged,
 	}, nil
 }
 

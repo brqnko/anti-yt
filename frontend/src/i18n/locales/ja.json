@@ -1,6 +1,5 @@
 {
   "common": {
-    "home": "ホーム",
     "notFoundMessage": "お探しのページは存在しません。正しいページに戻りましょう。",
     "returnHome": "ホームに戻る",
     "colorMode": {
@@ -118,10 +117,6 @@
   },
   "dashboard": {
     "pageTitle": "ダッシュボード",
-    "safeModeActive": "セーフモード有効",
-    "remaining": "残り",
-    "timeLeft": "残り時間",
-    "logout": "ログアウト",
     "toggleSidebar": "サイドバーを切り替え",
     "nav": {
       "mainFeed": "メインフィード",
@@ -129,7 +124,6 @@
       "recommendedChannels": "おすすめチャンネル",
       "playlists": "プレイリスト",
       "history": "履歴",
-      "settings": "設定",
       "sidebar": "サイドバーナビゲーション",
       "mainNav": "メインナビゲーション",
       "bottomFeed": "フィード",
@@ -155,7 +149,6 @@
     "addPlaylist": "プレイリストを作成",
     "addPlaylistDialog": {
       "title": "新しいプレイリスト",
-      "description": "プレイリストのタイトルと説明を入力してください。",
       "titleLabel": "タイトル",
       "titlePlaceholder": "プレイリスト名を入力",
       "descriptionLabel": "説明",
@@ -170,19 +163,9 @@
       "required": "必須"
     },
     "noPlaylists": "プレイリストがありません。",
-    "views": "回視聴",
     "noVideos": "動画がありません",
     "noVideosDesc": "チャンネルを登録すると、最新の動画がここに表示されます。",
     "endOfFeed": "すべての動画を読み込みました",
-    "dailyProgress": "今日の進捗",
-    "used": "使用済み",
-    "onTrack": "制限内に収まるペースです。",
-    "almostLimit": "1日の制限に近づいています。",
-    "focusTip": "集中のヒント",
-    "focusQuote": "「現代社会で最も価値ある通貨はお金ではなく、注意力である。」",
-    "todaysInterventions": "今日のブロック",
-    "shortsBlocked": "ショート動画ブロック",
-    "blockedAttempts": "自動的にブロックされました",
     "timeAgo": {
       "justNow": "たった今",
       "minutes": "{{count}}分前",
@@ -194,29 +177,20 @@
     }
   },
   "restrictions": {
-    "title": "制限",
-    "subtitle": "使用制限とコンテンツフィルターを管理します。",
-    "timeUsedToday": "今日の使用時間",
-    "remaining": "残り",
-    "dailyAllowance": "1日の許容時間",
-    "strictMode": "厳格モード",
     "timeConstraints": "時間制約",
     "permittedHours": "許可時間帯",
     "permittedHoursDesc": "視聴が許可される時間帯を設定",
     "addTimeRange": "時間帯を追加",
     "removeRange": "時間帯を削除",
     "dailyCapLimit": "1日の上限時間",
-    "unlimited": "無制限",
     "enableLimit": "制限を有効にする",
     "hr": "時間",
     "min": "分",
     "save": "保存",
     "saving": "保存中...",
     "saved": "保存しました！",
-    "overlapError": "時間帯が重複しています。",
     "zeroTimeError": "1日の上限時間は0分より大きくしてください。",
     "whitelist": "ホワイトリスト",
-    "whitelistDesc": "これらのチャンネルのコンテンツのみ許可されます。",
     "searchChannels": "チャンネルを検索...",
     "noChannels": "チャンネルが登録されていません。",
     "saveError": "保存に失敗しました。もう一度お試しください。",
@@ -232,9 +206,7 @@
   "profile": {
     "pageTitle": "プロフィール",
     "title": "プロフィール",
-    "subtitle": "アカウント情報とセキュリティを管理します。",
     "nav": {
-      "restrictions": "制限設定",
       "profileSettings": "プロフィール",
       "security": "セキュリティ",
       "signOut": "ログアウト",
@@ -247,7 +219,6 @@
     "saveChanges": "変更を保存",
     "saving": "保存中...",
     "saved": "保存しました！",
-    "dangerZone": "危険な操作",
     "deleteAccount": "アカウントを削除",
     "deleteAccountDesc": "アカウントを削除すると元に戻すことはできません。すべてのデータ、制限履歴、設定が完全に消去されます。",
     "deleteConfirmTitle": "アカウントを削除しますか？",
@@ -260,13 +231,11 @@
   },
   "security": {
     "title": "セキュリティ",
-    "subtitle": "アクティブなセッションを管理して、アカウントを安全に保ちましょう。",
     "currentSession": "現在のセッション",
     "activeNow": "アクティブ",
     "loggedInAt": "ログイン日時",
     "lastActivity": "最終アクティビティ",
     "ipAddress": "IPアドレス",
-    "deviceType": "デバイス",
     "userAgent": "ユーザーエージェント",
     "otherSessions": "他のアクティブなセッション",
     "revoke": "取り消す",
@@ -287,21 +256,17 @@
   },
   "appearance": {
     "title": "見た目設定",
-    "colorMode": "カラーモード",
-    "colorModeDesc": "アプリケーションの表示テーマを選択します。"
+    "colorMode": "カラーモード"
   },
   "channelDetail": {
     "pageTitle": "チャンネル",
     "backToDashboard": "ダッシュボード",
-    "channelDetails": "チャンネル",
     "subscribers": "登録者",
     "whitelistChannel": "チャンネルを許可",
     "whitelistDesc": "フィードに表示を許可する",
-    "about": "概要",
     "latestUploads": "最新のアップロード",
     "noVideos": "動画がありません",
     "notFound": "チャンネルが見つかりません",
-    "notFoundDesc": "このチャンネルは見つかりませんでした。",
     "showMore": "もっと見る",
     "showLess": "閉じる"
   },
@@ -316,10 +281,6 @@
     "addToPlaylist": "保存",
     "noPlaylists": "プレイリストがありません。",
     "remaining": "今日の残り",
-    "mindfulMode": "マインドフルモード有効",
-    "noDistractions": "邪魔なものは検出されていません",
-    "quality": "画質",
-    "qualityAuto": "自動",
     "play": "再生",
     "pause": "一時停止",
     "mute": "ミュート",
@@ -327,33 +288,19 @@
     "volume": "音量",
     "fullscreen": "全画面表示",
     "exitFullscreen": "全画面解除",
-    "seekBar": "シークバー",
-    "seconds": "秒"
+    "seekBar": "シークバー"
   },
   "analytics": {
     "pageTitle": "アナリティクス",
     "title": "アナリティクス",
     "timeWasted": "視聴時間",
     "dailyAverage": "1日の平均",
-    "goalProgress": "目標達成度",
     "weeklyAverageGoal": "週間平均 目標達成度",
-    "lessVsLastMonth": "先月比 {{percent}}% 減少",
-    "onTrackToMeetGoal": "目標達成ペースです",
-    "weeklyGoalOnTrack": "週平均で目標達成ペースです",
     "weeklyUsageTrends": "今週の利用状況",
-    "actualUsage": "実際の利用",
-    "limit": "制限",
     "dailyLimit": "1日の制限 ({{hours}}時間)",
     "tooltipVideos": "{{count}}本の動画",
-    "tooltipHours": "{{hours}}時間",
-    "focusAI": "FocusAI アシスタント",
-    "newInsight": "新しい分析",
-    "insightMessage": "今月の視聴時間は<strong>{{hours}}時間</strong>です！先月より<strong>{{less}}時間少なく</strong>なりました。この調子で頑張りましょう！",
     "loadError": "データの読み込みに失敗しました",
-    "retry": "再試行",
-    "daysActive": "{{count}}日間アクティブ",
-    "weeklyGoalBehind": "目標を超えた日が多いです",
-    "noLimitSet": "制限未設定"
+    "retry": "再試行"
   },
   "screenTimeBlock": {
     "pageTitle": "視聴制限",
@@ -385,7 +332,6 @@
     "videoCount": "{{count}}本の動画",
     "lastUpdated": "最終更新: {{time}}",
     "createdAt": "作成日: {{time}}",
-    "play": "再生",
     "empty": "プレイリストがありません",
     "loadError": "プレイリストの読み込みに失敗しました",
     "retry": "再試行"
@@ -432,12 +378,6 @@
     "pageTitle": "チャンネルを探す",
     "title": "チャンネルを探す",
     "allCategories": "すべてのカテゴリ",
-    "allCategoriesDesc": "厳選された有益なチャンネルを探索しましょう。",
-    "addToWhitelist": "ホワイトリストに追加",
-    "removeFromWhitelist": "ホワイトリストから削除",
-    "added": "追加済み",
-    "adding": "追加中...",
-    "removing": "削除中...",
     "noChannels": "チャンネルが見つかりません",
     "loadError": "チャンネルの読み込みに失敗しました",
     "retry": "再試行",
@@ -448,13 +388,6 @@
       "economy": "経済",
       "politics": "政治",
       "music": "音楽"
-    },
-    "categoryDescriptions": {
-      "education": "世界への理解を深めましょう。",
-      "technology": "最新のイノベーションとテクノロジーをキャッチアップ。",
-      "economy": "金融・経済のトレンドを学びましょう。",
-      "politics": "政治の動向を把握しましょう。",
-      "music": "理論、作曲、そして鑑賞。"
     }
   },
   "search": {
@@ -525,7 +458,6 @@
     "heroDescription": "アルゴリズムから時間を取り戻そう。厳格な時間制限、インテリジェントなフィルタリング、集中のためのディストラクションフリーゾーン。",
     "signInWithGoogle": "Googleでサインイン",
     "dashboard": "ダッシュボードに行く",
-    "logout": "ログアウト",
     "privacy": "プライバシー",
     "terms": "利用規約",
     "dailyAllowance": "1日の許容時間",

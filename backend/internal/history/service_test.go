@@ -38,7 +38,7 @@ func TestService_Heartbeat(t *testing.T) {
 			videoID := seedVideo(t, pool)
 
 			svc := newTestService(t, pool)
-			remaining, err := svc.Heartbeat(ctx, userID, videoID, 30)
+			remaining, err := svc.Heartbeat(ctx, userID, videoID, 30, time.UTC)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -84,12 +84,12 @@ func TestService_GetHistory(t *testing.T) {
 			svc := newTestService(t, pool)
 
 			for i := 0; i < tt.heartbeats; i++ {
-				if _, err := svc.Heartbeat(ctx, userID, videoID, 30); err != nil {
+				if _, err := svc.Heartbeat(ctx, userID, videoID, 30, time.UTC); err != nil {
 					t.Fatalf("setup: Heartbeat failed: %v", err)
 				}
 			}
 
-			views, hasNext, err := svc.GetHistory(ctx, userID, tt.limit, nil)
+			views, hasNext, err := svc.GetHistory(ctx, userID, tt.limit, nil, time.UTC)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -113,7 +113,7 @@ func TestService_GetStatisticsByWeek(t *testing.T) {
 	svc := newTestService(t, pool)
 
 	// heartbeat を送信して視聴記録を作る
-	if _, err := svc.Heartbeat(ctx, userID, videoID, 60); err != nil {
+	if _, err := svc.Heartbeat(ctx, userID, videoID, 60, time.UTC); err != nil {
 		t.Fatalf("setup: Heartbeat failed: %v", err)
 	}
 
@@ -127,7 +127,7 @@ func TestService_GetStatisticsByWeek(t *testing.T) {
 	now := time.Now().UTC()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 
-	views, err := svc.GetStatisticsByWeek(ctx, userID, today)
+	_, views, err := svc.GetStatisticsByWeek(ctx, userID, today, time.UTC)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -147,7 +147,7 @@ func TestService_GetStatisticsByWeek_Empty(t *testing.T) {
 
 	// 遠い過去の週を指定（データなし）
 	pastWeek := time.Date(2000, 1, 3, 0, 0, 0, 0, time.UTC)
-	views, err := svc.GetStatisticsByWeek(ctx, userID, pastWeek)
+	_, views, err := svc.GetStatisticsByWeek(ctx, userID, pastWeek, time.UTC)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -163,7 +163,7 @@ func TestService_Heartbeat_InvalidVideo(t *testing.T) {
 	userID := testutil.SeedUser(t, pool)
 
 	svc := newTestService(t, pool)
-	_, err := svc.Heartbeat(ctx, userID, uuid.Must(uuid.NewV7()), 30)
+	_, err := svc.Heartbeat(ctx, userID, uuid.Must(uuid.NewV7()), 30, time.UTC)
 	if err == nil {
 		t.Fatal("expected error for non-existent video, got nil")
 	}

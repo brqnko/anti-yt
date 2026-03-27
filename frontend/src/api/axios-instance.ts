@@ -34,7 +34,7 @@ axiosInstance.interceptors.request.use(async (config) => {
     config.headers["x-csrf-token"] = csrfToken;
   }
 
-  config.headers["X-Timezone-Offset"] = String(new Date().getTimezoneOffset());
+  config.headers["X-Timezone"] = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   return config;
 });

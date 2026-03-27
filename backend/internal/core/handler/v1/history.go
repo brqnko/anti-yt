@@ -15,7 +15,7 @@ func (h *APIHandler) GetHistory(ctx context.Context, request GetHistoryRequestOb
 		return nil, err
 	}
 
-	views, hasNext, err := h.historyService.GetHistory(ctx, userID, request.Params.Limit, request.Params.Cursor)
+	views, hasNext, err := h.historyService.GetHistory(ctx, userID, request.Params.Limit, request.Params.Cursor, hutil.TimezoneFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -28,11 +28,13 @@ func (h *APIHandler) GetHistory(ctx context.Context, request GetHistoryRequestOb
 		ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
 		ExternalVideoTitle         string    `json:"external_video_title"`
 		VideoId                    uuid.UUID `json:"video_id"`
+		WatchId                    uuid.UUID `json:"watch_id"`
 		WatchPositionSeconds       int       `json:"watch_position_seconds"`
 		WatchedAt                  time.Time `json:"watched_at"`
 	}, len(views))
 
 	for i, v := range views {
+		items[i].WatchId = v.WatchId
 		items[i].VideoId = v.VideoId
 		items[i].ExternalVideoTitle = v.ExternalVideoTitle
 		items[i].ExternalVideoThumbnailUrl = v.ExternalVideoThumbnailUrl
@@ -57,7 +59,7 @@ func (h *APIHandler) PostVideosVideoIdHeartbeats(ctx context.Context, request Po
 		return nil, err
 	}
 
-	remaining, err := h.historyService.Heartbeat(ctx, userID, request.VideoId, request.Body.CurrentPositionSeconds)
+	remaining, err := h.historyService.Heartbeat(ctx, userID, request.VideoId, request.Body.CurrentPositionSeconds, hutil.TimezoneFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -73,9 +75,10 @@ func (h *APIHandler) GetStatisticsWeekly(ctx context.Context, request GetStatist
 		return nil, err
 	}
 
-	targetWeek := request.Params.TargetWeek
+	loc := hutil.TimezoneFromContext(ctx)
+	targetWeek := request.Params.TargetWeek.In(loc)
 
-	aiSummary, views, err := h.historyService.GetStatisticsByWeek(ctx, userID, targetWeek)
+	aiSummary, views, err := h.historyService.GetStatisticsByWeek(ctx, userID, targetWeek, loc)
 	if err != nil {
 		return nil, err
 	}

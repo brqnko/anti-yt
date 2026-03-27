@@ -130,12 +130,12 @@ func TestService_Search(t *testing.T) {
 			pool := testutil.NewTestDB(t)
 			ytMock := defaultYTMock()
 
-			ytMock.SearchVideoIDsFunc = func(ctx context.Context, query string, pageToken string, language *string) ([]youtube_d.VideoID, string, error) {
+			ytMock.SearchVideoIDsFunc = func(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
 				return tt.resultIDs, tt.nextToken, nil
 			}
 
 			svc := newTestService(t, pool, ytMock)
-			items, hasNext, cursor, err := svc.Search(ctx, tt.query, tt.limit, nil, nil)
+			items, hasNext, cursor, err := svc.Search(ctx, tt.query, tt.limit, nil, youtube_d.SearchOptions{})
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -164,12 +164,12 @@ func TestService_Search_Error(t *testing.T) {
 	pool := testutil.NewTestDB(t)
 	ytMock := defaultYTMock()
 
-	ytMock.SearchVideoIDsFunc = func(ctx context.Context, query string, pageToken string, language *string) ([]youtube_d.VideoID, string, error) {
+	ytMock.SearchVideoIDsFunc = func(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
 		return nil, "", errors.New("search api error")
 	}
 
 	svc := newTestService(t, pool, ytMock)
-	_, _, _, err := svc.Search(ctx, "test", 10, nil, nil)
+	_, _, _, err := svc.Search(ctx, "test", 10, nil, youtube_d.SearchOptions{})
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -182,14 +182,14 @@ func TestService_Search_WithCursor(t *testing.T) {
 	ytMock := defaultYTMock()
 
 	var receivedPageToken string
-	ytMock.SearchVideoIDsFunc = func(ctx context.Context, query string, pageToken string, language *string) ([]youtube_d.VideoID, string, error) {
+	ytMock.SearchVideoIDsFunc = func(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
 		receivedPageToken = pageToken
 		return []youtube_d.VideoID{"dQw4w9WgXcQ"}, "", nil
 	}
 
 	svc := newTestService(t, pool, ytMock)
 	cursor := "page2"
-	_, _, _, err := svc.Search(ctx, "test", 10, &cursor, nil)
+	_, _, _, err := svc.Search(ctx, "test", 10, &cursor, youtube_d.SearchOptions{})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

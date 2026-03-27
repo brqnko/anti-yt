@@ -3,6 +3,7 @@ package hutil
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -61,6 +62,20 @@ func WithRequestPath(ctx context.Context, path string) context.Context {
 func RequestPathFromContext(ctx context.Context) (string, bool) {
 	path, ok := ctx.Value(requestPathKey{}).(string)
 	return path, ok
+}
+
+type timezoneKey struct{}
+
+func WithTimezone(ctx context.Context, loc *time.Location) context.Context {
+	return context.WithValue(ctx, timezoneKey{}, loc)
+}
+
+func TimezoneFromContext(ctx context.Context) *time.Location {
+	loc, ok := ctx.Value(timezoneKey{}).(*time.Location)
+	if !ok {
+		return time.UTC
+	}
+	return loc
 }
 
 type responseCookiesKey struct{}

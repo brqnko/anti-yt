@@ -152,7 +152,6 @@ export function RestrictionsTab() {
 
   // Whitelist (subscriptions)
   const [channels, setChannels] = useState<GetChannelsSubscribed200ItemsItem[]>([]);
-  const [channelSearch, setChannelSearch] = useState("");
   const [showAddChannel, setShowAddChannel] = useState(false);
 
   useEffect(() => {
@@ -161,12 +160,6 @@ export function RestrictionsTab() {
       .then((res) => setChannels(res.items))
       .catch(() => {});
   }, []);
-
-  const filteredChannels = channels.filter((ch) =>
-    ch.external_channel_display_name
-      .toLowerCase()
-      .includes(channelSearch.toLowerCase()),
-  );
 
   const addRange = () => {
     setTimeRanges([
@@ -195,7 +188,7 @@ export function RestrictionsTab() {
           start_time: formatTime(r.startMinutes),
           end_time: formatTime(r.endMinutes),
         })),
-        daily_screen_seconds: isUnlimited ? undefined : hours * 3600 + minutes * 60,
+        daily_screen_seconds: isUnlimited ? 86400 : hours * 3600 + minutes * 60,
       });
       setSaveSuccess(true);
       setSaveFading(false);
@@ -373,27 +366,13 @@ export function RestrictionsTab() {
               </h2>
             </div>
             <div class="p-6 flex flex-col gap-6 grow">
-              <div class="relative group">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Icon name="search" class="text-text-muted-light dark:text-text-muted-dark group-focus-within:text-primary transition-colors" />
-                </div>
-                <input
-                  class="block w-full p-4 pl-10 text-sm bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary outline-none placeholder-text-muted-light dark:placeholder-text-muted-dark transition-all"
-                  placeholder={t("restrictions.searchChannels")}
-                  type="text"
-                  value={channelSearch}
-                  onInput={(e) =>
-                    setChannelSearch((e.target as HTMLInputElement).value)
-                  }
-                />
-              </div>
               <div class="flex flex-col gap-3 overflow-y-auto max-h-[400px] pr-1">
-                {filteredChannels.length === 0 && (
+                {channels.length === 0 && (
                   <p class="text-sm text-text-muted-light dark:text-text-muted-dark text-center py-4">
                     {t("restrictions.noChannels")}
                   </p>
                 )}
-                {filteredChannels.map((ch) => (
+                {channels.map((ch) => (
                   <div
                     key={ch.channel_id}
                     class="flex items-center gap-4 p-3 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark group hover:border-primary/50 transition-colors"

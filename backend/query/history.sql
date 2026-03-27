@@ -33,11 +33,12 @@ WHERE
         LIMIT
             1
     )
-    AND CURRENT_DATE <= t_video_watch.watch_start_at
-    AND t_video_watch.watch_start_at < CURRENT_DATE + INTERVAL '1 day';
+    AND sqlc.arg('today_start') <= t_video_watch.watch_start_at
+    AND t_video_watch.watch_start_at < sqlc.arg('today_start') + INTERVAL '1 day';
 
 -- name: ListWatchHistory :many
 SELECT
+    t_video_watch.public_id AS watch_id,
     m_video.public_id AS video_id,
     m_video.external_title AS external_video_title,
     m_video.external_thumbnail_url AS external_video_thumbnail_url,
@@ -179,7 +180,7 @@ SELECT 1;
 
 -- name: ListDailyWatchStatsByRange :many
 SELECT
-    DATE(video_watch.watch_start_at) AS watch_date,
+    DATE(video_watch.watch_start_at + make_interval(secs => sqlc.arg('tz_offset')::int)) AS watch_date,
     COUNT(DISTINCT video_watch.m_video_id) AS video_count,
     EXTRACT(EPOCH FROM SUM(video_watch.watch_end_at - video_watch.watch_start_at))::bigint AS watch_sum
 FROM
@@ -198,7 +199,7 @@ WHERE
     AND video_watch.watch_start_at BETWEEN @start_date AND @end_date
     AND video_watch.watch_end_at <= CURRENT_TIMESTAMP
 GROUP BY
-    DATE(video_watch.watch_start_at);
+    DATE(video_watch.watch_start_at + make_interval(secs => sqlc.arg('tz_offset')::int));
 
 -- name: GetLatestMonthlyVideoWatchSummary :one
 SELECT

@@ -153,6 +153,9 @@ type HeaderCfRay = string
 // HeaderDeviceFingerprint defines model for HeaderDeviceFingerprint.
 type HeaderDeviceFingerprint = string
 
+// HeaderTimezone クライアントのIANAタイムゾーン名（例：Asia/Tokyo）
+type HeaderTimezone = string
+
 // HeaderUserAgent defines model for HeaderUserAgent.
 type HeaderUserAgent = string
 
@@ -236,6 +239,7 @@ type PostAuthLogoutParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // PostAuthRefreshParams defines parameters for PostAuthRefresh.
@@ -254,6 +258,7 @@ type PostAuthRefreshParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 
 	// CsrfToken CSRF Token
 	CsrfToken CookieCSRFToken `form:"csrf_token" json:"csrf_token"`
@@ -279,6 +284,7 @@ type PostChannelsSubscribeParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // GetChannelsSubscribedParams defines parameters for GetChannelsSubscribed.
@@ -301,6 +307,7 @@ type GetChannelsSubscribedParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // GetChannelsChannelIdParams defines parameters for GetChannelsChannelId.
@@ -317,6 +324,7 @@ type GetChannelsChannelIdParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // DeleteChannelsChannelIdSubscribeParams defines parameters for DeleteChannelsChannelIdSubscribe.
@@ -333,6 +341,7 @@ type DeleteChannelsChannelIdSubscribeParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // GetChannelsChannelIdVideosParams defines parameters for GetChannelsChannelIdVideos.
@@ -353,6 +362,7 @@ type GetChannelsChannelIdVideosParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // GetFeedParams defines parameters for GetFeed.
@@ -375,6 +385,7 @@ type GetFeedParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // GetFeedChannelsParams defines parameters for GetFeedChannels.
@@ -391,6 +402,7 @@ type GetFeedChannelsParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // GetHistoryParams defines parameters for GetHistory.
@@ -398,7 +410,7 @@ type GetHistoryParams struct {
 	// Limit 取得する最大の数
 	Limit int `form:"limit" json:"limit"`
 
-	// Cursor 最後に取得した動画内部ID(ページネーション)
+	// Cursor 最後に取得した視聴履歴のwatch_id(ページネーション)
 	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
@@ -413,6 +425,7 @@ type GetHistoryParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // GetPlaylistsParams defines parameters for GetPlaylists.
@@ -435,6 +448,7 @@ type GetPlaylistsParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // PostPlaylistsJSONBody defines parameters for PostPlaylists.
@@ -465,6 +479,7 @@ type PostPlaylistsParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // DeletePlaylistsPlaylistIdParams defines parameters for DeletePlaylistsPlaylistId.
@@ -481,6 +496,7 @@ type DeletePlaylistsPlaylistIdParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // GetPlaylistsPlaylistIdParams defines parameters for GetPlaylistsPlaylistId.
@@ -497,6 +513,7 @@ type GetPlaylistsPlaylistIdParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // PatchPlaylistsPlaylistIdJSONBody defines parameters for PatchPlaylistsPlaylistId.
@@ -519,6 +536,7 @@ type PatchPlaylistsPlaylistIdParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // DeletePlaylistsPlaylistIdVideosParams defines parameters for DeletePlaylistsPlaylistIdVideos.
@@ -537,6 +555,7 @@ type DeletePlaylistsPlaylistIdVideosParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // GetPlaylistsPlaylistIdVideosParams defines parameters for GetPlaylistsPlaylistIdVideos.
@@ -559,6 +578,7 @@ type GetPlaylistsPlaylistIdVideosParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // PostPlaylistsPlaylistIdVideosJSONBody defines parameters for PostPlaylistsPlaylistIdVideos.
@@ -580,6 +600,7 @@ type PostPlaylistsPlaylistIdVideosParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // GetSearchParams defines parameters for GetSearch.
@@ -623,6 +644,7 @@ type GetSearchParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // GetSearchParamsOrder defines parameters for GetSearch.
@@ -645,6 +667,7 @@ type GetStatisticsWeeklyParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // PostUsersMeJSONBody defines parameters for PostUsersMe.
@@ -674,6 +697,7 @@ type PostUsersMeParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // DeleteUsersMeParams defines parameters for DeleteUsersMe.
@@ -690,6 +714,7 @@ type DeleteUsersMeParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // GetUsersMeStatusParams defines parameters for GetUsersMeStatus.
@@ -706,6 +731,7 @@ type GetUsersMeStatusParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // PatchUsersMeStatusJSONBody defines parameters for PatchUsersMeStatus.
@@ -735,6 +761,7 @@ type PatchUsersMeStatusParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // GetUsersMeSessionsParams defines parameters for GetUsersMeSessions.
@@ -755,6 +782,7 @@ type GetUsersMeSessionsParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // DeleteUsersMeSessionsSessionIdParams defines parameters for DeleteUsersMeSessionsSessionId.
@@ -771,6 +799,7 @@ type DeleteUsersMeSessionsSessionIdParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // GetVideosVideoIdParams defines parameters for GetVideosVideoId.
@@ -787,6 +816,7 @@ type GetVideosVideoIdParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // PostVideosVideoIdHeartbeatsJSONBody defines parameters for PostVideosVideoIdHeartbeats.
@@ -809,6 +839,7 @@ type PostVideosVideoIdHeartbeatsParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // GetHealthParams defines parameters for GetHealth.
@@ -825,6 +856,7 @@ type GetHealthParams struct {
 	// UserAgent クライアントのブラウザ・アプリケーション情報
 	UserAgent          HeaderUserAgent         `json:"User-Agent"`
 	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
 // PostChannelsSubscribeJSONRequestBody defines body for PostChannelsSubscribe for application/json ContentType.
@@ -1557,6 +1589,29 @@ func (siw *ServerInterfaceWrapper) PostAuthLogout(w http.ResponseWriter, r *http
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PostAuthLogout(w, r, params)
 	}))
@@ -1713,6 +1768,29 @@ func (siw *ServerInterfaceWrapper) PostAuthRefresh(w http.ResponseWriter, r *htt
 	} else {
 		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
 		return
 	}
 
@@ -1873,6 +1951,29 @@ func (siw *ServerInterfaceWrapper) PostChannelsSubscribe(w http.ResponseWriter, 
 	} else {
 		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
 		return
 	}
 
@@ -2041,6 +2142,29 @@ func (siw *ServerInterfaceWrapper) GetChannelsSubscribed(w http.ResponseWriter, 
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetChannelsSubscribed(w, r, params)
 	}))
@@ -2192,6 +2316,29 @@ func (siw *ServerInterfaceWrapper) GetChannelsChannelId(w http.ResponseWriter, r
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetChannelsChannelId(w, r, channelId, params)
 	}))
@@ -2340,6 +2487,29 @@ func (siw *ServerInterfaceWrapper) DeleteChannelsChannelIdSubscribe(w http.Respo
 	} else {
 		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
 		return
 	}
 
@@ -2517,6 +2687,29 @@ func (siw *ServerInterfaceWrapper) GetChannelsChannelIdVideos(w http.ResponseWri
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetChannelsChannelIdVideos(w, r, channelId, params)
 	}))
@@ -2682,6 +2875,29 @@ func (siw *ServerInterfaceWrapper) GetFeed(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetFeed(w, r, params)
 	}))
@@ -2821,6 +3037,29 @@ func (siw *ServerInterfaceWrapper) GetFeedChannels(w http.ResponseWriter, r *htt
 	} else {
 		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
 		return
 	}
 
@@ -2989,6 +3228,29 @@ func (siw *ServerInterfaceWrapper) GetHistory(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetHistory(w, r, params)
 	}))
@@ -3154,6 +3416,29 @@ func (siw *ServerInterfaceWrapper) GetPlaylists(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetPlaylists(w, r, params)
 	}))
@@ -3293,6 +3578,29 @@ func (siw *ServerInterfaceWrapper) PostPlaylists(w http.ResponseWriter, r *http.
 	} else {
 		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
 		return
 	}
 
@@ -3447,6 +3755,29 @@ func (siw *ServerInterfaceWrapper) DeletePlaylistsPlaylistId(w http.ResponseWrit
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeletePlaylistsPlaylistId(w, r, playlistId, params)
 	}))
@@ -3598,6 +3929,29 @@ func (siw *ServerInterfaceWrapper) GetPlaylistsPlaylistId(w http.ResponseWriter,
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetPlaylistsPlaylistId(w, r, playlistId, params)
 	}))
@@ -3746,6 +4100,29 @@ func (siw *ServerInterfaceWrapper) PatchPlaylistsPlaylistId(w http.ResponseWrite
 	} else {
 		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
 		return
 	}
 
@@ -3912,6 +4289,29 @@ func (siw *ServerInterfaceWrapper) DeletePlaylistsPlaylistIdVideos(w http.Respon
 	} else {
 		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
 		return
 	}
 
@@ -4089,6 +4489,29 @@ func (siw *ServerInterfaceWrapper) GetPlaylistsPlaylistIdVideos(w http.ResponseW
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetPlaylistsPlaylistIdVideos(w, r, playlistId, params)
 	}))
@@ -4237,6 +4660,29 @@ func (siw *ServerInterfaceWrapper) PostPlaylistsPlaylistIdVideos(w http.Response
 	} else {
 		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
 		return
 	}
 
@@ -4468,6 +4914,29 @@ func (siw *ServerInterfaceWrapper) GetSearch(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetSearch(w, r, params)
 	}))
@@ -4625,6 +5094,29 @@ func (siw *ServerInterfaceWrapper) GetStatisticsWeekly(w http.ResponseWriter, r 
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetStatisticsWeekly(w, r, params)
 	}))
@@ -4764,6 +5256,29 @@ func (siw *ServerInterfaceWrapper) PostUsersMe(w http.ResponseWriter, r *http.Re
 	} else {
 		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
 		return
 	}
 
@@ -4909,6 +5424,29 @@ func (siw *ServerInterfaceWrapper) DeleteUsersMe(w http.ResponseWriter, r *http.
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteUsersMe(w, r, params)
 	}))
@@ -5051,6 +5589,29 @@ func (siw *ServerInterfaceWrapper) GetUsersMeStatus(w http.ResponseWriter, r *ht
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetUsersMeStatus(w, r, params)
 	}))
@@ -5190,6 +5751,29 @@ func (siw *ServerInterfaceWrapper) PatchUsersMeStatus(w http.ResponseWriter, r *
 	} else {
 		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
 		return
 	}
 
@@ -5358,6 +5942,29 @@ func (siw *ServerInterfaceWrapper) GetUsersMeSessions(w http.ResponseWriter, r *
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetUsersMeSessions(w, r, params)
 	}))
@@ -5506,6 +6113,29 @@ func (siw *ServerInterfaceWrapper) DeleteUsersMeSessionsSessionId(w http.Respons
 	} else {
 		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
 		return
 	}
 
@@ -5660,6 +6290,29 @@ func (siw *ServerInterfaceWrapper) GetVideosVideoId(w http.ResponseWriter, r *ht
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetVideosVideoId(w, r, videoId, params)
 	}))
@@ -5811,6 +6464,29 @@ func (siw *ServerInterfaceWrapper) PostVideosVideoIdHeartbeats(w http.ResponseWr
 		return
 	}
 
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PostVideosVideoIdHeartbeats(w, r, videoId, params)
 	}))
@@ -5944,6 +6620,29 @@ func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Requ
 	} else {
 		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
 		return
 	}
 
@@ -7220,6 +7919,9 @@ type GetHistory200JSONResponse struct {
 
 		// VideoId 内部ID
 		VideoId uuid.UUID `json:"video_id"`
+
+		// WatchId 視聴履歴の内部ID(ページネーション用)
+		WatchId uuid.UUID `json:"watch_id"`
 
 		// WatchPositionSeconds 視聴途中の時間
 		WatchPositionSeconds int `json:"watch_position_seconds"`
@@ -10012,103 +10714,105 @@ func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request, param
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"AAD//zt36Rya0wAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
