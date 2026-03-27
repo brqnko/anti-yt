@@ -177,7 +177,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
         {/* Channel Info */}
         <div class="bg-card-light dark:bg-card-dark rounded-xl border border-border-light dark:border-border-dark mb-8 p-6">
-          <div class="flex flex-row gap-4 md:gap-6 items-center">
+          <div class="flex flex-row gap-4 md:gap-6 items-start md:items-center">
               {/* Avatar */}
               <div class="shrink-0">
                 <div class="size-16 md:size-28 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden border-2 border-border-light dark:border-border-dark">
@@ -189,47 +189,50 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
                 </div>
               </div>
 
-              {/* Channel Text Info */}
-              <div class="flex-1 min-w-0">
-                <h1 class="text-xl md:text-3xl font-bold mb-1 truncate">{channelInfo.external_channel_display_name}</h1>
-                <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-muted-light dark:text-text-muted-dark">
-                  <span>
-                    {formatSubscriberCount(channelInfo.external_channel_subscribers_count)} {t("channelDetail.subscribers")}
-                  </span>
-                  {channelInfo.external_channel_custom_id && (
+              {/* Channel Text Info + Whitelist Toggle */}
+              <div class="flex-1 min-w-0 flex flex-col md:flex-row md:items-center gap-3">
+                {/* Channel Text Info */}
+                <div class="flex-1 min-w-0">
+                  <h1 class="text-xl md:text-3xl font-bold mb-1 truncate">{channelInfo.external_channel_display_name}</h1>
+                  <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-muted-light dark:text-text-muted-dark">
                     <span>
-                      {channelInfo.external_channel_custom_id}
+                      {formatSubscriberCount(channelInfo.external_channel_subscribers_count)} {t("channelDetail.subscribers")}
                     </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Whitelist Toggle */}
-              <div class="flex-shrink-0">
-                <div class="bg-background-light dark:bg-background-dark border border-primary/20 p-4 rounded-xl flex items-center gap-4">
-                  <div class="flex flex-col">
-                    <span class="text-sm font-bold">{t("channelDetail.whitelistChannel")}</span>
-                    <span class="text-xs text-text-muted-light dark:text-text-muted-dark">
-                      {t("channelDetail.whitelistDesc")}
-                    </span>
+                    {channelInfo.external_channel_custom_id && (
+                      <span>
+                        {channelInfo.external_channel_custom_id}
+                      </span>
+                    )}
                   </div>
-                  <button
-                    class="relative inline-flex items-center cursor-pointer bg-transparent border-none p-0"
-                    onClick={handleToggleSubscription}
-                    disabled={isToggling}
-                  >
-                    <div
-                      class={`w-14 h-7 rounded-full transition-colors duration-200 ${
-                        isSubscribed ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"
-                      } ${isToggling ? "opacity-50" : ""}`}
+                </div>
+
+                {/* Whitelist Toggle */}
+                <div class="flex-shrink-0">
+                  <div class="bg-background-light dark:bg-background-dark border border-primary/20 p-4 rounded-xl flex items-center gap-4">
+                    <div class="flex flex-col">
+                      <span class="text-sm font-bold">{t("channelDetail.whitelistChannel")}</span>
+                      <span class="text-xs text-text-muted-light dark:text-text-muted-dark">
+                        {t("channelDetail.whitelistDesc")}
+                      </span>
+                    </div>
+                    <button
+                      class="relative inline-flex items-center cursor-pointer bg-transparent border-none p-0"
+                      onClick={handleToggleSubscription}
+                      disabled={isToggling}
                     >
                       <div
-                        class={`absolute top-0.5 left-[4px] bg-white border border-gray-300 rounded-full h-6 w-6 transition-transform duration-200 ${
-                          isSubscribed ? "translate-x-full" : ""
-                        }`}
-                      />
-                    </div>
-                  </button>
+                        class={`w-14 h-7 rounded-full transition-colors duration-200 ${
+                          isSubscribed ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"
+                        } ${isToggling ? "opacity-50" : ""}`}
+                      >
+                        <div
+                          class={`absolute top-0.5 left-[4px] bg-white border border-gray-300 rounded-full h-6 w-6 transition-transform duration-200 ${
+                            isSubscribed ? "translate-x-full" : ""
+                          }`}
+                        />
+                      </div>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

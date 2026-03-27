@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://anti-yt.app/</loc>
+    <lastmod>2026-03-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://anti-yt.app/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://anti-yt.app/"/>
+  </url>
+  <url>
+    <loc>https://anti-yt.app/terms</loc>
+    <lastmod>2026-03-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://anti-yt.app/terms"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://anti-yt.app/terms"/>
+  </url>
+  <url>
+    <loc>https://anti-yt.app/privacy</loc>
+    <lastmod>2026-03-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://anti-yt.app/privacy"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://anti-yt.app/privacy"/>
+  </url>
+</urlset>

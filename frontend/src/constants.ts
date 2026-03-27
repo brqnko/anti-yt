@@ -1,5 +1,7 @@
 import type { ColorMode } from "./hooks/useColorMode";
 
+export const SITE_URL = "https://anti-yt.app";
+
 export const modeIcons: Record<ColorMode, string> = {
   light: "light_mode",
   dark: "dark_mode",

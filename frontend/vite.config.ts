@@ -18,7 +18,7 @@ export default defineConfig({
       prerender: {
         enabled: true,
         renderTarget: "#app",
-        additionalPrerenderRoutes: ["/404"],
+        additionalPrerenderRoutes: ["/404", "/terms", "/privacy"],
         previewMiddlewareEnabled: false,
         previewMiddlewareFallback: "/404",
       },
