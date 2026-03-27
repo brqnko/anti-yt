@@ -66,6 +66,13 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
   useTitle(channelInfo?.external_channel_display_name ?? t("channelDetail.pageTitle"));
 
   useEffect(() => {
+    setOrder("newer");
+    setVideos([]);
+    setHasNextVideos(false);
+    cursorRef.current = undefined;
+  }, [channelId]);
+
+  useEffect(() => {
     const load = async () => {
       try {
         const [channelRes, subsRes, videosRes] = await Promise.allSettled([
@@ -235,7 +242,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
 
         {/* Latest Uploads */}
         <div>
-          <div class="flex items-center gap-4 mb-4">
+          <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-bold">
               {t("channelDetail.latestUploads")}
             </h3>
