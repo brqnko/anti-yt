@@ -186,7 +186,12 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
                     {formatSubscriberCount(channelInfo.external_channel_subscribers_count)} {t("channelDetail.subscribers")}
                   </span>
                   {channelInfo.external_channel_custom_id && (
-                    <span>{channelInfo.external_channel_custom_id}</span>
+                    <a
+                      href={`/channels/${channelInfo.channel_id}`}
+                      class="no-underline text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors"
+                    >
+                      {channelInfo.external_channel_custom_id}
+                    </a>
                   )}
                 </div>
               </div>

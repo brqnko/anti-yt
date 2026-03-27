@@ -639,7 +639,12 @@ function VideoPlayerContent() {
                         {video.external_channel_display_name}
                       </a>
                       <p class="text-taupe text-sm">
-                        {video.channel_custom_id}
+                        <a
+                          href={`/channels/${video.channel_id}`}
+                          class="no-underline text-taupe hover:text-primary transition-colors"
+                        >
+                          {video.channel_custom_id}
+                        </a>
                         {" · "}
                         {formatSubscriberCount(video.external_channel_subscribers_count)}{" "}
                         {t("channelDetail.subscribers")}
