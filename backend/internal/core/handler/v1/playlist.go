@@ -219,8 +219,8 @@ func (h *APIHandler) PostPlaylistsPlaylistIdVideos(ctx context.Context, request 
 	default:
 		return PostPlaylistsPlaylistIdVideos400JSONResponse{
 			BadRequestJSONResponse{
-				Code:    "bad_request",
-				Message: "video_id or external_video_text is required",
+				Title:  "bad_request",
+				Detail: "video_id or external_video_text is required",
 			},
 		}, nil
 	}
