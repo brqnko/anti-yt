@@ -118,7 +118,7 @@ type SearchVideoView struct {
 	ExternalVideoLengthSeconds int
 }
 
-func (s *Service) Search(ctx context.Context, query string, limit int, cursor *string, language *string) (_ []SearchVideoView, _ bool, _ *string, err error) {
+func (s *Service) Search(ctx context.Context, query string, limit int, cursor *string, opts youtube_d.SearchOptions) (_ []SearchVideoView, _ bool, _ *string, err error) {
 	defer util.Wrap(&err, "Service.Search")
 
 	pageToken := ""
@@ -127,7 +127,7 @@ func (s *Service) Search(ctx context.Context, query string, limit int, cursor *s
 	}
 
 	// YouTube Search APIで動画IDを取得
-	videoIDs, nextPageToken, err := s.ytService.SearchVideoIDs(ctx, query, pageToken, language)
+	videoIDs, nextPageToken, err := s.ytService.SearchVideoIDs(ctx, query, pageToken, opts)
 	if err != nil {
 		return nil, false, nil, err
 	}

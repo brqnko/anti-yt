@@ -24,6 +24,7 @@ const Playlists = lazy(() => import("./pages/Playlists/index.jsx"));
 const PlaylistDetail = lazy(() => import("./pages/PlaylistDetail/index.jsx"));
 const Explore = lazy(() => import("./pages/Explore/index.jsx"));
 const Search = lazy(() => import("./pages/Search/index.jsx"));
+const ScreenTimeSettings = lazy(() => import("./pages/ScreenTimeSettings/index.jsx"));
 const NotFound = lazy(() => import("./pages/_404.jsx"));
 import "./style.css";
 
@@ -41,6 +42,7 @@ function AppContent() {
       <Route path="/playlists/:playlistId" component={PlaylistDetail} />
       <Route path="/search" component={Search} />
       <Route path="/profile" component={Profile} />
+      <Route path="/screen-time-settings" component={ScreenTimeSettings} />
       <Route path="/register" component={Register} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />

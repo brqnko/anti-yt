@@ -9,7 +9,6 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type HUser struct {
@@ -158,8 +157,7 @@ type SMonthlyVideoWatch struct {
 	AiSummaryDescription string
 	AiModel              string
 	GeneratedAt          time.Time
-	TargetMonth          pgtype.Date
-	WMonthlyVideoWatchID int64
+	TargetMonth          time.Time
 	CreatedAt            time.Time
 	UpdatedAt            time.Time
 	PublicID             uuid.UUID
@@ -188,17 +186,4 @@ type TVideoWatch struct {
 	CreatedAt            time.Time
 	UpdatedAt            time.Time
 	PublicID             uuid.UUID
-}
-
-type WMonthlyVideoWatch struct {
-	WMonthlyVideoWatchID int64
-	MUserID              int64
-	BatchStatusCode      int
-	AiModel              string
-	StartedAt            time.Time
-	FinishedAt           time.Time
-	CreatedAt            time.Time
-	UpdatedAt            time.Time
-	TargetMonth          pgtype.Date
-	FailReason           string
 }

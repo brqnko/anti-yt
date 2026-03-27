@@ -22,8 +22,11 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/middleware_d"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
+	"github.com/brqnko/anti-yt/backend/internal/core/llm"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
+	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/job"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -41,6 +44,7 @@ type config struct {
 	frontendURL            string
 	youtubeDataAPIKey      string
 	adminAPIKey            string
+	geminiAPIKey           string
 
 	port int
 
@@ -98,6 +102,7 @@ func run(ctx context.Context) int {
 		frontendURL:            os.Getenv("FRONTEND_URL"),
 		youtubeDataAPIKey:      os.Getenv("YOUTUBE_DATA_API_KEY"),
 		adminAPIKey:            os.Getenv("ADMIN_API_KEY"),
+		geminiAPIKey:           os.Getenv("GEMINI_API_KEY"),
 		port:                   port,
 	}
 	clear(dbPassword)
@@ -120,6 +125,7 @@ func run(ctx context.Context) int {
 		slog.Error("failed to run migration", "error", err)
 		return 1
 	}
+	slog.Info("migration ok")
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -153,6 +159,22 @@ func run(ctx context.Context) int {
 		slog.Error("failed to create youtube service", "error", err)
 		return 1
 	}
+	slog.Info("youtube api ok")
+
+	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	llmService, err := llm.NewGemini(initCtx, cfg.geminiAPIKey, "gemini-2.5-flash-lite")
+	if err != nil {
+		slog.Error("failed to create llm service", "error", err)
+		return 1
+	}
+	slog.Info("gemini api ok")
+
+	scheduler := scheduler.NewService()
+	if err := scheduler.AddFunc("0 0 * * 5", job.NewLLMSummaryJob(db, llmService)); err != nil {
+		slog.Error("failed to setup llm summary job", "error", err)
+		return 1
+	}
 
 	r := chi.NewRouter()
 	// NOTE: RateLimit, gzip, loggerはLB(pingora, nginx等)で行う。各リクエストへのレートリミットはHandlerが行う
@@ -164,12 +186,12 @@ func run(ctx context.Context) int {
 	}
 	admin.HandleAdminEndpoints(r, db, ytService, cfg.adminAPIKey)
 	v1.HandlerFromMux(v1.NewStrictHandler(
-		v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour, ytService, 1*time.Hour),
+		v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour, ytService, 1*time.Hour, scheduler),
 		[]v1.StrictMiddlewareFunc{
 			middleware_d.DomainErrorMiddleware,
 			middleware_d.ResponseCookieMiddleware,
-			middleware_d.AccessTokenMiddleware(jwtService, db),
 			middleware_d.ScreenTimeMiddleware(db),
+			middleware_d.AccessTokenMiddleware(jwtService, db),
 			middleware_d.CsrfMiddleware,
 			middleware_d.AuthTokensMiddleware,
 			middleware_d.RequestIDMiddleware,
@@ -200,6 +222,8 @@ func run(ctx context.Context) int {
 		slog.Error("failed to shutdown server", "error", err)
 		return 1
 	}
+
+	scheduler.Stop()
 
 	slog.Info("graceful shutdown ok")
 

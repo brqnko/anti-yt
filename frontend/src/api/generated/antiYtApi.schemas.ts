@@ -368,7 +368,40 @@ query: string;
  * 検索の言語（例：ja, en）
  */
 language?: string;
+/**
+ * 検索結果の並び順
+ */
+order?: GetSearchOrder;
+/**
+ * この日時より前に公開された動画のみ（RFC 3339形式）
+ */
+published_before?: string;
+/**
+ * この日時より後に公開された動画のみ（RFC 3339形式）
+ */
+published_after?: string;
+/**
+ * 地域コード（ISO 3166-1 alpha-2、例：JP, US）
+ */
+region_code?: string;
+/**
+ * 指定した言語に最も関連性の高い結果を優先する（例：ja, en）
+ */
+relevance_language?: string;
 };
+
+export type GetSearchOrder = typeof GetSearchOrder[keyof typeof GetSearchOrder];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetSearchOrder = {
+  date: 'date',
+  rating: 'rating',
+  relevance: 'relevance',
+  title: 'title',
+  videoCount: 'videoCount',
+  viewCount: 'viewCount',
+} as const;
 
 export type GetSearch200ItemsItem = {
   video_id: string;

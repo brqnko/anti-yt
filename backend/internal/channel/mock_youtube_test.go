@@ -34,7 +34,7 @@ var _ youtube_d.Service = &ServiceMock{}
 //			FetchVideoDetailFunc: func(ctx context.Context, videoIDs []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
 //				panic("mock out the FetchVideoDetail method")
 //			},
-//			SearchVideoIDsFunc: func(ctx context.Context, query string, pageToken string, language *string) ([]youtube_d.VideoID, string, error) {
+//			SearchVideoIDsFunc: func(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
 //				panic("mock out the SearchVideoIDs method")
 //			},
 //		}
@@ -60,7 +60,7 @@ type ServiceMock struct {
 	FetchVideoDetailFunc func(ctx context.Context, videoIDs []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error)
 
 	// SearchVideoIDsFunc mocks the SearchVideoIDs method.
-	SearchVideoIDsFunc func(ctx context.Context, query string, pageToken string, language *string) ([]youtube_d.VideoID, string, error)
+	SearchVideoIDsFunc func(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -109,8 +109,8 @@ type ServiceMock struct {
 			Query string
 			// PageToken is the pageToken argument value.
 			PageToken string
-			// Language is the language argument value.
-			Language *string
+			// Opts is the opts argument value.
+			Opts youtube_d.SearchOptions
 		}
 	}
 	lockFetchChannelDetail             sync.RWMutex
@@ -306,7 +306,7 @@ func (mock *ServiceMock) FetchVideoDetailCalls() []struct {
 }
 
 // SearchVideoIDs calls SearchVideoIDsFunc.
-func (mock *ServiceMock) SearchVideoIDs(ctx context.Context, query string, pageToken string, language *string) ([]youtube_d.VideoID, string, error) {
+func (mock *ServiceMock) SearchVideoIDs(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
 	if mock.SearchVideoIDsFunc == nil {
 		panic("ServiceMock.SearchVideoIDsFunc: method is nil but Service.SearchVideoIDs was just called")
 	}
@@ -314,17 +314,17 @@ func (mock *ServiceMock) SearchVideoIDs(ctx context.Context, query string, pageT
 		Ctx       context.Context
 		Query     string
 		PageToken string
-		Language  *string
+		Opts      youtube_d.SearchOptions
 	}{
 		Ctx:       ctx,
 		Query:     query,
 		PageToken: pageToken,
-		Language:  language,
+		Opts:      opts,
 	}
 	mock.lockSearchVideoIDs.Lock()
 	mock.calls.SearchVideoIDs = append(mock.calls.SearchVideoIDs, callInfo)
 	mock.lockSearchVideoIDs.Unlock()
-	return mock.SearchVideoIDsFunc(ctx, query, pageToken, language)
+	return mock.SearchVideoIDsFunc(ctx, query, pageToken, opts)
 }
 
 // SearchVideoIDsCalls gets all the calls that were made to SearchVideoIDs.
@@ -335,13 +335,13 @@ func (mock *ServiceMock) SearchVideoIDsCalls() []struct {
 	Ctx       context.Context
 	Query     string
 	PageToken string
-	Language  *string
+	Opts      youtube_d.SearchOptions
 } {
 	var calls []struct {
 		Ctx       context.Context
 		Query     string
 		PageToken string
-		Language  *string
+		Opts      youtube_d.SearchOptions
 	}
 	mock.lockSearchVideoIDs.RLock()
 	calls = mock.calls.SearchVideoIDs

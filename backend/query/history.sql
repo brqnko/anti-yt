@@ -199,3 +199,16 @@ WHERE
     AND video_watch.watch_end_at <= CURRENT_TIMESTAMP
 GROUP BY
     DATE(video_watch.watch_start_at);
+
+-- name: GetLatestMonthlyVideoWatchSummary :one
+SELECT
+    s.ai_summary_title,
+    s.ai_summary_description,
+    s.created_at
+FROM
+    s_monthly_video_watch s
+WHERE
+    s.m_user_id = (SELECT u.m_user_id FROM m_user u WHERE u.public_id = @user_id LIMIT 1)
+ORDER BY
+    s.target_month DESC
+LIMIT 1;

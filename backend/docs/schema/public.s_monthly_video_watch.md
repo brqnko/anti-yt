@@ -13,7 +13,6 @@
 | ai_model | varchar(128) |  | false |  |  |  |
 | generated_at | timestamp with time zone |  | false |  |  |  |
 | target_month | date |  | false |  |  |  |
-| w_monthly_video_watch_id | bigint |  | false |  |  |  |
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | public_id | uuid |  | false |  |  |  |
@@ -32,7 +31,6 @@
 | s_monthly_video_watch_s_monthly_video_watch_id_not_null | n | NOT NULL s_monthly_video_watch_id |
 | s_monthly_video_watch_target_month_not_null | n | NOT NULL target_month |
 | s_monthly_video_watch_updated_at_not_null | n | NOT NULL updated_at |
-| s_monthly_video_watch_w_monthly_video_watch_id_not_null | n | NOT NULL w_monthly_video_watch_id |
 | s_monthly_video_watch_pkey | PRIMARY KEY | PRIMARY KEY (s_monthly_video_watch_id) |
 
 ## Indexes

@@ -23,6 +23,8 @@ interface UseYouTubePlayerOptions {
   containerId: string;
   onStateChange?: (state: PlayerStateValue) => void;
   onReady?: () => void;
+  /** Called on every low-frequency sync tick (1 s interval) while playing. */
+  onSyncTick?: () => void;
 }
 
 const IFRAME_API_TIMEOUT_MS = 10_000;
@@ -97,6 +99,7 @@ export function useYouTubePlayer({
   containerId,
   onStateChange,
   onReady,
+  onSyncTick,
 }: UseYouTubePlayerOptions) {
   const playerRef = useRef<YT.Player | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -118,11 +121,14 @@ export function useYouTubePlayer({
   onReadyRef.current = onReady;
   const onStateChangeRef = useRef(onStateChange);
   onStateChangeRef.current = onStateChange;
+  const onSyncTickRef = useRef(onSyncTick);
+  onSyncTickRef.current = onSyncTick;
 
   // Sync time while playing.
   // Two modes: rAF (high-frequency, for visible progress bar) and interval (low-frequency fallback).
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const highFreqRef = useRef(false);
+  const lastOnSyncTickAtRef = useRef(0);
 
   const syncTick = useCallback(() => {
     const p = playerRef.current;
@@ -134,6 +140,12 @@ export function useYouTubePlayer({
         lastRenderedSecondRef.current = sec5;
         setCurrentTime(t);
       }
+    }
+    // Fire onSyncTick at most once per second (works in both rAF and interval modes).
+    const now = performance.now();
+    if (now - lastOnSyncTickAtRef.current >= 1000) {
+      lastOnSyncTickAtRef.current = now;
+      onSyncTickRef.current?.();
     }
   }, []);
 

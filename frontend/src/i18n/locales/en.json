@@ -357,15 +357,15 @@
   },
   "screenTimeBlock": {
     "pageTitle": "Screen Time Limit",
-    "title": "Focus Zone",
-    "limitExceeded": "You've reached your daily screen time limit. Take a break and come back tomorrow — or enjoy a moment of zen.",
+    "title": "Screen Time Limit",
+    "limitExceeded": "You've reached your daily screen time limit. Take a break and come back tomorrow.",
     "outsideTimeRange": "Viewing is not available right now. Your scheduled access window is currently closed.",
     "mowTheLawn": "Mow the Lawn",
     "tapTheGrass": "Tap the grass to clear your mind",
     "reset": "Reset",
-    "zenMode": "Zen Mode Active",
     "mowTile": "Mow this grass tile",
-    "mownTile": "Already mown"
+    "mownTile": "Already mown",
+    "goToSettings": "Screen Time Settings"
   },
   "history": {
     "pageTitle": "Watch History",
@@ -467,7 +467,38 @@
     "noResultsDesc": "Try searching with different keywords.",
     "endOfResults": "All results loaded",
     "loadError": "Search failed",
-    "retry": "Try again"
+    "retry": "Try again",
+    "filters": {
+      "title": "Search Filters",
+      "close": "Close",
+      "order": "Sort By",
+      "orderDefault": "Default (Relevance)",
+      "orderOptions": {
+        "date": "Upload Date",
+        "rating": "Rating",
+        "relevance": "Relevance",
+        "title": "Title",
+        "videoCount": "Video Count",
+        "viewCount": "View Count"
+      },
+      "publishedAfter": "Published After",
+      "publishedBefore": "Published Before",
+      "regionCode": "Region",
+      "regionDefault": "Any Region",
+      "regions": {
+        "JP": "Japan",
+        "US": "United States"
+      },
+      "relevanceLanguage": "Relevance Language",
+      "languageDefault": "Any Language",
+      "languages": {
+        "ja": "Japanese",
+        "en": "English"
+      },
+      "apply": "Apply",
+      "cancel": "Cancel",
+      "reset": "Reset"
+    }
   },
   "apiErrors": {
     "channel.invalid_youtube_url": "Invalid YouTube URL or unsupported format.",

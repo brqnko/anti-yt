@@ -4,6 +4,8 @@ import { getCookie } from "../utils/cookie";
 
 let cachedVisitorId: string | null = null;
 
+export const getCachedVisitorId = (): string | null => cachedVisitorId;
+
 const getVisitorId = async (): Promise<string | null> => {
   if (cachedVisitorId) return cachedVisitorId;
   try {
@@ -31,6 +33,8 @@ axiosInstance.interceptors.request.use(async (config) => {
   if (csrfToken) {
     config.headers["x-csrf-token"] = csrfToken;
   }
+
+  config.headers["X-Timezone-Offset"] = String(new Date().getTimezoneOffset());
 
   return config;
 });

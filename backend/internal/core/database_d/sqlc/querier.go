@@ -37,6 +37,7 @@ type Querier interface {
 	// m_user.public_idから、そのユーザーが今日視聴していた合計時間(seconds)と設定している制限時間を返す。
 	// その日に一本も動画を視聴していない場合は0を返します。
 	GetDailyWatchSummary(ctx context.Context, publicID uuid.UUID) (GetDailyWatchSummaryRow, error)
+	GetLatestMonthlyVideoWatchSummary(ctx context.Context, userID uuid.UUID) (GetLatestMonthlyVideoWatchSummaryRow, error)
 	GetPlaylistForUpdate(ctx context.Context, arg GetPlaylistForUpdateParams) (GetPlaylistForUpdateRow, error)
 	GetPlaylistWithThumbnail(ctx context.Context, arg GetPlaylistWithThumbnailParams) (GetPlaylistWithThumbnailRow, error)
 	// m_user.public_idから、ユーザーをロッキングリードする。
@@ -49,6 +50,7 @@ type Querier interface {
 	GetUserProfile(ctx context.Context, userPublicID uuid.UUID) ([]GetUserProfileRow, error)
 	GetValuableChannelForUpdate(ctx context.Context, channelPublicID uuid.UUID) (GetValuableChannelForUpdateRow, error)
 	GetVideoDetail(ctx context.Context, videoID uuid.UUID) (GetVideoDetailRow, error)
+	GetVideoWatchTitlesByUser(ctx context.Context, lowerID uuid.UUID) ([]GetVideoWatchTitlesByUserRow, error)
 	InsertPlaylistVideo(ctx context.Context, arg InsertPlaylistVideoParams) error
 	// リフレッシュトークンをテーブルに保存する。
 	// m_refresh_token_idが返される。
@@ -98,6 +100,7 @@ type Querier interface {
 	// ユーザーを更新する。
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
 	UpsertChannel(ctx context.Context, arg UpsertChannelParams) (UpsertChannelRow, error)
+	UpsertMonthlyVideoWatchSummary(ctx context.Context, arg UpsertMonthlyVideoWatchSummaryParams) error
 	UpsertPlaylist(ctx context.Context, arg UpsertPlaylistParams) (int64, error)
 	UpsertRatelimit(ctx context.Context, arg UpsertRatelimitParams) (UpsertRatelimitRow, error)
 	UpsertValuableChannel(ctx context.Context, arg UpsertValuableChannelParams) (int64, error)
