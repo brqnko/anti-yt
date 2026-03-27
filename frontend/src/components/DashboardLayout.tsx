@@ -79,10 +79,10 @@ export function DashboardLayout({
   }, [url]);
 
   return (
-    <div class="relative flex h-dvh w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
+    <div class="relative flex lg:h-dvh w-full flex-col lg:overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
       <DashboardHeader sidebarOpen={sidebarOpen} onToggleSidebar={toggleSidebar} />
 
-      <div class="flex flex-1 w-full max-w-[1600px] mx-auto overflow-hidden">
+      <div class="flex flex-1 w-full max-w-[1600px] mx-auto lg:overflow-hidden">
         {/* Mobile backdrop (desktop only) */}
         {sidebarOpen && (
           <div
@@ -152,18 +152,7 @@ export function DashboardLayout({
                 <Icon name="playlist_play" />
                 {t("dashboard.nav.playlists")}
               </a>
-              <a
-                class={`flex items-center gap-3 px-3 py-2 rounded-lg no-underline ${
-                  url === "/history"
-                    ? "bg-primary/10 text-primary font-bold"
-                    : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-charcoal dark:hover:text-white font-medium transition-colors"
-                }`}
-                href="/history"
-                aria-current={url === "/history" ? "page" : undefined}
-              >
-                <Icon name="history" />
-                {t("dashboard.nav.history")}
-              </a>
+
             </nav>
 
             <div class="h-px bg-border-light dark:bg-border-dark w-full my-2" role="separator" />
@@ -251,7 +240,7 @@ export function DashboardLayout({
         </aside>
 
         {/* Main Content */}
-        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto overflow-x-hidden pb-14 lg:pb-0">
+        <main class="flex-1 flex flex-col min-w-0 lg:overflow-y-auto overflow-x-hidden pb-14 lg:pb-0">
           {children}
         </main>
       </div>
@@ -263,6 +252,12 @@ export function DashboardLayout({
       >
         <a
           href="/dashboard"
+          onClick={(e) => {
+            if (url === "/dashboard") {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
           class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors ${
             url === "/dashboard"
               ? "text-primary font-bold"
@@ -311,6 +306,12 @@ export function DashboardLayout({
         </a>
         <a
           href="/profile"
+          onClick={(e) => {
+            if (url === "/profile") {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
           class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors ${
             url === "/profile"
               ? "text-primary font-bold"
