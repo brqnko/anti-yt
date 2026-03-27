@@ -529,6 +529,15 @@ paths:
             type: string
             format: uuid
           required: false
+        - name: order
+          description: "並び順（newer: 新しい順, older: 古い順）"
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - newer
+              - older
       responses:
         "200":
           description: 200 OK

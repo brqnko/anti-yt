@@ -265,6 +265,8 @@
     "whitelistChannel": "チャンネルを許可",
     "whitelistDesc": "フィードに表示を許可する",
     "latestUploads": "最新のアップロード",
+    "orderNewer": "新しい順",
+    "orderOlder": "古い順",
     "noVideos": "動画がありません",
     "notFound": "チャンネルが見つかりません",
     "showMore": "もっと見る",

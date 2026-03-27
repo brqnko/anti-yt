@@ -173,7 +173,7 @@ func (s *Service) GetSubscriptions(ctx context.Context, userID uuid.UUID, limit 
 	return channels, false, nil
 }
 
-func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetChannelUploadsView, _ bool, err error) {
+func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32, order string) (_ []GetChannelUploadsView, _ bool, err error) {
 	defer util.Wrap(&err, "Service.GetChannelUploads")
 
 	if limit < 1 || 50 < limit {
@@ -233,7 +233,7 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 		return nil, false, err
 	}
 
-	videos, err := s.channelQS.GetChannelUploads(ctx, userID, channelID, cursor, limit+1)
+	videos, err := s.channelQS.GetChannelUploads(ctx, userID, channelID, cursor, limit+1, order)
 	if err != nil {
 		return nil, false, err
 	}

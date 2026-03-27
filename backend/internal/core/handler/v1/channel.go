@@ -31,7 +31,12 @@ func (h *APIHandler) GetChannelsChannelIdVideos(ctx context.Context, request Get
 		return nil, err
 	}
 
-	videos, hasNext, err := h.channelService.GetChannelUploads(ctx, userID, request.ChannelId, request.Params.Cursor, int32(request.Params.Limit))
+	var order string
+	if request.Params.Order != nil {
+		order = string(*request.Params.Order)
+	}
+
+	videos, hasNext, err := h.channelService.GetChannelUploads(ctx, userID, request.ChannelId, request.Params.Cursor, int32(request.Params.Limit), order)
 	if err != nil {
 		return nil, err
 	}

@@ -186,6 +186,125 @@ func (q *Queries) ListChannelVideos(ctx context.Context, arg ListChannelVideosPa
 	return items, nil
 }
 
+const listChannelVideosOlder = `-- name: ListChannelVideosOlder :many
+SELECT
+    m_video.public_id,
+    m_video.external_thumbnail_url,
+    m_video.external_title,
+    m_video.external_created_at,
+    m_video.external_length_seconds,
+    COALESCE((
+        SELECT
+            t_video_watch.watch_position_seconds
+        FROM
+            t_video_watch
+        WHERE
+            t_video_watch.m_user_id = (
+                SELECT
+                    m_user.m_user_id
+                FROM
+                    m_user
+                WHERE
+                    m_user.public_id = $1
+                LIMIT
+                    1
+            )
+            AND t_video_watch.m_video_id = m_video.m_video_id
+        ORDER BY
+            t_video_watch.m_user_id,
+            t_video_watch.m_video_id,
+            t_video_watch.watch_start_at DESC
+        LIMIT
+            1
+    ), 0)::int AS last_watch_seconds
+FROM
+    m_video
+    INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
+WHERE
+    m_channel.public_id = $2
+    AND (
+        $3::uuid IS NULL
+        OR (
+            m_video.external_created_at > (
+                SELECT
+                    mv.external_created_at
+                FROM
+                    m_video mv
+                WHERE
+                    mv.public_id = $3::uuid
+                LIMIT
+                    1
+            )
+        )
+        OR (
+            m_video.external_created_at = (
+                SELECT
+                    mv.external_created_at
+                FROM
+                    m_video mv
+                WHERE
+                    mv.public_id = $3::uuid
+                LIMIT
+                    1
+            )
+            AND m_video.public_id > $3::uuid
+        )
+    )
+ORDER BY
+    m_video.external_created_at ASC,
+    m_video.public_id ASC
+LIMIT
+    $4
+`
+
+type ListChannelVideosOlderParams struct {
+	UserID     uuid.UUID
+	ChannelID  uuid.UUID
+	Cursor     *uuid.UUID
+	QueryLimit int32
+}
+
+type ListChannelVideosOlderRow struct {
+	PublicID              uuid.UUID
+	ExternalThumbnailUrl  string
+	ExternalTitle         string
+	ExternalCreatedAt     time.Time
+	ExternalLengthSeconds int
+	LastWatchSeconds      int
+}
+
+func (q *Queries) ListChannelVideosOlder(ctx context.Context, arg ListChannelVideosOlderParams) ([]ListChannelVideosOlderRow, error) {
+	rows, err := q.db.Query(ctx, listChannelVideosOlder,
+		arg.UserID,
+		arg.ChannelID,
+		arg.Cursor,
+		arg.QueryLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListChannelVideosOlderRow
+	for rows.Next() {
+		var i ListChannelVideosOlderRow
+		if err := rows.Scan(
+			&i.PublicID,
+			&i.ExternalThumbnailUrl,
+			&i.ExternalTitle,
+			&i.ExternalCreatedAt,
+			&i.ExternalLengthSeconds,
+			&i.LastWatchSeconds,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listSubscriptionFeed = `-- name: ListSubscriptionFeed :many
 SELECT
     m_video.public_id AS video_id,

@@ -252,7 +252,20 @@ export type GetChannelsChannelIdVideosParams = {
  */
 limit?: number;
 cursor?: string;
+/**
+ * 並び順（newer: 新しい順, older: 古い順）
+ */
+order?: GetChannelsChannelIdVideosOrder;
 };
+
+export type GetChannelsChannelIdVideosOrder = typeof GetChannelsChannelIdVideosOrder[keyof typeof GetChannelsChannelIdVideosOrder];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetChannelsChannelIdVideosOrder = {
+  newer: 'newer',
+  older: 'older',
+} as const;
 
 export type GetChannelsChannelIdVideos200ItemsItem = {
   video_id: string;

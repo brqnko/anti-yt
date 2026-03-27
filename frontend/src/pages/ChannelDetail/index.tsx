@@ -11,6 +11,7 @@ import { VideoCard } from "../../components/VideoCard";
 import type {
   GetChannelsChannelId200,
   GetChannelsChannelIdVideos200ItemsItem,
+  GetChannelsChannelIdVideosOrder,
 } from "../../api/generated/antiYtApi.schemas";
 import { PAGE_SIZES } from "../../constants";
 import { Linkify } from "../../components/Linkify";
@@ -59,6 +60,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
   const [isToggling, setIsToggling] = useState(false);
   const [hasNextVideos, setHasNextVideos] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [order, setOrder] = useState<GetChannelsChannelIdVideosOrder>("newer");
   const cursorRef = useRef<string | undefined>(undefined);
 
   useTitle(channelInfo?.external_channel_display_name ?? t("channelDetail.pageTitle"));
@@ -69,7 +71,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
         const [channelRes, subsRes, videosRes] = await Promise.allSettled([
           getChannel().getChannelsChannelId(channelId),
           getChannel().getChannelsSubscribed({ limit: 50 }),
-          getChannel().getChannelsChannelIdVideos(channelId, { limit: PAGE_SIZES.CHANNEL_VIDEOS }),
+          getChannel().getChannelsChannelIdVideos(channelId, { limit: PAGE_SIZES.CHANNEL_VIDEOS, order }),
         ]);
 
         if (channelRes.status === "fulfilled") {
@@ -94,13 +96,13 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       }
     };
     load();
-  }, [channelId]);
+  }, [channelId, order]);
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasNextVideos) return;
     setIsLoadingMore(true);
     try {
-      const res = await getChannel().getChannelsChannelIdVideos(channelId, { limit: PAGE_SIZES.CHANNEL_VIDEOS, cursor: cursorRef.current });
+      const res = await getChannel().getChannelsChannelIdVideos(channelId, { limit: PAGE_SIZES.CHANNEL_VIDEOS, cursor: cursorRef.current, order });
       setVideos(prev => [...prev, ...res.items]);
       setHasNextVideos(res.has_next);
       const lastItem = res.items[res.items.length - 1];
@@ -108,7 +110,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [channelId, isLoadingMore, hasNextVideos]);
+  }, [channelId, isLoadingMore, hasNextVideos, order]);
 
   const sentinelRef = useInfiniteScroll(loadMore);
 
@@ -165,8 +167,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
         {/* Channel Info */}
         <div class="bg-card-light dark:bg-card-dark rounded-xl border border-border-light dark:border-border-dark mb-8 p-6">
-          <div class="flex flex-col gap-6">
-            <div class="flex flex-row gap-4 md:gap-6 items-center">
+          <div class="flex flex-row gap-4 md:gap-6 items-center">
               {/* Avatar */}
               <div class="shrink-0">
                 <div class="size-16 md:size-28 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden border-2 border-border-light dark:border-border-dark">
@@ -195,37 +196,36 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
                   )}
                 </div>
               </div>
-            </div>
 
-            {/* Whitelist Toggle */}
-            <div class="flex-shrink-0 w-full md:w-auto">
-              <div class="bg-background-light dark:bg-background-dark border border-primary/20 p-4 rounded-xl flex items-center justify-between md:justify-start gap-4">
-                <div class="flex flex-col">
-                  <span class="text-sm font-bold">{t("channelDetail.whitelistChannel")}</span>
-                  <span class="text-xs text-text-muted-light dark:text-text-muted-dark">
-                    {t("channelDetail.whitelistDesc")}
-                  </span>
-                </div>
-                <button
-                  class="relative inline-flex items-center cursor-pointer bg-transparent border-none p-0"
-                  onClick={handleToggleSubscription}
-                  disabled={isToggling}
-                >
-                  <div
-                    class={`w-14 h-7 rounded-full transition-colors duration-200 ${
-                      isSubscribed ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"
-                    } ${isToggling ? "opacity-50" : ""}`}
+              {/* Whitelist Toggle */}
+              <div class="flex-shrink-0">
+                <div class="bg-background-light dark:bg-background-dark border border-primary/20 p-4 rounded-xl flex items-center gap-4">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-bold">{t("channelDetail.whitelistChannel")}</span>
+                    <span class="text-xs text-text-muted-light dark:text-text-muted-dark">
+                      {t("channelDetail.whitelistDesc")}
+                    </span>
+                  </div>
+                  <button
+                    class="relative inline-flex items-center cursor-pointer bg-transparent border-none p-0"
+                    onClick={handleToggleSubscription}
+                    disabled={isToggling}
                   >
                     <div
-                      class={`absolute top-0.5 left-[4px] bg-white border border-gray-300 rounded-full h-6 w-6 transition-transform duration-200 ${
-                        isSubscribed ? "translate-x-full" : ""
-                      }`}
-                    />
-                  </div>
-                </button>
+                      class={`w-14 h-7 rounded-full transition-colors duration-200 ${
+                        isSubscribed ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"
+                      } ${isToggling ? "opacity-50" : ""}`}
+                    >
+                      <div
+                        class={`absolute top-0.5 left-[4px] bg-white border border-gray-300 rounded-full h-6 w-6 transition-transform duration-200 ${
+                          isSubscribed ? "translate-x-full" : ""
+                        }`}
+                      />
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
           {/* Description */}
           {channelInfo.external_channel_description && (
@@ -235,10 +235,23 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
 
         {/* Latest Uploads */}
         <div>
-          <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-4 mb-4">
             <h3 class="text-lg font-bold">
               {t("channelDetail.latestUploads")}
             </h3>
+            <select
+              class="text-sm bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-1.5 cursor-pointer"
+              value={order}
+              onChange={(e) => {
+                setOrder((e.target as HTMLSelectElement).value as GetChannelsChannelIdVideosOrder);
+                setVideos([]);
+                setHasNextVideos(false);
+                cursorRef.current = undefined;
+              }}
+            >
+              <option value="newer">{t("channelDetail.orderNewer")}</option>
+              <option value="older">{t("channelDetail.orderOlder")}</option>
+            </select>
           </div>
 
           {videos.length > 0 ? (

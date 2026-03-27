@@ -265,6 +265,8 @@
     "whitelistChannel": "Whitelist Channel",
     "whitelistDesc": "Allow into your feed",
     "latestUploads": "Latest Uploads",
+    "orderNewer": "Newest",
+    "orderOlder": "Oldest",
     "noVideos": "No videos available",
     "notFound": "Channel not found",
     "showMore": "Show more",
