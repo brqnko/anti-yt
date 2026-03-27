@@ -68,6 +68,8 @@ function VideoPlayerContent() {
   const [playlistHasNext, setPlaylistHasNext] = useState(false);
   const [playlistLoadingMore, setPlaylistLoadingMore] = useState(false);
   const playlistCursorRef = useRef<string | undefined>(undefined);
+  const playlistLoadingMoreRef = useRef(false);
+  const playlistHasNextRef = useRef(false);
   const [removingVideoId, setRemovingVideoId] = useState<string | null>(null);
   const [userPlaylists, setUserPlaylists] = useState<GetPlaylists200ItemsItem[]>([]);
   const [playlistDialogLoading, setPlaylistDialogLoading] = useState(false);
@@ -121,6 +123,7 @@ function VideoPlayerContent() {
       if (videosRes.status === "fulfilled") {
         setPlaylistVideos(videosRes.value.items);
         setPlaylistHasNext(videosRes.value.has_next);
+        playlistHasNextRef.current = videosRes.value.has_next;
         const lastItem = videosRes.value.items[videosRes.value.items.length - 1];
         playlistCursorRef.current = lastItem?.video_id;
       }
@@ -128,7 +131,8 @@ function VideoPlayerContent() {
   }, [playlistId]);
 
   const loadMorePlaylistVideos = useCallback(async () => {
-    if (playlistLoadingMore || !playlistHasNext || !playlistId) return;
+    if (playlistLoadingMoreRef.current || !playlistHasNextRef.current || !playlistId) return;
+    playlistLoadingMoreRef.current = true;
     setPlaylistLoadingMore(true);
     try {
       const res = await getPlaylist().getPlaylistsPlaylistIdVideos(playlistId, {
@@ -137,14 +141,17 @@ function VideoPlayerContent() {
       });
       setPlaylistVideos((prev) => [...prev, ...res.items]);
       setPlaylistHasNext(res.has_next);
+      playlistHasNextRef.current = res.has_next;
       const lastItem = res.items[res.items.length - 1];
       playlistCursorRef.current = lastItem?.video_id;
     } catch {
+      playlistHasNextRef.current = false;
       setPlaylistHasNext(false);
     } finally {
+      playlistLoadingMoreRef.current = false;
       setPlaylistLoadingMore(false);
     }
-  }, [playlistId, playlistLoadingMore, playlistHasNext]);
+  }, [playlistId]);
 
   const handleRemoveFromPlaylist = useCallback(
     async (videoIdToRemove: string) => {
