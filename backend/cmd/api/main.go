@@ -171,7 +171,7 @@ func run(ctx context.Context) int {
 	slog.Info("gemini api ok")
 
 	scheduler := scheduler.NewService()
-	if err := scheduler.AddFunc("0 0 * * 5", job.NewLLMSummaryJob(db, llmService)); err != nil {
+	if err := scheduler.AddFunc("0 0 * * *", job.NewLLMSummaryJob(db, llmService)); err != nil {
 		slog.Error("failed to setup llm summary job", "error", err)
 		return 1
 	}

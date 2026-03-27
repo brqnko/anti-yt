@@ -57,6 +57,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
   const [videos, setVideos] = useState<GetChannelsChannelIdVideos200ItemsItem[]>([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isVideosLoading, setIsVideosLoading] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [hasNextVideos, setHasNextVideos] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -74,6 +75,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
 
   useEffect(() => {
     const load = async () => {
+      setIsVideosLoading(true);
       try {
         const [channelRes, subsRes, videosRes] = await Promise.allSettled([
           getChannel().getChannelsChannelId(channelId),
@@ -100,6 +102,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
         }
       } finally {
         setIsLoading(false);
+        setIsVideosLoading(false);
       }
     };
     load();
@@ -194,12 +197,9 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
                     {formatSubscriberCount(channelInfo.external_channel_subscribers_count)} {t("channelDetail.subscribers")}
                   </span>
                   {channelInfo.external_channel_custom_id && (
-                    <a
-                      href={`/channels/${channelInfo.channel_id}`}
-                      class="no-underline text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors"
-                    >
+                    <span>
                       {channelInfo.external_channel_custom_id}
-                    </a>
+                    </span>
                   )}
                 </div>
               </div>
@@ -261,7 +261,9 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
             </select>
           </div>
 
-          {videos.length > 0 ? (
+          {isVideosLoading ? (
+            <LoadingSpinner size="sm" className="py-12" />
+          ) : videos.length > 0 ? (
             <>
               <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {videos.map((video) => (
