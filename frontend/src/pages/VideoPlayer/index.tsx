@@ -9,6 +9,7 @@ import { getVideo } from "../../api/generated/video";
 import { getPlaylist } from "../../api/generated/playlist";
 import { formatDuration, formatSubscriberCount } from "../../utils/format";
 import { buildWatchUrl } from "../../utils/url";
+import { getApiErrorCode } from "../../utils/api-error";
 import { PAGE_SIZES } from "../../constants";
 import type {
   GetVideosVideoId200,
@@ -22,6 +23,245 @@ import { Linkify } from "../../components/Linkify";
 import { Icon } from "../../components/Icon";
 
 const PLAYER_CONTAINER_ID = "yt-player";
+
+function useEscapeKey(open: boolean, onClose: () => void) {
+  useEffect(() => {
+    if (!open) return;
+    document.body.style.overflow = "hidden";
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, onClose]);
+}
+
+function AddVideoDialog({
+  open,
+  playlistId,
+  onClose,
+  onAdded,
+}: {
+  open: boolean;
+  playlistId: string;
+  onClose: () => void;
+  onAdded: () => void;
+}) {
+  const { t } = useTranslation();
+  const [text, setText] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEscapeKey(open, onClose);
+
+  useEffect(() => {
+    if (open) {
+      setText("");
+      setError(null);
+    }
+  }, [open]);
+
+  const handleSubmit = async () => {
+    const trimmed = text.trim();
+    if (!trimmed || isAdding) return;
+    setIsAdding(true);
+    setError(null);
+    try {
+      await getPlaylist().postPlaylistsPlaylistIdVideos(playlistId, {
+        external_video_text: trimmed,
+      });
+      onAdded();
+      onClose();
+    } catch (err) {
+      const code = getApiErrorCode(err);
+      setError(code ? t(`apiErrors.${code}`, t("playlistDetail.addVideoError")) : t("playlistDetail.addVideoError"));
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("playlistDetail.addVideo")}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-md p-6 flex flex-col gap-4">
+        <h2 class="text-xl font-bold text-charcoal dark:text-white">
+          {t("playlistDetail.addVideo")}
+        </h2>
+        <div class="relative">
+          <button
+            type="button"
+            class="absolute inset-y-0 left-0 flex items-center pl-3 pr-1 text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors bg-transparent border-none cursor-pointer"
+            aria-label={t("playlistDetail.addVideoPaste")}
+            onClick={async () => {
+              try {
+                const clipText = await navigator.clipboard.readText();
+                if (clipText) setText(clipText);
+              } catch {}
+            }}
+          >
+            <Icon name="content_paste" class="text-[20px]" />
+          </button>
+          <input
+            type="text"
+            class="w-full pl-10 pr-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all text-sm"
+            placeholder={t("playlistDetail.addVideoPlaceholder")}
+            value={text}
+            onInput={(e) => setText((e.target as HTMLInputElement).value)}
+            onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
+            disabled={isAdding}
+          />
+        </div>
+        {error && (
+          <p class="text-sm text-red-500" role="alert">{error}</p>
+        )}
+        <div class="flex justify-end gap-3 pt-2">
+          <button
+            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+            onClick={onClose}
+          >
+            {t("playlistDetail.addVideoCancel")}
+          </button>
+          <button
+            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors cursor-pointer border-none disabled:opacity-50"
+            onClick={handleSubmit}
+            disabled={!text.trim() || isAdding}
+          >
+            {isAdding ? t("playlistDetail.addVideoAdding") : t("playlistDetail.addVideoButton")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditPlaylistDialog({
+  open,
+  playlist,
+  onClose,
+  onSaved,
+}: {
+  open: boolean;
+  playlist: GetPlaylistsPlaylistId200;
+  onClose: () => void;
+  onSaved: (p: { playlist_title: string; playlist_description: string }) => void;
+}) {
+  const { t } = useTranslation();
+  const [title, setTitle] = useState(playlist.playlist_title);
+  const [description, setDescription] = useState(playlist.playlist_description);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEscapeKey(open, onClose);
+
+  useEffect(() => {
+    if (open) {
+      setTitle(playlist.playlist_title);
+      setDescription(playlist.playlist_description);
+      setError(null);
+    }
+  }, [open, playlist]);
+
+  const handleSave = async () => {
+    if (!title.trim() || isSaving) return;
+    setIsSaving(true);
+    setError(null);
+    try {
+      await getPlaylist().patchPlaylistsPlaylistId(playlist.playlist_id, {
+        playlist_title: title.trim(),
+        playlist_description: description.trim(),
+      });
+      onSaved({
+        playlist_title: title.trim(),
+        playlist_description: description.trim(),
+      });
+      onClose();
+    } catch (err) {
+      const code = getApiErrorCode(err);
+      setError(code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : t("playlistDetail.editDialog.error"));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("playlistDetail.editDialog.title")}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-md p-6 flex flex-col gap-4">
+        <h2 class="text-xl font-bold text-charcoal dark:text-white">
+          {t("playlistDetail.editDialog.title")}
+        </h2>
+        <div class="flex flex-col gap-3">
+          <div>
+            <label class="block text-sm font-medium text-charcoal dark:text-white mb-1">
+              {t("playlistDetail.editDialog.titleLabel")}
+            </label>
+            <input
+              type="text"
+              class="w-full h-10 px-3 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-charcoal dark:text-white"
+              value={title}
+              onInput={(e) => setTitle((e.target as HTMLInputElement).value)}
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-charcoal dark:text-white mb-1">
+              {t("playlistDetail.editDialog.descriptionLabel")}
+            </label>
+            <textarea
+              class="w-full h-24 px-3 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-charcoal dark:text-white resize-none"
+              value={description}
+              onInput={(e) =>
+                setDescription((e.target as HTMLTextAreaElement).value)
+              }
+            />
+          </div>
+        </div>
+        {error && (
+          <p class="text-sm text-red-500" role="alert">
+            {error}
+          </p>
+        )}
+        <div class="flex justify-end gap-3 pt-2">
+          <button
+            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+            onClick={onClose}
+          >
+            {t("playlistDetail.editDialog.cancel")}
+          </button>
+          <button
+            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors cursor-pointer border-none disabled:opacity-50"
+            onClick={handleSave}
+            disabled={!title.trim() || isSaving}
+          >
+            {isSaving
+              ? t("playlistDetail.editDialog.saving")
+              : t("playlistDetail.editDialog.save")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function VideoPlayerContent() {
   const { t } = useTranslation();
@@ -79,6 +319,8 @@ function VideoPlayerContent() {
   const [failedToAddPlaylist, setFailedToAddPlaylist] = useState<string | null>(null);
   const [addedPlaylistIds, setAddedPlaylistIds] = useState<Set<string>>(new Set());
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
+  const [showImportVideo, setShowImportVideo] = useState(false);
+  const [showEditPlaylist, setShowEditPlaylist] = useState(false);
 
   useEffect(() => {
     if (!showPlaylistDialog) return;
@@ -219,6 +461,22 @@ function VideoPlayerContent() {
     },
     [addingToPlaylist, videoId],
   );
+
+  const reloadPlaylist = useCallback(async () => {
+    if (!playlistId) return;
+    const [infoRes, videosRes] = await Promise.allSettled([
+      getPlaylist().getPlaylistsPlaylistId(playlistId),
+      getPlaylist().getPlaylistsPlaylistIdVideos(playlistId, { limit: PAGE_SIZES.PLAYLIST_VIDEOS }),
+    ]);
+    if (infoRes.status === "fulfilled") setPlaylistInfo(infoRes.value);
+    if (videosRes.status === "fulfilled") {
+      setPlaylistVideos(videosRes.value.items);
+      setPlaylistHasNext(videosRes.value.has_next);
+      playlistHasNextRef.current = videosRes.value.has_next;
+      const lastItem = videosRes.value.items[videosRes.value.items.length - 1];
+      playlistCursorRef.current = lastItem?.video_id;
+    }
+  }, [playlistId]);
 
   // Navigate to the next video in the playlist when the current video ends
   const handlePlayerStateChange = useCallback(
@@ -487,7 +745,7 @@ function VideoPlayerContent() {
   return (
     <DashboardLayout>
       <div class="flex-1 overflow-y-auto">
-        <div class="max-w-[1536px] mx-auto px-6 py-8 flex flex-col xl:flex-row gap-8">
+        <div class="max-w-[1536px] mx-auto px-6 py-8 flex flex-col xl:flex-row xl:items-start gap-8">
           {/* Main content */}
           <div class="flex-1 min-w-0">
             {/* YouTube Player */}
@@ -704,11 +962,11 @@ function VideoPlayerContent() {
           </div>
 
           {/* Sidebar */}
-          <aside class="w-full xl:w-[420px] shrink-0 space-y-8">
+          <aside class="w-full xl:w-[420px] shrink-0 flex flex-col gap-8">
             {/* Quick Notes */}
             <div
-              class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden"
-              style={playerHeight ? { height: `${playerHeight}px` } : undefined}
+              class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden aspect-video xl:aspect-auto"
+              style={{ height: playerHeight ? `${playerHeight}px` : undefined, minHeight: '400px', flex: 'none' }}
             >
               <div class="p-4 border-b border-border-light dark:border-border-dark flex items-center justify-between">
                 <h2 class="font-bold text-lg tracking-tight flex items-center gap-2">
@@ -773,10 +1031,10 @@ function VideoPlayerContent() {
               <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden">
                 {/* Playlist header */}
                 <div class="p-4 border-b border-border-light dark:border-border-dark flex items-center justify-between gap-3">
-                  <div class="flex items-center gap-2 min-w-0">
+                  <a href={`/playlists/${playlistId}`} class="flex items-center gap-2 min-w-0 no-underline group/pl-title">
                     <Icon name="playlist_play" class="text-primary text-xl flex-shrink-0" />
                     <div class="min-w-0">
-                      <h2 class="font-bold text-sm tracking-tight truncate">
+                      <h2 class="font-bold text-sm tracking-tight truncate text-charcoal dark:text-white group-hover/pl-title:text-primary transition-colors">
                         {playlistInfo?.playlist_title ?? t("videoPlayer.curatedPlaylist")}
                       </h2>
                       <p class="text-[11px] text-text-muted-light dark:text-text-muted-dark">
@@ -784,14 +1042,25 @@ function VideoPlayerContent() {
                         / {playlistInfo?.playlist_video_count ?? playlistVideos.length}
                       </p>
                     </div>
-                  </div>
-                  <a
-                    href={`/playlists/${playlistId}`}
-                    class="text-xs text-primary hover:text-primary/80 transition-colors font-medium no-underline flex-shrink-0"
-                  >
-                    {t("videoPlayer.viewPlaylist")}
                   </a>
+                  <div class="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      class="p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+                      title={t("playlistDetail.addVideo")}
+                      onClick={() => setShowImportVideo(true)}
+                    >
+                      <Icon name="add" class="text-[20px]" />
+                    </button>
+                    <button
+                      class="p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+                      title={t("playlistDetail.edit")}
+                      onClick={() => setShowEditPlaylist(true)}
+                    >
+                      <Icon name="edit" class="text-[20px]" />
+                    </button>
+                  </div>
                 </div>
+
                 {/* Video list */}
                 <div
                   class="overflow-y-auto max-h-[480px]"
@@ -949,6 +1218,26 @@ function VideoPlayerContent() {
             </div>
           </div>
         </div>
+      )}
+
+      {playlistId && (
+        <AddVideoDialog
+          open={showImportVideo}
+          playlistId={playlistId}
+          onClose={() => setShowImportVideo(false)}
+          onAdded={reloadPlaylist}
+        />
+      )}
+
+      {playlistId && playlistInfo && (
+        <EditPlaylistDialog
+          open={showEditPlaylist}
+          playlist={playlistInfo}
+          onClose={() => setShowEditPlaylist(false)}
+          onSaved={(updated) =>
+            setPlaylistInfo((prev) => (prev ? { ...prev, ...updated } : prev))
+          }
+        />
       )}
     </DashboardLayout>
   );

@@ -269,6 +269,113 @@ function RemoveVideoDialog({
   );
 }
 
+function AddVideoDialog({
+  open,
+  playlistId,
+  onClose,
+  onAdded,
+}: {
+  open: boolean;
+  playlistId: string;
+  onClose: () => void;
+  onAdded: () => void;
+}) {
+  const { t } = useTranslation();
+  const [text, setText] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEscapeKey(open, onClose);
+
+  useEffect(() => {
+    if (open) {
+      setText("");
+      setError(null);
+    }
+  }, [open]);
+
+  const handleSubmit = async () => {
+    const trimmed = text.trim();
+    if (!trimmed || isAdding) return;
+    setIsAdding(true);
+    setError(null);
+    try {
+      await getPlaylist().postPlaylistsPlaylistIdVideos(playlistId, {
+        external_video_text: trimmed,
+      });
+      onAdded();
+      onClose();
+    } catch (err) {
+      const code = getApiErrorCode(err);
+      setError(code ? t(`apiErrors.${code}`, t("playlistDetail.addVideoError")) : t("playlistDetail.addVideoError"));
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("playlistDetail.addVideo")}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-md p-6 flex flex-col gap-4">
+        <h2 class="text-xl font-bold text-charcoal dark:text-white">
+          {t("playlistDetail.addVideo")}
+        </h2>
+        <div class="relative">
+          <button
+            type="button"
+            class="absolute inset-y-0 left-0 flex items-center pl-3 pr-1 text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors bg-transparent border-none cursor-pointer"
+            aria-label={t("playlistDetail.addVideoPaste")}
+            onClick={async () => {
+              try {
+                const clipText = await navigator.clipboard.readText();
+                if (clipText) setText(clipText);
+              } catch {}
+            }}
+          >
+            <Icon name="content_paste" class="text-[20px]" />
+          </button>
+          <input
+            type="text"
+            class="w-full pl-10 pr-4 py-3 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white placeholder-taupe focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all text-sm"
+            placeholder={t("playlistDetail.addVideoPlaceholder")}
+            value={text}
+            onInput={(e) => setText((e.target as HTMLInputElement).value)}
+            onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
+            disabled={isAdding}
+          />
+        </div>
+        {error && (
+          <p class="text-sm text-red-500" role="alert">{error}</p>
+        )}
+        <div class="flex justify-end gap-3 pt-2">
+          <button
+            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+            onClick={onClose}
+          >
+            {t("playlistDetail.addVideoCancel")}
+          </button>
+          <button
+            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors cursor-pointer border-none disabled:opacity-50"
+            onClick={handleSubmit}
+            disabled={!text.trim() || isAdding}
+          >
+            {isAdding ? t("playlistDetail.addVideoAdding") : t("playlistDetail.addVideoButton")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
   const { t } = useTranslation();
   const { route } = useLocation();
@@ -288,6 +395,8 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
   const [removeTarget, setRemoveTarget] = useState<GetPlaylistsPlaylistIdVideos200ItemsItem | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
   const [removeError, setRemoveError] = useState(false);
+
+  const [showAddVideo, setShowAddVideo] = useState(false);
 
   useTitle(playlistInfo?.playlist_title ?? t("playlistDetail.pageTitle"));
 
@@ -520,6 +629,13 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
             {/* Actions */}
             <div class="flex gap-2 flex-shrink-0">
               <button
+                class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors cursor-pointer border-none"
+                onClick={() => setShowAddVideo(true)}
+              >
+                <Icon name="add" class="text-[18px]" />
+                {t("playlistDetail.addVideo")}
+              </button>
+              <button
                 class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-transparent border border-border-light dark:border-border-dark text-sm font-medium text-charcoal dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                 onClick={() => setShowEdit(true)}
               >
@@ -625,6 +741,13 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
         onConfirm={handleRemoveVideo}
         isRemoving={isRemoving}
         error={removeError}
+      />
+
+      <AddVideoDialog
+        open={showAddVideo}
+        playlistId={playlistId}
+        onClose={() => setShowAddVideo(false)}
+        onAdded={loadInitial}
       />
     </DashboardLayout>
   );

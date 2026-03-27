@@ -736,7 +736,9 @@ export type GetPlaylistsPlaylistIdVideos200 = {
 };
 
 export type PostPlaylistsPlaylistIdVideosBody = {
-  video_id: string;
+  video_id?: string;
+  /** YouTube動画のURL、または動画ID */
+  external_video_text?: string;
 };
 
 export type PostPlaylistsPlaylistIdVideos201 = {

@@ -202,13 +202,32 @@ func (h *APIHandler) PostPlaylistsPlaylistIdVideos(ctx context.Context, request 
 		return nil, err
 	}
 
-	if err := h.playlistService.InsertVideoIntoPlaylist(ctx, userID, request.PlaylistId, request.Body.VideoId); err != nil {
-		return nil, err
+	var videoID uuid.UUID
+
+	switch {
+	case request.Body.VideoId != nil:
+		videoID = *request.Body.VideoId
+		if err := h.playlistService.InsertVideoIntoPlaylist(ctx, userID, request.PlaylistId, videoID); err != nil {
+			return nil, err
+		}
+	case request.Body.ExternalVideoText != nil:
+		resolved, err := h.playlistService.FetchAndInsertVideoIntoPlaylist(ctx, userID, request.PlaylistId, *request.Body.ExternalVideoText)
+		if err != nil {
+			return nil, err
+		}
+		videoID = resolved
+	default:
+		return PostPlaylistsPlaylistIdVideos400JSONResponse{
+			BadRequestJSONResponse{
+				Code:    "bad_request",
+				Message: "video_id or external_video_text is required",
+			},
+		}, nil
 	}
 
 	return PostPlaylistsPlaylistIdVideos201JSONResponse{
 		PlaylistId: request.PlaylistId,
-		VideoId:    request.Body.VideoId,
+		VideoId:    videoID,
 		InsertedAt: time.Now().In(hutil.TimezoneFromContext(ctx)),
 	}, nil
 }
