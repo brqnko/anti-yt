@@ -810,6 +810,14 @@ function VideoPlayerContent() {
                             <span class="absolute bottom-0.5 right-0.5 bg-black/80 text-white text-[10px] font-bold px-1 py-0.5 rounded">
                               {formatDuration(pv.external_video_length_seconds)}
                             </span>
+                            {pv.last_watch_seconds != null && pv.external_video_length_seconds > 0 && (
+                              <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/30">
+                                <div
+                                  class="h-full bg-primary"
+                                  style={{ width: `${Math.min(100, (pv.last_watch_seconds / pv.external_video_length_seconds) * 100)}%` }}
+                                />
+                              </div>
+                            )}
                           </div>
                           <div class="flex flex-col justify-center min-w-0 flex-1">
                             <p
