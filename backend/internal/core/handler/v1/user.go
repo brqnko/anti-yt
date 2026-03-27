@@ -50,9 +50,17 @@ func (h *APIHandler) GetUsersMeStatus(ctx context.Context, request GetUsersMeSta
 		if err != nil {
 			return nil, err
 		}
+		startSec := startMin * 60
+		endSec := endMin * 60
+		// [0, 86400] は全日を表すため、タイムゾーン変換せずそのまま返す
+		// (endSec % daySec == 0 になりオフセットが加算されると開始と同じ値になるため)
+		if startSec == 0 && endSec == daySec {
+			localRanges = append(localRanges, secRange{start: 0, end: daySec})
+			continue
+		}
 		localRanges = append(localRanges, secRange{
-			start: ((startMin*60 + offsetSec) % daySec + daySec) % daySec,
-			end:   ((endMin*60 + offsetSec) % daySec + daySec) % daySec,
+			start: ((startSec + offsetSec) % daySec + daySec) % daySec,
+			end:   ((endSec + offsetSec) % daySec + daySec) % daySec,
 		})
 	}
 

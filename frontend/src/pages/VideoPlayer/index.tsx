@@ -47,6 +47,7 @@ function VideoPlayerContent() {
   const [controlsVisible, setControlsVisible] = useState(false);
   const [isSeeking, setIsSeeking] = useState(false);
 
+  const [playerHeight, setPlayerHeight] = useState<number | null>(null);
   const playerWrapperRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const progressFillRef = useRef<HTMLDivElement>(null);
@@ -97,6 +98,16 @@ function VideoPlayerContent() {
   playlistIdRef.current = playlistId;
 
   useTitle(video?.external_video_title ?? t("videoPlayer.pageTitle"));
+
+  useEffect(() => {
+    const el = playerWrapperRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      setPlayerHeight(entries[0].contentRect.height);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!videoId) return;
@@ -676,7 +687,7 @@ function VideoPlayerContent() {
                     >
                         <Linkify text={video.external_video_description} />
                     </div>
-                    {descOverflows && (
+                    {(descOverflows || isDescExpanded) && (
                       <button
                         class="mt-3 text-sm font-semibold text-primary hover:text-primary/80 transition-colors bg-transparent border-none cursor-pointer p-0"
                         onClick={() => setIsDescExpanded((v) => !v)}
@@ -695,7 +706,10 @@ function VideoPlayerContent() {
           {/* Sidebar */}
           <aside class="w-full xl:w-[420px] shrink-0 space-y-8">
             {/* Quick Notes */}
-            <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden">
+            <div
+              class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden"
+              style={playerHeight ? { height: `${playerHeight}px` } : undefined}
+            >
               <div class="p-4 border-b border-border-light dark:border-border-dark flex items-center justify-between">
                 <h2 class="font-bold text-lg tracking-tight flex items-center gap-2">
                   <Icon name="edit_note" class="text-primary" />
@@ -733,9 +747,9 @@ function VideoPlayerContent() {
                   <Icon name="schedule" class="text-xl" />
                 </button>
               </div>
-              <div class="relative">
+              <div class="relative flex-1 flex flex-col min-h-0">
                 <textarea
-                  class="w-full h-48 p-4 bg-transparent border-none focus:ring-0 focus:outline-none text-sm leading-relaxed resize-none text-charcoal dark:text-white"
+                  class="w-full flex-1 min-h-0 p-4 bg-transparent border-none focus:ring-0 focus:outline-none text-sm leading-relaxed resize-none text-charcoal dark:text-white"
                   placeholder={t("videoPlayer.notesPlaceholder")}
                   value={noteText}
                   onInput={(e) => setNoteText((e.target as HTMLTextAreaElement).value)}

@@ -173,7 +173,7 @@ export function DashboardLayout({
               <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark px-3">
                 {t("dashboard.whitelistedChannels")}
               </h3>
-              <div class="flex flex-col gap-2">
+              <div class="flex flex-col gap-2 max-h-36 overflow-y-auto">
                 {subscriptions.map((sub) => (
                   <a
                     key={sub.channel_id}
@@ -201,14 +201,14 @@ export function DashboardLayout({
                     {t("dashboard.noChannels")}
                   </p>
                 )}
-                <button
+              </div>
+              <button
                   class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium mt-1 cursor-pointer bg-transparent border-none group/add"
                   onClick={() => setShowAddChannel(true)}
                 >
                   <Icon name="add" class="text-[18px]" />
                   <span class="group-hover/add:underline">{t("dashboard.requestChannel")}</span>
                 </button>
-              </div>
             </div>
 
             <div class="h-px bg-border-light dark:bg-border-dark w-full my-2" role="separator" />
@@ -218,7 +218,7 @@ export function DashboardLayout({
               <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark px-3">
                 {t("dashboard.myPlaylists")}
               </h3>
-              <div class="flex flex-col gap-2">
+              <div class="flex flex-col gap-2 max-h-36 overflow-y-auto">
                 {playlists.map((pl) => (
                   <a
                     key={pl.playlist_id}
@@ -238,14 +238,14 @@ export function DashboardLayout({
                     {t("dashboard.noPlaylists")}
                   </p>
                 )}
-                <button
-                  class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium mt-1 cursor-pointer bg-transparent border-none group/add"
-                  onClick={() => setShowAddPlaylist(true)}
-                >
-                  <Icon name="add" class="text-[18px]" />
-                  <span class="group-hover/add:underline">{t("dashboard.addPlaylist")}</span>
-                </button>
               </div>
+              <button
+                class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium mt-1 cursor-pointer bg-transparent border-none group/add"
+                onClick={() => setShowAddPlaylist(true)}
+              >
+                <Icon name="add" class="text-[18px]" />
+                <span class="group-hover/add:underline">{t("dashboard.addPlaylist")}</span>
+              </button>
             </div>
           </div>
         </aside>
