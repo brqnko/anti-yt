@@ -286,6 +286,69 @@ func (s *Service) InsertVideoIntoPlaylist(ctx context.Context, userID, playlistI
 	return nil
 }
 
+func (s *Service) FetchAndInsertVideoIntoPlaylist(ctx context.Context, userID, playlistID uuid.UUID, externalVideoText string) (_ uuid.UUID, err error) {
+	defer util.Wrap(&err, "Service.FetchAndInsertVideoIntoPlaylist")
+
+	// YouTube動画IDを抽出
+	ytVideoID, err := youtube_d.ExtractVideoID(externalVideoText)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	vid, err := youtube_d.NewVideoID(ytVideoID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	// YouTube APIで動画の詳細を取得
+	videoDetails, err := s.ytService.FetchVideoDetail(ctx, []youtube_d.VideoID{vid})
+	if err != nil {
+		return uuid.Nil, err
+	}
+	vd, ok := videoDetails[vid]
+	if !ok {
+		return uuid.Nil, youtube_d.ErrInvalidVideoID
+	}
+
+	// YouTube APIでチャンネルの詳細を取得
+	channelDetails, err := s.ytService.FetchChannelDetail(ctx, []youtube_d.ChannelID{vd.ChannelID})
+	if err != nil {
+		return uuid.Nil, err
+	}
+	cd, ok := channelDetails[vd.ChannelID]
+	if !ok {
+		return uuid.Nil, youtube_d.ErrInvalidVideoID
+	}
+
+	fetchedAt := time.Now().UTC()
+	q := sqlc.New(s.db)
+
+	// チャンネルをupsert
+	ch, err := channel.NewChannel(fetchedAt, fetchedAt, cd)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	if _, err := channel.NewChannelRepository(q).Save(ctx, ch); err != nil {
+		return uuid.Nil, err
+	}
+
+	// 動画をupsert
+	v, err := video.NewVideo(ch.ID, fetchedAt, vd)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
+		return uuid.Nil, err
+	}
+
+	// プレイリストに追加
+	if err := s.InsertVideoIntoPlaylist(ctx, userID, playlistID, v.ID); err != nil {
+		return uuid.Nil, err
+	}
+
+	return v.ID, nil
+}
+
 func (s *Service) RemoveVideoFromPlaylist(ctx context.Context, userID, playlistID, videoID uuid.UUID) (err error) {
 	defer util.Wrap(&err, "Service.RemoveVideoFromPlaylist")
 

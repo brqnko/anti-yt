@@ -1925,7 +1925,9 @@ paths:
                 video_id:
                   type: string
                   format: uuid
-              required: [ video_id ]
+                external_video_text:
+                  type: string
+                  description: YouTube動画のURL、または動画ID
       responses:
         "201":
           description: 201 Created
