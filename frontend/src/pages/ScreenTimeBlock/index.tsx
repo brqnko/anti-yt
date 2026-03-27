@@ -151,9 +151,6 @@ function GrassMowerGame() {
   return (
     <div class="flex flex-col items-center">
       <div class="text-center mb-6">
-        <h2 class="text-lg font-medium text-charcoal dark:text-white/90">
-          {t("screenTimeBlock.mowTheLawn")}
-        </h2>
         <p class="text-sm text-taupe dark:text-white/50">
           {t("screenTimeBlock.tapTheGrass")}
         </p>

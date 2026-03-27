@@ -307,7 +307,6 @@
     "title": "Screen Time Limit",
     "limitExceeded": "You've reached your daily screen time limit. Take a break and come back tomorrow.",
     "outsideTimeRange": "Viewing is not available right now. Your scheduled access window is currently closed.",
-    "mowTheLawn": "Mow the Lawn",
     "tapTheGrass": "Tap the grass to clear your mind",
     "reset": "Reset",
     "mowTile": "Mow this grass tile",
