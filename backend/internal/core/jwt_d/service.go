@@ -25,25 +25,35 @@ type UserClaims struct {
 	jwt.RegisteredClaims
 }
 
+type OAuthStateClaims struct {
+	UserID   string `json:"user_id"`
+	Provider string `json:"provider"`
+	jwt.RegisteredClaims
+}
+
 type Service interface {
 	SignUserAccessToken(userID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error)
 	SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error)
+	SignOAuthStateToken(userID uuid.UUID, provider, serverURL string) (_ string, err error)
 	TokenDuration() time.Duration
 	VerifyUserAccessToken(token string) (_, _ uuid.UUID, _ time.Time, err error)
 	VerifyRegisterToken(token string) (_, _ uuid.UUID, err error)
+	VerifyOAuthStateToken(token string) (_ uuid.UUID, _ string, err error)
 }
 
 type serviceImpl struct {
 	publicKey           ed25519.PublicKey
 	privateKey          ed25519.PrivateKey
 	accessTokenDuration time.Duration
+	serverURL           string
 }
 
-func NewService(privateKey ed25519.PrivateKey, publicKey ed25519.PublicKey, accessTokenDuration time.Duration) Service {
+func NewService(privateKey ed25519.PrivateKey, publicKey ed25519.PublicKey, accessTokenDuration time.Duration, serverURL string) Service {
 	return &serviceImpl{
 		publicKey:           publicKey,
 		privateKey:          privateKey,
 		accessTokenDuration: accessTokenDuration,
+		serverURL:           serverURL,
 	}
 }
 
@@ -187,4 +197,63 @@ func (s *serviceImpl) VerifyUserAccessToken(token string) (_ uuid.UUID, _ uuid.U
 	}
 
 	return userID, jti, expiresAt, nil
+}
+
+func (s *serviceImpl) SignOAuthStateToken(userID uuid.UUID, provider, serverURL string) (_ string, err error) {
+	defer util.Wrap(&err, "jwtService.SignOAuthStateToken(userID=%s, provider=%s)", userID, provider)
+
+	now := time.Now().UTC()
+	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, OAuthStateClaims{
+		UserID:   base64.URLEncoding.EncodeToString(userID[:]),
+		Provider: provider,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    serverURL,
+			Subject:   "oauth_state",
+			Audience:  []string{serverURL},
+			ExpiresAt: &jwt.NumericDate{Time: now.Add(10 * time.Minute)},
+			NotBefore: &jwt.NumericDate{Time: now},
+			IssuedAt:  &jwt.NumericDate{Time: now},
+		},
+	})
+	signed, err := token.SignedString(s.privateKey)
+	if err != nil {
+		return "", err
+	}
+	return signed, nil
+}
+
+func (s *serviceImpl) VerifyOAuthStateToken(token string) (_ uuid.UUID, _ string, err error) {
+	defer util.Wrap(&err, "jwtService.VerifyOAuthStateToken")
+
+	claims := &OAuthStateClaims{}
+	parsedToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodEd25519); !ok {
+			return nil, ErrInvalidToken
+		}
+		return s.publicKey, nil
+	})
+	if err != nil || !parsedToken.Valid {
+		return uuid.Nil, "", ErrInvalidToken
+	}
+
+	if sub, _ := claims.GetSubject(); sub != "oauth_state" {
+		return uuid.Nil, "", ErrInvalidToken
+	}
+	if iss, _ := claims.GetIssuer(); iss != s.serverURL {
+		return uuid.Nil, "", ErrInvalidToken
+	}
+	if aud, _ := claims.GetAudience(); len(aud) != 1 || aud[0] != s.serverURL {
+		return uuid.Nil, "", ErrInvalidToken
+	}
+
+	decoded, err := base64.URLEncoding.DecodeString(claims.UserID)
+	if err != nil || len(decoded) != 16 {
+		return uuid.Nil, "", ErrInvalidToken
+	}
+	userID, err := uuid.FromBytes(decoded)
+	if err != nil {
+		return uuid.Nil, "", ErrInvalidToken
+	}
+
+	return userID, claims.Provider, nil
 }

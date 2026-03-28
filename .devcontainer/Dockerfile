@@ -2,8 +2,6 @@ FROM alpine:3.23
 
 ARG TARGETARCH
 
-RUN echo target_arch=${TARGETARCH}
-
 RUN apk add --no-cache \
     go \
     nodejs npm \
@@ -53,4 +51,4 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=cache,target=/root/.cache/go-build \
     go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.6.0
 
-CMD ["sleep", "infinity"]
+CMD nginx && sleep infinity

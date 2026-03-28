@@ -7,11 +7,12 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/testutil"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func newTestService(t *testing.T, pool *pgxpool.Pool, ytMock *ServiceMock) *Service {
+func newTestService(t *testing.T, pool *pgxpool.Pool, ytMock *testutil.YouTubeServiceMock) *Service {
 	t.Helper()
 	return &Service{
 		db:         pool,
@@ -20,7 +21,7 @@ func newTestService(t *testing.T, pool *pgxpool.Pool, ytMock *ServiceMock) *Serv
 	}
 }
 
-func defaultYTMock() *ServiceMock {
+func defaultYTMock() *testutil.YouTubeServiceMock {
 	ch, _ := youtube_d.NewChannel(
 		"UCxxxxxxxxxxxxxxxxxxxxxx",
 		"Test Channel",
@@ -42,7 +43,7 @@ func defaultYTMock() *ServiceMock {
 		time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 	)
 
-	return &ServiceMock{
+	return &testutil.YouTubeServiceMock{
 		FetchChannelDetailFunc: func(ctx context.Context, channelIDs []youtube_d.ChannelID) (map[youtube_d.ChannelID]youtube_d.Channel, error) {
 			return map[youtube_d.ChannelID]youtube_d.Channel{
 				"UCxxxxxxxxxxxxxxxxxxxxxx": ch,
@@ -66,7 +67,7 @@ func defaultYTMock() *ServiceMock {
 }
 
 // seedPlaylist はプレイリストを作成し返す
-func seedPlaylist(t *testing.T, pool *pgxpool.Pool, ytMock *ServiceMock, userID uuid.UUID) *Playlist {
+func seedPlaylist(t *testing.T, pool *pgxpool.Pool, ytMock *testutil.YouTubeServiceMock, userID uuid.UUID) *Playlist {
 	t.Helper()
 	svc := newTestService(t, pool, ytMock)
 	pl, err := svc.CreatePlaylist(context.Background(), userID, "Test Playlist", "A test playlist", "private", "normal", nil)

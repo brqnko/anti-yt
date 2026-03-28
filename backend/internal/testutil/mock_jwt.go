@@ -54,6 +54,12 @@ type ServiceMock struct {
 	// VerifyRegisterTokenFunc mocks the VerifyRegisterToken method.
 	VerifyRegisterTokenFunc func(token string) (uuid.UUID, uuid.UUID, error)
 
+	// SignOAuthStateTokenFunc mocks the SignOAuthStateToken method.
+	SignOAuthStateTokenFunc func(userID uuid.UUID, provider, serverURL string) (string, error)
+
+	// VerifyOAuthStateTokenFunc mocks the VerifyOAuthStateToken method.
+	VerifyOAuthStateTokenFunc func(token string) (uuid.UUID, string, error)
+
 	// VerifyUserAccessTokenFunc mocks the VerifyUserAccessToken method.
 	VerifyUserAccessTokenFunc func(token string) (uuid.UUID, uuid.UUID, time.Time, error)
 
@@ -85,6 +91,16 @@ type ServiceMock struct {
 			// Token is the token argument value.
 			Token string
 		}
+		// SignOAuthStateToken holds details about calls to the SignOAuthStateToken method.
+		SignOAuthStateToken []struct {
+			UserID    uuid.UUID
+			Provider  string
+			ServerURL string
+		}
+		// VerifyOAuthStateToken holds details about calls to the VerifyOAuthStateToken method.
+		VerifyOAuthStateToken []struct {
+			Token string
+		}
 		// VerifyUserAccessToken holds details about calls to the VerifyUserAccessToken method.
 		VerifyUserAccessToken []struct {
 			// Token is the token argument value.
@@ -93,6 +109,8 @@ type ServiceMock struct {
 	}
 	lockSignRegisterToken     sync.RWMutex
 	lockSignUserAccessToken   sync.RWMutex
+	lockSignOAuthStateToken   sync.RWMutex
+	lockVerifyOAuthStateToken sync.RWMutex
 	lockTokenDuration         sync.RWMutex
 	lockVerifyRegisterToken   sync.RWMutex
 	lockVerifyUserAccessToken sync.RWMutex
@@ -234,6 +252,72 @@ func (mock *ServiceMock) VerifyRegisterTokenCalls() []struct {
 	mock.lockVerifyRegisterToken.RLock()
 	calls = mock.calls.VerifyRegisterToken
 	mock.lockVerifyRegisterToken.RUnlock()
+	return calls
+}
+
+// SignOAuthStateToken calls SignOAuthStateTokenFunc.
+func (mock *ServiceMock) SignOAuthStateToken(userID uuid.UUID, provider, serverURL string) (string, error) {
+	if mock.SignOAuthStateTokenFunc == nil {
+		panic("ServiceMock.SignOAuthStateTokenFunc: method is nil but Service.SignOAuthStateToken was just called")
+	}
+	callInfo := struct {
+		UserID    uuid.UUID
+		Provider  string
+		ServerURL string
+	}{
+		UserID:    userID,
+		Provider:  provider,
+		ServerURL: serverURL,
+	}
+	mock.lockSignOAuthStateToken.Lock()
+	mock.calls.SignOAuthStateToken = append(mock.calls.SignOAuthStateToken, callInfo)
+	mock.lockSignOAuthStateToken.Unlock()
+	return mock.SignOAuthStateTokenFunc(userID, provider, serverURL)
+}
+
+// SignOAuthStateTokenCalls gets all the calls that were made to SignOAuthStateToken.
+func (mock *ServiceMock) SignOAuthStateTokenCalls() []struct {
+	UserID    uuid.UUID
+	Provider  string
+	ServerURL string
+} {
+	var calls []struct {
+		UserID    uuid.UUID
+		Provider  string
+		ServerURL string
+	}
+	mock.lockSignOAuthStateToken.RLock()
+	calls = mock.calls.SignOAuthStateToken
+	mock.lockSignOAuthStateToken.RUnlock()
+	return calls
+}
+
+// VerifyOAuthStateToken calls VerifyOAuthStateTokenFunc.
+func (mock *ServiceMock) VerifyOAuthStateToken(token string) (uuid.UUID, string, error) {
+	if mock.VerifyOAuthStateTokenFunc == nil {
+		panic("ServiceMock.VerifyOAuthStateTokenFunc: method is nil but Service.VerifyOAuthStateToken was just called")
+	}
+	callInfo := struct {
+		Token string
+	}{
+		Token: token,
+	}
+	mock.lockVerifyOAuthStateToken.Lock()
+	mock.calls.VerifyOAuthStateToken = append(mock.calls.VerifyOAuthStateToken, callInfo)
+	mock.lockVerifyOAuthStateToken.Unlock()
+	return mock.VerifyOAuthStateTokenFunc(token)
+}
+
+// VerifyOAuthStateTokenCalls gets all the calls that were made to VerifyOAuthStateToken.
+func (mock *ServiceMock) VerifyOAuthStateTokenCalls() []struct {
+	Token string
+} {
+	var calls []struct {
+		Token string
+	}
+	mock.lockVerifyOAuthStateToken.RLock()
+	calls = mock.calls.VerifyOAuthStateToken
+	mock.lockVerifyOAuthStateToken.RUnlock()
 	return calls
 }
 

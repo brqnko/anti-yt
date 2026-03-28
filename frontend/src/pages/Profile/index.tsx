@@ -201,6 +201,18 @@ function ProfileContent() {
                   </div>
                 </div>
               </div>
+              <div class="px-6 py-4 border-t border-border-light dark:border-border-dark flex items-center">
+                <button
+                  onClick={() => { window.location.href = "/api/v1/auth/oauth/youtube"; }}
+                  class="flex items-center justify-center gap-2.5 rounded-xl bg-white dark:bg-[#242424] px-5 py-2.5 text-sm font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-[#FF0000]/50 transition-all hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[#FF0000] focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
+                >
+                  <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z" fill="#FF0000"/>
+                    <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="#ffffff"/>
+                  </svg>
+                  {t("profile.youtubeImport.button")}
+                </button>
+              </div>
               <div class="px-6 py-4 bg-background-light/50 dark:bg-background-dark/50 border-t border-border-light dark:border-border-dark flex items-center justify-end gap-3">
                 {saveSuccess && (
                   <span class={`text-sm text-green-600 dark:text-green-400 font-medium transition-opacity duration-500 ${saveFading ? "opacity-0" : "opacity-100"}`}>
@@ -260,11 +272,11 @@ function ProfileContent() {
             {/* Restrictions */}
             <RestrictionsTab />
 
-            {/* Report */}
+            {/* その他 */}
             <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
               <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
                 <h2 class="text-xl font-bold">
-                  {t("profile.nav.reportProblem")}
+                  {t("profile.nav.other")}
                 </h2>
               </div>
               <div class="p-6 flex flex-col gap-1">
@@ -277,17 +289,7 @@ function ProfileContent() {
                   <Icon name="flag" />
                   {t("profile.nav.reportProblem")}
                 </a>
-              </div>
-            </div>
-
-            {/* Logout */}
-            <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
-              <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
-                <h2 class="text-xl font-bold">
-                  {t("profile.nav.signOut")}
-                </h2>
-              </div>
-              <div class="p-6 flex flex-col gap-1">
+                <div class="mt-4" />
                 <button
                   onClick={() => setShowLogoutConfirm(true)}
                   class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 text-text-muted-light dark:text-text-muted-dark hover:text-red-500 transition-all font-bold cursor-pointer bg-transparent border-none"
@@ -295,28 +297,17 @@ function ProfileContent() {
                   <Icon name="logout" />
                   {t("profile.nav.signOut")}
                 </button>
-              </div>
-            </div>
-
-            {/* Danger Zone */}
-            <div class="rounded-xl border border-red-200 dark:border-red-900/30 bg-red-50/30 dark:bg-red-950/20 overflow-hidden">
-              <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                <div class="max-w-xl">
-                  <h3 class="font-bold mb-1">
-                    {t("profile.deleteAccount")}
-                  </h3>
-                  <p class="text-sm text-text-muted-light dark:text-text-muted-dark leading-relaxed">
-                    {t("profile.deleteAccountDesc")}
-                  </p>
-                </div>
+                <div class="mt-4" />
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  class="shrink-0 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all flex items-center justify-center cursor-pointer border-none"
+                  class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 text-red-500 transition-all font-bold cursor-pointer bg-transparent border-none"
                 >
+                  <Icon name="delete_forever" />
                   {t("profile.deleteAccount")}
                 </button>
               </div>
             </div>
+
           </>
         )}
       </div>
