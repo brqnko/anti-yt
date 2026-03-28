@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { formatDuration, formatTimeAgo } from "../utils/format";
 import { buildWatchUrl } from "../utils/url";
@@ -18,6 +19,8 @@ export interface VideoCardProps {
   watchedSeconds?: number;
   layout?: "card" | "row";
   playlistId?: string;
+  isSubscribed?: boolean;
+  onToggleSubscription?: () => Promise<void>;
 }
 
 function VideoThumbnail({
@@ -76,6 +79,122 @@ function VideoThumbnail({
   );
 }
 
+function VideoCardMenu({
+  channelName,
+  isSubscribed,
+  onToggleSubscription,
+}: {
+  channelName: string;
+  isSubscribed: boolean;
+  onToggleSubscription: () => Promise<void>;
+}) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [toggling, setToggling] = useState(false);
+  const [subscribed, setSubscribed] = useState(isSubscribed);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setSubscribed(isSubscribed);
+  }, [isSubscribed]);
+
+  useEffect(() => {
+    if (!open) return;
+    document.body.style.overflow = "hidden";
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  const handleToggle = async () => {
+    if (toggling) return;
+    setToggling(true);
+    try {
+      await onToggleSubscription();
+      setSubscribed((prev) => !prev);
+    } finally {
+      setToggling(false);
+    }
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        class="flex-shrink-0 p-0.5 -mr-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors bg-transparent border-none cursor-pointer text-text-muted-light dark:text-text-muted-dark"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen(true);
+        }}
+        aria-label={t("videoCard.moreOptions")}
+      >
+        <Icon name="more_vert" class="text-[20px]" />
+      </button>
+      {open && (
+        <div
+          class="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("videoCard.moreOptions")}
+        >
+          <div
+            class="absolute inset-0 bg-black/60"
+            onClick={() => setOpen(false)}
+          />
+          <div
+            ref={dialogRef}
+            class="relative bg-white dark:bg-[#2a2721] rounded-2xl ring-1 ring-black/10 dark:ring-white/10 border border-gray-100 dark:border-neutral-800 p-8 max-w-sm w-full"
+          >
+            <button
+              class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
+              onClick={() => setOpen(false)}
+              aria-label={t("common.close")}
+            >
+              <Icon name="close" />
+            </button>
+            <h2 class="text-2xl font-bold text-charcoal dark:text-white mb-2">
+              {channelName}
+            </h2>
+            <div class="flex items-center justify-between mt-6">
+              <div class="flex flex-col">
+                <span class="text-sm font-bold text-charcoal dark:text-white">
+                  {t("videoCard.subscribeChannel")}
+                </span>
+                <span class="text-xs text-text-muted-light dark:text-text-muted-dark">
+                  {t("videoCard.subscribeDesc")}
+                </span>
+              </div>
+              <button
+                class="relative inline-flex items-center cursor-pointer bg-transparent border-none p-0 flex-shrink-0 ml-3"
+                onClick={handleToggle}
+                disabled={toggling}
+              >
+                <div
+                  class={`w-14 h-7 rounded-full transition-colors duration-200 ${
+                    subscribed ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"
+                  } ${toggling ? "opacity-50" : ""}`}
+                >
+                  <div
+                    class={`absolute top-0.5 left-[4px] bg-white border border-gray-300 rounded-full h-6 w-6 transition-transform duration-200 ${
+                      subscribed ? "translate-x-full" : ""
+                    }`}
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 export function VideoCard({
   videoId,
   thumbnailUrl,
@@ -87,6 +206,8 @@ export function VideoCard({
   watchedSeconds,
   layout = "card",
   playlistId,
+  isSubscribed,
+  onToggleSubscription,
 }: VideoCardProps) {
   const { t } = useTranslation();
   const progressPercent =
@@ -168,12 +289,21 @@ export function VideoCard({
           </a>
         )}
         <div class="flex flex-col min-w-0 flex-1">
-          <a
-            href={watchUrl}
-            class="text-base font-bold text-charcoal dark:text-white leading-tight line-clamp-2 cursor-pointer no-underline hover:text-primary transition-colors"
-          >
-            {title}
-          </a>
+          <div class="flex items-start gap-1">
+            <a
+              href={watchUrl}
+              class="text-base font-bold text-charcoal dark:text-white leading-tight line-clamp-2 cursor-pointer no-underline hover:text-primary transition-colors flex-1 min-w-0"
+            >
+              {title}
+            </a>
+            {channel && onToggleSubscription && (
+              <VideoCardMenu
+                channelName={channel.displayName}
+                isSubscribed={isSubscribed ?? false}
+                onToggleSubscription={onToggleSubscription}
+              />
+            )}
+          </div>
           <div class="flex items-center justify-between text-sm text-text-muted-light dark:text-text-muted-dark mt-1">
             {channel && (
               <a

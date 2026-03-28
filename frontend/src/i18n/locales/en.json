@@ -6,7 +6,13 @@
       "light": "Light mode",
       "dark": "Dark mode",
       "system": "System preference"
-    }
+    },
+    "close": "Close"
+  },
+  "videoCard": {
+    "moreOptions": "More options",
+    "subscribeChannel": "Subscribe",
+    "subscribeDesc": "Allow into your feed"
   },
   "legal": {
     "navTerms": "Terms of Service",

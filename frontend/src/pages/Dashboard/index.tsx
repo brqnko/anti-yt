@@ -7,6 +7,7 @@ import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
 import { getFeed } from "../../api/generated/feed";
+import { getChannel } from "../../api/generated/channel";
 import { PAGE_SIZES } from "../../constants";
 import type { GetFeed200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
@@ -19,22 +20,46 @@ function DashboardContent() {
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasNext, setHasNext] = useState(false);
+  const [subscribedChannelIds, setSubscribedChannelIds] = useState<Set<string>>(new Set());
   const cursorRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const feedRes = await getFeed().getFeed({ limit: PAGE_SIZES.FEED });
-        setFeedVideos(feedRes.items);
-        setHasNext(feedRes.has_next);
-        const lastItem = feedRes.items[feedRes.items.length - 1];
-        cursorRef.current = lastItem?.video_id;
+        const [feedRes, subsRes] = await Promise.allSettled([
+          getFeed().getFeed({ limit: PAGE_SIZES.FEED }),
+          getChannel().getChannelsSubscribed({ limit: 50 }),
+        ]);
+        if (feedRes.status === "fulfilled") {
+          setFeedVideos(feedRes.value.items);
+          setHasNext(feedRes.value.has_next);
+          const lastItem = feedRes.value.items[feedRes.value.items.length - 1];
+          cursorRef.current = lastItem?.video_id;
+        }
+        if (subsRes.status === "fulfilled") {
+          setSubscribedChannelIds(new Set(subsRes.value.items.map((s) => s.channel_id)));
+        }
       } finally {
         setIsLoadingFeed(false);
       }
     };
     loadData();
   }, []);
+
+  const handleToggleSubscription = useCallback(async (channelId: string) => {
+    const isCurrentlySubscribed = subscribedChannelIds.has(channelId);
+    if (isCurrentlySubscribed) {
+      await getChannel().deleteChannelsChannelIdSubscribe(channelId);
+      setSubscribedChannelIds((prev) => {
+        const next = new Set(prev);
+        next.delete(channelId);
+        return next;
+      });
+    } else {
+      await getChannel().postChannelsSubscribe({ channel_id: channelId });
+      setSubscribedChannelIds((prev) => new Set(prev).add(channelId));
+    }
+  }, [subscribedChannelIds]);
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasNext) return;
@@ -74,6 +99,8 @@ function DashboardContent() {
                   }}
                   dateStr={video.external_video_created_at}
                   watchedSeconds={video.last_watch_seconds}
+                  isSubscribed={subscribedChannelIds.has(video.channel_id)}
+                  onToggleSubscription={() => handleToggleSubscription(video.channel_id)}
                 />
               ))}
             </div>
