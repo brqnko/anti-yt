@@ -16,6 +16,7 @@ func (h *APIHandler) GetVideosVideoId(ctx context.Context, request GetVideosVide
 		ExternalVideoTitle:              videoDetail.ExternalVideoTitle,
 		ExternalVideoDescription:        videoDetail.ExternalVideoDescription,
 		ExternalVideoThumbnailUrl:       videoDetail.ExternalVideoThumbnailUrl,
+		ExternalVideoCreatedAt:          videoDetail.ExternalVideoCreatedAt,
 		ChannelId:                       videoDetail.ChannelId,
 		ExternalChannelDisplayName:      videoDetail.ExternalChannelDisplayName,
 		ChannelCustomId:                 videoDetail.ChannelCustomId,

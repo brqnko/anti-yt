@@ -2,6 +2,7 @@ package middleware_d
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 	"github.com/brqnko/anti-yt/backend/internal/history"
 	"github.com/brqnko/anti-yt/backend/internal/user"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -47,7 +49,7 @@ func ScreenTimeMiddleware(db *pgxpool.Pool) func(v1.StrictHandlerFunc, string) v
 			// 許可時間帯はUTCで保存されているのでUTCで比較
 			rangeSet, err := userRepo.FindScreenTimeRanges(ctx, userID)
 			if err != nil {
-				hutil.LogError(ctx, err)
+				util.LoggerFromContext(ctx).ErrorContext(ctx, "internal server error", slog.Any("error", err))
 				return writeErrorJSON(w, http.StatusInternalServerError, "internal server error", "internal server error")
 			}
 			if nextStart := rangeSet.BlockedUntil(now.UTC()); nextStart != nil {
@@ -57,7 +59,7 @@ func ScreenTimeMiddleware(db *pgxpool.Pool) func(v1.StrictHandlerFunc, string) v
 			// 日次視聴制限はユーザーのローカル日付で計算
 			watchStats, err := historyQS.FindTotalWatchSeconds(ctx, userID, loc)
 			if err != nil {
-				hutil.LogError(ctx, err)
+				util.LoggerFromContext(ctx).ErrorContext(ctx, "internal server error", slog.Any("error", err))
 				return writeErrorJSON(w, http.StatusInternalServerError, "internal server error", "internal server error")
 			}
 

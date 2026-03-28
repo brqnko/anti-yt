@@ -8,6 +8,7 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/admin"
 	"github.com/brqnko/anti-yt/backend/internal/core"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
 type handler struct {
@@ -36,7 +37,7 @@ func (h *handler) createValuableChannel(w http.ResponseWriter, r *http.Request) 
 			writeErrorJSON(w, http.StatusBadRequest, domainErr.Code(), domainErr.Error())
 			return
 		}
-		slog.Error("failed to create valuable channel", "error", err)
+		util.LoggerFromContext(r.Context()).ErrorContext(r.Context(), "failed to create valuable channel", slog.Any("error", err))
 		writeErrorJSON(w, http.StatusInternalServerError, "Internal Server Error", "an unexpected error has occurred")
 		return
 	}
@@ -72,7 +73,7 @@ func (h *handler) updateValuableChannel(w http.ResponseWriter, r *http.Request) 
 			writeErrorJSON(w, http.StatusBadRequest, domainErr.Code(), domainErr.Error())
 			return
 		}
-		slog.Error("failed to update valuable channel", "error", err)
+		util.LoggerFromContext(r.Context()).ErrorContext(r.Context(), "failed to update valuable channel", slog.Any("error", err))
 		writeErrorJSON(w, http.StatusInternalServerError, "Internal Server Error", "an unexpected error has occurred")
 		return
 	}
@@ -105,7 +106,7 @@ func (h *handler) removeValuableChannel(w http.ResponseWriter, r *http.Request) 
 			writeErrorJSON(w, http.StatusBadRequest, domainErr.Code(), domainErr.Error())
 			return
 		}
-		slog.Error("failed to remove valuable channel", "error", err)
+		util.LoggerFromContext(r.Context()).ErrorContext(r.Context(), "failed to remove valuable channel", slog.Any("error", err))
 		writeErrorJSON(w, http.StatusInternalServerError, "Internal Server Error", "an unexpected error has occurred")
 		return
 	}
@@ -129,7 +130,7 @@ func (h *handler) importChannelVideos(w http.ResponseWriter, r *http.Request) {
 			writeErrorJSON(w, http.StatusBadRequest, domainErr.Code(), domainErr.Error())
 			return
 		}
-		slog.Error("failed to import channel videos", "error", err)
+		util.LoggerFromContext(r.Context()).ErrorContext(r.Context(), "failed to import channel videos", slog.Any("error", err))
 		writeErrorJSON(w, http.StatusInternalServerError, "Internal Server Error", "an unexpected error has occurred")
 		return
 	}

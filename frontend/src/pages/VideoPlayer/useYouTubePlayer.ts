@@ -32,6 +32,7 @@ const IFRAME_API_TIMEOUT_MS = 10_000;
 // localStorage keys for persisting player preferences
 const STORAGE_KEY_VOLUME = "yt-player-volume";
 const STORAGE_KEY_MUTED = "yt-player-muted";
+const STORAGE_KEY_LOOP = "yt-player-loop";
 
 function loadPreference<T>(key: string, fallback: T): T {
   try {
@@ -109,6 +110,8 @@ export function useYouTubePlayer({
   const [duration, setDuration] = useState(0);
   const [volume, setVolumeState] = useState(() => loadPreference(STORAGE_KEY_VOLUME, 100));
   const [isMuted, setIsMuted] = useState(() => loadPreference(STORAGE_KEY_MUTED, false));
+  const [isLooping, setIsLooping] = useState(() => loadPreference(STORAGE_KEY_LOOP, false));
+  const isLoopingRef = useRef(isLooping);
   const rafRef = useRef<number | null>(null);
   const currentTimeRef = useRef(0);
   const lastRenderedSecondRef = useRef(-1);
@@ -278,6 +281,10 @@ export function useYouTubePlayer({
               if (player.getCurrentTime) {
                 setCurrentTime(player.getCurrentTime());
               }
+              if (state === PlayerState.ENDED && isLoopingRef.current) {
+                player.seekTo(0, true);
+                player.playVideo();
+              }
             }
           },
         },
@@ -356,6 +363,15 @@ export function useYouTubePlayer({
     }
   }, []);
 
+  const toggleLoop = useCallback(() => {
+    setIsLooping((prev) => {
+      const next = !prev;
+      isLoopingRef.current = next;
+      savePreference(STORAGE_KEY_LOOP, next);
+      return next;
+    });
+  }, []);
+
   return {
     isReady,
     loadError,
@@ -371,6 +387,8 @@ export function useYouTubePlayer({
     seekTo,
     setVolume,
     toggleMute,
+    isLooping,
+    toggleLoop,
     setHighFreqSync,
   };
 }

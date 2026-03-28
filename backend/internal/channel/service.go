@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -61,12 +62,12 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			slog.Error("failed to rollback transaction", "error", err)
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback transaction", slog.Any("error", err))
 		}
 	}()
 	q := sqlc.New(tx)
 
-	if err := util.TryAdLock(ctx, q, []byte(channelIDOrHandle)); err != nil {
+	if err := database_d.TryAdLock(ctx, q, []byte(channelIDOrHandle)); err != nil {
 		return nil, err
 	}
 
@@ -116,12 +117,12 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 		for _, vd := range videoDetails {
 			v, err := video.NewVideo(channel.ID, fetchedAt, vd)
 			if err != nil {
-				slog.Info("failed to newVideo", "error", err)
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to newVideo", slog.Any("error", err))
 				continue
 			}
 
 			if _, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v); err != nil {
-				slog.Info("failed to save video", "error", err)
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video", slog.Any("error", err))
 			}
 		}
 
@@ -186,7 +187,7 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			slog.Warn("failed to rollback transaction", "error", err)
+			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to rollback transaction", slog.Any("error", err))
 		}
 	}()
 	q := sqlc.New(tx)
@@ -213,12 +214,12 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 		for _, videoDetail := range videoDetailMap {
 			v, err := video.NewVideo(lockedChannel.ID, fetchedAt, videoDetail)
 			if err != nil {
-				slog.Info("failed to new video", "error", err)
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video", slog.Any("error", err))
 				continue
 			}
 
 			if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
-				slog.Info("failed to save new video", "error", err)
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save new video", slog.Any("error", err))
 				continue
 			}
 		}

@@ -7,7 +7,7 @@ package sqlc
 import (
 	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d/dbtype"
 	"github.com/google/uuid"
 )
 
@@ -111,8 +111,8 @@ type MUserAuthorization struct {
 type MUserScreenTimeRange struct {
 	MUserScreenTimeRangeID int64
 	MUserID                int64
-	ScreenTimeRangeStart   database_d.Seconds
-	ScreenTimeRangeEnd     database_d.Seconds
+	ScreenTimeRangeStart   dbtype.Seconds
+	ScreenTimeRangeEnd     dbtype.Seconds
 	CreatedAt              time.Time
 	UpdatedAt              time.Time
 }

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/channel"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -43,12 +44,12 @@ func (s *Service) CreateNewValuableChannel(ctx context.Context, externalChannelI
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			slog.Error("failed to rollback transaction", "error", err)
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback transaction", slog.Any("error", err))
 		}
 	}()
 	q := sqlc.New(tx)
 
-	if err := util.TryAdLock(ctx, q, []byte(channelIDOrHandle)); err != nil {
+	if err := database_d.TryAdLock(ctx, q, []byte(channelIDOrHandle)); err != nil {
 		return nil, err
 	}
 
@@ -93,12 +94,12 @@ func (s *Service) CreateNewValuableChannel(ctx context.Context, externalChannelI
 		for _, vd := range videoDetails {
 			v, err := video.NewVideo(ch.ID, fetchedAt, vd)
 			if err != nil {
-				slog.Info("failed to newVideo", "error", err)
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to newVideo", slog.Any("error", err))
 				continue
 			}
 
 			if _, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v); err != nil {
-				slog.Info("failed to save video", "error", err)
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video", slog.Any("error", err))
 			}
 		}
 
@@ -138,7 +139,7 @@ func (s *Service) UpdateValuableChannel(ctx context.Context, externalChannelID s
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			slog.Error("failed to rollback transaction", "error", err)
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback transaction", slog.Any("error", err))
 		}
 	}()
 	q := sqlc.New(tx)
@@ -220,16 +221,16 @@ func (s *Service) ImportChannelVideos(ctx context.Context, externalChannelID str
 		if len(videoIDs) > 0 {
 			videoDetails, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
 			if err != nil {
-				slog.Error("failed to fetch video detail", "error", err)
+				util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to fetch video detail", slog.Any("error", err))
 			} else {
 				for _, vd := range videoDetails {
 					v, err := video.NewVideo(foundChannel.ID, fetchedAt, vd)
 					if err != nil {
-						slog.Info("failed to newVideo", "error", err)
+						util.LoggerFromContext(ctx).InfoContext(ctx, "failed to newVideo", slog.Any("error", err))
 						continue
 					}
 					if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
-						slog.Info("failed to save video", "error", err)
+						util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video", slog.Any("error", err))
 						continue
 					}
 					savedCount++

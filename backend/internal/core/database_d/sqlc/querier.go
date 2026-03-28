@@ -19,6 +19,7 @@ type Querier interface {
 	BulkInsertScreenTimeRanges(ctx context.Context, arg []BulkInsertScreenTimeRangesParams) (int64, error)
 	// NOTE: SaveChannelの前にこれをする. CTEでやろうと思ったけど、トランザクション...
 	ClearStaleChannelCustomID(ctx context.Context, arg ClearStaleChannelCustomIDParams) error
+	CloseStaleWatchSessions(ctx context.Context, userPublicID uuid.UUID) error
 	// m_user_authorization_idに紐づくh_userとm_userの数を数える
 	CountUsersByAuthorization(ctx context.Context, publicID uuid.UUID) (int32, error)
 	DeletePlaylist(ctx context.Context, arg DeletePlaylistParams) (uuid.UUID, error)
@@ -105,7 +106,7 @@ type Querier interface {
 	UpsertPlaylist(ctx context.Context, arg UpsertPlaylistParams) (int64, error)
 	UpsertRatelimit(ctx context.Context, arg UpsertRatelimitParams) (UpsertRatelimitRow, error)
 	UpsertValuableChannel(ctx context.Context, arg UpsertValuableChannelParams) (int64, error)
-	UpsertVideo(ctx context.Context, arg UpsertVideoParams) (int64, error)
+	UpsertVideo(ctx context.Context, arg UpsertVideoParams) (UpsertVideoRow, error)
 	UpsertWatchHeartbeat(ctx context.Context, arg UpsertWatchHeartbeatParams) error
 }
 

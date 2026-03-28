@@ -3,6 +3,7 @@ package video
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -17,6 +18,7 @@ type GetVideoDetailView struct {
 	ExternalVideoTitle              string
 	ExternalVideoDescription        string
 	ExternalVideoThumbnailUrl       string
+	ExternalVideoCreatedAt          time.Time
 	ChannelId                       uuid.UUID
 	ChannelCustomId                 string
 	ExternalChannelDisplayName      string
@@ -55,6 +57,7 @@ func (v *videoQueryServiceImpl) Find(ctx context.Context, id uuid.UUID) (_ GetVi
 		ExternalVideoTitle:              row.ExternalTitle,
 		ExternalVideoDescription:        row.ExternalDescription,
 		ExternalVideoThumbnailUrl:       row.ExternalThumbnailUrl,
+		ExternalVideoCreatedAt:          row.ExternalCreatedAt,
 		ChannelId:                       row.ChannelID,
 		ChannelCustomId:                 row.ChannelCustomID,
 		ExternalChannelDisplayName:      row.ExternalDisplayName,

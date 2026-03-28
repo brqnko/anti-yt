@@ -19,6 +19,7 @@ SELECT
     video.external_title,
     video.external_description,
     video.external_thumbnail_url,
+    video.external_created_at,
     channel.public_id AS channel_id,
     channel.external_id AS channel_external_id,
     channel.external_display_name,
@@ -40,6 +41,7 @@ type GetVideoDetailRow struct {
 	ExternalTitle            string
 	ExternalDescription      string
 	ExternalThumbnailUrl     string
+	ExternalCreatedAt        time.Time
 	ChannelID                uuid.UUID
 	ChannelExternalID        string
 	ExternalDisplayName      string
@@ -57,6 +59,7 @@ func (q *Queries) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (GetVid
 		&i.ExternalTitle,
 		&i.ExternalDescription,
 		&i.ExternalThumbnailUrl,
+		&i.ExternalCreatedAt,
 		&i.ChannelID,
 		&i.ChannelExternalID,
 		&i.ExternalDisplayName,
@@ -480,7 +483,7 @@ ON CONFLICT (external_id) DO UPDATE SET
     fetched_at = EXCLUDED.fetched_at,
     updated_at = CURRENT_TIMESTAMP
 RETURNING
-    m_video_id
+    m_video_id, public_id
 `
 
 type UpsertVideoParams struct {
@@ -495,7 +498,12 @@ type UpsertVideoParams struct {
 	ID                    uuid.UUID
 }
 
-func (q *Queries) UpsertVideo(ctx context.Context, arg UpsertVideoParams) (int64, error) {
+type UpsertVideoRow struct {
+	MVideoID int64
+	PublicID uuid.UUID
+}
+
+func (q *Queries) UpsertVideo(ctx context.Context, arg UpsertVideoParams) (UpsertVideoRow, error) {
 	row := q.db.QueryRow(ctx, upsertVideo,
 		arg.ChannelID,
 		arg.ExternalID,
@@ -507,7 +515,7 @@ func (q *Queries) UpsertVideo(ctx context.Context, arg UpsertVideoParams) (int64
 		arg.ExternalLengthSeconds,
 		arg.ID,
 	)
-	var m_video_id int64
-	err := row.Scan(&m_video_id)
-	return m_video_id, err
+	var i UpsertVideoRow
+	err := row.Scan(&i.MVideoID, &i.PublicID)
+	return i, err
 }

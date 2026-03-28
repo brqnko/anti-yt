@@ -3,11 +3,12 @@ package middleware_d
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 	"github.com/brqnko/anti-yt/backend/internal/core"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -27,7 +28,7 @@ func DomainErrorMiddleware(f v1.StrictHandlerFunc, operationID string) v1.Strict
 			return writeErrorJSON(w, http.StatusBadRequest, domainErr.Code(), domainErr.Error())
 		}
 
-		hutil.LogError(ctx, err)
+		util.LoggerFromContext(ctx).ErrorContext(ctx, "internal server error", slog.Any("error", err))
 		return writeErrorJSON(w, http.StatusInternalServerError, "Internal Server Error", "an unexpected error has occurred")
 	}
 }

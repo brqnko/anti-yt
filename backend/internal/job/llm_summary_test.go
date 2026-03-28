@@ -92,7 +92,6 @@ func seedWatchRecord(t *testing.T, pool *pgxpool.Pool, userPubID, videoPubID uui
 		WatchPositionSeconds: 60,
 		PublicID:             uuid.Must(uuid.NewV7()),
 		WatchStartAt:         now,
-		WatchEndAt:           now.Add(2 * time.Minute),
 	}); err != nil {
 		t.Fatalf("seedWatchRecord: %v", err)
 	}
