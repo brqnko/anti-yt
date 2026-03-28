@@ -210,9 +210,13 @@
       "profileSettings": "Profile",
       "security": "Security",
       "signOut": "Sign Out",
-      "reportProblem": "Report a Problem"
+      "reportProblem": "Report a Problem",
+      "other": "Other"
     },
     "accountDetails": "Account",
+    "youtubeImport": {
+      "button": "Import from YouTube"
+    },
     "displayName": "Display Name",
     "displayNamePlaceholder": "Your name",
     "language": "Language",
@@ -220,7 +224,6 @@
     "saving": "Saving...",
     "saved": "Saved!",
     "deleteAccount": "Delete Account",
-    "deleteAccountDesc": "Once you delete your account, there is no going back. All your data, restriction history, and preferences will be permanently erased.",
     "deleteConfirmTitle": "Delete Account?",
     "deleteConfirmDesc": "This action cannot be undone. All your data will be permanently deleted.",
     "deleteConfirmInputLabel": "Type \"Delete my account\" to confirm",

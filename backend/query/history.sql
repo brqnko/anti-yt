@@ -149,6 +149,7 @@ update_same AS (
             THEN 0
             ELSE @watch_position_seconds::int
         END,
+        watch_end_at = CURRENT_TIMESTAMP + INTERVAL '2 minutes',
         updated_at = CURRENT_TIMESTAMP
     FROM
         latest_active

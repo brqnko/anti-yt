@@ -20,6 +20,7 @@ var (
 		"/api/v1/auth/google",
 		"/api/v1/auth/google/callback",
 		"/api/v1/auth/refresh",
+		"/api/v1/auth/oauth/youtube/callback",
 	}
 )
 

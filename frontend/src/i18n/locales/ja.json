@@ -210,9 +210,13 @@
       "profileSettings": "プロフィール",
       "security": "セキュリティ",
       "signOut": "ログアウト",
-      "reportProblem": "問題を報告"
+      "reportProblem": "問題を報告",
+      "other": "その他"
     },
     "accountDetails": "アカウント",
+    "youtubeImport": {
+      "button": "YouTubeからインポート"
+    },
     "displayName": "表示名",
     "displayNamePlaceholder": "あなたの名前",
     "language": "言語",
@@ -220,7 +224,6 @@
     "saving": "保存中...",
     "saved": "保存しました！",
     "deleteAccount": "アカウントを削除",
-    "deleteAccountDesc": "アカウントを削除すると元に戻すことはできません。すべてのデータ、制限履歴、設定が完全に消去されます。",
     "deleteConfirmTitle": "アカウントを削除しますか？",
     "deleteConfirmDesc": "この操作は取り消せません。すべてのデータが完全に削除されます。",
     "deleteConfirmInputLabel": "確認のため「Delete my account」と入力してください",

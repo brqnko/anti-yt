@@ -7,13 +7,14 @@ import (
 	"log/slog"
 	"regexp"
 	"strconv"
-	"time"
-
 	"strings"
+	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/mmcdole/gofeed"
+	"golang.org/x/oauth2"
+	googleOAuth2 "golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"google.golang.org/api/youtube/v3"
 )
@@ -33,6 +34,11 @@ type Service interface {
 	FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (map[VideoID]Video, error)
 	FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error)
 	SearchVideoIDs(ctx context.Context, query string, pageToken string, opts SearchOptions) (_ []VideoID, _ string, err error)
+	OAuthAuthCodeURL(state string) string
+	OAuthExchange(ctx context.Context, code string) (accessToken string, err error)
+	FetchAllSubscriptions(ctx context.Context, accessToken string) (_ []Channel, err error)
+	FetchWatchHistory(ctx context.Context, accessToken string, pageToken string) (_ []WatchHistory, _ string, err error)
+	FetchPlaylistVideoIDsWithOAuth(ctx context.Context, accessToken string, playlistID string, pageToken string) (_ []VideoID, _ string, err error)
 }
 
 type SearchOptions struct {
@@ -47,8 +53,9 @@ type SearchOptions struct {
 var _ Service = (*serviceImpl)(nil)
 
 type serviceImpl struct {
-	ytClient   *youtube.Service
-	feedParser *gofeed.Parser
+	ytClient    *youtube.Service
+	feedParser  *gofeed.Parser
+	oauthConfig *oauth2.Config
 
 	lastCheckedDay  time.Time
 	consumedQuota   int
@@ -444,7 +451,7 @@ func (s *serviceImpl) tryConsumeQuota(quota int) error {
 	return nil
 }
 
-func NewService(ctx context.Context, apiKey string) (_ Service, err error) {
+func NewService(ctx context.Context, apiKey, oauthClientID, oauthClientSecret, oauthRedirectURL string) (_ Service, err error) {
 	defer util.Wrap(&err, "NewYouTubeAPIServiceImpl")
 
 	ytClient, err := youtube.NewService(ctx, option.WithAPIKey(apiKey))
@@ -456,12 +463,155 @@ func NewService(ctx context.Context, apiKey string) (_ Service, err error) {
 	feedParser.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
 
 	return &serviceImpl{
-		ytClient:        ytClient,
-		feedParser:      feedParser,
+		ytClient:   ytClient,
+		feedParser: feedParser,
+		oauthConfig: &oauth2.Config{
+			ClientID:     oauthClientID,
+			ClientSecret: oauthClientSecret,
+			RedirectURL:  oauthRedirectURL,
+			Scopes:       []string{"https://www.googleapis.com/auth/youtube.readonly"},
+			Endpoint:     googleOAuth2.Endpoint,
+		},
 		lastCheckedDay:  quotaDate().Add(24 * time.Hour),
 		consumedQuota:   0,
 		dailyQuotaLimit: 10000,
 	}, nil
+}
+
+func (s *serviceImpl) OAuthAuthCodeURL(state string) string {
+	return s.oauthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline)
+}
+
+func (s *serviceImpl) OAuthExchange(ctx context.Context, code string) (_ string, err error) {
+	defer util.Wrap(&err, "serviceImpl.OAuthExchange")
+
+	token, err := s.oauthConfig.Exchange(ctx, code)
+	if err != nil {
+		return "", err
+	}
+	return token.AccessToken, nil
+}
+
+func (s *serviceImpl) FetchAllSubscriptions(ctx context.Context, accessToken string) (_ []Channel, err error) {
+	defer util.Wrap(&err, "serviceImpl.FetchAllSubscriptions")
+
+	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}))
+	ytClient, err := youtube.NewService(ctx, option.WithHTTPClient(httpClient))
+	if err != nil {
+		return nil, err
+	}
+
+	var channels []Channel
+	pageToken := ""
+	for {
+		call := ytClient.Subscriptions.List([]string{"snippet"}).Mine(true).MaxResults(50)
+		if pageToken != "" {
+			call = call.PageToken(pageToken)
+		}
+		resp, err := call.Do()
+		if err != nil {
+			return nil, err
+		}
+		for _, item := range resp.Items {
+			channels = append(channels, Channel{
+				ID:          ChannelID(item.Snippet.ResourceId.ChannelId),
+				DisplayName: item.Snippet.Title,
+				IconURL:     item.Snippet.Thumbnails.Default.Url,
+			})
+		}
+		if resp.NextPageToken == "" {
+			break
+		}
+		pageToken = resp.NextPageToken
+	}
+	return channels, nil
+}
+
+
+func (s *serviceImpl) FetchPlaylistVideoIDsWithOAuth(ctx context.Context, accessToken string, playlistID string, pageToken string) (_ []VideoID, _ string, err error) {
+	defer util.Wrap(&err, "serviceImpl.FetchPlaylistVideoIDsWithOAuth")
+
+	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}))
+	ytClient, err := youtube.NewService(ctx, option.WithHTTPClient(httpClient))
+	if err != nil {
+		return nil, "", err
+	}
+
+	call := ytClient.PlaylistItems.List([]string{"contentDetails"}).
+		PlaylistId(playlistID).
+		MaxResults(50).
+		Context(ctx)
+	if pageToken != "" {
+		call = call.PageToken(pageToken)
+	}
+
+	res, err := call.Do()
+	if err != nil {
+		return nil, "", err
+	}
+
+	videoIDs := make([]VideoID, 0, len(res.Items))
+	for _, item := range res.Items {
+		if item.ContentDetails == nil || item.ContentDetails.VideoId == "" {
+			slog.Info("item.ContentDetails is nil or VideoId is empty(fetchPlaylistVideoIDsWithOAuth)")
+			continue
+		}
+		videoID, err := NewVideoID(item.ContentDetails.VideoId)
+		if err != nil {
+			slog.Info("failed to NewVideoID(fetchPlaylistVideoIDsWithOAuth)", "error", err)
+			continue
+		}
+		videoIDs = append(videoIDs, videoID)
+	}
+
+	return videoIDs, res.NextPageToken, nil
+}
+
+func (s *serviceImpl) FetchWatchHistory(ctx context.Context, accessToken string, pageToken string) (_ []WatchHistory, _ string, err error) {
+	defer util.Wrap(&err, "serviceImpl.FetchWatchHistory")
+
+	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}))
+	ytClient, err := youtube.NewService(ctx, option.WithHTTPClient(httpClient))
+	if err != nil {
+		return nil, "", err
+	}
+
+	call := ytClient.PlaylistItems.List([]string{"snippet"}).
+		PlaylistId("HL").
+		MaxResults(50).
+		Context(ctx)
+	if pageToken != "" {
+		call = call.PageToken(pageToken)
+	}
+
+	res, err := call.Do()
+	if err != nil {
+		return nil, "", err
+	}
+
+	histories := make([]WatchHistory, 0, len(res.Items))
+	for _, item := range res.Items {
+		if item.Snippet == nil || item.Snippet.ResourceId == nil || item.Snippet.ResourceId.VideoId == "" {
+			slog.Info("item.Snippet or ResourceId is nil or VideoId is empty(fetchWatchHistory)")
+			continue
+		}
+		videoID, err := NewVideoID(item.Snippet.ResourceId.VideoId)
+		if err != nil {
+			slog.Info("failed to NewVideoID(fetchWatchHistory)", "error", err)
+			continue
+		}
+		watchedAt, err := time.Parse(time.RFC3339, item.Snippet.PublishedAt)
+		if err != nil {
+			slog.Info("failed to parse PublishedAt(fetchWatchHistory)", "error", err)
+			continue
+		}
+		histories = append(histories, WatchHistory{
+			VideoID:   videoID,
+			WatchedAt: watchedAt,
+		})
+	}
+
+	return histories, res.NextPageToken, nil
 }
 
 func quotaDate() time.Time {

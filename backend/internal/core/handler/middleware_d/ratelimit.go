@@ -88,6 +88,11 @@ func UserRatelimitMiddleware(mux *chi.Mux, db *pgxpool.Pool) func(v1.StrictHandl
 			pathRegex: regexp.MustCompile(`/api/v1/playlists/\{[^/]+\}/videos$`),
 			quota:     100,
 		},
+		{
+			method:    http.MethodGet,
+			pathRegex: regexp.MustCompile(`/api/v1/auth/oauth/youtube/callback$`),
+			quota:     500,
+		},
 	}
 	var quotaMap map[string]int
 	var once sync.Once

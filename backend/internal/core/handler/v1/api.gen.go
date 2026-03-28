@@ -260,6 +260,45 @@ type PostAuthLogoutParams struct {
 	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
+// GetAuthOauthYoutubeParams defines parameters for GetAuthOauthYoutube.
+type GetAuthOauthYoutubeParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+}
+
+// GetAuthOauthYoutubeCallbackParams defines parameters for GetAuthOauthYoutubeCallback.
+type GetAuthOauthYoutubeCallbackParams struct {
+	// Code YouTubeから発行された認可コード
+	Code string `form:"code" json:"code"`
+
+	// State CSRF対策用
+	State string `form:"state" json:"state"`
+
+	// Error エラー
+	Error *string `form:"error,omitempty" json:"error,omitempty"`
+
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+}
+
 // PostAuthRefreshParams defines parameters for PostAuthRefresh.
 type PostAuthRefreshParams struct {
 	XCsrfToken HeaderCSRFToken `json:"x-csrf-token"`
@@ -917,6 +956,12 @@ type ServerInterface interface {
 	// Logout
 	// (POST /api/v1/auth/logout)
 	PostAuthLogout(w http.ResponseWriter, r *http.Request, params PostAuthLogoutParams)
+	// YouTube OAuth authentication
+	// (GET /api/v1/auth/oauth/youtube)
+	GetAuthOauthYoutube(w http.ResponseWriter, r *http.Request, params GetAuthOauthYoutubeParams)
+	// YouTube OAuth Callback
+	// (GET /api/v1/auth/oauth/youtube/callback)
+	GetAuthOauthYoutubeCallback(w http.ResponseWriter, r *http.Request, params GetAuthOauthYoutubeCallbackParams)
 	// Refresh access token
 	// (POST /api/v1/auth/refresh)
 	PostAuthRefresh(w http.ResponseWriter, r *http.Request, params PostAuthRefreshParams)
@@ -1022,6 +1067,18 @@ func (_ Unimplemented) GetAuthGoogleCallback(w http.ResponseWriter, r *http.Requ
 // Logout
 // (POST /api/v1/auth/logout)
 func (_ Unimplemented) PostAuthLogout(w http.ResponseWriter, r *http.Request, params PostAuthLogoutParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// YouTube OAuth authentication
+// (GET /api/v1/auth/oauth/youtube)
+func (_ Unimplemented) GetAuthOauthYoutube(w http.ResponseWriter, r *http.Request, params GetAuthOauthYoutubeParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// YouTube OAuth Callback
+// (GET /api/v1/auth/oauth/youtube/callback)
+func (_ Unimplemented) GetAuthOauthYoutubeCallback(w http.ResponseWriter, r *http.Request, params GetAuthOauthYoutubeCallbackParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1640,6 +1697,276 @@ func (siw *ServerInterfaceWrapper) PostAuthLogout(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PostAuthLogout(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetAuthOauthYoutube operation middleware
+func (siw *ServerInterfaceWrapper) GetAuthOauthYoutube(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAuthOauthYoutubeParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "ipv4"})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
+		}
+
+		params.XRealIP = XRealIP
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "iso-3166-1-alpha-2"})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
+		}
+
+		params.CfIpcountry = CfIpcountry
+
+	} else {
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
+		}
+
+		params.CfRay = CfRay
+
+	} else {
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
+		}
+
+		params.UserAgent = UserAgent
+
+	} else {
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAuthOauthYoutube(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetAuthOauthYoutubeCallback operation middleware
+func (siw *ServerInterfaceWrapper) GetAuthOauthYoutubeCallback(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAuthOauthYoutubeCallbackParams
+
+	// ------------- Required query parameter "code" -------------
+
+	if paramValue := r.URL.Query().Get("code"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "code"})
+		return
+	}
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "code", r.URL.Query(), &params.Code, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "code", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "state" -------------
+
+	if paramValue := r.URL.Query().Get("state"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "state"})
+		return
+	}
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "state", r.URL.Query(), &params.State, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "state", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "error" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "error", r.URL.Query(), &params.Error, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "error", Err: err})
+		return
+	}
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "ipv4"})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
+		}
+
+		params.XRealIP = XRealIP
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "iso-3166-1-alpha-2"})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
+		}
+
+		params.CfIpcountry = CfIpcountry
+
+	} else {
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
+		}
+
+		params.CfRay = CfRay
+
+	} else {
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
+		}
+
+		params.UserAgent = UserAgent
+
+	} else {
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAuthOauthYoutubeCallback(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -6814,6 +7141,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/api/v1/auth/logout", wrapper.PostAuthLogout)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/auth/oauth/youtube", wrapper.GetAuthOauthYoutube)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/auth/oauth/youtube/callback", wrapper.GetAuthOauthYoutubeCallback)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/api/v1/auth/refresh", wrapper.PostAuthRefresh)
 	})
 	r.Group(func(r chi.Router) {
@@ -7164,6 +7497,180 @@ type PostAuthLogout500JSONResponse struct {
 }
 
 func (response PostAuthLogout500JSONResponse) VisitPostAuthLogoutResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthOauthYoutubeRequestObject struct {
+	Params GetAuthOauthYoutubeParams
+}
+
+type GetAuthOauthYoutubeResponseObject interface {
+	VisitGetAuthOauthYoutubeResponse(w http.ResponseWriter) error
+}
+
+type GetAuthOauthYoutube302ResponseHeaders struct {
+	Location string
+}
+
+type GetAuthOauthYoutube302Response struct {
+	Headers GetAuthOauthYoutube302ResponseHeaders
+}
+
+func (response GetAuthOauthYoutube302Response) VisitGetAuthOauthYoutubeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Location", fmt.Sprint(response.Headers.Location))
+	w.WriteHeader(302)
+	return nil
+}
+
+type GetAuthOauthYoutube400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetAuthOauthYoutube400JSONResponse) VisitGetAuthOauthYoutubeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthOauthYoutube401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetAuthOauthYoutube401JSONResponse) VisitGetAuthOauthYoutubeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthOauthYoutube403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetAuthOauthYoutube403JSONResponse) VisitGetAuthOauthYoutubeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthOauthYoutube404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetAuthOauthYoutube404JSONResponse) VisitGetAuthOauthYoutubeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthOauthYoutube413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetAuthOauthYoutube413JSONResponse) VisitGetAuthOauthYoutubeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthOauthYoutube429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetAuthOauthYoutube429JSONResponse) VisitGetAuthOauthYoutubeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthOauthYoutube500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetAuthOauthYoutube500JSONResponse) VisitGetAuthOauthYoutubeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthOauthYoutubeCallbackRequestObject struct {
+	Params GetAuthOauthYoutubeCallbackParams
+}
+
+type GetAuthOauthYoutubeCallbackResponseObject interface {
+	VisitGetAuthOauthYoutubeCallbackResponse(w http.ResponseWriter) error
+}
+
+type GetAuthOauthYoutubeCallback302ResponseHeaders struct {
+	Location string
+}
+
+type GetAuthOauthYoutubeCallback302Response struct {
+	Headers GetAuthOauthYoutubeCallback302ResponseHeaders
+}
+
+func (response GetAuthOauthYoutubeCallback302Response) VisitGetAuthOauthYoutubeCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Location", fmt.Sprint(response.Headers.Location))
+	w.WriteHeader(302)
+	return nil
+}
+
+type GetAuthOauthYoutubeCallback400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response GetAuthOauthYoutubeCallback400JSONResponse) VisitGetAuthOauthYoutubeCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthOauthYoutubeCallback401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetAuthOauthYoutubeCallback401JSONResponse) VisitGetAuthOauthYoutubeCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthOauthYoutubeCallback403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetAuthOauthYoutubeCallback403JSONResponse) VisitGetAuthOauthYoutubeCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthOauthYoutubeCallback404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetAuthOauthYoutubeCallback404JSONResponse) VisitGetAuthOauthYoutubeCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthOauthYoutubeCallback413JSONResponse struct{ PayloadTooLargeJSONResponse }
+
+func (response GetAuthOauthYoutubeCallback413JSONResponse) VisitGetAuthOauthYoutubeCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthOauthYoutubeCallback429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response GetAuthOauthYoutubeCallback429JSONResponse) VisitGetAuthOauthYoutubeCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAuthOauthYoutubeCallback500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetAuthOauthYoutubeCallback500JSONResponse) VisitGetAuthOauthYoutubeCallbackResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(500)
 
@@ -9751,6 +10258,12 @@ type StrictServerInterface interface {
 	// Logout
 	// (POST /api/v1/auth/logout)
 	PostAuthLogout(ctx context.Context, request PostAuthLogoutRequestObject) (PostAuthLogoutResponseObject, error)
+	// YouTube OAuth authentication
+	// (GET /api/v1/auth/oauth/youtube)
+	GetAuthOauthYoutube(ctx context.Context, request GetAuthOauthYoutubeRequestObject) (GetAuthOauthYoutubeResponseObject, error)
+	// YouTube OAuth Callback
+	// (GET /api/v1/auth/oauth/youtube/callback)
+	GetAuthOauthYoutubeCallback(ctx context.Context, request GetAuthOauthYoutubeCallbackRequestObject) (GetAuthOauthYoutubeCallbackResponseObject, error)
 	// Refresh access token
 	// (POST /api/v1/auth/refresh)
 	PostAuthRefresh(ctx context.Context, request PostAuthRefreshRequestObject) (PostAuthRefreshResponseObject, error)
@@ -9937,6 +10450,58 @@ func (sh *strictHandler) PostAuthLogout(w http.ResponseWriter, r *http.Request, 
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(PostAuthLogoutResponseObject); ok {
 		if err := validResponse.VisitPostAuthLogoutResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetAuthOauthYoutube operation middleware
+func (sh *strictHandler) GetAuthOauthYoutube(w http.ResponseWriter, r *http.Request, params GetAuthOauthYoutubeParams) {
+	var request GetAuthOauthYoutubeRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAuthOauthYoutube(ctx, request.(GetAuthOauthYoutubeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAuthOauthYoutube")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetAuthOauthYoutubeResponseObject); ok {
+		if err := validResponse.VisitGetAuthOauthYoutubeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetAuthOauthYoutubeCallback operation middleware
+func (sh *strictHandler) GetAuthOauthYoutubeCallback(w http.ResponseWriter, r *http.Request, params GetAuthOauthYoutubeCallbackParams) {
+	var request GetAuthOauthYoutubeCallbackRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAuthOauthYoutubeCallback(ctx, request.(GetAuthOauthYoutubeCallbackRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAuthOauthYoutubeCallback")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetAuthOauthYoutubeCallbackResponseObject); ok {
+		if err := validResponse.VisitGetAuthOauthYoutubeCallbackResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -10748,106 +11313,108 @@ func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request, param
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

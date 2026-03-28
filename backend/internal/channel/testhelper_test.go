@@ -6,11 +6,12 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/testutil"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func newTestService(t *testing.T, pool *pgxpool.Pool, ytMock *ServiceMock) *Service {
+func newTestService(t *testing.T, pool *pgxpool.Pool, ytMock *testutil.YouTubeServiceMock) *Service {
 	t.Helper()
 	return &Service{
 		db:                pool,
@@ -21,7 +22,7 @@ func newTestService(t *testing.T, pool *pgxpool.Pool, ytMock *ServiceMock) *Serv
 	}
 }
 
-func defaultYTMock() *ServiceMock {
+func defaultYTMock() *testutil.YouTubeServiceMock {
 	ch, _ := youtube_d.NewChannel(
 		"UCxxxxxxxxxxxxxxxxxxxxxx",
 		"Test Channel",
@@ -43,7 +44,7 @@ func defaultYTMock() *ServiceMock {
 		time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 	)
 
-	return &ServiceMock{
+	return &testutil.YouTubeServiceMock{
 		FetchChannelDetailByIDOrHandleFunc: func(ctx context.Context, channelID string) (youtube_d.Channel, error) {
 			return ch, nil
 		},
@@ -62,7 +63,7 @@ func defaultYTMock() *ServiceMock {
 }
 
 // seedSubscription はユーザーをチャンネルに登録し、チャンネルを返す
-func seedSubscription(t *testing.T, pool *pgxpool.Pool, ytMock *ServiceMock, userID uuid.UUID) *Channel {
+func seedSubscription(t *testing.T, pool *pgxpool.Pool, ytMock *testutil.YouTubeServiceMock, userID uuid.UUID) *Channel {
 	t.Helper()
 	svc := newTestService(t, pool, ytMock)
 	ch, err := svc.SubscribeChannel(context.Background(), userID, "@testchannel")

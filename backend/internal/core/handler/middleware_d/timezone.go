@@ -10,11 +10,13 @@ import (
 )
 
 var timezoneIgnoreOperations = map[string]struct{}{
-	"GetAuthGoogle":         {},
-	"GetAuthGoogleCallback": {},
-	"PostAuthLogout":        {},
-	"PostAuthRefresh":       {},
-	"GetHealth":             {},
+	"GetAuthGoogle":               {},
+	"GetAuthGoogleCallback":       {},
+	"PostAuthLogout":              {},
+	"PostAuthRefresh":             {},
+	"GetHealth":                   {},
+	"GetAuthOauthYoutube":         {},
+	"GetAuthOauthYoutubeCallback": {},
 }
 
 func TimezoneMiddleware(f v1.StrictHandlerFunc, operationID string) v1.StrictHandlerFunc {

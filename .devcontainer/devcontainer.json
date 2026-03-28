@@ -5,7 +5,6 @@
     ],
     "service": "full",
     "workspaceFolder": "/usr/src/app",
-    "postCreateCommand": "nginx",
     "forwardPorts": [],
     "remoteUser": "root",
     "customizations": {
@@ -17,6 +16,9 @@
                 "dbaeumer.vscode-eslint",
                 "esbenp.prettier-vscode"
             ]
+        },
+        "jetbrains": {
+      	    "backend": "GoLand"
         }
     }
 }
