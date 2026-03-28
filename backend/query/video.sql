@@ -39,7 +39,7 @@ ON CONFLICT (external_id) DO UPDATE SET
     fetched_at = EXCLUDED.fetched_at,
     updated_at = CURRENT_TIMESTAMP
 RETURNING
-    m_video_id;
+    m_video_id, public_id;
 
 -- name: ListChannelVideos :many
 SELECT
@@ -273,6 +273,7 @@ SELECT
     video.external_title,
     video.external_description,
     video.external_thumbnail_url,
+    video.external_created_at,
     channel.public_id AS channel_id,
     channel.external_id AS channel_external_id,
     channel.external_display_name,

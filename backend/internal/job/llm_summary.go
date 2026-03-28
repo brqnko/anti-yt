@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/llm"
 	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
@@ -122,7 +123,7 @@ func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			slog.Error("failed to rollback in llmSummaryJob.run", "error", err)
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback in llmSummaryJob.run", slog.Any("error", err))
 		}
 	}()
 	q := sqlc.New(tx)
@@ -132,7 +133,7 @@ func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	if err := util.TryAdLock(ctx, q, key); err != nil {
+	if err := database_d.TryAdLock(ctx, q, key); err != nil {
 		return err
 	}
 
@@ -157,13 +158,13 @@ func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 		prompts := buildSummaryPrompt(titles, row.LanguageCode)
 		resp, err := j.llmService.Completion(ctx, prompts, llm.WithJSONSchema(summarySchema))
 		if err != nil {
-			slog.Error("llm completion failed in summary job", "user_id", row.UserID, "error", err)
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "llm completion failed in summary job", slog.Int64("user_id", row.UserID), slog.Any("error", err))
 			continue
 		}
 
 		var summary summaryResponse
 		if err := json.Unmarshal([]byte(resp), &summary); err != nil {
-			slog.Error("unmarshal summary response failed", "user_id", row.UserID, "error", err)
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "unmarshal summary response failed", slog.Int64("user_id", row.UserID), slog.Any("error", err))
 			continue
 		}
 
@@ -183,7 +184,7 @@ func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 			GeneratedAt:          startedAt,
 			TargetMonth:          targetMonth,
 		}); err != nil {
-			slog.Error("upsert summary failed", "user_id", row.UserID, "error", err)
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "upsert summary failed", slog.Int64("user_id", row.UserID), slog.Any("error", err))
 			continue
 		}
 	}
@@ -204,7 +205,7 @@ func (j *llmSummaryJob) Run() {
 	defer cancel()
 
 	if err := j.run(ctx); err != nil {
-		slog.Error("failed to run llm summary job", "error", err)
+		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to run llm summary job", slog.Any("error", err))
 	}
 }
 

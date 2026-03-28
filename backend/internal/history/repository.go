@@ -9,22 +9,13 @@ import (
 	"github.com/google/uuid"
 )
 
-type HistoryRepository interface {
-	Heartbeat(ctx context.Context, userID, videoID uuid.UUID, positionSeconds int) error
-	Import(ctx context.Context, userID, videoID uuid.UUID, watchStartAt, watchEndAt time.Time) error
+type HistoryRepository struct{}
+
+func NewHistoryRepository() *HistoryRepository {
+	return &HistoryRepository{}
 }
 
-type historyRepositoryImpl struct {
-	q sqlc.Querier
-}
-
-func NewHistoryRepository(q sqlc.Querier) HistoryRepository {
-	return &historyRepositoryImpl{
-		q: q,
-	}
-}
-
-func (h *historyRepositoryImpl) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, positionSeconds int) (err error) {
+func (h *HistoryRepository) Heartbeat(ctx context.Context, q sqlc.Querier, userID, videoID uuid.UUID, positionSeconds int) (err error) {
 	defer util.Wrap(&err, "historyRepository.Heartbeat(userID=%s, videoID=%s)", userID, videoID)
 
 	publicID, err := uuid.NewV7()
@@ -32,21 +23,24 @@ func (h *historyRepositoryImpl) Heartbeat(ctx context.Context, userID, videoID u
 		return err
 	}
 
+	if err := q.CloseStaleWatchSessions(ctx, userID); err != nil {
+		return err
+	}
+
 	now := time.Now().UTC()
-	if err := h.q.UpsertWatchHeartbeat(ctx, sqlc.UpsertWatchHeartbeatParams{
+	if err := q.UpsertWatchHeartbeat(ctx, sqlc.UpsertWatchHeartbeatParams{
 		UserPublicID:         userID,
 		VideoPublicID:        videoID,
 		WatchPositionSeconds: positionSeconds,
 		PublicID:             publicID,
 		WatchStartAt:         now,
-		WatchEndAt:           now.Add(2 * time.Minute),
 	}); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (h *historyRepositoryImpl) Import(ctx context.Context, userID, videoID uuid.UUID, watchStartAt, watchEndAt time.Time) (err error) {
+func (h *HistoryRepository) Import(ctx context.Context, q sqlc.Querier, userID, videoID uuid.UUID, watchStartAt, watchEndAt time.Time) (err error) {
 	defer util.Wrap(&err, "historyRepository.Import(userID=%s, videoID=%s)", userID, videoID)
 
 	publicID, err := uuid.NewV7()
@@ -54,17 +48,14 @@ func (h *historyRepositoryImpl) Import(ctx context.Context, userID, videoID uuid
 		return err
 	}
 
-	if err := h.q.UpsertWatchHeartbeat(ctx, sqlc.UpsertWatchHeartbeatParams{
+	if err := q.UpsertWatchHeartbeat(ctx, sqlc.UpsertWatchHeartbeatParams{
 		UserPublicID:         userID,
 		VideoPublicID:        videoID,
 		WatchPositionSeconds: 0,
 		PublicID:             publicID,
 		WatchStartAt:         watchStartAt,
-		WatchEndAt:           watchEndAt,
 	}); err != nil {
 		return err
 	}
 	return nil
 }
-
-var _ HistoryRepository = (*historyRepositoryImpl)(nil)

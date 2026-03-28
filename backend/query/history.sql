@@ -72,6 +72,17 @@ ORDER BY
 LIMIT
     @query_limit;
 
+-- name: CloseStaleWatchSessions :exec
+UPDATE
+    t_video_watch
+SET
+    watch_end_at = t_video_watch.updated_at,
+    updated_at = CURRENT_TIMESTAMP
+WHERE
+    m_user_id = (SELECT m_user_id FROM m_user WHERE m_user.public_id = @user_public_id LIMIT 1)
+    AND watch_end_at > CURRENT_TIMESTAMP
+    AND t_video_watch.updated_at < CURRENT_TIMESTAMP - INTERVAL '2 minutes';
+
 -- name: UpsertWatchHeartbeat :exec
 WITH resolved_user AS (
     SELECT
@@ -94,22 +105,7 @@ resolved_video AS (
     LIMIT
         1
 ),
-close_stale AS (
-    -- heartbeatが途絶えた放置セッションをクローズ
-    UPDATE
-        t_video_watch
-    SET
-        watch_end_at = t_video_watch.updated_at,
-        updated_at = CURRENT_TIMESTAMP
-    WHERE
-        m_user_id = (SELECT m_user_id FROM resolved_user)
-        AND watch_end_at > CURRENT_TIMESTAMP
-        AND t_video_watch.updated_at < CURRENT_TIMESTAMP - INTERVAL '2 minutes'
-    RETURNING
-        t_video_watch_id
-),
 latest_active AS (
-    -- ユーザーの現在アクティブなレコードを取得（タイムアウトしていないもの）
     SELECT
         t_video_watch_id,
         m_video_id
@@ -118,7 +114,6 @@ latest_active AS (
     WHERE
         m_user_id = (SELECT m_user_id FROM resolved_user)
         AND watch_end_at > CURRENT_TIMESTAMP
-        AND updated_at > CURRENT_TIMESTAMP - INTERVAL '2 minutes'
     ORDER BY
         watch_start_at DESC
     LIMIT
@@ -149,7 +144,7 @@ update_same AS (
             THEN 0
             ELSE @watch_position_seconds::int
         END,
-        watch_end_at = CURRENT_TIMESTAMP + INTERVAL '2 minutes',
+        watch_end_at = TIMESTAMP '9999-12-31',
         updated_at = CURRENT_TIMESTAMP
     FROM
         latest_active
@@ -160,7 +155,6 @@ update_same AS (
         t_video_watch.t_video_watch_id
 ),
 do_insert AS (
-    -- update_same が空 = 同じ動画のアクティブセッションがない -> 新規INSERT
     INSERT INTO
         t_video_watch (
             m_user_id,
@@ -175,7 +169,7 @@ do_insert AS (
         (SELECT m_video_id FROM resolved_video),
         @public_id,
         @watch_start_at,
-        @watch_end_at,
+        TIMESTAMP '9999-12-31',
         CASE
             WHEN @watch_position_seconds::int >= (SELECT external_length_seconds FROM resolved_video)
             THEN 0

@@ -7,7 +7,7 @@ import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getVideo } from "../../api/generated/video";
 import { getPlaylist } from "../../api/generated/playlist";
-import { formatDuration, formatSubscriberCount } from "../../utils/format";
+import { formatDuration, formatSubscriberCount, formatTimeAgo } from "../../utils/format";
 import { buildWatchUrl } from "../../utils/url";
 import { getApiErrorCode } from "../../utils/api-error";
 import { PAGE_SIZES } from "../../constants";
@@ -508,6 +508,8 @@ function VideoPlayerContent() {
     seekTo,
     setVolume,
     toggleMute,
+    isLooping,
+    toggleLoop,
     setHighFreqSync,
   } = useYouTubePlayer({
     videoId: video?.external_video_id ?? "",
@@ -927,18 +929,33 @@ function VideoPlayerContent() {
                       </p>
                     </div>
                   </div>
-                <button
-                  class="flex items-center gap-2 h-10 px-4 rounded-lg bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white font-semibold text-sm transition-all cursor-pointer hover:-translate-y-px flex-shrink-0 self-end"
-                  onClick={openPlaylistDialog}
-                >
-                  {t("videoPlayer.addToPlaylist")}
-                </button>
+                <div class="flex items-center gap-2 flex-shrink-0 self-end">
+                  <button
+                    class={`flex items-center gap-2 h-10 px-4 rounded-lg border font-semibold text-sm transition-colors cursor-pointer ${
+                      isLooping
+                        ? "bg-primary/10 border-primary/50 text-primary"
+                        : "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white"
+                    }`}
+                    onClick={toggleLoop}
+                  >
+                    {t("videoPlayer.loop")}
+                  </button>
+                  <button
+                    class="flex items-center gap-2 h-10 px-4 rounded-lg bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white font-semibold text-sm transition-colors cursor-pointer"
+                    onClick={openPlaylistDialog}
+                  >
+                    {t("videoPlayer.addToPlaylist")}
+                  </button>
+                </div>
               </div>
 
               {/* Description */}
               {video.external_video_description && (
                 <div class="mt-6">
                   <div class="bg-border-light/50 dark:bg-[#332e27]/30 p-6 rounded-xl">
+                    <p class="text-base text-charcoal dark:text-white mb-3">
+                      <span class="font-bold">{new Date(video.external_video_created_at).toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" }).replace(/-/g, "/")}</span>{t("videoPlayer.postedSuffix")}
+                    </p>
                     <div
                       ref={descRef}
                       class={`text-charcoal dark:text-white/80 leading-relaxed whitespace-pre-line overflow-hidden ${isDescExpanded ? "" : "max-h-[4.875rem]"}`}

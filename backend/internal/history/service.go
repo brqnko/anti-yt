@@ -2,12 +2,16 @@ package history
 
 import (
 	"context"
+	"errors"
+	"log/slog"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/user"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -28,7 +32,26 @@ func NewService(db *pgxpool.Pool) *Service {
 func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, positionSeconds int, loc *time.Location) (_ *int, err error) {
 	defer util.Wrap(&err, "Service.Heartbeat")
 
-	if err := NewHistoryRepository(sqlc.New(s.db)).Heartbeat(ctx, userID, videoID, positionSeconds); err != nil {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback", slog.Any("error", err))
+		}
+	}()
+	q := sqlc.New(tx)
+
+	if err := database_d.TryAdLock(ctx, q, userID[:]); err != nil {
+		return nil, err
+	}
+
+	if err := NewHistoryRepository().Heartbeat(ctx, q, userID, videoID, positionSeconds); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 

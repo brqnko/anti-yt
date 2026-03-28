@@ -42,7 +42,7 @@ func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UU
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			slog.Warn("failed to rollback transaction", "error", err)
+			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to rollback transaction", slog.Any("error", err))
 		}
 	}()
 	q := sqlc.New(tx)
@@ -73,12 +73,12 @@ func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UU
 		for _, vd := range videoDetailMap {
 			v, err := video.NewVideo(ch.ID, fetchedAt, vd)
 			if err != nil {
-				slog.Info("failed to newVideo", "error", err)
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to newVideo", slog.Any("error", err))
 				continue
 			}
 
 			if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
-				slog.Info("failed to save video", "error", err)
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video", slog.Any("error", err))
 				continue
 			}
 		}
@@ -162,11 +162,11 @@ func (s *Service) Search(ctx context.Context, query string, limit int, cursor *s
 	for _, cd := range channelDetails {
 		ch, err := channel.NewChannel(fetchedAt, fetchedAt, cd)
 		if err != nil {
-			slog.Info("failed to NewChannel(search)", "error", err)
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to NewChannel(search)", slog.Any("error", err))
 			continue
 		}
 		if _, err := channel.NewChannelRepository(q).Save(ctx, ch); err != nil {
-			slog.Info("failed to saveChannel(search)", "error", err)
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to saveChannel(search)", slog.Any("error", err))
 			continue
 		}
 		savedChannels[cd.ID] = ch.ID
@@ -190,11 +190,11 @@ func (s *Service) Search(ctx context.Context, query string, limit int, cursor *s
 
 		v, err := video.NewVideo(channelUUID, fetchedAt, vd)
 		if err != nil {
-			slog.Info("failed to NewVideo(search)", "error", err)
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to NewVideo(search)", slog.Any("error", err))
 			continue
 		}
 		if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
-			slog.Info("failed to saveVideo(search)", "error", err)
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to saveVideo(search)", slog.Any("error", err))
 			continue
 		}
 

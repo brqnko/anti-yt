@@ -101,7 +101,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			slog.Error("failed to rollback", "error", err)
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback", slog.Any("error", err))
 		}
 	}()
 	q := sqlc.New(tx)
@@ -229,7 +229,7 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			slog.Error("failed to rollback", "error", err)
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback", slog.Any("error", err))
 		}
 	}()
 	q := sqlc.New(tx)
@@ -308,7 +308,7 @@ func (s *Service) YouTubeOAuthCallback(ctx context.Context, state, code string) 
 	// 登録
 	for _, channel := range channels {
 		if _, err := s.channelService.SubscribeChannel(ctx, userID, string(channel.ID)); err != nil {
-			slog.Info("failed to subscribe channel(youtube oauth callback)", "channel_id", channel.ID)
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to subscribe channel(youtube oauth callback)", slog.String("channel_id", string(channel.ID)))
 		}
 	}
 	clear(channels)
@@ -455,7 +455,7 @@ func (s *Service) YouTubeOAuthCallback(ctx context.Context, state, code string) 
 
 	// 高評価プレイリストをimport
 	if _, err := s.playlistService.CreatePlaylistWithAccessToken(ctx, userID, "高評価した動画", "", "private", "normal", ytAccessToken, "LL"); err != nil {
-		slog.Info("failed to import liked playlist(youtube oauth callback)", "error", err)
+		util.LoggerFromContext(ctx).InfoContext(ctx, "failed to import liked playlist(youtube oauth callback)", slog.Any("error", err))
 	}
 
 	return nil

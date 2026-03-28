@@ -12,6 +12,23 @@ import (
 	"github.com/google/uuid"
 )
 
+const closeStaleWatchSessions = `-- name: CloseStaleWatchSessions :exec
+UPDATE
+    t_video_watch
+SET
+    watch_end_at = t_video_watch.updated_at,
+    updated_at = CURRENT_TIMESTAMP
+WHERE
+    m_user_id = (SELECT m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1)
+    AND watch_end_at > CURRENT_TIMESTAMP
+    AND t_video_watch.updated_at < CURRENT_TIMESTAMP - INTERVAL '2 minutes'
+`
+
+func (q *Queries) CloseStaleWatchSessions(ctx context.Context, userPublicID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, closeStaleWatchSessions, userPublicID)
+	return err
+}
+
 const getDailyWatchSummary = `-- name: GetDailyWatchSummary :one
 SELECT
     (
@@ -266,22 +283,7 @@ resolved_video AS (
     LIMIT
         1
 ),
-close_stale AS (
-    -- heartbeatが途絶えた放置セッションをクローズ
-    UPDATE
-        t_video_watch
-    SET
-        watch_end_at = t_video_watch.updated_at,
-        updated_at = CURRENT_TIMESTAMP
-    WHERE
-        m_user_id = (SELECT m_user_id FROM resolved_user)
-        AND watch_end_at > CURRENT_TIMESTAMP
-        AND t_video_watch.updated_at < CURRENT_TIMESTAMP - INTERVAL '2 minutes'
-    RETURNING
-        t_video_watch_id
-),
 latest_active AS (
-    -- ユーザーの現在アクティブなレコードを取得（タイムアウトしていないもの）
     SELECT
         t_video_watch_id,
         m_video_id
@@ -290,7 +292,6 @@ latest_active AS (
     WHERE
         m_user_id = (SELECT m_user_id FROM resolved_user)
         AND watch_end_at > CURRENT_TIMESTAMP
-        AND updated_at > CURRENT_TIMESTAMP - INTERVAL '2 minutes'
     ORDER BY
         watch_start_at DESC
     LIMIT
@@ -321,6 +322,7 @@ update_same AS (
             THEN 0
             ELSE $3::int
         END,
+        watch_end_at = TIMESTAMP '9999-12-31',
         updated_at = CURRENT_TIMESTAMP
     FROM
         latest_active
@@ -331,7 +333,6 @@ update_same AS (
         t_video_watch.t_video_watch_id
 ),
 do_insert AS (
-    -- update_same が空 = 同じ動画のアクティブセッションがない -> 新規INSERT
     INSERT INTO
         t_video_watch (
             m_user_id,
@@ -346,7 +347,7 @@ do_insert AS (
         (SELECT m_video_id FROM resolved_video),
         $4,
         $5,
-        $6,
+        TIMESTAMP '9999-12-31',
         CASE
             WHEN $3::int >= (SELECT external_length_seconds FROM resolved_video)
             THEN 0
@@ -366,7 +367,6 @@ type UpsertWatchHeartbeatParams struct {
 	WatchPositionSeconds int
 	PublicID             uuid.UUID
 	WatchStartAt         time.Time
-	WatchEndAt           time.Time
 }
 
 func (q *Queries) UpsertWatchHeartbeat(ctx context.Context, arg UpsertWatchHeartbeatParams) error {
@@ -376,7 +376,6 @@ func (q *Queries) UpsertWatchHeartbeat(ctx context.Context, arg UpsertWatchHeart
 		arg.WatchPositionSeconds,
 		arg.PublicID,
 		arg.WatchStartAt,
-		arg.WatchEndAt,
 	)
 	return err
 }

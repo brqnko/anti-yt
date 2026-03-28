@@ -7,6 +7,7 @@
  */
 import type {
   GetAuthGoogleCallbackParams,
+  GetAuthOauthYoutubeCallbackParams,
   GetUsersMeSessions200,
   GetUsersMeSessionsParams
 } from './antiYtApi.schemas';
@@ -55,6 +56,31 @@ const getAuthGoogleCallback = (
       );
     }
   /**
+ * YouTubeアカウントと連携するためのOAuth認証を開始する
+ * @summary YouTube OAuth authentication
+ */
+const getAuthOauthYoutube = (
+    
+ ) => {
+      return customInstance<unknown>(
+      {url: `/api/v1/auth/oauth/youtube`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * YouTubeの認可コードを受け取るため
+ * @summary YouTube OAuth Callback
+ */
+const getAuthOauthYoutubeCallback = (
+    params: GetAuthOauthYoutubeCallbackParams,
+ ) => {
+      return customInstance<unknown>(
+      {url: `/api/v1/auth/oauth/youtube/callback`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
  * ログアウトする
  * @summary Logout
  */
@@ -91,10 +117,12 @@ const deleteUsersMeSessionsSessionId = (
     },
       );
     }
-  return {postAuthRefresh,getAuthGoogle,getAuthGoogleCallback,postAuthLogout,getUsersMeSessions,deleteUsersMeSessionsSessionId}};
+  return {postAuthRefresh,getAuthGoogle,getAuthGoogleCallback,getAuthOauthYoutube,getAuthOauthYoutubeCallback,postAuthLogout,getUsersMeSessions,deleteUsersMeSessionsSessionId}};
 export type PostAuthRefreshResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['postAuthRefresh']>>>
 export type GetAuthGoogleResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['getAuthGoogle']>>>
 export type GetAuthGoogleCallbackResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['getAuthGoogleCallback']>>>
+export type GetAuthOauthYoutubeResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['getAuthOauthYoutube']>>>
+export type GetAuthOauthYoutubeCallbackResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['getAuthOauthYoutubeCallback']>>>
 export type PostAuthLogoutResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['postAuthLogout']>>>
 export type GetUsersMeSessionsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['getUsersMeSessions']>>>
 export type DeleteUsersMeSessionsSessionIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['deleteUsersMeSessionsSessionId']>>>

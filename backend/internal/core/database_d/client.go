@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/brqnko/anti-yt/backend/migrations"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,11 +23,11 @@ func RunMigration(ctx context.Context, dbUser, dbPassword, dbHost string, dbPort
 	}
 	defer func() {
 		if err := db.Close(); err != nil {
-			slog.Error("failed to close db in migration", "error", err)
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to close db in migration", slog.Any("error", err))
 		}
 	}()
 
-	slog.Info("running migration")
+	util.LoggerFromContext(ctx).InfoContext(ctx, "running migration")
 	goose.SetBaseFS(migrations.EmbedMigrations)
 
 	if err := goose.SetDialect("postgres"); err != nil {
@@ -36,12 +37,12 @@ func RunMigration(ctx context.Context, dbUser, dbPassword, dbHost string, dbPort
 	if err := goose.Up(db, "."); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			slog.Error("migration error", "message", pgErr.Message, "detail", pgErr.Detail, "hint", pgErr.Hint)
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "migration error", slog.String("message", pgErr.Message), slog.String("detail", pgErr.Detail), slog.String("hint", pgErr.Hint))
 		}
 		return err
 	}
 
-	slog.Info("migration completed")
+	util.LoggerFromContext(ctx).InfoContext(ctx, "migration completed")
 	return nil
 }
 

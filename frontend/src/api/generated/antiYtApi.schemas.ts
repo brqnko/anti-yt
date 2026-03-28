@@ -167,6 +167,21 @@ state: string;
 error?: string;
 };
 
+export type GetAuthOauthYoutubeCallbackParams = {
+/**
+ * YouTubeから発行された認可コード
+ */
+code: string;
+/**
+ * CSRF対策用
+ */
+state: string;
+/**
+ * エラー
+ */
+error?: string;
+};
+
 export type GetUsersMeSessionsParams = {
 /**
  * 取得する最大の数
@@ -484,6 +499,7 @@ export type GetVideosVideoId200 = {
   external_video_title: string;
   external_video_description: string;
   external_video_thumbnail_url: string;
+  external_video_created_at: string;
   channel_id: string;
   external_channel_display_name: string;
   /**

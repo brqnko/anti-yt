@@ -120,7 +120,7 @@ func run(ctx context.Context) int {
 	initCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 	if err = database_d.RunMigration(initCtx, cfg.dbUser, cfg.dbPassword, cfg.dbHost, cfg.dbPort, cfg.dbName, cfg.dbSSLMode); err != nil {
-		slog.Error("failed to run migration", "error", err)
+		slog.Error("failed to run migration", slog.Any("error", err))
 		return 1
 	}
 	slog.Info("migration ok")
@@ -129,7 +129,7 @@ func run(ctx context.Context) int {
 	defer cancel()
 	db, err := database_d.ConnectDB(initCtx, cfg.dbUser, cfg.dbPassword, cfg.dbHost, cfg.dbPort, cfg.dbName, cfg.dbSSLMode)
 	if err != nil {
-		slog.Error("failed to connect db", "error", err)
+		slog.Error("failed to connect db", slog.Any("error", err))
 		return 1
 	}
 	defer db.Close()
@@ -137,14 +137,14 @@ func run(ctx context.Context) int {
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	if err := sqlc.New(db).PurgeExpiredJTIBlacklist(initCtx, time.Now().UTC()); err != nil {
-		slog.Error("failed to clean up jti blacklist", "error", err)
+		slog.Error("failed to clean up jti blacklist", slog.Any("error", err))
 	}
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 	oidcService, err := oidc.NewGoogleOIDCService(initCtx, cfg.oidcGoogleClientID, cfg.oidcGoogleClientSecret, fmt.Sprintf("%s/v1/auth/google/callback", cfg.serverURL))
 	if err != nil {
-		slog.Error("failed to create oidc service", "error", err)
+		slog.Error("failed to create oidc service", slog.Any("error", err))
 		return 1
 	}
 
@@ -154,7 +154,7 @@ func run(ctx context.Context) int {
 	defer cancel()
 	ytService, err := youtube_d.NewService(initCtx, cfg.youtubeDataAPIKey, cfg.oidcGoogleClientID, cfg.oidcGoogleClientSecret, fmt.Sprintf("%s/v1/auth/oauth/youtube/callback", cfg.serverURL))
 	if err != nil {
-		slog.Error("failed to create youtube service", "error", err)
+		slog.Error("failed to create youtube service", slog.Any("error", err))
 		return 1
 	}
 	slog.Info("youtube api ok")
@@ -163,14 +163,14 @@ func run(ctx context.Context) int {
 	defer cancel()
 	llmService, err := llm.NewGemini(initCtx, cfg.geminiAPIKey, "gemini-2.5-flash-lite")
 	if err != nil {
-		slog.Error("failed to create llm service", "error", err)
+		slog.Error("failed to create llm service", slog.Any("error", err))
 		return 1
 	}
 	slog.Info("gemini api ok")
 
 	scheduler := scheduler.NewService()
 	if err := scheduler.AddFunc("0 0 * * *", job.NewLLMSummaryJob(db, llmService)); err != nil {
-		slog.Error("failed to setup llm summary job", "error", err)
+		slog.Error("failed to setup llm summary job", slog.Any("error", err))
 		return 1
 	}
 
@@ -189,6 +189,7 @@ func run(ctx context.Context) int {
 			middleware_d.DomainErrorMiddleware,
 			middleware_d.ResponseCookieMiddleware,
 			middleware_d.ScreenTimeMiddleware(db),
+			middleware_d.SlogMiddleware,
 			middleware_d.AccessTokenMiddleware(jwtService, db),
 			middleware_d.CsrfMiddleware,
 			middleware_d.AuthTokensMiddleware,
@@ -218,7 +219,7 @@ func run(ctx context.Context) int {
 	defer cancel()
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		slog.Error("failed to shutdown server", "error", err)
+		slog.Error("failed to shutdown server", slog.Any("error", err))
 		return 1
 	}
 

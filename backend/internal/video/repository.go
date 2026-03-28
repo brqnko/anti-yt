@@ -24,7 +24,7 @@ func NewVideoRepository(q sqlc.Querier) VideoRepository {
 func (v *videoRepositoryImpl) Save(ctx context.Context, video *Video) (_ int64, err error) {
 	defer util.Wrap(&err, "videoRepository.Save")
 
-	id, err := v.q.UpsertVideo(ctx, sqlc.UpsertVideoParams{
+	row, err := v.q.UpsertVideo(ctx, sqlc.UpsertVideoParams{
 		ChannelID:             video.ChannelID,
 		ExternalID:            string(video.Video.ID),
 		ExternalTitle:         video.Video.Title,
@@ -39,7 +39,9 @@ func (v *videoRepositoryImpl) Save(ctx context.Context, video *Video) (_ int64, 
 		return 0, err
 	}
 
-	return id, nil
+	video.ID = row.PublicID
+
+	return row.MVideoID, nil
 }
 
 var _ VideoRepository = (*videoRepositoryImpl)(nil)

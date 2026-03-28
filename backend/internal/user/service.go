@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -59,13 +60,13 @@ func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailySc
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			slog.Error("failed to rollback", "error", err)
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback", slog.Any("error", err))
 		}
 	}()
 	q := sqlc.New(tx)
 
 	// 勧告ロック
-	if err := util.TryAdLock(ctx, q, authorizationID[:]); err != nil {
+	if err := database_d.TryAdLock(ctx, q, authorizationID[:]); err != nil {
 		return nil, "", time.Time{}, err
 	}
 
@@ -111,7 +112,7 @@ func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			slog.Error("failed to rollback", "error", err)
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback", slog.Any("error", err))
 		}
 	}()
 	q := sqlc.New(tx)

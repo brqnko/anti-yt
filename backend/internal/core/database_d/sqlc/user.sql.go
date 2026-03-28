@@ -9,7 +9,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d/dbtype"
 	"github.com/google/uuid"
 )
 
@@ -67,8 +67,8 @@ func (q *Queries) ArchiveUser(ctx context.Context, arg ArchiveUserParams) error 
 
 type BulkInsertScreenTimeRangesParams struct {
 	MUserID              int64
-	ScreenTimeRangeStart database_d.Seconds
-	ScreenTimeRangeEnd   database_d.Seconds
+	ScreenTimeRangeStart dbtype.Seconds
+	ScreenTimeRangeEnd   dbtype.Seconds
 }
 
 const countUsersByAuthorization = `-- name: CountUsersByAuthorization :one
@@ -191,8 +191,8 @@ type GetUserProfileRow struct {
 	LanguageCode           string
 	JoinedAt               time.Time
 	DailyScreenTimeSeconds int
-	ScreenTimeRangeStart   *database_d.Seconds
-	ScreenTimeRangeEnd     *database_d.Seconds
+	ScreenTimeRangeStart   *dbtype.Seconds
+	ScreenTimeRangeEnd     *dbtype.Seconds
 }
 
 // m_user.public_idから、ユーザーのプロファイルとスクリーン時間制限範囲を取得する。
@@ -296,8 +296,8 @@ ORDER BY
 `
 
 type ListScreenTimeRangesRow struct {
-	ScreenTimeRangeStart database_d.Seconds
-	ScreenTimeRangeEnd   database_d.Seconds
+	ScreenTimeRangeStart dbtype.Seconds
+	ScreenTimeRangeEnd   dbtype.Seconds
 }
 
 // m_user.public_idのユーザーの視聴制限範囲を取得する。

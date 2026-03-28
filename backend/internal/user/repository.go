@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d/dbtype"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
@@ -118,8 +118,8 @@ func (r *userRepositoryImpl) SaveScreenTimeRanges(ctx context.Context, mUserID i
 	for i, r := range rangeSet.Ranges {
 		params[i] = sqlc.BulkInsertScreenTimeRangesParams{
 			MUserID:              mUserID,
-			ScreenTimeRangeStart: database_d.Seconds(r.StartTimeSeconds),
-			ScreenTimeRangeEnd:   database_d.Seconds(r.EndTimeSeconds),
+			ScreenTimeRangeStart: dbtype.Seconds(r.StartTimeSeconds),
+			ScreenTimeRangeEnd:   dbtype.Seconds(r.EndTimeSeconds),
 		}
 	}
 	if _, err := r.q.BulkInsertScreenTimeRanges(ctx, params); err != nil {
