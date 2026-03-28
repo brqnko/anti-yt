@@ -3,7 +3,6 @@ package youtube_d
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"regexp"
 	"strconv"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
-	"github.com/mmcdole/gofeed"
 	"golang.org/x/oauth2"
 	googleOAuth2 "golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -30,7 +28,6 @@ var (
 type Service interface {
 	FetchChannelDetail(ctx context.Context, channelIDs []ChannelID) (map[ChannelID]Channel, error)
 	FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (Channel, error)
-	FetchRSSFeed(ctx context.Context, channelID ChannelID) ([]VideoID, error)
 	FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (map[VideoID]Video, error)
 	FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error)
 	SearchVideoIDs(ctx context.Context, query string, pageToken string, opts SearchOptions) (_ []VideoID, _ string, err error)
@@ -54,7 +51,6 @@ var _ Service = (*serviceImpl)(nil)
 
 type serviceImpl struct {
 	ytClient    *youtube.Service
-	feedParser  *gofeed.Parser
 	oauthConfig *oauth2.Config
 
 	lastCheckedDay  time.Time
@@ -299,46 +295,6 @@ func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []Chann
 	return result, nil
 }
 
-func (s *serviceImpl) FetchRSSFeed(ctx context.Context, channelID ChannelID) (_ []VideoID, err error) {
-	defer util.Wrap(&err, "youTubeAPIService.FetchRSSFeed")
-
-	if !strings.HasPrefix((string)(channelID), "UC") || len(channelID) != 24 {
-		return nil, ErrInvalidChannelID
-	}
-
-	feed, err := s.feedParser.ParseURLWithContext(
-		fmt.Sprintf("https://www.youtube.com/feeds/videos.xml?channel_id=%s", channelID),
-		ctx,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	videos := make([]VideoID, 0, len(feed.Items))
-	for _, item := range feed.Items {
-		// yt:videoId
-		ytExt, ok := item.Extensions["yt"]
-		if !ok {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "yt extension not found(fetchRSSFeed)")
-			continue
-		}
-		videoIDExt, ok := ytExt["videoId"]
-		if !ok || len(videoIDExt) == 0 {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "yt:videoId not found(fetchRSSFeed)")
-			continue
-		}
-
-		videoID, err := NewVideoID(videoIDExt[0].Value)
-		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to NewRSSFeedVideo(fetchRSSFeed)", slog.Any("error", err))
-			continue
-		}
-		videos = append(videos, videoID)
-	}
-
-	return videos, nil
-}
-
 func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error) {
 	defer util.Wrap(&err, "youTubeAPIService.FetchPlaylistVideoIDs")
 
@@ -459,12 +415,8 @@ func NewService(ctx context.Context, apiKey, oauthClientID, oauthClientSecret, o
 		return nil, err
 	}
 
-	feedParser := gofeed.NewParser()
-	feedParser.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
-
 	return &serviceImpl{
-		ytClient:   ytClient,
-		feedParser: feedParser,
+		ytClient: ytClient,
 		oauthConfig: &oauth2.Config{
 			ClientID:     oauthClientID,
 			ClientSecret: oauthClientSecret,

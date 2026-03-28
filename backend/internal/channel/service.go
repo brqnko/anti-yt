@@ -198,8 +198,8 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 		return nil, false, err
 	}
 	if lockedChannel.ShouldFetchRSSFeed(s.rssFetchDuration) {
-		// RSSから動画ID一覧を取得する
-		videoIDs, err := s.ytService.FetchRSSFeed(ctx, lockedChannel.Channel.ID)
+		// PlaylistAPIから動画ID一覧を取得する
+		videoIDs, _, err := s.ytService.FetchPlaylistVideoIDs(ctx, string(lockedChannel.Channel.UploadsPlaylistID), "")
 		if err != nil {
 			return nil, false, err
 		}

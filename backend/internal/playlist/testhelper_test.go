@@ -60,9 +60,6 @@ func defaultYTMock() *testutil.YouTubeServiceMock {
 				"dQw4w9WgXcQ": vid,
 			}, nil
 		},
-		FetchRSSFeedFunc: func(ctx context.Context, channelID youtube_d.ChannelID) ([]youtube_d.VideoID, error) {
-			return []youtube_d.VideoID{"dQw4w9WgXcQ"}, nil
-		},
 	}
 }
 
