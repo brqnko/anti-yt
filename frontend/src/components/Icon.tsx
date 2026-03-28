@@ -32,6 +32,7 @@ import LightMode from "~icons/material-symbols/light-mode-outline";
 import Logout from "~icons/material-symbols/logout";
 import Memory from "~icons/material-symbols/memory-outline";
 import Menu from "~icons/material-symbols/menu";
+import MoreVert from "~icons/material-symbols/more-vert";
 import MusicNote from "~icons/material-symbols/music-note";
 import Pause from "~icons/material-symbols/pause-outline";
 import Person from "~icons/material-symbols/person-outline";
@@ -92,6 +93,7 @@ const iconMap: Record<string, string> = {
   logout: Logout,
   memory: Memory,
   menu: Menu,
+  more_vert: MoreVert,
   music_note: MusicNote,
   pause: Pause,
   person: Person,

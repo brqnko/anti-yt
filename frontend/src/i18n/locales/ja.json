@@ -6,7 +6,13 @@
       "light": "ライトモード",
       "dark": "ダークモード",
       "system": "システム設定に従う"
-    }
+    },
+    "close": "閉じる"
+  },
+  "videoCard": {
+    "moreOptions": "その他のオプション",
+    "subscribeChannel": "チャンネル登録",
+    "subscribeDesc": "フィードに表示を許可する"
   },
   "legal": {
     "navTerms": "利用規約",
