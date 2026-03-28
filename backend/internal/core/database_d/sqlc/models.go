@@ -54,6 +54,7 @@ type MPlaylist struct {
 	PublicID            uuid.UUID
 	PlaylistDescription string
 	RegisteredAt        time.Time
+	MChannelID          int64
 }
 
 type MPlaylistVideo struct {

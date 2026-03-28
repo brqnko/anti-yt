@@ -5,55 +5,23 @@ import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { ChannelInfoCard } from "../../components/ChannelInfoCard";
 import { getChannel } from "../../api/generated/channel";
-import { formatSubscriberCount } from "../../utils/format";
 import { VideoCard } from "../../components/VideoCard";
 import type {
   GetChannelsChannelId200,
+  GetChannelsChannelIdPlaylists200ItemsItem,
   GetChannelsChannelIdVideos200ItemsItem,
   GetChannelsChannelIdVideosOrder,
 } from "../../api/generated/antiYtApi.schemas";
 import { PAGE_SIZES } from "../../constants";
-import { Linkify } from "../../components/Linkify";
 import { Icon } from "../../components/Icon";
-
-function ExpandableDescription({ description }: { description: string }) {
-  const { t } = useTranslation();
-  const [expanded, setExpanded] = useState(false);
-  const [clamped, setClamped] = useState(false);
-  const ref = useRef<HTMLParagraphElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (el) setClamped(el.scrollHeight > el.clientHeight);
-  }, [description]);
-
-  return (
-    <>
-      <div class="h-px bg-border-light dark:bg-border-dark my-5" />
-      <p
-        ref={ref}
-        class={`text-sm text-text-muted-light dark:text-text-muted-dark leading-relaxed whitespace-pre-line ${expanded ? "" : "line-clamp-3"}`}
-      >
-        <Linkify text={description} />
-      </p>
-      {clamped && (
-        <button
-          type="button"
-          class="text-sm font-medium text-primary hover:text-primary/80 transition-colors bg-transparent border-none cursor-pointer p-0 mt-2"
-          onClick={() => setExpanded(!expanded)}
-        >
-          {expanded ? t("channelDetail.showLess") : t("channelDetail.showMore")}
-        </button>
-      )}
-    </>
-  );
-}
 
 function ChannelDetailContent({ channelId }: { channelId: string }) {
   const { t } = useTranslation();
 
   const [channelInfo, setChannelInfo] = useState<GetChannelsChannelId200 | null>(null);
+  const [playlists, setPlaylists] = useState<GetChannelsChannelIdPlaylists200ItemsItem[]>([]);
   const [videos, setVideos] = useState<GetChannelsChannelIdVideos200ItemsItem[]>([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -77,10 +45,11 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     const load = async () => {
       setIsVideosLoading(true);
       try {
-        const [channelRes, subsRes, videosRes] = await Promise.allSettled([
+        const [channelRes, subsRes, videosRes, playlistsRes] = await Promise.allSettled([
           getChannel().getChannelsChannelId(channelId),
           getChannel().getChannelsSubscribed({ limit: 50 }),
           getChannel().getChannelsChannelIdVideos(channelId, { limit: PAGE_SIZES.CHANNEL_VIDEOS, order }),
+          getChannel().getChannelsChannelIdPlaylists(channelId, { limit: PAGE_SIZES.CHANNEL_PLAYLISTS }),
         ]);
 
         if (channelRes.status === "fulfilled") {
@@ -99,6 +68,10 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
           setHasNextVideos(videosRes.value.has_next);
           const lastItem = videosRes.value.items[videosRes.value.items.length - 1];
           cursorRef.current = lastItem?.video_id;
+        }
+
+        if (playlistsRes.status === "fulfilled") {
+          setPlaylists(playlistsRes.value.items);
         }
       } finally {
         setIsLoading(false);
@@ -175,73 +148,61 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
   return (
     <DashboardLayout>
       <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
-        {/* Channel Info */}
-        <div class="bg-card-light dark:bg-card-dark rounded-xl border border-border-light dark:border-border-dark mb-8 p-6">
-          <div class="flex flex-row gap-4 md:gap-6 items-start md:items-center">
-              {/* Avatar */}
-              <div class="shrink-0">
-                <div class="size-16 md:size-28 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden border-2 border-border-light dark:border-border-dark">
-                  <img
-                    src={channelInfo.external_channel_icon_url}
-                    alt={channelInfo.external_channel_display_name}
-                    class="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
+        <ChannelInfoCard
+          channelInfo={channelInfo}
+          isSubscribed={isSubscribed}
+          onToggleSubscription={handleToggleSubscription}
+          isToggling={isToggling}
+        />
 
-              {/* Channel Text Info + Whitelist Toggle */}
-              <div class="flex-1 min-w-0 flex flex-col md:flex-row md:items-center gap-3">
-                {/* Channel Text Info */}
-                <div class="flex-1 min-w-0">
-                  <h1 class="text-xl md:text-3xl font-bold mb-1 truncate">{channelInfo.external_channel_display_name}</h1>
-                  <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-muted-light dark:text-text-muted-dark">
-                    <span>
-                      {formatSubscriberCount(channelInfo.external_channel_subscribers_count)} {t("channelDetail.subscribers")}
-                    </span>
-                    {channelInfo.external_channel_custom_id && (
-                      <span>
-                        {channelInfo.external_channel_custom_id}
-                      </span>
+        {/* Playlists */}
+        {playlists.length > 0 && (
+          <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-bold">
+                {t("channelDetail.playlists")}
+              </h3>
+              <a
+                href={`/channels/${channelId}/playlists`}
+                class="text-sm font-medium text-primary hover:text-primary/80 transition-colors no-underline"
+              >
+                {t("channelDetail.showMore")}
+              </a>
+            </div>
+            <div class="flex gap-4 overflow-x-auto pb-2">
+              {playlists.map((pl) => (
+                <a
+                  key={pl.playlist_id}
+                  href={`/playlists/${pl.playlist_id}`}
+                  class="group flex-shrink-0 w-56 bg-card-light dark:bg-card-dark rounded-xl border border-transparent hover:border-primary/20 transition-all duration-300 overflow-hidden no-underline"
+                >
+                  <div class="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+                    {pl.top_video_thumbnail_url ? (
+                      <img
+                        src={pl.top_video_thumbnail_url}
+                        alt={pl.playlist_title}
+                        loading="lazy"
+                        class="absolute inset-0 w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div class="absolute inset-0 flex items-center justify-center">
+                        <Icon name="playlist_play" class="text-4xl text-text-muted-light dark:text-text-muted-dark" />
+                      </div>
                     )}
                   </div>
-                </div>
-
-                {/* Whitelist Toggle */}
-                <div class="flex-shrink-0">
-                  <div class="bg-background-light dark:bg-background-dark border border-primary/20 p-4 rounded-xl flex items-center gap-4">
-                    <div class="flex flex-col">
-                      <span class="text-sm font-bold">{t("channelDetail.whitelistChannel")}</span>
-                      <span class="text-xs text-text-muted-light dark:text-text-muted-dark">
-                        {t("channelDetail.whitelistDesc")}
-                      </span>
-                    </div>
-                    <button
-                      class="relative inline-flex items-center cursor-pointer bg-transparent border-none p-0"
-                      onClick={handleToggleSubscription}
-                      disabled={isToggling}
-                    >
-                      <div
-                        class={`w-14 h-7 rounded-full transition-colors duration-200 ${
-                          isSubscribed ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"
-                        } ${isToggling ? "opacity-50" : ""}`}
-                      >
-                        <div
-                          class={`absolute top-0.5 left-[4px] bg-white border border-gray-300 rounded-full h-6 w-6 transition-transform duration-200 ${
-                            isSubscribed ? "translate-x-full" : ""
-                          }`}
-                        />
-                      </div>
-                    </button>
+                  <div class="p-3">
+                    <h4 class="text-sm font-bold text-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                      {pl.playlist_title}
+                    </h4>
+                    <span class="text-xs text-text-muted-light dark:text-text-muted-dark mt-1 block">
+                      {t("playlists.videoCount", { count: pl.playlist_video_count })}
+                    </span>
                   </div>
-                </div>
-              </div>
+                </a>
+              ))}
             </div>
-
-          {/* Description */}
-          {channelInfo.external_channel_description && (
-            <ExpandableDescription description={channelInfo.external_channel_description} />
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Latest Uploads */}
         <div>
@@ -285,7 +246,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
               {isLoadingMore && <LoadingSpinner size="sm" className="py-8" />}
               {!hasNextVideos && !isLoadingMore && videos.length > 0 && (
                 <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">
-                  🎉 {t("dashboard.endOfFeed")}
+                  {t("dashboard.endOfFeed")}
                 </p>
               )}
             </>

@@ -22,6 +22,7 @@ var visibilityCodeMap = []struct {
 	str  string
 }{
 	{code: 0, str: "private"},
+	{code: 1, str: "public"},
 }
 
 func NewVisibilityCode(s string) (_ VisibilityCode, err error) {
@@ -134,6 +135,7 @@ var playlistCodeMap = []struct {
 	str  string
 }{
 	{code: 0, str: "normal"},
+	{code: 1, str: "external_auto"},
 }
 
 func NewPlaylistCode(s string) (_ PlaylistCode, err error) {
@@ -160,6 +162,8 @@ func (p PlaylistCode) String() string {
 
 type Playlist struct {
 	ID             uuid.UUID
+	UserID         *uuid.UUID
+	ChannelID      *uuid.UUID
 	Title          PlaylistTitle
 	Description    PlaylistDescription
 	VisibilityCode VisibilityCode
@@ -185,6 +189,18 @@ func WithPlaylistRegisteredAt(registeredAt time.Time) PlaylistOption {
 func WithPlaylistVideoCount(count int) PlaylistOption {
 	return func(p *Playlist) {
 		p.VideoCount = count
+	}
+}
+
+func WithPlaylistUserID(userID uuid.UUID) PlaylistOption {
+	return func(p *Playlist) {
+		p.UserID = &userID
+	}
+}
+
+func WithPlaylistChannelID(channelID uuid.UUID) PlaylistOption {
+	return func(p *Playlist) {
+		p.ChannelID = &channelID
 	}
 }
 

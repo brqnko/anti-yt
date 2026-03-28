@@ -38,6 +38,7 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 		description,
 		visibilityStr,
 		playlistTypeStr,
+		WithPlaylistUserID(userID),
 	)
 	if err != nil {
 		return nil, err
@@ -55,7 +56,7 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 	q := sqlc.New(tx)
 
 	// NOTE: insertした内容はcommitするまで他のトランザクションから見れない(repeatable read)ので、ロックなどをつける意味はない
-	row, err := NewPlaylistRepository(q).Save(ctx, userID, playlist)
+	row, err := NewPlaylistRepository(q).Save(ctx, playlist)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +167,7 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 		return nil, err
 	}
 
-	if _, err := NewPlaylistRepository(q).Save(ctx, userID, playlist); err != nil {
+	if _, err := NewPlaylistRepository(q).Save(ctx, playlist); err != nil {
 		return nil, err
 	}
 
@@ -185,6 +186,7 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 		description,
 		visibilityStr,
 		playlistTypeStr,
+		WithPlaylistUserID(userID),
 	)
 	if err != nil {
 		return nil, err
@@ -201,7 +203,7 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 	}()
 	q := sqlc.New(tx)
 
-	row, err := NewPlaylistRepository(q).Save(ctx, userID, playlist)
+	row, err := NewPlaylistRepository(q).Save(ctx, playlist)
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +292,7 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 		return nil, err
 	}
 
-	if _, err := NewPlaylistRepository(q).Save(ctx, userID, playlist); err != nil {
+	if _, err := NewPlaylistRepository(q).Save(ctx, playlist); err != nil {
 		return nil, err
 	}
 
@@ -305,6 +307,20 @@ func (s *Service) GetPlaylists(ctx context.Context, userID uuid.UUID, cursor *uu
 	defer util.Wrap(&err, "Service.GetPlaylists")
 
 	playlists, err := s.playlistQS.FindPlaylists(ctx, userID, cursor, limit+1)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if len(playlists) > int(limit) {
+		return playlists[:limit], true, nil
+	}
+	return playlists, false, nil
+}
+
+func (s *Service) GetChannelPlaylists(ctx context.Context, channelID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetChannelPlaylistsView, _ bool, err error) {
+	defer util.Wrap(&err, "Service.GetChannelPlaylists")
+
+	playlists, err := s.playlistQS.FindChannelPlaylists(ctx, channelID, cursor, limit+1)
 	if err != nil {
 		return nil, false, err
 	}
@@ -371,7 +387,7 @@ func (s *Service) UpdatePlaylist(ctx context.Context, userID, playlistID uuid.UU
 		return nil, err
 	}
 
-	if _, err := NewPlaylistRepository(q).Save(ctx, userID, playlist); err != nil {
+	if _, err := NewPlaylistRepository(q).Save(ctx, playlist); err != nil {
 		return nil, err
 	}
 
@@ -407,7 +423,7 @@ func (s *Service) InsertVideoIntoPlaylist(ctx context.Context, userID, playlistI
 
 	playlist.IncrementVideoCount()
 
-	if _, err := NewPlaylistRepository(q).Save(ctx, userID, playlist); err != nil {
+	if _, err := NewPlaylistRepository(q).Save(ctx, playlist); err != nil {
 		return err
 	}
 
@@ -507,7 +523,7 @@ func (s *Service) RemoveVideoFromPlaylist(ctx context.Context, userID, playlistI
 		return err
 	}
 
-	if _, err := NewPlaylistRepository(q).Save(ctx, userID, playlist); err != nil {
+	if _, err := NewPlaylistRepository(q).Save(ctx, playlist); err != nil {
 		return err
 	}
 

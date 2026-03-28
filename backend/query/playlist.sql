@@ -2,6 +2,7 @@
 INSERT INTO
     m_playlist (
         m_user_id,
+        m_channel_id,
         playlist_title,
         playlist_description,
         visibility_code,
@@ -22,6 +23,16 @@ VALUES
             LIMIT
                 1
         ),
+        COALESCE((
+            SELECT
+                ch.m_channel_id
+            FROM
+                m_channel ch
+            WHERE
+                ch.public_id = sqlc.narg('channel_public_id')::uuid
+            LIMIT
+                1
+        ), 0),
         @playlist_title,
         @playlist_description,
         @visibility_code,
@@ -114,15 +125,18 @@ SELECT
 FROM
     m_playlist playlist
 WHERE
-    playlist.m_user_id = (
-        SELECT
-            u.m_user_id
-        FROM
-            m_user u
-        WHERE
-            u.public_id = @user_id
-        LIMIT
-            1
+    (
+        playlist.m_user_id = (
+            SELECT
+                u.m_user_id
+            FROM
+                m_user u
+            WHERE
+                u.public_id = @user_id
+            LIMIT
+                1
+        )
+        OR playlist.m_channel_id != 0
     )
     AND playlist.public_id = @playlist_id;
 
@@ -344,15 +358,18 @@ WHERE
         FROM
             m_playlist playlist
         WHERE
-            playlist.m_user_id = (
-                SELECT
-                    u.m_user_id
-                FROM
-                    m_user u
-                WHERE
-                    u.public_id = @user_id
-                LIMIT
-                    1
+            (
+                playlist.m_user_id = (
+                    SELECT
+                        u.m_user_id
+                    FROM
+                        m_user u
+                    WHERE
+                        u.public_id = @user_id
+                    LIMIT
+                        1
+                )
+                OR playlist.m_channel_id != 0
             )
             AND playlist.public_id = @playlist_id
         LIMIT
@@ -374,15 +391,18 @@ WHERE
                     FROM
                         m_playlist playlist
                     WHERE
-                        playlist.m_user_id = (
-                            SELECT
-                                u.m_user_id
-                            FROM
-                                m_user u
-                            WHERE
-                                u.public_id = @user_id
-                            LIMIT
-                                1
+                        (
+                            playlist.m_user_id = (
+                                SELECT
+                                    u.m_user_id
+                                FROM
+                                    m_user u
+                                WHERE
+                                    u.public_id = @user_id
+                                LIMIT
+                                    1
+                            )
+                            OR playlist.m_channel_id != 0
                         )
                         AND playlist.public_id = @playlist_id
                     LIMIT
@@ -406,3 +426,46 @@ INSERT INTO
     )
 VALUES
     ($1, $2, $3);
+
+-- name: ListChannelPlaylists :many
+SELECT
+    playlist.public_id,
+    playlist.playlist_title,
+    playlist.playlist_description,
+    playlist.visibility_code,
+    playlist.playlist_code,
+    playlist.registered_at,
+    playlist.updated_at,
+    playlist.video_count,
+    COALESCE((
+        SELECT
+            video.external_thumbnail_url
+        FROM
+            m_playlist_video playlist_video
+            INNER JOIN m_video video ON playlist_video.m_video_id = video.m_video_id
+        WHERE
+            playlist_video.m_playlist_id = playlist.m_playlist_id
+        LIMIT
+            1
+    ), '')::varchar AS top_thumbnail
+FROM
+    m_playlist playlist
+WHERE
+    playlist.m_channel_id = (
+        SELECT
+            ch.m_channel_id
+        FROM
+            m_channel ch
+        WHERE
+            ch.public_id = @channel_id
+        LIMIT
+            1
+    )
+    AND (
+        sqlc.narg('cursor')::uuid IS NULL
+        OR playlist.public_id < sqlc.narg('cursor')::uuid
+    )
+ORDER BY
+    playlist.m_channel_id, playlist.public_id DESC
+LIMIT
+    @query_limit;

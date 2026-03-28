@@ -300,6 +300,35 @@ export type GetChannelsChannelIdVideos200 = {
   items: GetChannelsChannelIdVideos200ItemsItem[];
 };
 
+export type GetChannelsChannelIdPlaylistsParams = {
+/**
+ * 取得する最大の数
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+/**
+ * ページネーション
+ */
+cursor?: string;
+};
+
+export type GetChannelsChannelIdPlaylists200ItemsItem = {
+  playlist_id: string;
+  playlist_title: string;
+  /** @minimum 0 */
+  playlist_video_count: number;
+  playlist_registered_at: string;
+  top_video_thumbnail_url?: string;
+};
+
+export type GetChannelsChannelIdPlaylists200 = {
+  /** @minimum 0 */
+  item_count: number;
+  has_next: boolean;
+  items: GetChannelsChannelIdPlaylists200ItemsItem[];
+};
+
 export type GetChannelsSubscribedParams = {
 /**
  * 取得する最大の数

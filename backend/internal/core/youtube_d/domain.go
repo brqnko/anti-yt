@@ -87,6 +87,13 @@ func NewChannel(id, displayName, customID, description, iconURL string, subscrib
 	}, nil
 }
 
+type Playlist struct {
+	ID          string
+	Title       string
+	Description string
+	CreatedAt   time.Time
+}
+
 type WatchHistory struct {
 	VideoID     VideoID
 	WatchedAt   time.Time

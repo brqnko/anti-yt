@@ -30,6 +30,7 @@ type Service interface {
 	FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (Channel, error)
 	FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (map[VideoID]Video, error)
 	FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error)
+	FetchChannelPlaylists(ctx context.Context, channelID ChannelID, pageToken string) (_ []Playlist, _ string, err error)
 	SearchVideoIDs(ctx context.Context, query string, pageToken string, opts SearchOptions) (_ []VideoID, _ string, err error)
 	OAuthAuthCodeURL(state string) string
 	OAuthExchange(ctx context.Context, code string) (accessToken string, err error)
@@ -330,6 +331,50 @@ func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID stri
 	}
 
 	return videoIDs, res.NextPageToken, nil
+}
+
+func (s *serviceImpl) FetchChannelPlaylists(ctx context.Context, channelID ChannelID, pageToken string) (_ []Playlist, _ string, err error) {
+	defer util.Wrap(&err, "youTubeAPIService.FetchChannelPlaylists")
+
+	if err := s.tryConsumeQuota(1); err != nil {
+		return nil, "", err
+	}
+
+	call := s.ytClient.Playlists.List([]string{"snippet"}).
+		ChannelId(string(channelID)).
+		MaxResults(50).
+		Context(ctx)
+	if pageToken != "" {
+		call = call.PageToken(pageToken)
+	}
+
+	res, err := call.Do()
+	if err != nil {
+		return nil, "", err
+	}
+
+	playlists := make([]Playlist, 0, len(res.Items))
+	for _, item := range res.Items {
+		if item.Snippet == nil {
+			util.LoggerFromContext(ctx).InfoContext(ctx, "item.Snippet is nil(fetchChannelPlaylists)")
+			continue
+		}
+
+		createdAt, err := time.Parse(time.RFC3339, item.Snippet.PublishedAt)
+		if err != nil {
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to parse createdAt(fetchChannelPlaylists)", slog.Any("error", err))
+			continue
+		}
+
+		playlists = append(playlists, Playlist{
+			ID:          item.Id,
+			Title:       item.Snippet.Title,
+			Description: item.Snippet.Description,
+			CreatedAt:   createdAt,
+		})
+	}
+
+	return playlists, res.NextPageToken, nil
 }
 
 func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToken string, opts SearchOptions) (_ []VideoID, _ string, err error) {

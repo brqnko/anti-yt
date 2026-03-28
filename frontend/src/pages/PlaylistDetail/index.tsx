@@ -513,10 +513,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
             <p class="text-lg font-medium">
               {t("playlistDetail.notFound")}
             </p>
-            <p class="text-sm mt-1">
-              {t("playlistDetail.notFoundDesc")}
-            </p>
-            <a
+<a
               class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
               href="/playlists"
             >

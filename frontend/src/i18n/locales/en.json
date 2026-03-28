@@ -279,7 +279,8 @@
     "noVideos": "No videos available",
     "notFound": "Channel not found",
     "showMore": "Show more",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "playlists": "Playlists"
   },
   "videoPlayer": {
     "pageTitle": "Video Player",
@@ -366,7 +367,6 @@
     "removeVideo": "Remove video",
     "noVideos": "No videos yet",
     "notFound": "Playlist not found",
-    "notFoundDesc": "This playlist doesn't exist or may have been deleted.",
     "loadError": "Failed to load playlist",
     "retry": "Retry",
     "endOfList": "\uD83C\uDF89 You've reached the end of the playlist",

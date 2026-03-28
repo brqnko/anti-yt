@@ -25,6 +25,36 @@ func (h *APIHandler) GetChannelsChannelId(ctx context.Context, request GetChanne
 	}, nil
 }
 
+func (h *APIHandler) GetChannelsChannelIdPlaylists(ctx context.Context, request GetChannelsChannelIdPlaylistsRequestObject) (GetChannelsChannelIdPlaylistsResponseObject, error) {
+	playlists, hasNext, err := h.playlistService.GetChannelPlaylists(ctx, request.ChannelId, request.Params.Cursor, int32(request.Params.Limit))
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]struct {
+		PlaylistId           uuid.UUID `json:"playlist_id"`
+		PlaylistRegisteredAt time.Time `json:"playlist_registered_at"`
+		PlaylistTitle        string    `json:"playlist_title"`
+		PlaylistVideoCount   int       `json:"playlist_video_count"`
+		TopVideoThumbnailUrl *string   `json:"top_video_thumbnail_url,omitempty"`
+	}, len(playlists))
+
+	loc := hutil.TimezoneFromContext(ctx)
+	for i, pl := range playlists {
+		items[i].PlaylistId = pl.PlaylistId
+		items[i].PlaylistTitle = pl.PlaylistTitle
+		items[i].PlaylistVideoCount = pl.PlaylistVideoCount
+		items[i].PlaylistRegisteredAt = pl.PlaylistRegisteredAt.In(loc)
+		items[i].TopVideoThumbnailUrl = pl.TopVideoThumbnailUrl
+	}
+
+	return GetChannelsChannelIdPlaylists200JSONResponse{
+		HasNext:   hasNext,
+		ItemCount: len(playlists),
+		Items:     items,
+	}, nil
+}
+
 func (h *APIHandler) GetChannelsChannelIdVideos(ctx context.Context, request GetChannelsChannelIdVideosRequestObject) (GetChannelsChannelIdVideosResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
