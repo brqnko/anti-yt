@@ -21,6 +21,9 @@ type YouTubeServiceMock struct {
 	// FetchChannelDetailByIDOrHandleFunc mocks the FetchChannelDetailByIDOrHandle method.
 	FetchChannelDetailByIDOrHandleFunc func(ctx context.Context, channelID string) (youtube_d.Channel, error)
 
+	// FetchChannelPlaylistsFunc mocks the FetchChannelPlaylists method.
+	FetchChannelPlaylistsFunc func(ctx context.Context, channelID youtube_d.ChannelID, pageToken string) ([]youtube_d.Playlist, string, error)
+
 	// FetchPlaylistVideoIDsFunc mocks the FetchPlaylistVideoIDs method.
 	FetchPlaylistVideoIDsFunc func(ctx context.Context, playlistID string, pageToken string) ([]youtube_d.VideoID, string, error)
 
@@ -56,6 +59,12 @@ type YouTubeServiceMock struct {
 		FetchChannelDetailByIDOrHandle []struct {
 			Ctx       context.Context
 			ChannelID string
+		}
+		// FetchChannelPlaylists holds details about calls to the FetchChannelPlaylists method.
+		FetchChannelPlaylists []struct {
+			Ctx       context.Context
+			ChannelID youtube_d.ChannelID
+			PageToken string
 		}
 		// FetchPlaylistVideoIDs holds details about calls to the FetchPlaylistVideoIDs method.
 		FetchPlaylistVideoIDs []struct {
@@ -105,6 +114,7 @@ type YouTubeServiceMock struct {
 	}
 	lockFetchChannelDetail             sync.RWMutex
 	lockFetchChannelDetailByIDOrHandle sync.RWMutex
+	lockFetchChannelPlaylists           sync.RWMutex
 	lockFetchPlaylistVideoIDs          sync.RWMutex
 
 	lockFetchVideoDetail               sync.RWMutex
@@ -180,6 +190,26 @@ func (mock *YouTubeServiceMock) FetchChannelDetailByIDOrHandleCalls() []struct {
 	calls = mock.calls.FetchChannelDetailByIDOrHandle
 	mock.lockFetchChannelDetailByIDOrHandle.RUnlock()
 	return calls
+}
+
+// FetchChannelPlaylists calls FetchChannelPlaylistsFunc.
+func (mock *YouTubeServiceMock) FetchChannelPlaylists(ctx context.Context, channelID youtube_d.ChannelID, pageToken string) ([]youtube_d.Playlist, string, error) {
+	if mock.FetchChannelPlaylistsFunc == nil {
+		panic("YouTubeServiceMock.FetchChannelPlaylistsFunc: method is nil but Service.FetchChannelPlaylists was just called")
+	}
+	callInfo := struct {
+		Ctx       context.Context
+		ChannelID youtube_d.ChannelID
+		PageToken string
+	}{
+		Ctx:       ctx,
+		ChannelID: channelID,
+		PageToken: pageToken,
+	}
+	mock.lockFetchChannelPlaylists.Lock()
+	mock.calls.FetchChannelPlaylists = append(mock.calls.FetchChannelPlaylists, callInfo)
+	mock.lockFetchChannelPlaylists.Unlock()
+	return mock.FetchChannelPlaylistsFunc(ctx, channelID, pageToken)
 }
 
 // FetchPlaylistVideoIDs calls FetchPlaylistVideoIDsFunc.

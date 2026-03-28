@@ -679,6 +679,90 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /api/v1/channels/{channel_id}/playlists:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
+      - $ref: '#/components/parameters/HeaderTimezone'
+    get:
+      tags: [ channel ]
+      summary: Get channel playlists
+      description: チャンネルのプレイリスト一覧を取得する
+      operationId: getChannelsChannelIdPlaylists
+      parameters:
+        - name: channel_id
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: limit
+          description: 取得する最大の数
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: cursor
+          description: ページネーション
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item_count:
+                    type: integer
+                    minimum: 0
+                  has_next:
+                    type: boolean
+                  items:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      type: object
+                      properties:
+                        playlist_id:
+                          type: string
+                          format: uuid
+                        playlist_title:
+                          type: string
+                        playlist_video_count:
+                          type: integer
+                          minimum: 0
+                        playlist_registered_at:
+                          type: string
+                          format: date-time
+                        top_video_thumbnail_url:
+                          type: string
+                          format: uri
+                      required: [ playlist_id, playlist_title, playlist_video_count, playlist_registered_at ]
+                required: [ item_count, has_next, items ]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /api/v1/channels/subscribed:
     parameters:
       - $ref: '#/components/parameters/HeaderXRealIP'

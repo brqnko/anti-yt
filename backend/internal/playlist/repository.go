@@ -10,7 +10,7 @@ import (
 )
 
 type PlaylistRepository interface {
-	Save(ctx context.Context, userID uuid.UUID, playlist *Playlist) (int64, error)
+	Save(ctx context.Context, playlist *Playlist) (int64, error)
 	Remove(ctx context.Context, userID, playlistID uuid.UUID) error
 	FindForUpdate(ctx context.Context, userID, playlistID uuid.UUID) (*Playlist, error)
 	InsertVideo(ctx context.Context, userID, playlistID, videoID uuid.UUID) error
@@ -28,11 +28,17 @@ func NewPlaylistRepository(q sqlc.Querier) PlaylistRepository {
 	}
 }
 
-func (r *playlistRepositoryImpl) Save(ctx context.Context, userID uuid.UUID, playlist *Playlist) (_ int64, err error) {
-	defer util.Wrap(&err, "playlistRepository.Save(userID=%s)", userID)
+func (r *playlistRepositoryImpl) Save(ctx context.Context, playlist *Playlist) (_ int64, err error) {
+	defer util.Wrap(&err, "playlistRepository.Save(playlistID=%s)", playlist.ID)
+
+	var userPublicID uuid.UUID
+	if playlist.UserID != nil {
+		userPublicID = *playlist.UserID
+	}
 
 	id, err := r.q.UpsertPlaylist(ctx, sqlc.UpsertPlaylistParams{
-		UserPublicID:        userID,
+		UserPublicID:        userPublicID,
+		ChannelPublicID:     playlist.ChannelID,
 		PlaylistTitle:       string(playlist.Title),
 		PlaylistDescription: string(playlist.Description),
 		VisibilityCode:      int(playlist.VisibilityCode),
@@ -71,6 +77,7 @@ func (r *playlistRepositoryImpl) FindForUpdate(ctx context.Context, userID, play
 		VisibilityCode(row.VisibilityCode).String(),
 		PlaylistCode(row.PlaylistCode).String(),
 		WithPlaylistID(row.PublicID),
+		WithPlaylistUserID(userID),
 		WithPlaylistVideoCount(row.VideoCount),
 		WithPlaylistRegisteredAt(row.RegisteredAt),
 	)

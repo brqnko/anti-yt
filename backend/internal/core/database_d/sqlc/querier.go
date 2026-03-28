@@ -59,6 +59,7 @@ type Querier interface {
 	InsertSubscription(ctx context.Context, arg InsertSubscriptionParams) (int64, error)
 	// ユーザーを作成する。
 	InsertUser(ctx context.Context, arg InsertUserParams) (int64, error)
+	ListChannelPlaylists(ctx context.Context, arg ListChannelPlaylistsParams) ([]ListChannelPlaylistsRow, error)
 	ListChannelVideos(ctx context.Context, arg ListChannelVideosParams) ([]ListChannelVideosRow, error)
 	ListChannelVideosOlder(ctx context.Context, arg ListChannelVideosOlderParams) ([]ListChannelVideosOlderRow, error)
 	ListDailyWatchStatsByRange(ctx context.Context, arg ListDailyWatchStatsByRangeParams) ([]ListDailyWatchStatsByRangeRow, error)

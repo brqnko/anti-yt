@@ -16,6 +16,7 @@ const Terms = lazy(() => import("./pages/Terms/index.jsx"));
 const Privacy = lazy(() => import("./pages/Privacy/index.jsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard/index.jsx"));
 const ChannelDetail = lazy(() => import("./pages/ChannelDetail/index.jsx"));
+const ChannelPlaylists = lazy(() => import("./pages/ChannelPlaylists/index.jsx"));
 const Profile = lazy(() => import("./pages/Profile/index.jsx"));
 const VideoPlayer = lazy(() => import("./pages/VideoPlayer/index.jsx"));
 const Analytics = lazy(() => import("./pages/Analytics/index.jsx"));
@@ -35,6 +36,7 @@ function AppContent() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/channels" component={Explore} />
       <Route path="/channels/:channelId" component={ChannelDetail} />
+      <Route path="/channels/:channelId/playlists" component={ChannelPlaylists} />
       <Route path="/watch/:videoId" component={VideoPlayer} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/history" component={History} />

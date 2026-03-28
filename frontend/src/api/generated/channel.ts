@@ -7,6 +7,8 @@
  */
 import type {
   GetChannelsChannelId200,
+  GetChannelsChannelIdPlaylists200,
+  GetChannelsChannelIdPlaylistsParams,
   GetChannelsChannelIdVideos200,
   GetChannelsChannelIdVideosParams,
   GetChannelsSubscribed200,
@@ -61,6 +63,20 @@ const getChannelsChannelIdVideos = (
       );
     }
   /**
+ * チャンネルのプレイリスト一覧を取得する
+ * @summary Get channel playlists
+ */
+const getChannelsChannelIdPlaylists = (
+    channelId: string,
+    params: GetChannelsChannelIdPlaylistsParams,
+ ) => {
+      return customInstance<GetChannelsChannelIdPlaylists200>(
+      {url: `/api/v1/channels/${channelId}/playlists`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
  * 現在の登録チャンネル一覧を取得
  * @summary Get subscribed channels
  */
@@ -99,10 +115,11 @@ const deleteChannelsChannelIdSubscribe = (
     },
       );
     }
-  return {getFeedChannels,getChannelsChannelId,getChannelsChannelIdVideos,getChannelsSubscribed,postChannelsSubscribe,deleteChannelsChannelIdSubscribe}};
+  return {getFeedChannels,getChannelsChannelId,getChannelsChannelIdVideos,getChannelsChannelIdPlaylists,getChannelsSubscribed,postChannelsSubscribe,deleteChannelsChannelIdSubscribe}};
 export type GetFeedChannelsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getFeedChannels']>>>
 export type GetChannelsChannelIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getChannelsChannelId']>>>
 export type GetChannelsChannelIdVideosResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getChannelsChannelIdVideos']>>>
+export type GetChannelsChannelIdPlaylistsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getChannelsChannelIdPlaylists']>>>
 export type GetChannelsSubscribedResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['getChannelsSubscribed']>>>
 export type PostChannelsSubscribeResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['postChannelsSubscribe']>>>
 export type DeleteChannelsChannelIdSubscribeResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getChannel>['deleteChannelsChannelIdSubscribe']>>>

@@ -188,15 +188,18 @@ SELECT
 FROM
     m_playlist playlist
 WHERE
-    playlist.m_user_id = (
-        SELECT
-            u.m_user_id
-        FROM
-            m_user u
-        WHERE
-            u.public_id = $1
-        LIMIT
-            1
+    (
+        playlist.m_user_id = (
+            SELECT
+                u.m_user_id
+            FROM
+                m_user u
+            WHERE
+                u.public_id = $1
+            LIMIT
+                1
+        )
+        OR playlist.m_channel_id != 0
     )
     AND playlist.public_id = $2
 `
@@ -316,6 +319,98 @@ func (q *Queries) InsertPlaylistVideo(ctx context.Context, arg InsertPlaylistVid
 	return err
 }
 
+const listChannelPlaylists = `-- name: ListChannelPlaylists :many
+SELECT
+    playlist.public_id,
+    playlist.playlist_title,
+    playlist.playlist_description,
+    playlist.visibility_code,
+    playlist.playlist_code,
+    playlist.registered_at,
+    playlist.updated_at,
+    playlist.video_count,
+    COALESCE((
+        SELECT
+            video.external_thumbnail_url
+        FROM
+            m_playlist_video playlist_video
+            INNER JOIN m_video video ON playlist_video.m_video_id = video.m_video_id
+        WHERE
+            playlist_video.m_playlist_id = playlist.m_playlist_id
+        LIMIT
+            1
+    ), '')::varchar AS top_thumbnail
+FROM
+    m_playlist playlist
+WHERE
+    playlist.m_channel_id = (
+        SELECT
+            ch.m_channel_id
+        FROM
+            m_channel ch
+        WHERE
+            ch.public_id = $1
+        LIMIT
+            1
+    )
+    AND (
+        $2::uuid IS NULL
+        OR playlist.public_id < $2::uuid
+    )
+ORDER BY
+    playlist.m_channel_id, playlist.public_id DESC
+LIMIT
+    $3
+`
+
+type ListChannelPlaylistsParams struct {
+	ChannelID  uuid.UUID
+	Cursor     *uuid.UUID
+	QueryLimit int32
+}
+
+type ListChannelPlaylistsRow struct {
+	PublicID            uuid.UUID
+	PlaylistTitle       string
+	PlaylistDescription string
+	VisibilityCode      int
+	PlaylistCode        int
+	RegisteredAt        time.Time
+	UpdatedAt           time.Time
+	VideoCount          int
+	TopThumbnail        string
+}
+
+func (q *Queries) ListChannelPlaylists(ctx context.Context, arg ListChannelPlaylistsParams) ([]ListChannelPlaylistsRow, error) {
+	rows, err := q.db.Query(ctx, listChannelPlaylists, arg.ChannelID, arg.Cursor, arg.QueryLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListChannelPlaylistsRow
+	for rows.Next() {
+		var i ListChannelPlaylistsRow
+		if err := rows.Scan(
+			&i.PublicID,
+			&i.PlaylistTitle,
+			&i.PlaylistDescription,
+			&i.VisibilityCode,
+			&i.PlaylistCode,
+			&i.RegisteredAt,
+			&i.UpdatedAt,
+			&i.VideoCount,
+			&i.TopThumbnail,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPlaylistVideos = `-- name: ListPlaylistVideos :many
 SELECT
     video.public_id,
@@ -361,15 +456,18 @@ WHERE
         FROM
             m_playlist playlist
         WHERE
-            playlist.m_user_id = (
-                SELECT
-                    u.m_user_id
-                FROM
-                    m_user u
-                WHERE
-                    u.public_id = $1
-                LIMIT
-                    1
+            (
+                playlist.m_user_id = (
+                    SELECT
+                        u.m_user_id
+                    FROM
+                        m_user u
+                    WHERE
+                        u.public_id = $1
+                    LIMIT
+                        1
+                )
+                OR playlist.m_channel_id != 0
             )
             AND playlist.public_id = $2
         LIMIT
@@ -391,15 +489,18 @@ WHERE
                     FROM
                         m_playlist playlist
                     WHERE
-                        playlist.m_user_id = (
-                            SELECT
-                                u.m_user_id
-                            FROM
-                                m_user u
-                            WHERE
-                                u.public_id = $1
-                            LIMIT
-                                1
+                        (
+                            playlist.m_user_id = (
+                                SELECT
+                                    u.m_user_id
+                                FROM
+                                    m_user u
+                                WHERE
+                                    u.public_id = $1
+                                LIMIT
+                                    1
+                            )
+                            OR playlist.m_channel_id != 0
                         )
                         AND playlist.public_id = $2
                     LIMIT
@@ -607,6 +708,7 @@ const upsertPlaylist = `-- name: UpsertPlaylist :one
 INSERT INTO
     m_playlist (
         m_user_id,
+        m_channel_id,
         playlist_title,
         playlist_description,
         visibility_code,
@@ -627,13 +729,23 @@ VALUES
             LIMIT
                 1
         ),
-        $2,
+        COALESCE((
+            SELECT
+                ch.m_channel_id
+            FROM
+                m_channel ch
+            WHERE
+                ch.public_id = $2::uuid
+            LIMIT
+                1
+        ), 0),
         $3,
         $4,
         $5,
         $6,
         $7,
-        $8
+        $8,
+        $9
     )
 ON CONFLICT (public_id) DO UPDATE SET
     playlist_title = EXCLUDED.playlist_title,
@@ -649,6 +761,7 @@ RETURNING
 
 type UpsertPlaylistParams struct {
 	UserPublicID        uuid.UUID
+	ChannelPublicID     *uuid.UUID
 	PlaylistTitle       string
 	PlaylistDescription string
 	VisibilityCode      int
@@ -661,6 +774,7 @@ type UpsertPlaylistParams struct {
 func (q *Queries) UpsertPlaylist(ctx context.Context, arg UpsertPlaylistParams) (int64, error) {
 	row := q.db.QueryRow(ctx, upsertPlaylist,
 		arg.UserPublicID,
+		arg.ChannelPublicID,
 		arg.PlaylistTitle,
 		arg.PlaylistDescription,
 		arg.VisibilityCode,

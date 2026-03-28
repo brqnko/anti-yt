@@ -48,8 +48,17 @@ type GetPlaylistItemView struct {
 	VideoId                    uuid.UUID
 }
 
+type GetChannelPlaylistsView struct {
+	PlaylistId           uuid.UUID
+	PlaylistTitle        string
+	PlaylistVideoCount   int
+	PlaylistRegisteredAt time.Time
+	TopVideoThumbnailUrl *string
+}
+
 type PlaylistQueryService interface {
 	FindPlaylists(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetPlaylistsView, error)
+	FindChannelPlaylists(ctx context.Context, channelID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetChannelPlaylistsView, error)
 	Find(ctx context.Context, userID uuid.UUID, playlistID uuid.UUID) (GetPlaylistDetailView, error)
 	FindPlaylistItems(ctx context.Context, userID, playlistID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetPlaylistItemView, error)
 }
@@ -91,6 +100,35 @@ func (p *playlistQueryServiceImpl) FindPlaylists(ctx context.Context, userID uui
 			PlaylistUpdatedAt:    row.UpdatedAt,
 			PlaylistVideoCount:   row.VideoCount,
 			PlaylistVisibility:   VisibilityCode(row.VisibilityCode).String(),
+			TopVideoThumbnailUrl: topVideoThumbnailUrl,
+		}
+	}
+	return views, nil
+}
+
+func (p *playlistQueryServiceImpl) FindChannelPlaylists(ctx context.Context, channelID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetChannelPlaylistsView, err error) {
+	defer util.Wrap(&err, "playlistQueryService.FindChannelPlaylists(channelID=%s)", channelID)
+
+	rows, err := p.q.ListChannelPlaylists(ctx, sqlc.ListChannelPlaylistsParams{
+		ChannelID:  channelID,
+		Cursor:     cursor,
+		QueryLimit: limit,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	views := make([]GetChannelPlaylistsView, len(rows))
+	for i, row := range rows {
+		var topVideoThumbnailUrl *string
+		if row.TopThumbnail != "" {
+			topVideoThumbnailUrl = &row.TopThumbnail
+		}
+		views[i] = GetChannelPlaylistsView{
+			PlaylistId:           row.PublicID,
+			PlaylistTitle:        row.PlaylistTitle,
+			PlaylistVideoCount:   row.VideoCount,
+			PlaylistRegisteredAt: row.RegisteredAt,
 			TopVideoThumbnailUrl: topVideoThumbnailUrl,
 		}
 	}

@@ -279,7 +279,8 @@
     "noVideos": "動画がありません",
     "notFound": "チャンネルが見つかりません",
     "showMore": "もっと見る",
-    "showLess": "閉じる"
+    "showLess": "閉じる",
+    "playlists": "プレイリスト"
   },
   "videoPlayer": {
     "pageTitle": "動画プレーヤー",
@@ -365,7 +366,6 @@
     "removeVideo": "動画を削除",
     "noVideos": "動画がありません",
     "notFound": "プレイリストが見つかりません",
-    "notFoundDesc": "このプレイリストは存在しないか、削除された可能性があります。",
     "loadError": "プレイリストの読み込みに失敗しました",
     "retry": "再試行",
     "endOfList": "\uD83C\uDF89 すべての動画を読み込みました",
