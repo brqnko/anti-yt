@@ -252,11 +252,7 @@ export default function Home() {
             </p>
 
             <div class="flex flex-col gap-4 pt-8">
-              {isLoading ? (
-                <div class="flex w-full sm:w-auto items-center justify-center rounded-xl bg-white dark:bg-[#242424] px-8 py-4 border border-slate-200 dark:border-slate-700">
-                  <div class="w-5 h-5 rounded-full border-2 border-slate-300 dark:border-slate-600 border-t-primary animate-spin" />
-                </div>
-              ) : isAuthenticated ? (
+              {isAuthenticated && !isLoading ? (
                 <a
                   href="/dashboard"
                   class="flex w-full sm:w-auto items-center justify-center rounded-xl bg-primary px-8 py-4 text-base font-bold text-white hover:bg-primary/90 transition-all hover:-translate-y-0.5 no-underline cursor-pointer"
@@ -265,10 +261,11 @@ export default function Home() {
                 </a>
               ) : (
                 <button
+                  disabled={isLoading}
                   onClick={() => {
                     window.location.href = "/api/v1/auth/google";
                   }}
-                  class="flex w-full sm:w-auto items-center justify-center gap-3 rounded-xl bg-white dark:bg-[#242424] px-8 py-4 text-base font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-primary/50 dark:hover:border-primary/50 transition-all hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
+                  class="flex w-full sm:w-auto items-center justify-center gap-3 rounded-xl bg-white dark:bg-[#242424] px-8 py-4 text-base font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-primary/50 dark:hover:border-primary/50 transition-all hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
                 >
                   <GoogleIcon />
                   <span>{t("home.signInWithGoogle")}</span>
