@@ -24,9 +24,6 @@ type YouTubeServiceMock struct {
 	// FetchPlaylistVideoIDsFunc mocks the FetchPlaylistVideoIDs method.
 	FetchPlaylistVideoIDsFunc func(ctx context.Context, playlistID string, pageToken string) ([]youtube_d.VideoID, string, error)
 
-	// FetchRSSFeedFunc mocks the FetchRSSFeed method.
-	FetchRSSFeedFunc func(ctx context.Context, channelID youtube_d.ChannelID) ([]youtube_d.VideoID, error)
-
 	// FetchVideoDetailFunc mocks the FetchVideoDetail method.
 	FetchVideoDetailFunc func(ctx context.Context, videoIDs []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error)
 
@@ -65,11 +62,6 @@ type YouTubeServiceMock struct {
 			Ctx        context.Context
 			PlaylistID string
 			PageToken  string
-		}
-		// FetchRSSFeed holds details about calls to the FetchRSSFeed method.
-		FetchRSSFeed []struct {
-			Ctx       context.Context
-			ChannelID youtube_d.ChannelID
 		}
 		// FetchVideoDetail holds details about calls to the FetchVideoDetail method.
 		FetchVideoDetail []struct {
@@ -114,7 +106,7 @@ type YouTubeServiceMock struct {
 	lockFetchChannelDetail             sync.RWMutex
 	lockFetchChannelDetailByIDOrHandle sync.RWMutex
 	lockFetchPlaylistVideoIDs          sync.RWMutex
-	lockFetchRSSFeed                   sync.RWMutex
+
 	lockFetchVideoDetail               sync.RWMutex
 	lockFetchAllSubscriptions          sync.RWMutex
 	lockFetchWatchHistory              sync.RWMutex
@@ -224,39 +216,6 @@ func (mock *YouTubeServiceMock) FetchPlaylistVideoIDsCalls() []struct {
 	mock.lockFetchPlaylistVideoIDs.RLock()
 	calls = mock.calls.FetchPlaylistVideoIDs
 	mock.lockFetchPlaylistVideoIDs.RUnlock()
-	return calls
-}
-
-// FetchRSSFeed calls FetchRSSFeedFunc.
-func (mock *YouTubeServiceMock) FetchRSSFeed(ctx context.Context, channelID youtube_d.ChannelID) ([]youtube_d.VideoID, error) {
-	if mock.FetchRSSFeedFunc == nil {
-		panic("YouTubeServiceMock.FetchRSSFeedFunc: method is nil but Service.FetchRSSFeed was just called")
-	}
-	callInfo := struct {
-		Ctx       context.Context
-		ChannelID youtube_d.ChannelID
-	}{
-		Ctx:       ctx,
-		ChannelID: channelID,
-	}
-	mock.lockFetchRSSFeed.Lock()
-	mock.calls.FetchRSSFeed = append(mock.calls.FetchRSSFeed, callInfo)
-	mock.lockFetchRSSFeed.Unlock()
-	return mock.FetchRSSFeedFunc(ctx, channelID)
-}
-
-// FetchRSSFeedCalls gets all the calls that were made to FetchRSSFeed.
-func (mock *YouTubeServiceMock) FetchRSSFeedCalls() []struct {
-	Ctx       context.Context
-	ChannelID youtube_d.ChannelID
-} {
-	var calls []struct {
-		Ctx       context.Context
-		ChannelID youtube_d.ChannelID
-	}
-	mock.lockFetchRSSFeed.RLock()
-	calls = mock.calls.FetchRSSFeed
-	mock.lockFetchRSSFeed.RUnlock()
 	return calls
 }
 

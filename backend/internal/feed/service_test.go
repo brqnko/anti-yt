@@ -62,7 +62,7 @@ func TestService_GetFeed(t *testing.T) {
 	}
 }
 
-func TestService_GetFeed_RSSError(t *testing.T) {
+func TestService_GetFeed_PlaylistFetchError(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	pool := testutil.NewTestDB(t)
@@ -71,8 +71,8 @@ func TestService_GetFeed_RSSError(t *testing.T) {
 
 	seedSubscription(t, pool, userID)
 
-	ytMock.FetchRSSFeedFunc = func(ctx context.Context, channelID youtube_d.ChannelID) ([]youtube_d.VideoID, error) {
-		return nil, errors.New("rss fetch error")
+	ytMock.FetchPlaylistVideoIDsFunc = func(ctx context.Context, playlistID string, pageToken string) ([]youtube_d.VideoID, string, error) {
+		return nil, "", errors.New("playlist fetch error")
 	}
 
 	svc := newTestService(t, pool, ytMock)

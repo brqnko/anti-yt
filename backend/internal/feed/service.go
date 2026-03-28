@@ -55,9 +55,8 @@ func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UU
 	}
 
 	for _, ch := range channels {
-		// RSSから動画ID一覧を取得する
-		// TODO: チャンネルが削除されてrssの取得に失敗した場合のケースを考慮する
-		videoIDs, err := s.ytService.FetchRSSFeed(ctx, ch.Channel.ID)
+		// PlaylistAPIから動画ID一覧を取得する
+		videoIDs, _, err := s.ytService.FetchPlaylistVideoIDs(ctx, string(ch.Channel.UploadsPlaylistID), "")
 		if err != nil {
 			return nil, false, err
 		}
