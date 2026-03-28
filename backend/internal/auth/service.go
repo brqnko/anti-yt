@@ -6,10 +6,13 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/channel"
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
+	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/playlist"
 	"github.com/brqnko/anti-yt/backend/internal/user"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
@@ -26,7 +29,10 @@ var (
 type Service struct {
 	db *pgxpool.Pool
 
-	oidcService oidc.GoogleOIDCService
+	oidcService     oidc.GoogleOIDCService
+	channelService  *channel.Service
+	playlistService *playlist.Service
+	ytService       youtube_d.Service
 
 	jwtService jwt_d.Service
 
@@ -38,16 +44,28 @@ type Service struct {
 	userQS          user.UserQueryService
 }
 
-func NewService(db *pgxpool.Pool, oidcService oidc.GoogleOIDCService, serverURL string, jwtService jwt_d.Service, refreshTokenDuration time.Duration) *Service {
+func NewService(
+	db *pgxpool.Pool,
+	oidcService oidc.GoogleOIDCService,
+	youtubeService youtube_d.Service,
+	channelService *channel.Service,
+	playlistService *playlist.Service,
+	serverURL string,
+	jwtService jwt_d.Service,
+	refreshTokenDuration time.Duration,
+) *Service {
 	return &Service{
 		db:                   db,
 		oidcService:          oidcService,
+		ytService:            youtubeService,
 		jwtService:           jwtService,
 		serverURL:            serverURL,
 		refreshTokenDuration: refreshTokenDuration,
 		refreshTokenQS:       NewRefreshTokenQueryService(db),
 		authorizationQS:      NewAuthorizationQueryService(db),
 		userQS:               user.NewUserQueryService(db),
+		channelService:       channelService,
+		playlistService:      playlistService,
 	}
 }
 
@@ -256,4 +274,189 @@ func (s *Service) RemoveSession(ctx context.Context, userID, sessionID uuid.UUID
 	}
 
 	return removedPublicID, nil
+}
+
+func (s *Service) CreateYouTubeAuthCode(_ context.Context, userID uuid.UUID) (_ string, err error) {
+	defer util.Wrap(&err, "Service.CreateYouTubeAuthCode")
+
+	state, err := s.jwtService.SignOAuthStateToken(userID, "youtube", s.serverURL)
+	if err != nil {
+		return "", err
+	}
+
+	return s.ytService.OAuthAuthCodeURL(state), nil
+}
+
+func (s *Service) YouTubeOAuthCallback(ctx context.Context, state, code string) (err error) {
+	defer util.Wrap(&err, "Service.YouTubeOAuthCallback")
+
+	userID, provider, err := s.jwtService.VerifyOAuthStateToken(state)
+	if err != nil || provider != "youtube" {
+		return ErrInvalidCSRFOrState
+	}
+
+	ytAccessToken, err := s.ytService.OAuthExchange(ctx, code)
+	if err != nil {
+		return err
+	}
+
+	// 登録してるチャンネルを取得
+	channels, err := s.ytService.FetchAllSubscriptions(ctx, ytAccessToken)
+	if err != nil {
+		return err
+	}
+	// 登録
+	for _, channel := range channels {
+		if _, err := s.channelService.SubscribeChannel(ctx, userID, string(channel.ID)); err != nil {
+			slog.Info("failed to subscribe channel(youtube oauth callback)", "channel_id", channel.ID)
+		}
+	}
+	clear(channels)
+
+	// 履歴のimport
+	// NOTE: YouTube Data API v3 は Watch History (HL) へのアクセスをサポートしていないためコメントアウト
+	// historyPageToken := ""
+	// allHistory := make([]youtube_d.WatchHistory, 0)
+	// for {
+	// 	histories, nextPageToken, err := s.ytService.FetchWatchHistory(ctx, ytAccessToken, historyPageToken)
+	// 	if err != nil {
+	// 		slog.Info("failed to fetch watch history(youtube oauth callback)", "error", err)
+	// 		break
+	// 	}
+	// 	allHistory = append(allHistory, histories...)
+	// 	if nextPageToken == "" {
+	// 		break
+	// 	}
+	// 	historyPageToken = nextPageToken
+	// }
+	// historyVideos := make(map[youtube_d.VideoID]youtube_d.Video)
+	// videoIDsToRequest := make([]youtube_d.VideoID, 0, 50)
+	// fetchVideos := func() error {
+	// 	if len(videoIDsToRequest) == 0 {
+	// 		return nil
+	// 	}
+	// 	videos, err := s.ytService.FetchVideoDetail(ctx, videoIDsToRequest)
+	// 	if err != nil {
+	// 		slog.Info("failed to fetch video detail(youtube oauth callback)", "error", err)
+	// 		return err
+	// 	}
+	// 	for id, v := range videos {
+	// 		historyVideos[id] = v
+	// 	}
+	// 	videoIDsToRequest = videoIDsToRequest[:0]
+	// 	return nil
+	// }
+	// for _, h := range allHistory {
+	// 	if _, ok := historyVideos[h.VideoID]; ok {
+	// 		continue
+	// 	}
+	// 	videoIDsToRequest = append(videoIDsToRequest, h.VideoID)
+	// 	if len(videoIDsToRequest) >= 50 {
+	// 		if err := fetchVideos(); err != nil {
+	// 			return err
+	// 		}
+	// 	}
+	// }
+	// if err := fetchVideos(); err != nil {
+	// 	return err
+	// }
+
+	// // 履歴のチャンネル情報を取得
+	// historyChannels := make(map[youtube_d.ChannelID]youtube_d.Channel)
+	// channelIDsToRequest := make([]youtube_d.ChannelID, 0, 50)
+	// fetchChannels := func() error {
+	// 	if len(channelIDsToRequest) == 0 {
+	// 		return nil
+	// 	}
+	// 	channels, err := s.ytService.FetchChannelDetail(ctx, channelIDsToRequest)
+	// 	if err != nil {
+	// 		slog.Info("failed to fetch channel detail(youtube oauth callback)", "error", err)
+	// 		return err
+	// 	}
+	// 	for id, c := range channels {
+	// 		historyChannels[id] = c
+	// 	}
+	// 	channelIDsToRequest = channelIDsToRequest[:0]
+	// 	return nil
+	// }
+	// for _, v := range historyVideos {
+	// 	if _, ok := historyChannels[v.ChannelID]; ok {
+	// 		continue
+	// 	}
+	// 	channelIDsToRequest = append(channelIDsToRequest, v.ChannelID)
+	// 	if len(channelIDsToRequest) >= 50 {
+	// 		if err := fetchChannels(); err != nil {
+	// 			return err
+	// 		}
+	// 	}
+	// }
+	// if err := fetchChannels(); err != nil {
+	// 	return err
+	// }
+
+	// // チャンネル情報をinsert
+	// fetchedAt := time.Now().UTC()
+	// channelUUIDs := make(map[youtube_d.ChannelID]uuid.UUID)
+	// for ytChannelID, c := range historyChannels {
+	// 	ch, err := channel.NewChannel(fetchedAt, fetchedAt, c)
+	// 	if err != nil {
+	// 		slog.Info("failed to new channel(youtube oauth callback)", "error", err)
+	// 		continue
+	// 	}
+	// 	if _, err := channel.NewChannelRepository(sqlc.New(s.db)).Save(ctx, ch); err != nil {
+	// 		slog.Info("failed to save channel(youtube oauth callback)", "error", err)
+	// 		continue
+	// 	}
+	// 	channelUUIDs[ytChannelID] = ch.ID
+	// }
+
+	// // 動画情報をinsert
+	// videoUUIDs := make(map[youtube_d.VideoID]uuid.UUID)
+	// for ytVideoID, v := range historyVideos {
+	// 	channelUUID, ok := channelUUIDs[v.ChannelID]
+	// 	if !ok {
+	// 		slog.Info("channel uuid not found(youtube oauth callback)", "channel_id", v.ChannelID)
+	// 		continue
+	// 	}
+	// 	vd, err := video.NewVideo(channelUUID, fetchedAt, v)
+	// 	if err != nil {
+	// 		slog.Info("failed to new video(youtube oauth callback)", "error", err)
+	// 		continue
+	// 	}
+	// 	if _, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, vd); err != nil {
+	// 		slog.Info("failed to save video(youtube oauth callback)", "error", err)
+	// 		continue
+	// 	}
+	// 	videoUUIDs[ytVideoID] = vd.ID
+	// }
+
+	// // 再生履歴をinsert
+	// for _, h := range allHistory {
+	// 	videoUUID, ok := videoUUIDs[h.VideoID]
+	// 	if !ok {
+	// 		slog.Info("video uuid not found(youtube oauth callback)", "video_id", h.VideoID)
+	// 		continue
+	// 	}
+	// 	v, ok := historyVideos[h.VideoID]
+	// 	if !ok {
+	// 		continue
+	// 	}
+	// 	watchStartAt := h.WatchedAt.Add(-time.Duration(v.LengthSeconds) * time.Second)
+	// 	if err := history.NewHistoryRepository(sqlc.New(s.db)).Import(ctx, userID, videoUUID, watchStartAt, h.WatchedAt); err != nil {
+	// 		slog.Info("failed to import history(youtube oauth callback)", "error", err)
+	// 		continue
+	// 	}
+	// }
+	// clear(allHistory)
+	// clear(historyVideos)
+	// clear(historyChannels)
+	// clear(channelUUIDs)
+	// clear(videoUUIDs)
+
+	// 高評価プレイリストをimport
+	if _, err := s.playlistService.CreatePlaylistWithAccessToken(ctx, userID, "高評価した動画", "", "private", "normal", ytAccessToken, "LL"); err != nil {
+		slog.Info("failed to import liked playlist(youtube oauth callback)", "error", err)
+	}
+
+	return nil
 }

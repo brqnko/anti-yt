@@ -109,11 +109,13 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 		for _, channelDetail := range channelDetails {
 			ch, err := channel.NewChannel(fetchedAt, fetchedAt, channelDetail)
 			if err != nil {
-				return nil, err
+				slog.Info("failed to new channel(createPlaylist)", "error", err)
+				continue
 			}
 
 			if _, err := channel.NewChannelRepository(sqlc.New(s.db)).Save(ctx, ch); err != nil {
-				return nil, err
+				slog.Info("failed to save channel(createPlaylist)", "error", err)
+				continue
 			}
 			savedChannels[channelDetail.ID] = ch.ID
 		}
@@ -122,7 +124,12 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 		// 動画の保存自体に順番は関係ない
 		videoIDToint64 := make(map[youtube_d.VideoID]int64)
 		for _, videoDetail := range videoDetails {
-			v, err := video.NewVideo(savedChannels[videoDetail.ChannelID], fetchedAt, videoDetail)
+			channelUUID, ok := savedChannels[videoDetail.ChannelID]
+			if !ok {
+				slog.Info("channel not found in savedChannels(createPlaylist)", "channelID", videoDetail.ChannelID)
+				continue
+			}
+			v, err := video.NewVideo(channelUUID, fetchedAt, videoDetail)
 			if err != nil {
 				slog.Info("failed to newVideo(createPlaylist)", "error", err)
 				continue
@@ -140,6 +147,130 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 			savedVideoID, ok := videoIDToint64[vid]
 			if !ok {
 				slog.Info("video not found in savedVideos(createPlaylist)", "videoID", vid)
+				continue
+			}
+			allVideoIDs = append(allVideoIDs, savedVideoID)
+		}
+
+		if pageToken == "" {
+			break
+		}
+		nextPageToken = pageToken
+	}
+
+	if err := NewPlaylistRepository(q).BulkInsertVideos(ctx, row, allVideoIDs); err != nil {
+		return nil, err
+	}
+
+	if err := playlist.SetVideoCount(len(allVideoIDs)); err != nil {
+		return nil, err
+	}
+
+	if _, err := NewPlaylistRepository(q).Save(ctx, userID, playlist); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
+	return playlist, nil
+}
+
+func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid.UUID, title, description, visibilityStr, playlistTypeStr, accessToken, playlistID string) (_ *Playlist, err error) {
+	defer util.Wrap(&err, "Service.CreatePlaylistWithAccessToken(userID=%s)", userID)
+
+	playlist, err := NewPlaylist(
+		title,
+		description,
+		visibilityStr,
+		playlistTypeStr,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			slog.Error("failed to rollback", "error", err)
+		}
+	}()
+	q := sqlc.New(tx)
+
+	row, err := NewPlaylistRepository(q).Save(ctx, userID, playlist)
+	if err != nil {
+		return nil, err
+	}
+
+	var allVideoIDs []int64
+	var nextPageToken string
+	for {
+		videoIDs, pageToken, err := s.ytService.FetchPlaylistVideoIDsWithOAuth(ctx, accessToken, playlistID, nextPageToken)
+		if err != nil {
+			slog.Info("failed to fetch playlist video ids(createPlaylistWithAccessToken)", "error", err)
+			break
+		}
+
+		videoDetails, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
+		if err != nil {
+			slog.Info("failed to fetch video detail(createPlaylistWithAccessToken)", "error", err)
+			break
+		}
+
+		channelIDs := make([]youtube_d.ChannelID, 0, len(videoDetails))
+		for _, vd := range videoDetails {
+			channelIDs = append(channelIDs, vd.ChannelID)
+		}
+		channelDetails, err := s.ytService.FetchChannelDetail(ctx, channelIDs)
+		if err != nil {
+			slog.Info("failed to fetch channel detail(createPlaylistWithAccessToken)", "error", err)
+			break
+		}
+
+		fetchedAt := time.Now().UTC()
+
+		savedChannels := make(map[youtube_d.ChannelID]uuid.UUID)
+		for _, channelDetail := range channelDetails {
+			ch, err := channel.NewChannel(fetchedAt, fetchedAt, channelDetail)
+			if err != nil {
+				slog.Info("failed to new channel(createPlaylistWithAccessToken)", "error", err)
+				continue
+			}
+			if _, err := channel.NewChannelRepository(sqlc.New(s.db)).Save(ctx, ch); err != nil {
+				slog.Info("failed to save channel(createPlaylistWithAccessToken)", "error", err)
+				continue
+			}
+			savedChannels[channelDetail.ID] = ch.ID
+		}
+
+		videoIDToInt64 := make(map[youtube_d.VideoID]int64)
+		for _, videoDetail := range videoDetails {
+			channelUUID, ok := savedChannels[videoDetail.ChannelID]
+			if !ok {
+				slog.Info("channel not found in savedChannels(createPlaylistWithAccessToken)", "channelID", videoDetail.ChannelID)
+				continue
+			}
+			v, err := video.NewVideo(channelUUID, fetchedAt, videoDetail)
+			if err != nil {
+				slog.Info("failed to newVideo(createPlaylistWithAccessToken)", "error", err)
+				continue
+			}
+			savedVideoID, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v)
+			if err != nil {
+				slog.Info("failed to saveVideo(createPlaylistWithAccessToken)", "error", err)
+				continue
+			}
+			videoIDToInt64[v.Video.ID] = savedVideoID
+		}
+
+		for _, vid := range videoIDs {
+			savedVideoID, ok := videoIDToInt64[vid]
+			if !ok {
+				slog.Info("video not found in savedVideos(createPlaylistWithAccessToken)", "videoID", vid)
 				continue
 			}
 			allVideoIDs = append(allVideoIDs, savedVideoID)

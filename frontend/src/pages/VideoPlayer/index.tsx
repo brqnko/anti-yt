@@ -965,7 +965,7 @@ function VideoPlayerContent() {
           <aside class="w-full xl:w-[420px] shrink-0 flex flex-col gap-8">
             {/* Quick Notes */}
             <div
-              class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden aspect-video xl:aspect-auto"
+              class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden"
               style={{ height: playerHeight ? `${playerHeight}px` : undefined, minHeight: '400px', flex: 'none' }}
             >
               <div class="p-4 border-b border-border-light dark:border-border-dark flex items-center justify-between">

@@ -83,6 +83,37 @@ func (h *APIHandler) GetAuthGoogleCallback(ctx context.Context, request GetAuthG
 	}, nil
 }
 
+func (h *APIHandler) GetAuthOauthYoutube(ctx context.Context, request GetAuthOauthYoutubeRequestObject) (GetAuthOauthYoutubeResponseObject, error) {
+	userID, err := hutil.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	url, err := h.authService.CreateYouTubeAuthCode(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return GetAuthOauthYoutube302Response{
+		Headers: GetAuthOauthYoutube302ResponseHeaders{
+			Location: url,
+		},
+	}, nil
+}
+
+func (h *APIHandler) GetAuthOauthYoutubeCallback(ctx context.Context, request GetAuthOauthYoutubeCallbackRequestObject) (GetAuthOauthYoutubeCallbackResponseObject, error) {
+	err := h.authService.YouTubeOAuthCallback(ctx, request.Params.State, request.Params.Code)
+	if err != nil {
+		return nil, err
+	}
+
+	return GetAuthOauthYoutubeCallback302Response{
+		Headers: GetAuthOauthYoutubeCallback302ResponseHeaders{
+			Location: fmt.Sprintf("%s/dashboard", h.frontendURL),
+		},
+	}, nil
+}
+
 func (h *APIHandler) PostAuthLogout(ctx context.Context, request PostAuthLogoutRequestObject) (PostAuthLogoutResponseObject, error) {
 	refreshToken, ok := hutil.RefreshTokenFromContext(ctx)
 	if !ok {

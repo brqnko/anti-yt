@@ -87,6 +87,11 @@ func NewChannel(id, displayName, customID, description, iconURL string, subscrib
 	}, nil
 }
 
+type WatchHistory struct {
+	VideoID     VideoID
+	WatchedAt   time.Time
+}
+
 type VideoID string
 
 func NewVideoID(id string) (_ VideoID, err error) {

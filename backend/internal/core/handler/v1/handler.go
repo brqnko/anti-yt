@@ -48,11 +48,11 @@ func NewAPIHandler(
 	return &APIHandler{
 		db: db,
 
-		authService:     auth.NewService(db, oidcService, serverURL, jwtService, refreshTokenDuration),
-		userService:     user.NewService(db, jwtService, serverURL),
 		channelService:  channel.NewService(db, ytService, rssFetchDuration),
 		videoService:    video.NewService(db),
 		playlistService: playlist.NewService(db, ytService),
+		authService:     auth.NewService(db, oidcService, ytService, channel.NewService(db, ytService, rssFetchDuration), playlist.NewService(db, ytService), serverURL, jwtService, refreshTokenDuration),
+		userService:     user.NewService(db, jwtService, serverURL),
 		historyService:  history.NewService(db),
 		feedService:     feed.NewService(db, ytService, rssFetchDuration),
 

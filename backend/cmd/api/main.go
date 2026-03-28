@@ -38,7 +38,6 @@ func main() {
 type config struct {
 	env                    string
 	oidcGoogleClientID     string
-	oidcGoogleRedirectURL  string
 	oidcGoogleClientSecret string
 	serverURL              string
 	frontendURL            string
@@ -89,7 +88,6 @@ func run(ctx context.Context) int {
 	}
 	cfg := config{
 		env:                    os.Getenv("ENV"),
-		oidcGoogleRedirectURL:  os.Getenv("OIDC_GOOGLE_REDIRECT_URL"),
 		oidcGoogleClientID:     os.Getenv("OIDC_GOOGLE_CLIENT_ID"),
 		oidcGoogleClientSecret: strings.TrimSpace(string(oidcGoogleClientSecret)),
 		dbPassword:             strings.TrimSpace(string(dbPassword)),
@@ -144,17 +142,17 @@ func run(ctx context.Context) int {
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
-	oidcService, err := oidc.NewGoogleOIDCService(initCtx, cfg.oidcGoogleClientID, cfg.oidcGoogleClientSecret, cfg.oidcGoogleRedirectURL)
+	oidcService, err := oidc.NewGoogleOIDCService(initCtx, cfg.oidcGoogleClientID, cfg.oidcGoogleClientSecret, fmt.Sprintf("%s/v1/auth/google/callback", cfg.serverURL))
 	if err != nil {
 		slog.Error("failed to create oidc service", "error", err)
 		return 1
 	}
 
-	jwtService := jwt_d.NewService(jwtPrivate, jwtPublic, 30*time.Minute)
+	jwtService := jwt_d.NewService(jwtPrivate, jwtPublic, 30*time.Minute, cfg.serverURL)
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	ytService, err := youtube_d.NewService(initCtx, cfg.youtubeDataAPIKey)
+	ytService, err := youtube_d.NewService(initCtx, cfg.youtubeDataAPIKey, cfg.oidcGoogleClientID, cfg.oidcGoogleClientSecret, fmt.Sprintf("%s/v1/auth/oauth/youtube/callback", cfg.serverURL))
 	if err != nil {
 		slog.Error("failed to create youtube service", "error", err)
 		return 1

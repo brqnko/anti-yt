@@ -11,6 +11,7 @@ import (
 
 type HistoryRepository interface {
 	Heartbeat(ctx context.Context, userID, videoID uuid.UUID, positionSeconds int) error
+	Import(ctx context.Context, userID, videoID uuid.UUID, watchStartAt, watchEndAt time.Time) error
 }
 
 type historyRepositoryImpl struct {
@@ -39,6 +40,27 @@ func (h *historyRepositoryImpl) Heartbeat(ctx context.Context, userID, videoID u
 		PublicID:             publicID,
 		WatchStartAt:         now,
 		WatchEndAt:           now.Add(2 * time.Minute),
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *historyRepositoryImpl) Import(ctx context.Context, userID, videoID uuid.UUID, watchStartAt, watchEndAt time.Time) (err error) {
+	defer util.Wrap(&err, "historyRepository.Import(userID=%s, videoID=%s)", userID, videoID)
+
+	publicID, err := uuid.NewV7()
+	if err != nil {
+		return err
+	}
+
+	if err := h.q.UpsertWatchHeartbeat(ctx, sqlc.UpsertWatchHeartbeatParams{
+		UserPublicID:         userID,
+		VideoPublicID:        videoID,
+		WatchPositionSeconds: 0,
+		PublicID:             publicID,
+		WatchStartAt:         watchStartAt,
+		WatchEndAt:           watchEndAt,
 	}); err != nil {
 		return err
 	}
