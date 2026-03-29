@@ -17,12 +17,14 @@
 | public_id | uuid |  | false |  |  |  |
 | playlist_description | varchar(255) |  | false |  |  |  |
 | registered_at | timestamp with time zone |  | false |  |  |  |
+| m_channel_id | bigint |  | false |  |  |  |
 
 ## Constraints
 
 | Name | Type | Definition |
 | ---- | ---- | ---------- |
 | m_playlist_created_at_not_null | n | NOT NULL created_at |
+| m_playlist_m_channel_id_not_null | n | NOT NULL m_channel_id |
 | m_playlist_m_playlist_id_not_null | n | NOT NULL m_playlist_id |
 | m_playlist_m_user_id_not_null | n | NOT NULL m_user_id |
 | m_playlist_playlist_code_not_null | n | NOT NULL playlist_code |
@@ -42,6 +44,7 @@
 | m_playlist_pkey | CREATE UNIQUE INDEX m_playlist_pkey ON public.m_playlist USING btree (m_playlist_id) |
 | uk_1_m_playlist | CREATE UNIQUE INDEX uk_1_m_playlist ON public.m_playlist USING btree (public_id) |
 | idx_2_m_playlist | CREATE INDEX idx_2_m_playlist ON public.m_playlist USING btree (m_user_id, public_id DESC) |
+| idx_3_m_playlist | CREATE INDEX idx_3_m_playlist ON public.m_playlist USING btree (m_channel_id, public_id) |
 
 ## Relations
 

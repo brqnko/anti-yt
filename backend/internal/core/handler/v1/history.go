@@ -59,7 +59,7 @@ func (h *APIHandler) PostVideosVideoIdHeartbeats(ctx context.Context, request Po
 		return nil, err
 	}
 
-	remaining, err := h.historyService.Heartbeat(ctx, userID, request.VideoId, request.Body.CurrentPositionSeconds, hutil.TimezoneFromContext(ctx))
+	remaining, err := h.historyService.Heartbeat(ctx, userID, request.VideoId, request.Body.CurrentPositionSeconds, request.Body.PlaylistId, hutil.TimezoneFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}

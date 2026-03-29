@@ -61,6 +61,7 @@ type PlaylistQueryService interface {
 	FindChannelPlaylists(ctx context.Context, channelID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetChannelPlaylistsView, error)
 	Find(ctx context.Context, userID uuid.UUID, playlistID uuid.UUID) (GetPlaylistDetailView, error)
 	FindPlaylistItems(ctx context.Context, userID, playlistID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetPlaylistItemView, error)
+	FindRecentPlaylists(ctx context.Context, userID uuid.UUID) ([]GetChannelPlaylistsView, error)
 }
 
 type playlistQueryServiceImpl struct {
@@ -196,6 +197,31 @@ func (p *playlistQueryServiceImpl) FindPlaylistItems(ctx context.Context, userID
 			ExternalVideoTitle:         row.ExternalTitle,
 			LastWatchSeconds:           lastWatchSeconds,
 			VideoId:                    row.PublicID,
+		}
+	}
+	return views, nil
+}
+
+func (p *playlistQueryServiceImpl) FindRecentPlaylists(ctx context.Context, userID uuid.UUID) (_ []GetChannelPlaylistsView, err error) {
+	defer util.Wrap(&err, "playlistQueryService.FindRecentPlaylists(userID=%s)", userID)
+
+	rows, err := p.q.ListRecentPlaylists(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	views := make([]GetChannelPlaylistsView, len(rows))
+	for i, row := range rows {
+		var topVideoThumbnailUrl *string
+		if row.TopThumbnail != "" {
+			topVideoThumbnailUrl = &row.TopThumbnail
+		}
+		views[i] = GetChannelPlaylistsView{
+			PlaylistId:           row.PublicID,
+			PlaylistTitle:        row.PlaylistTitle,
+			PlaylistVideoCount:   row.VideoCount,
+			PlaylistRegisteredAt: row.RegisteredAt,
+			TopVideoThumbnailUrl: topVideoThumbnailUrl,
 		}
 	}
 	return views, nil

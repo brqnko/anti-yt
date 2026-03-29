@@ -9,6 +9,40 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 )
 
+func (h *APIHandler) GetPlaylistsRecent(ctx context.Context, request GetPlaylistsRecentRequestObject) (GetPlaylistsRecentResponseObject, error) {
+	userID, err := hutil.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	playlists, err := h.playlistService.GetRecentPlaylists(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	loc := hutil.TimezoneFromContext(ctx)
+	items := make([]struct {
+		PlaylistId           uuid.UUID `json:"playlist_id"`
+		PlaylistRegisteredAt time.Time `json:"playlist_registered_at"`
+		PlaylistTitle        string    `json:"playlist_title"`
+		PlaylistVideoCount   int       `json:"playlist_video_count"`
+		TopVideoThumbnailUrl *string   `json:"top_video_thumbnail_url,omitempty"`
+	}, len(playlists))
+
+	for i, pl := range playlists {
+		items[i].PlaylistId = pl.PlaylistId
+		items[i].PlaylistTitle = pl.PlaylistTitle
+		items[i].PlaylistVideoCount = pl.PlaylistVideoCount
+		items[i].PlaylistRegisteredAt = pl.PlaylistRegisteredAt.In(loc)
+		items[i].TopVideoThumbnailUrl = pl.TopVideoThumbnailUrl
+	}
+
+	return GetPlaylistsRecent200JSONResponse{
+		ItemCount: len(items),
+		Items:     items,
+	}, nil
+}
+
 func (h *APIHandler) GetPlaylists(ctx context.Context, request GetPlaylistsRequestObject) (GetPlaylistsResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {

@@ -8,8 +8,9 @@ import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
 import { getFeed } from "../../api/generated/feed";
 import { getChannel } from "../../api/generated/channel";
+import { getPlaylist } from "../../api/generated/playlist";
 import { PAGE_SIZES } from "../../constants";
-import type { GetFeed200ItemsItem } from "../../api/generated/antiYtApi.schemas";
+import type { GetFeed200ItemsItem, GetPlaylistsRecent200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
 
 function DashboardContent() {
@@ -17,6 +18,7 @@ function DashboardContent() {
   useTitle(t("dashboard.pageTitle"));
 
   const [feedVideos, setFeedVideos] = useState<GetFeed200ItemsItem[]>([]);
+  const [recentPlaylists, setRecentPlaylists] = useState<GetPlaylistsRecent200ItemsItem[]>([]);
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasNext, setHasNext] = useState(false);
@@ -26,9 +28,10 @@ function DashboardContent() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [feedRes, subsRes] = await Promise.allSettled([
+        const [feedRes, subsRes, recentRes] = await Promise.allSettled([
           getFeed().getFeed({ limit: PAGE_SIZES.FEED }),
           getChannel().getChannelsSubscribed({ limit: 50 }),
+          getPlaylist().getPlaylistsRecent(),
         ]);
         if (feedRes.status === "fulfilled") {
           setFeedVideos(feedRes.value.items);
@@ -38,6 +41,9 @@ function DashboardContent() {
         }
         if (subsRes.status === "fulfilled") {
           setSubscribedChannelIds(new Set(subsRes.value.items.map((s) => s.channel_id)));
+        }
+        if (recentRes.status === "fulfilled") {
+          setRecentPlaylists(recentRes.value.items);
         }
       } finally {
         setIsLoadingFeed(false);
@@ -80,6 +86,53 @@ function DashboardContent() {
   return (
     <DashboardLayout>
       <div class="p-6">
+        {recentPlaylists.length > 0 && (
+          <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-bold">
+                {t("dashboard.recentPlaylists")}
+              </h3>
+              <a
+                href="/playlists"
+                class="text-sm font-medium text-primary hover:text-primary/80 transition-colors no-underline"
+              >
+                {t("dashboard.showAllPlaylists")}
+              </a>
+            </div>
+            <div class="flex gap-6 overflow-x-auto pb-2">
+              {recentPlaylists.map((pl) => (
+                <a
+                  key={pl.playlist_id}
+                  href={`/playlists/${pl.playlist_id}`}
+                  class="group flex-shrink-0 w-72 bg-card-light dark:bg-card-dark rounded-xl border border-transparent hover:border-primary/20 transition-all duration-300 overflow-hidden no-underline"
+                >
+                  <div class="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+                    {pl.top_video_thumbnail_url ? (
+                      <img
+                        src={pl.top_video_thumbnail_url}
+                        alt={pl.playlist_title}
+                        loading="lazy"
+                        class="absolute inset-0 w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div class="absolute inset-0 flex items-center justify-center">
+                        <Icon name="playlist_play" class="text-4xl text-text-muted-light dark:text-text-muted-dark" />
+                      </div>
+                    )}
+                  </div>
+                  <div class="p-3">
+                    <h4 class="text-sm font-bold text-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                      {pl.playlist_title}
+                    </h4>
+                    <span class="text-xs text-text-muted-light dark:text-text-muted-dark mt-1 block">
+                      {t("playlists.videoCount", { count: pl.playlist_video_count })}
+                    </span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
         {isLoadingFeed ? (
           <LoadingSpinner />
         ) : feedVideos.length > 0 ? (

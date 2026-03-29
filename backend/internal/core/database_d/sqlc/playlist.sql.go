@@ -570,6 +570,67 @@ func (q *Queries) ListPlaylistVideos(ctx context.Context, arg ListPlaylistVideos
 	return items, nil
 }
 
+const listRecentPlaylists = `-- name: ListRecentPlaylists :many
+SELECT
+    playlist.public_id,
+    playlist.playlist_title,
+    playlist.registered_at,
+    playlist.video_count,
+    COALESCE((
+        SELECT
+            video.external_thumbnail_url
+        FROM
+            m_playlist_video playlist_video
+            INNER JOIN m_video video ON playlist_video.m_video_id = video.m_video_id
+        WHERE
+            playlist_video.m_playlist_id = playlist.m_playlist_id
+        LIMIT
+            1
+    ), '')::varchar AS top_thumbnail
+FROM
+    m_user u
+    INNER JOIN LATERAL UNNEST(u.recent_playlist_ids) WITH ORDINALITY AS t(pid, ord) ON TRUE
+    INNER JOIN m_playlist playlist ON playlist.m_playlist_id = t.pid
+WHERE
+    u.public_id = $1
+ORDER BY
+    t.ord
+`
+
+type ListRecentPlaylistsRow struct {
+	PublicID      uuid.UUID
+	PlaylistTitle string
+	RegisteredAt  time.Time
+	VideoCount    int
+	TopThumbnail  string
+}
+
+func (q *Queries) ListRecentPlaylists(ctx context.Context, userID uuid.UUID) ([]ListRecentPlaylistsRow, error) {
+	rows, err := q.db.Query(ctx, listRecentPlaylists, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListRecentPlaylistsRow
+	for rows.Next() {
+		var i ListRecentPlaylistsRow
+		if err := rows.Scan(
+			&i.PublicID,
+			&i.PlaylistTitle,
+			&i.RegisteredAt,
+			&i.VideoCount,
+			&i.TopThumbnail,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUserPlaylists = `-- name: ListUserPlaylists :many
 SELECT
     playlist.public_id,

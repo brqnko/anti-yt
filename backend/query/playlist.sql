@@ -417,6 +417,32 @@ ORDER BY
 LIMIT
     @query_limit;
 
+-- name: ListRecentPlaylists :many
+SELECT
+    playlist.public_id,
+    playlist.playlist_title,
+    playlist.registered_at,
+    playlist.video_count,
+    COALESCE((
+        SELECT
+            video.external_thumbnail_url
+        FROM
+            m_playlist_video playlist_video
+            INNER JOIN m_video video ON playlist_video.m_video_id = video.m_video_id
+        WHERE
+            playlist_video.m_playlist_id = playlist.m_playlist_id
+        LIMIT
+            1
+    ), '')::varchar AS top_thumbnail
+FROM
+    m_user u
+    INNER JOIN LATERAL UNNEST(u.recent_playlist_ids) WITH ORDINALITY AS t(pid, ord) ON TRUE
+    INNER JOIN m_playlist playlist ON playlist.m_playlist_id = t.pid
+WHERE
+    u.public_id = @user_id
+ORDER BY
+    t.ord;
+
 -- name: BulkInsertPlaylistVideos :copyfrom
 INSERT INTO
     m_playlist_video (

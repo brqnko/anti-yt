@@ -97,6 +97,7 @@ type MUser struct {
 	CreatedAt              time.Time
 	UpdatedAt              time.Time
 	PublicID               uuid.UUID
+	RecentPlaylistIds      []int64
 }
 
 type MUserAuthorization struct {

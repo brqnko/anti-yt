@@ -12,6 +12,7 @@ import type {
   GetPlaylistsPlaylistId200,
   GetPlaylistsPlaylistIdVideos200,
   GetPlaylistsPlaylistIdVideosParams,
+  GetPlaylistsRecent200,
   PatchPlaylistsPlaylistId200,
   PatchPlaylistsPlaylistIdBody,
   PostPlaylists201,
@@ -50,6 +51,18 @@ const postPlaylists = (
       {url: `/api/v1/playlists`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: postPlaylistsBody
+    },
+      );
+    }
+  /**
+ * 最後に再生したプレイリストを最大5件取得する
+ * @summary Get recently played playlists
+ */
+const getPlaylistsRecent = (
+    
+ ) => {
+      return customInstance<GetPlaylistsRecent200>(
+      {url: `/api/v1/playlists/recent`, method: 'GET'
     },
       );
     }
@@ -135,9 +148,10 @@ const deletePlaylistsPlaylistIdVideos = (
     },
       );
     }
-  return {getPlaylists,postPlaylists,getPlaylistsPlaylistId,patchPlaylistsPlaylistId,deletePlaylistsPlaylistId,getPlaylistsPlaylistIdVideos,postPlaylistsPlaylistIdVideos,deletePlaylistsPlaylistIdVideos}};
+  return {getPlaylists,postPlaylists,getPlaylistsRecent,getPlaylistsPlaylistId,patchPlaylistsPlaylistId,deletePlaylistsPlaylistId,getPlaylistsPlaylistIdVideos,postPlaylistsPlaylistIdVideos,deletePlaylistsPlaylistIdVideos}};
 export type GetPlaylistsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['getPlaylists']>>>
 export type PostPlaylistsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['postPlaylists']>>>
+export type GetPlaylistsRecentResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['getPlaylistsRecent']>>>
 export type GetPlaylistsPlaylistIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['getPlaylistsPlaylistId']>>>
 export type PatchPlaylistsPlaylistIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['patchPlaylistsPlaylistId']>>>
 export type DeletePlaylistsPlaylistIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['deletePlaylistsPlaylistId']>>>

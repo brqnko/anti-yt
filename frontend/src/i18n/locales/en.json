@@ -168,6 +168,8 @@
       "error": "Failed to create playlist. Please try again.",
       "required": "required"
     },
+    "recentPlaylists": "Recently Played Playlists",
+    "showAllPlaylists": "Show all",
     "noPlaylists": "No playlists yet.",
     "noVideos": "No videos yet",
     "noVideosDesc": "Subscribe to channels to see their latest videos here.",
