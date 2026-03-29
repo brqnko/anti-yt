@@ -37,8 +37,8 @@ type summaryResponse struct {
 var summarySchema = &genai.Schema{
 	Type: genai.TypeObject,
 	Properties: map[string]*genai.Schema{
-		"title":       {Type: genai.TypeString, Description: "short summary title (max 100 characters)"},
-		"description": {Type: genai.TypeString, Description: "detailed description of viewing patterns and interests (max 3000 characters)"},
+		"title":       {Type: genai.TypeString, Description: "short summary title (max 50 characters)"},
+		"description": {Type: genai.TypeString, Description: "detailed description of viewing patterns and interests (max 500 characters)"},
 	},
 	Required: []string{"title", "description"},
 }
@@ -47,7 +47,7 @@ var summaryPromptTemplates = map[string]string{
 	"ja": `あなたはYouTubeの視聴履歴を分析するAIアシスタントです。
 ユーザーが視聴した動画タイトルの一覧から、視聴傾向を簡潔にまとめてください。
 
-titleは100文字以内の短い要約タイトル、descriptionは3000文字以内の視聴傾向や興味関心の詳細な説明です。
+titleは50文字以内の短い要約タイトル、descriptionは500文字以内の視聴傾向や興味関心の詳細な説明です。
 
 視聴した動画タイトル:
 %s`,
@@ -55,7 +55,7 @@ titleは100文字以内の短い要約タイトル、descriptionは3000文字以
 	"en": `You are an AI assistant that analyzes YouTube viewing history.
 Given a list of video titles a user watched, provide a brief summary of their viewing habits.
 
-title should be a short summary title (max 100 characters), description should be a detailed description of the viewing patterns and interests (max 3000 characters).
+title should be a short summary title (max 50 characters), description should be a detailed description of the viewing patterns and interests (max 500 characters).
 
 Video titles watched:
 %s`,
