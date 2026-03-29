@@ -388,6 +388,16 @@
       "confirm": "Delete",
       "deleting": "Deleting..."
     },
+    "copy": "Copy to My Playlists",
+    "copyDialog": {
+      "title": "Copy Playlist",
+      "titleLabel": "Title",
+      "descriptionLabel": "Description",
+      "cancel": "Cancel",
+      "copy": "Copy",
+      "copying": "Copying...",
+      "error": "Failed to copy playlist. Please try again."
+    },
     "removeVideoDialog": {
       "title": "Remove video?",
       "description": "Remove \"{{title}}\" from this playlist?",

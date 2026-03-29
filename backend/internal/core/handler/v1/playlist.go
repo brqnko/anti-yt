@@ -217,6 +217,36 @@ func (h *APIHandler) PatchPlaylistsPlaylistId(ctx context.Context, request Patch
 	}, nil
 }
 
+func (h *APIHandler) PostPlaylistsPlaylistIdCopy(ctx context.Context, request PostPlaylistsPlaylistIdCopyRequestObject) (PostPlaylistsPlaylistIdCopyResponseObject, error) {
+	userID, err := hutil.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	created, err := h.playlistService.CopyPlaylist(
+		ctx,
+		userID,
+		request.PlaylistId,
+		request.Body.PlaylistTitle,
+		request.Body.PlaylistDescription,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	loc := hutil.TimezoneFromContext(ctx)
+	return PostPlaylistsPlaylistIdCopy201JSONResponse{
+		PlaylistId:           created.ID,
+		PlaylistType:         PlaylistType(created.PlaylistCode.String()),
+		PlaylistVisibility:   PlaylistVisibility(created.VisibilityCode.String()),
+		PlaylistTitle:        string(created.Title),
+		PlaylistDescription:  string(created.Description),
+		PlaylistVideoCount:   created.VideoCount,
+		PlaylistRegisteredAt: created.RegisteredAt.In(loc),
+		PlaylistUpdatedAt:    created.RegisteredAt.In(loc),
+	}, nil
+}
+
 func (h *APIHandler) DeletePlaylistsPlaylistIdVideos(ctx context.Context, request DeletePlaylistsPlaylistIdVideosRequestObject) (DeletePlaylistsPlaylistIdVideosResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {

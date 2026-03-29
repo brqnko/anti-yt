@@ -502,6 +502,58 @@ func (s *Service) FetchAndInsertVideoIntoPlaylist(ctx context.Context, userID, p
 	return v.ID, nil
 }
 
+func (s *Service) CopyPlaylist(ctx context.Context, userID uuid.UUID, sourcePlaylistID uuid.UUID, title, description string) (_ *Playlist, err error) {
+	defer util.Wrap(&err, "Service.CopyPlaylist(userID=%s, sourcePlaylistID=%s)", userID, sourcePlaylistID)
+
+	playlist, err := NewPlaylist(
+		title,
+		description,
+		"private",
+		"normal",
+		WithPlaylistUserID(userID),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback", slog.Any("error", err))
+		}
+	}()
+
+	q := sqlc.New(tx)
+	repo := NewPlaylistRepository(q)
+
+	destInternalID, err := repo.Save(ctx, playlist)
+	if err != nil {
+		return nil, err
+	}
+
+	copiedCount, err := repo.CopyVideos(ctx, userID, sourcePlaylistID, destInternalID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := playlist.SetVideoCount(copiedCount); err != nil {
+		return nil, err
+	}
+
+	if _, err := repo.Save(ctx, playlist); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
+	return playlist, nil
+}
+
 func (s *Service) RemoveVideoFromPlaylist(ctx context.Context, userID, playlistID, videoID uuid.UUID) (err error) {
 	defer util.Wrap(&err, "Service.RemoveVideoFromPlaylist")
 

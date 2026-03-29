@@ -776,6 +776,23 @@ export type PatchPlaylistsPlaylistId200 = {
   playlist_description: string;
 };
 
+export type PostPlaylistsPlaylistIdCopyBody = {
+  playlist_title: string;
+  playlist_description: string;
+};
+
+export type PostPlaylistsPlaylistIdCopy201 = {
+  playlist_id: string;
+  playlist_type: PlaylistType;
+  playlist_visibility: PlaylistVisibility;
+  playlist_title: string;
+  playlist_description: string;
+  /** @minimum 0 */
+  playlist_video_count: number;
+  playlist_registered_at: string;
+  playlist_updated_at: string;
+};
+
 export type GetPlaylistsPlaylistIdVideosParams = {
 /**
  * 取得する最大の数
