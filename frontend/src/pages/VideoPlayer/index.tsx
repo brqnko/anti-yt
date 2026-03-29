@@ -1073,22 +1073,24 @@ function VideoPlayerContent() {
                       </p>
                     </div>
                   </a>
-                  <div class="flex items-center gap-1 flex-shrink-0">
-                    <button
-                      class="p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
-                      title={t("playlistDetail.addVideo")}
-                      onClick={() => setShowImportVideo(true)}
-                    >
-                      <Icon name="add" class="text-[20px]" />
-                    </button>
-                    <button
-                      class="p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
-                      title={t("playlistDetail.edit")}
-                      onClick={() => setShowEditPlaylist(true)}
-                    >
-                      <Icon name="edit" class="text-[20px]" />
-                    </button>
-                  </div>
+                  {playlistInfo?.playlist_type === "normal" && (
+                    <div class="flex items-center gap-1 flex-shrink-0">
+                      <button
+                        class="p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+                        title={t("playlistDetail.addVideo")}
+                        onClick={() => setShowImportVideo(true)}
+                      >
+                        <Icon name="add" class="text-[20px]" />
+                      </button>
+                      <button
+                        class="p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+                        title={t("playlistDetail.edit")}
+                        onClick={() => setShowEditPlaylist(true)}
+                      >
+                        <Icon name="edit" class="text-[20px]" />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Video list */}
@@ -1154,17 +1156,19 @@ function VideoPlayerContent() {
                             </p>
                           </div>
                         </a>
-                        <button
-                          class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer bg-transparent border-none hidden group-hover/pv:block focus:block"
-                          title={t("playlistDetail.removeVideo")}
-                          disabled={removingVideoId === pv.video_id}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleRemoveFromPlaylist(pv.video_id);
-                          }}
-                        >
-                          <Icon name="close" class="text-[16px]" />
-                        </button>
+                        {playlistInfo?.playlist_type === "normal" && (
+                          <button
+                            class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer bg-transparent border-none hidden group-hover/pv:block focus:block"
+                            title={t("playlistDetail.removeVideo")}
+                            disabled={removingVideoId === pv.video_id}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleRemoveFromPlaylist(pv.video_id);
+                            }}
+                          >
+                            <Icon name="close" class="text-[16px]" />
+                          </button>
+                        )}
                       </div>
                     );
                   })}
