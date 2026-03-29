@@ -563,6 +563,7 @@ function VideoPlayerContent() {
 
   const { remainingSeconds, tickRemaining } = useHeartbeat({
     videoId: video?.video_id ?? null,
+    playlistId,
     playerState,
     currentTimeRef,
     togglePlay,

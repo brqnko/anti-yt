@@ -2194,6 +2194,11 @@
           "name": "registered_at",
           "type": "timestamp with time zone",
           "nullable": false
+        },
+        {
+          "name": "m_channel_id",
+          "type": "bigint",
+          "nullable": false
         }
       ],
       "indexes": [
@@ -2221,6 +2226,15 @@
             "m_user_id",
             "public_id"
           ]
+        },
+        {
+          "name": "idx_3_m_playlist",
+          "def": "CREATE INDEX idx_3_m_playlist ON public.m_playlist USING btree (m_channel_id, public_id)",
+          "table": "public.m_playlist",
+          "columns": [
+            "m_channel_id",
+            "public_id"
+          ]
         }
       ],
       "constraints": [
@@ -2232,6 +2246,16 @@
           "referenced_table": "",
           "columns": [
             "created_at"
+          ]
+        },
+        {
+          "name": "m_playlist_m_channel_id_not_null",
+          "type": "n",
+          "def": "NOT NULL m_channel_id",
+          "table": "public.m_playlist",
+          "referenced_table": "",
+          "columns": [
+            "m_channel_id"
           ]
         },
         {

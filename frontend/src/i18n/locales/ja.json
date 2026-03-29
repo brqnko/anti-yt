@@ -168,6 +168,8 @@
       "error": "プレイリストの作成に失敗しました。再度お試しください。",
       "required": "必須"
     },
+    "recentPlaylists": "最近再生したプレイリスト",
+    "showAllPlaylists": "すべて表示",
     "noPlaylists": "プレイリストがありません。",
     "noVideos": "動画がありません",
     "noVideosDesc": "チャンネルを登録すると、最新の動画がここに表示されます。",

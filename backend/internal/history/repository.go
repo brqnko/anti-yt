@@ -15,7 +15,7 @@ func NewHistoryRepository() *HistoryRepository {
 	return &HistoryRepository{}
 }
 
-func (h *HistoryRepository) Heartbeat(ctx context.Context, q sqlc.Querier, userID, videoID uuid.UUID, positionSeconds int) (err error) {
+func (h *HistoryRepository) Heartbeat(ctx context.Context, q sqlc.Querier, userID, videoID uuid.UUID, positionSeconds int, playlistID *uuid.UUID) (err error) {
 	defer util.Wrap(&err, "historyRepository.Heartbeat(userID=%s, videoID=%s)", userID, videoID)
 
 	publicID, err := uuid.NewV7()
@@ -37,6 +37,16 @@ func (h *HistoryRepository) Heartbeat(ctx context.Context, q sqlc.Querier, userI
 	}); err != nil {
 		return err
 	}
+
+	if playlistID != nil {
+		if err := q.PushRecentPlaylistId(ctx, sqlc.PushRecentPlaylistIdParams{
+			PlaylistPublicID: *playlistID,
+			UserPublicID:     userID,
+		}); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

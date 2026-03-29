@@ -321,6 +321,37 @@ func (q *Queries) ListScreenTimeRanges(ctx context.Context, userPublicID uuid.UU
 	return items, nil
 }
 
+const pushRecentPlaylistId = `-- name: PushRecentPlaylistId :exec
+UPDATE m_user
+SET recent_playlist_ids = (
+    SELECT COALESCE(array_agg(val), '{}')
+    FROM (
+        SELECT val
+        FROM UNNEST(
+            ARRAY[(SELECT p.m_playlist_id FROM m_playlist p WHERE p.public_id = $1 LIMIT 1)]
+            || m_user.recent_playlist_ids
+        ) WITH ORDINALITY AS t(val, ord)
+        WHERE val IS NOT NULL
+        GROUP BY val
+        ORDER BY MIN(ord)
+        LIMIT 5
+    ) sub
+),
+    updated_at = CURRENT_TIMESTAMP
+WHERE m_user.public_id = $2
+`
+
+type PushRecentPlaylistIdParams struct {
+	PlaylistPublicID uuid.UUID
+	UserPublicID     uuid.UUID
+}
+
+// m_user.recent_playlist_idsを更新する。先頭に追加し、重複を除去し、最大5件に制限する。
+func (q *Queries) PushRecentPlaylistId(ctx context.Context, arg PushRecentPlaylistIdParams) error {
+	_, err := q.db.Exec(ctx, pushRecentPlaylistId, arg.PlaylistPublicID, arg.UserPublicID)
+	return err
+}
+
 const updateUser = `-- name: UpdateUser :one
 UPDATE
     m_user

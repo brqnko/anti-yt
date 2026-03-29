@@ -8,9 +8,11 @@ const HEARTBEAT_INTERVAL_MS = 60_000;
 const HEARTBEAT_DEBOUNCE_MS = 2_000;
 
 /** Fire-and-forget heartbeat that survives page unload / navigation. */
-function sendBeaconHeartbeat(videoId: string, positionSeconds: number): void {
+function sendBeaconHeartbeat(videoId: string, positionSeconds: number, playlistId: string | null): void {
   const url = `/api/v1/videos/${encodeURIComponent(videoId)}/heartbeats`;
-  const body = JSON.stringify({ current_position_seconds: positionSeconds });
+  const payload: Record<string, unknown> = { current_position_seconds: positionSeconds };
+  if (playlistId) payload.playlist_id = playlistId;
+  const body = JSON.stringify(payload);
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   const csrfToken = getCookie("csrf_token");
   if (csrfToken) headers["x-csrf-token"] = csrfToken;
@@ -33,6 +35,7 @@ function sendBeaconHeartbeat(videoId: string, positionSeconds: number): void {
 
 interface UseHeartbeatOptions {
   videoId: string | null;
+  playlistId: string | null;
   playerState: number;
   currentTimeRef: RefObject<number>;
   togglePlay: () => void;
@@ -46,6 +49,7 @@ interface UseHeartbeatOptions {
  */
 export function useHeartbeat({
   videoId,
+  playlistId,
   playerState,
   currentTimeRef,
   togglePlay,
@@ -61,9 +65,11 @@ export function useHeartbeat({
   const finalHeartbeatSentRef = useRef(false);
   const lastFinalSentAtRef = useRef(0);
 
-  // Keep videoId accessible in callbacks without adding it to effect deps where not needed
+  // Keep videoId/playlistId accessible in callbacks without adding it to effect deps where not needed
   const videoIdRef = useRef(videoId);
   videoIdRef.current = videoId;
+  const playlistIdRef = useRef(playlistId);
+  playlistIdRef.current = playlistId;
 
   // PlayerState.PLAYING === 1
   const isPlaying = playerState === 1;
@@ -77,7 +83,7 @@ export function useHeartbeat({
     if (vid) {
       finalHeartbeatSentRef.current = true;
       lastFinalSentAtRef.current = now;
-      sendBeaconHeartbeat(vid, Math.floor(currentTimeRef.current));
+      sendBeaconHeartbeat(vid, Math.floor(currentTimeRef.current), playlistIdRef.current);
     }
   }, [currentTimeRef]);
 
@@ -112,6 +118,7 @@ export function useHeartbeat({
       getHistory()
         .postVideosVideoIdHeartbeats(videoId, {
           current_position_seconds: Math.floor(currentTimeRef.current),
+          ...(playlistIdRef.current ? { playlist_id: playlistIdRef.current } : {}),
         })
         .then((res) => {
           heartbeatFailCountRef.current = 0;

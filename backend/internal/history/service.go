@@ -29,7 +29,7 @@ func NewService(db *pgxpool.Pool) *Service {
 	}
 }
 
-func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, positionSeconds int, loc *time.Location) (_ *int, err error) {
+func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, positionSeconds int, playlistID *uuid.UUID, loc *time.Location) (_ *int, err error) {
 	defer util.Wrap(&err, "Service.Heartbeat")
 
 	tx, err := s.db.Begin(ctx)
@@ -47,7 +47,7 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 		return nil, err
 	}
 
-	if err := NewHistoryRepository().Heartbeat(ctx, q, userID, videoID, positionSeconds); err != nil {
+	if err := NewHistoryRepository().Heartbeat(ctx, q, userID, videoID, positionSeconds, playlistID); err != nil {
 		return nil, err
 	}
 

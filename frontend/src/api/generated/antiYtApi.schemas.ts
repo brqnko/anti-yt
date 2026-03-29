@@ -547,6 +547,8 @@ export type PostVideosVideoIdHeartbeatsBody = {
    * @minimum 0
    */
   current_position_seconds: number;
+  /** プレイリスト経由で視聴している場合のプレイリストID */
+  playlist_id?: string;
 };
 
 export type PostVideosVideoIdHeartbeats200 = {
@@ -733,6 +735,21 @@ export type PostPlaylists201 = {
   playlist_video_count: number;
   playlist_registered_at: string;
   playlist_updated_at: string;
+};
+
+export type GetPlaylistsRecent200ItemsItem = {
+  playlist_id: string;
+  playlist_title: string;
+  /** @minimum 0 */
+  playlist_video_count: number;
+  playlist_registered_at: string;
+  top_video_thumbnail_url?: string;
+};
+
+export type GetPlaylistsRecent200 = {
+  /** @minimum 0 */
+  item_count: number;
+  items: GetPlaylistsRecent200ItemsItem[];
 };
 
 export type GetPlaylistsPlaylistId200 = {

@@ -1320,6 +1320,10 @@ paths:
                   description: 現在の再生位置（秒数）
                   type: integer
                   minimum: 0
+                playlist_id:
+                  description: プレイリスト経由で視聴している場合のプレイリストID
+                  type: string
+                  format: uuid
               required:
                 - current_position_seconds
       responses:
@@ -1849,6 +1853,67 @@ paths:
                     type: string
                     format: date-time
                 required: [ playlist_id, playlist_type, playlist_visibility, playlist_title, playlist_description, playlist_video_count, playlist_registered_at, playlist_updated_at ]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/playlists/recent:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
+      - $ref: '#/components/parameters/HeaderTimezone'
+    get:
+      tags: [ playlist ]
+      summary: Get recently played playlists
+      description: 最後に再生したプレイリストを最大5件取得する
+      operationId: getPlaylistsRecent
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item_count:
+                    type: integer
+                    minimum: 0
+                  items:
+                    type: array
+                    uniqueItems: true
+                    items:
+                      type: object
+                      properties:
+                        playlist_id:
+                          type: string
+                          format: uuid
+                        playlist_title:
+                          type: string
+                        playlist_video_count:
+                          type: integer
+                          minimum: 0
+                        playlist_registered_at:
+                          type: string
+                          format: date-time
+                        top_video_thumbnail_url:
+                          type: string
+                          format: uri
+                      required: [ playlist_id, playlist_title, playlist_video_count, playlist_registered_at ]
+                required: [ item_count, items ]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

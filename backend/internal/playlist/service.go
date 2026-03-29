@@ -331,6 +331,12 @@ func (s *Service) GetChannelPlaylists(ctx context.Context, channelID uuid.UUID, 
 	return playlists, false, nil
 }
 
+func (s *Service) GetRecentPlaylists(ctx context.Context, userID uuid.UUID) (_ []GetChannelPlaylistsView, err error) {
+	defer util.Wrap(&err, "Service.GetRecentPlaylists")
+
+	return s.playlistQS.FindRecentPlaylists(ctx, userID)
+}
+
 func (s *Service) GetPlaylistDetail(ctx context.Context, userID, playlistID uuid.UUID) (_ GetPlaylistDetailView, err error) {
 	defer util.Wrap(&err, "Service.GetPlaylistDetail")
 

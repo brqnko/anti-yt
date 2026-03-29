@@ -64,6 +64,7 @@ type Querier interface {
 	ListChannelVideosOlder(ctx context.Context, arg ListChannelVideosOlderParams) ([]ListChannelVideosOlderRow, error)
 	ListDailyWatchStatsByRange(ctx context.Context, arg ListDailyWatchStatsByRangeParams) ([]ListDailyWatchStatsByRangeRow, error)
 	ListPlaylistVideos(ctx context.Context, arg ListPlaylistVideosParams) ([]ListPlaylistVideosRow, error)
+	ListRecentPlaylists(ctx context.Context, userID uuid.UUID) ([]ListRecentPlaylistsRow, error)
 	// userテーブルのpublic_idから、そのリフレッシュトークンの一覧を返します。
 	ListRefreshTokens(ctx context.Context, arg ListRefreshTokensParams) ([]ListRefreshTokensRow, error)
 	// m_user.public_idのユーザーの視聴制限範囲を取得する。
@@ -77,6 +78,8 @@ type Querier interface {
 	ListWatchHistory(ctx context.Context, arg ListWatchHistoryParams) ([]ListWatchHistoryRow, error)
 	// expires_atが過ぎたjtiのブラックリストを削除します。
 	PurgeExpiredJTIBlacklist(ctx context.Context, expiresAt time.Time) error
+	// m_user.recent_playlist_idsを更新する。先頭に追加し、重複を除去し、最大5件に制限する。
+	PushRecentPlaylistId(ctx context.Context, arg PushRecentPlaylistIdParams) error
 	// m_refresh_tokenのtoken_hashから、そのレコードを削除します。
 	// 削除されたレコードに紐づくjtiをブラックリストに保存します。
 	// 削除されたレコードのpublic_idが返されます。
