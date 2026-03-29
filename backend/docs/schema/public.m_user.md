@@ -15,6 +15,7 @@
 | created_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | updated_at | timestamp with time zone | CURRENT_TIMESTAMP | false |  |  |  |
 | public_id | uuid |  | false |  |  |  |
+| recent_playlist_ids | bigint[] |  | false |  |  |  |
 
 ## Constraints
 
@@ -28,6 +29,7 @@
 | m_user_m_user_authorization_id_not_null | n | NOT NULL m_user_authorization_id |
 | m_user_m_user_id_not_null | n | NOT NULL m_user_id |
 | m_user_public_id_not_null | n | NOT NULL public_id |
+| m_user_recent_playlist_ids_not_null | n | NOT NULL recent_playlist_ids |
 | m_user_updated_at_not_null | n | NOT NULL updated_at |
 | m_user_pkey | PRIMARY KEY | PRIMARY KEY (m_user_id) |
 

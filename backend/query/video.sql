@@ -79,34 +79,9 @@ WHERE
     m_channel.public_id = @channel_id
     AND (
         sqlc.narg('cursor')::uuid IS NULL
-        OR (
-            m_video.external_created_at < (
-                SELECT
-                    mv.external_created_at
-                FROM
-                    m_video mv
-                WHERE
-                    mv.public_id = sqlc.narg('cursor')::uuid
-                LIMIT
-                    1
-            )
-        )
-        OR (
-            m_video.external_created_at = (
-                SELECT
-                    mv.external_created_at
-                FROM
-                    m_video mv
-                WHERE
-                    mv.public_id = sqlc.narg('cursor')::uuid
-                LIMIT
-                    1
-            )
-            AND m_video.public_id < sqlc.narg('cursor')::uuid
-        )
+        OR m_video.public_id < sqlc.narg('cursor')::uuid
     )
 ORDER BY
-    m_video.external_created_at DESC,
     m_video.public_id DESC
 LIMIT
     @query_limit;
@@ -149,34 +124,9 @@ WHERE
     m_channel.public_id = @channel_id
     AND (
         sqlc.narg('cursor')::uuid IS NULL
-        OR (
-            m_video.external_created_at > (
-                SELECT
-                    mv.external_created_at
-                FROM
-                    m_video mv
-                WHERE
-                    mv.public_id = sqlc.narg('cursor')::uuid
-                LIMIT
-                    1
-            )
-        )
-        OR (
-            m_video.external_created_at = (
-                SELECT
-                    mv.external_created_at
-                FROM
-                    m_video mv
-                WHERE
-                    mv.public_id = sqlc.narg('cursor')::uuid
-                LIMIT
-                    1
-            )
-            AND m_video.public_id > sqlc.narg('cursor')::uuid
-        )
+        OR m_video.public_id > sqlc.narg('cursor')::uuid
     )
 ORDER BY
-    m_video.external_created_at ASC,
     m_video.public_id ASC
 LIMIT
     @query_limit;
@@ -237,36 +187,10 @@ WHERE
             AND t_video_watched.m_video_id = m_video.m_video_id
     )
     AND (
-        -- 日付がカーソルより昔 or (日付がカーソルと同じ and public_idがカーソルより昔)
         sqlc.narg('cursor')::uuid IS NULL
-        OR (
-            m_video.external_created_at < (
-                SELECT
-                    m_video.external_created_at
-                FROM
-                    m_video
-                WHERE
-                    m_video.public_id = sqlc.narg('cursor')::uuid
-                LIMIT
-                    1
-            )
-        )
-        OR (
-            m_video.external_created_at = (
-                SELECT
-                    m_video.external_created_at
-                FROM
-                    m_video
-                WHERE
-                    m_video.public_id = sqlc.narg('cursor')::uuid
-                LIMIT
-                    1
-            )
-            AND m_video.public_id < sqlc.narg('cursor')::uuid
-        )
+        OR m_video.public_id < sqlc.narg('cursor')::uuid
     )
 ORDER BY
-    m_video.external_created_at DESC,
     m_video.public_id DESC
 LIMIT
     @query_limit;

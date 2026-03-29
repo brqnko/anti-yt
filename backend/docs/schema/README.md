@@ -5,7 +5,7 @@
 | Name | Columns | Comment | Type |
 | ---- | ------- | ------- | ---- |
 | [public.goose_db_version](public.goose_db_version.md) | 4 |  | BASE TABLE |
-| [public.m_user](public.m_user.md) | 9 |  | BASE TABLE |
+| [public.m_user](public.m_user.md) | 10 |  | BASE TABLE |
 | [public.m_user_authorization](public.m_user_authorization.md) | 7 |  | BASE TABLE |
 | [public.m_refresh_token](public.m_refresh_token.md) | 18 |  | BASE TABLE |
 | [public.h_user](public.h_user.md) | 11 |  | BASE TABLE |
@@ -20,6 +20,7 @@
 | [public.t_jti_blacklist](public.t_jti_blacklist.md) | 2 |  | BASE TABLE |
 | [public.m_valuable_channel](public.m_valuable_channel.md) | 6 |  | BASE TABLE |
 | [public.t_ratelimit](public.t_ratelimit.md) | 5 |  | BASE TABLE |
+| [public.t_video_watched](public.t_video_watched.md) | 3 |  | BASE TABLE |
 
 ## Stored procedures and functions
 

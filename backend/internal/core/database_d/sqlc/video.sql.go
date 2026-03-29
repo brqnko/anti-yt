@@ -108,34 +108,9 @@ WHERE
     m_channel.public_id = $2
     AND (
         $3::uuid IS NULL
-        OR (
-            m_video.external_created_at < (
-                SELECT
-                    mv.external_created_at
-                FROM
-                    m_video mv
-                WHERE
-                    mv.public_id = $3::uuid
-                LIMIT
-                    1
-            )
-        )
-        OR (
-            m_video.external_created_at = (
-                SELECT
-                    mv.external_created_at
-                FROM
-                    m_video mv
-                WHERE
-                    mv.public_id = $3::uuid
-                LIMIT
-                    1
-            )
-            AND m_video.public_id < $3::uuid
-        )
+        OR m_video.public_id < $3::uuid
     )
 ORDER BY
-    m_video.external_created_at DESC,
     m_video.public_id DESC
 LIMIT
     $4
@@ -227,34 +202,9 @@ WHERE
     m_channel.public_id = $2
     AND (
         $3::uuid IS NULL
-        OR (
-            m_video.external_created_at > (
-                SELECT
-                    mv.external_created_at
-                FROM
-                    m_video mv
-                WHERE
-                    mv.public_id = $3::uuid
-                LIMIT
-                    1
-            )
-        )
-        OR (
-            m_video.external_created_at = (
-                SELECT
-                    mv.external_created_at
-                FROM
-                    m_video mv
-                WHERE
-                    mv.public_id = $3::uuid
-                LIMIT
-                    1
-            )
-            AND m_video.public_id > $3::uuid
-        )
+        OR m_video.public_id > $3::uuid
     )
 ORDER BY
-    m_video.external_created_at ASC,
     m_video.public_id ASC
 LIMIT
     $4
@@ -363,36 +313,10 @@ WHERE
             AND t_video_watched.m_video_id = m_video.m_video_id
     )
     AND (
-        -- 日付がカーソルより昔 or (日付がカーソルと同じ and public_idがカーソルより昔)
         $2::uuid IS NULL
-        OR (
-            m_video.external_created_at < (
-                SELECT
-                    m_video.external_created_at
-                FROM
-                    m_video
-                WHERE
-                    m_video.public_id = $2::uuid
-                LIMIT
-                    1
-            )
-        )
-        OR (
-            m_video.external_created_at = (
-                SELECT
-                    m_video.external_created_at
-                FROM
-                    m_video
-                WHERE
-                    m_video.public_id = $2::uuid
-                LIMIT
-                    1
-            )
-            AND m_video.public_id < $2::uuid
-        )
+        OR m_video.public_id < $2::uuid
     )
 ORDER BY
-    m_video.external_created_at DESC,
     m_video.public_id DESC
 LIMIT
     $3
