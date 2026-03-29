@@ -1,0 +1,15 @@
+{
+    "name": "anti-yt-goland",
+    "dockerComposeFile": [
+        "../compose.goland.yaml"
+    ],
+    "service": "full",
+    "workspaceFolder": "/usr/src/app",
+    "forwardPorts": [],
+    "remoteUser": "root",
+    "customizations": {
+        "jetbrains": {
+            "backend": "GoLand"
+        }
+    }
+}
