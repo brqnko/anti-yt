@@ -140,6 +140,11 @@
           "name": "public_id",
           "type": "uuid",
           "nullable": false
+        },
+        {
+          "name": "recent_playlist_ids",
+          "type": "bigint[]",
+          "nullable": false
         }
       ],
       "indexes": [
@@ -247,6 +252,16 @@
           "referenced_table": "",
           "columns": [
             "public_id"
+          ]
+        },
+        {
+          "name": "m_user_recent_playlist_ids_not_null",
+          "type": "n",
+          "def": "NOT NULL recent_playlist_ids",
+          "table": "public.m_user",
+          "referenced_table": "",
+          "columns": [
+            "recent_playlist_ids"
           ]
         },
         {
@@ -1602,12 +1617,11 @@
           ]
         },
         {
-          "name": "idx_3_m_video",
-          "def": "CREATE INDEX idx_3_m_video ON public.m_video USING btree (m_channel_id, external_created_at DESC, public_id DESC)",
+          "name": "idx_2_m_video",
+          "def": "CREATE INDEX idx_2_m_video ON public.m_video USING btree (m_channel_id, public_id DESC)",
           "table": "public.m_video",
           "columns": [
             "m_channel_id",
-            "external_created_at",
             "public_id"
           ]
         }
@@ -2825,6 +2839,88 @@
           "referenced_table": "",
           "columns": [
             "t_ratelimit"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "public.t_video_watched",
+      "type": "BASE TABLE",
+      "columns": [
+        {
+          "name": "t_video_watched_id",
+          "type": "bigint",
+          "nullable": false
+        },
+        {
+          "name": "m_user_id",
+          "type": "bigint",
+          "nullable": false
+        },
+        {
+          "name": "m_video_id",
+          "type": "bigint",
+          "nullable": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "t_video_watched_pkey",
+          "def": "CREATE UNIQUE INDEX t_video_watched_pkey ON public.t_video_watched USING btree (t_video_watched_id)",
+          "table": "public.t_video_watched",
+          "columns": [
+            "t_video_watched_id"
+          ]
+        },
+        {
+          "name": "uk_1_t_video_watched",
+          "def": "CREATE UNIQUE INDEX uk_1_t_video_watched ON public.t_video_watched USING btree (m_user_id, m_video_id)",
+          "table": "public.t_video_watched",
+          "columns": [
+            "m_user_id",
+            "m_video_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "t_video_watched_m_user_id_not_null",
+          "type": "n",
+          "def": "NOT NULL m_user_id",
+          "table": "public.t_video_watched",
+          "referenced_table": "",
+          "columns": [
+            "m_user_id"
+          ]
+        },
+        {
+          "name": "t_video_watched_m_video_id_not_null",
+          "type": "n",
+          "def": "NOT NULL m_video_id",
+          "table": "public.t_video_watched",
+          "referenced_table": "",
+          "columns": [
+            "m_video_id"
+          ]
+        },
+        {
+          "name": "t_video_watched_t_video_watched_id_not_null",
+          "type": "n",
+          "def": "NOT NULL t_video_watched_id",
+          "table": "public.t_video_watched",
+          "referenced_table": "",
+          "columns": [
+            "t_video_watched_id"
+          ]
+        },
+        {
+          "name": "t_video_watched_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (t_video_watched_id)",
+          "table": "public.t_video_watched",
+          "referenced_table": "",
+          "columns": [
+            "t_video_watched_id"
           ]
         }
       ]

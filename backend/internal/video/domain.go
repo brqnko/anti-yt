@@ -33,7 +33,7 @@ func NewVideo(
 ) (_ *Video, err error) {
 	defer util.Wrap(&err, "NewVideo(channelID=%s)", channelID)
 
-	id, err := uuid.NewV7()
+	id, err := util.NewUUIDv7WithTime(video.CreatedAt)
 	if err != nil {
 		return nil, err
 	}

@@ -44,7 +44,7 @@
 | m_video_pkey | CREATE UNIQUE INDEX m_video_pkey ON public.m_video USING btree (m_video_id) |
 | uk_1_m_video | CREATE UNIQUE INDEX uk_1_m_video ON public.m_video USING btree (public_id) |
 | uk_2_m_video | CREATE UNIQUE INDEX uk_2_m_video ON public.m_video USING btree (external_id) |
-| idx_3_m_video | CREATE INDEX idx_3_m_video ON public.m_video USING btree (m_channel_id, external_created_at DESC, public_id DESC) |
+| idx_2_m_video | CREATE INDEX idx_2_m_video ON public.m_video USING btree (m_channel_id, public_id DESC) |
 
 ## Relations
 
