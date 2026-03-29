@@ -12,7 +12,10 @@
   "videoCard": {
     "moreOptions": "その他のオプション",
     "subscribeChannel": "チャンネル登録",
-    "subscribeDesc": "フィードに表示を許可する"
+    "subscribeDesc": "フィードに表示を許可する",
+    "markWatched": "視聴済みにする",
+    "markWatchedDesc": "フィードから非表示にします",
+    "markWatchedButton": "視聴済み"
   },
   "legal": {
     "navTerms": "利用規約",
@@ -494,7 +497,6 @@
     "terms": "利用規約",
     "dailyAllowance": "1日の許容時間",
     "watchTime": "視聴時間",
-    "whitelist": "ホワイトリスト",
-    "sessionExpired": "セッションの有効期限が切れました。再度ログインしてください。"
+    "whitelist": "ホワイトリスト"
   }
 }

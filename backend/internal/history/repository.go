@@ -9,13 +9,20 @@ import (
 	"github.com/google/uuid"
 )
 
-type HistoryRepository struct{}
-
-func NewHistoryRepository() *HistoryRepository {
-	return &HistoryRepository{}
+type HistoryRepository interface {
+	Heartbeat(ctx context.Context, q sqlc.Querier, userID, videoID uuid.UUID, positionSeconds int, playlistID *uuid.UUID) error
+	MarkVideoWatched(ctx context.Context, q sqlc.Querier, userID, videoID uuid.UUID) error
+	UnmarkVideoWatched(ctx context.Context, q sqlc.Querier, userID, videoID uuid.UUID) error
+	Import(ctx context.Context, q sqlc.Querier, userID, videoID uuid.UUID, watchStartAt, watchEndAt time.Time) error
 }
 
-func (h *HistoryRepository) Heartbeat(ctx context.Context, q sqlc.Querier, userID, videoID uuid.UUID, positionSeconds int, playlistID *uuid.UUID) (err error) {
+type historyRepositoryImpl struct{}
+
+func NewHistoryRepository() HistoryRepository {
+	return &historyRepositoryImpl{}
+}
+
+func (h *historyRepositoryImpl) Heartbeat(ctx context.Context, q sqlc.Querier, userID, videoID uuid.UUID, positionSeconds int, playlistID *uuid.UUID) (err error) {
 	defer util.Wrap(&err, "historyRepository.Heartbeat(userID=%s, videoID=%s)", userID, videoID)
 
 	publicID, err := uuid.NewV7()
@@ -50,7 +57,25 @@ func (h *HistoryRepository) Heartbeat(ctx context.Context, q sqlc.Querier, userI
 	return nil
 }
 
-func (h *HistoryRepository) Import(ctx context.Context, q sqlc.Querier, userID, videoID uuid.UUID, watchStartAt, watchEndAt time.Time) (err error) {
+func (h *historyRepositoryImpl) MarkVideoWatched(ctx context.Context, q sqlc.Querier, userID, videoID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "historyRepository.MarkVideoWatched(userID=%s, videoID=%s)", userID, videoID)
+
+	return q.MarkVideoWatched(ctx, sqlc.MarkVideoWatchedParams{
+		UserPublicID:  userID,
+		VideoPublicID: videoID,
+	})
+}
+
+func (h *historyRepositoryImpl) UnmarkVideoWatched(ctx context.Context, q sqlc.Querier, userID, videoID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "historyRepository.UnmarkVideoWatched(userID=%s, videoID=%s)", userID, videoID)
+
+	return q.UnmarkVideoWatched(ctx, sqlc.UnmarkVideoWatchedParams{
+		UserPublicID:  userID,
+		VideoPublicID: videoID,
+	})
+}
+
+func (h *historyRepositoryImpl) Import(ctx context.Context, q sqlc.Querier, userID, videoID uuid.UUID, watchStartAt, watchEndAt time.Time) (err error) {
 	defer util.Wrap(&err, "historyRepository.Import(userID=%s, videoID=%s)", userID, videoID)
 
 	publicID, err := uuid.NewV7()

@@ -12,7 +12,10 @@
   "videoCard": {
     "moreOptions": "More options",
     "subscribeChannel": "Subscribe",
-    "subscribeDesc": "Allow into your feed"
+    "subscribeDesc": "Allow into your feed",
+    "markWatched": "Mark as watched",
+    "markWatchedDesc": "Hide from your feed",
+    "markWatchedButton": "Watched"
   },
   "legal": {
     "navTerms": "Terms of Service",
@@ -495,7 +498,6 @@
     "terms": "Terms",
     "dailyAllowance": "Daily Allowance",
     "watchTime": "Watch Time",
-    "whitelist": "Whitelist",
-    "sessionExpired": "Your session has expired. Please sign in again."
+    "whitelist": "Whitelist"
   }
 }

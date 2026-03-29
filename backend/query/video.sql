@@ -231,6 +231,11 @@ WHERE
         LIMIT
             1
     )
+    AND NOT EXISTS (
+        SELECT 1 FROM t_video_watched
+        WHERE t_video_watched.m_user_id = m_user_subscribing_channel.m_user_id
+            AND t_video_watched.m_video_id = m_video.m_video_id
+    )
     AND (
         -- 日付がカーソルより昔 or (日付がカーソルと同じ and public_idがカーソルより昔)
         sqlc.narg('cursor')::uuid IS NULL

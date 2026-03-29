@@ -261,6 +261,43 @@ func (q *Queries) ListWatchHistory(ctx context.Context, arg ListWatchHistoryPara
 	return items, nil
 }
 
+const markVideoWatched = `-- name: MarkVideoWatched :exec
+INSERT INTO
+    t_video_watched (m_user_id, m_video_id)
+SELECT
+    (SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1),
+    (SELECT m_video.m_video_id FROM m_video WHERE m_video.public_id = $2 LIMIT 1)
+ON CONFLICT (m_user_id, m_video_id) DO NOTHING
+`
+
+type MarkVideoWatchedParams struct {
+	UserPublicID  uuid.UUID
+	VideoPublicID uuid.UUID
+}
+
+func (q *Queries) MarkVideoWatched(ctx context.Context, arg MarkVideoWatchedParams) error {
+	_, err := q.db.Exec(ctx, markVideoWatched, arg.UserPublicID, arg.VideoPublicID)
+	return err
+}
+
+const unmarkVideoWatched = `-- name: UnmarkVideoWatched :exec
+DELETE FROM
+    t_video_watched
+WHERE
+    m_user_id = (SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1)
+    AND m_video_id = (SELECT m_video.m_video_id FROM m_video WHERE m_video.public_id = $2 LIMIT 1)
+`
+
+type UnmarkVideoWatchedParams struct {
+	UserPublicID  uuid.UUID
+	VideoPublicID uuid.UUID
+}
+
+func (q *Queries) UnmarkVideoWatched(ctx context.Context, arg UnmarkVideoWatchedParams) error {
+	_, err := q.db.Exec(ctx, unmarkVideoWatched, arg.UserPublicID, arg.VideoPublicID)
+	return err
+}
+
 const upsertWatchHeartbeat = `-- name: UpsertWatchHeartbeat :exec
 WITH resolved_user AS (
     SELECT
@@ -357,6 +394,18 @@ do_insert AS (
         NOT EXISTS (SELECT 1 FROM update_same)
     RETURNING
         t_video_watch_id
+),
+mark_watched AS (
+    INSERT INTO
+        t_video_watched (m_user_id, m_video_id)
+    SELECT
+        (SELECT m_user_id FROM resolved_user),
+        (SELECT m_video_id FROM resolved_video)
+    WHERE
+        $3::int >= (SELECT external_length_seconds FROM resolved_video)
+    ON CONFLICT (m_user_id, m_video_id) DO NOTHING
+    RETURNING
+        t_video_watched_id
 )
 SELECT 1
 `

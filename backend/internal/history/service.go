@@ -67,6 +67,18 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 	return &remaining, nil
 }
 
+func (s *Service) MarkVideoWatched(ctx context.Context, userID, videoID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "Service.MarkVideoWatched")
+
+	return NewHistoryRepository().MarkVideoWatched(ctx, sqlc.New(s.db), userID, videoID)
+}
+
+func (s *Service) UnmarkVideoWatched(ctx context.Context, userID, videoID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "Service.UnmarkVideoWatched")
+
+	return NewHistoryRepository().UnmarkVideoWatched(ctx, sqlc.New(s.db), userID, videoID)
+}
+
 func (s *Service) GetHistory(ctx context.Context, userID uuid.UUID, limit int, cursor *uuid.UUID, loc *time.Location) (_ []GetHistoryView, _ bool, err error) {
 	defer util.Wrap(&err, "Service.GetHistory")
 

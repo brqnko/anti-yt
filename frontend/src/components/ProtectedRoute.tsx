@@ -17,7 +17,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const {
     isAuthenticated,
     isLoading,
-    sessionExpired,
     screenTimeBlocked,
     screenTimeBlockReason,
   } = useAuth();
@@ -25,9 +24,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      route(sessionExpired ? "/?expired=1" : "/");
+      route("/");
     }
-  }, [isLoading, isAuthenticated, sessionExpired, route]);
+  }, [isLoading, isAuthenticated, route]);
 
   if (isLoading) {
     return (

@@ -9,7 +9,6 @@ interface AuthState {
   isLoading: boolean;
   isAuthenticated: boolean;
   error: Error | null;
-  sessionExpired: boolean;
   screenTimeBlocked: boolean;
   screenTimeBlockReason: "limit_exceeded" | "outside_time_range" | null;
   logout: () => Promise<void>;
@@ -21,7 +20,6 @@ const AuthContext = createContext<AuthState>({
   isLoading: true,
   isAuthenticated: false,
   error: null,
-  sessionExpired: false,
   screenTimeBlocked: false,
   screenTimeBlockReason: null,
   logout: async () => {},
@@ -33,7 +31,6 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [sessionExpired, setSessionExpired] = useState(false);
   const [screenTimeBlocked, setScreenTimeBlocked] = useState(false);
   const [screenTimeBlockReason, setScreenTimeBlockReason] = useState<
     "limit_exceeded" | "outside_time_range" | null
@@ -87,13 +84,9 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
   }, []);
 
   useEffect(() => {
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
+    const handler = () => {
       setIsAuthenticated(false);
       setIsLoading(false);
-      if (detail?.reason === "session_expired") {
-        setSessionExpired(true);
-      }
     };
     window.addEventListener("auth:logout", handler);
     return () => window.removeEventListener("auth:logout", handler);
@@ -119,7 +112,6 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
         isLoading,
         isAuthenticated,
         error,
-        sessionExpired,
         screenTimeBlocked,
         screenTimeBlockReason,
         logout,

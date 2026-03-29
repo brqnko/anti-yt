@@ -8,6 +8,7 @@ import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
 import { getFeed } from "../../api/generated/feed";
 import { getChannel } from "../../api/generated/channel";
+import { getHistory } from "../../api/generated/history";
 import { getPlaylist } from "../../api/generated/playlist";
 import { PAGE_SIZES } from "../../constants";
 import type { GetFeed200ItemsItem, GetPlaylistsRecent200ItemsItem } from "../../api/generated/antiYtApi.schemas";
@@ -50,6 +51,11 @@ function DashboardContent() {
       }
     };
     loadData();
+  }, []);
+
+  const handleMarkWatched = useCallback(async (videoId: string) => {
+    await getHistory().postVideosVideoIdWatched(videoId);
+    setFeedVideos((prev) => prev.filter((v) => v.video_id !== videoId));
   }, []);
 
   const handleToggleSubscription = useCallback(async (channelId: string) => {
@@ -154,6 +160,7 @@ function DashboardContent() {
                   watchedSeconds={video.last_watch_seconds}
                   isSubscribed={subscribedChannelIds.has(video.channel_id)}
                   onToggleSubscription={() => handleToggleSubscription(video.channel_id)}
+                  onMarkWatched={() => handleMarkWatched(video.video_id)}
                 />
               ))}
             </div>

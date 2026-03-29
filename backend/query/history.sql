@@ -179,6 +179,18 @@ do_insert AS (
         NOT EXISTS (SELECT 1 FROM update_same)
     RETURNING
         t_video_watch_id
+),
+mark_watched AS (
+    INSERT INTO
+        t_video_watched (m_user_id, m_video_id)
+    SELECT
+        (SELECT m_user_id FROM resolved_user),
+        (SELECT m_video_id FROM resolved_video)
+    WHERE
+        @watch_position_seconds::int >= (SELECT external_length_seconds FROM resolved_video)
+    ON CONFLICT (m_user_id, m_video_id) DO NOTHING
+    RETURNING
+        t_video_watched_id
 )
 SELECT 1;
 
@@ -217,3 +229,18 @@ WHERE
 ORDER BY
     s.target_month DESC
 LIMIT 1;
+
+-- name: MarkVideoWatched :exec
+INSERT INTO
+    t_video_watched (m_user_id, m_video_id)
+SELECT
+    (SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_public_id LIMIT 1),
+    (SELECT m_video.m_video_id FROM m_video WHERE m_video.public_id = @video_public_id LIMIT 1)
+ON CONFLICT (m_user_id, m_video_id) DO NOTHING;
+
+-- name: UnmarkVideoWatched :exec
+DELETE FROM
+    t_video_watched
+WHERE
+    m_user_id = (SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_public_id LIMIT 1)
+    AND m_video_id = (SELECT m_video.m_video_id FROM m_video WHERE m_video.public_id = @video_public_id LIMIT 1);

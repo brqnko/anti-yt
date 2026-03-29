@@ -69,6 +69,32 @@ func (h *APIHandler) PostVideosVideoIdHeartbeats(ctx context.Context, request Po
 	}, nil
 }
 
+func (h *APIHandler) PostVideosVideoIdWatched(ctx context.Context, request PostVideosVideoIdWatchedRequestObject) (PostVideosVideoIdWatchedResponseObject, error) {
+	userID, err := hutil.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := h.historyService.MarkVideoWatched(ctx, userID, request.VideoId); err != nil {
+		return nil, err
+	}
+
+	return PostVideosVideoIdWatched204Response{}, nil
+}
+
+func (h *APIHandler) DeleteVideosVideoIdWatched(ctx context.Context, request DeleteVideosVideoIdWatchedRequestObject) (DeleteVideosVideoIdWatchedResponseObject, error) {
+	userID, err := hutil.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := h.historyService.UnmarkVideoWatched(ctx, userID, request.VideoId); err != nil {
+		return nil, err
+	}
+
+	return DeleteVideosVideoIdWatched204Response{}, nil
+}
+
 func (h *APIHandler) GetStatisticsWeekly(ctx context.Context, request GetStatisticsWeeklyRequestObject) (GetStatisticsWeeklyResponseObject, error) {
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {

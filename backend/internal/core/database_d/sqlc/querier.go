@@ -77,6 +77,7 @@ type Querier interface {
 	ListUserPlaylists(ctx context.Context, arg ListUserPlaylistsParams) ([]ListUserPlaylistsRow, error)
 	ListValuableChannels(ctx context.Context) ([]ListValuableChannelsRow, error)
 	ListWatchHistory(ctx context.Context, arg ListWatchHistoryParams) ([]ListWatchHistoryRow, error)
+	MarkVideoWatched(ctx context.Context, arg MarkVideoWatchedParams) error
 	// expires_atが過ぎたjtiのブラックリストを削除します。
 	PurgeExpiredJTIBlacklist(ctx context.Context, expiresAt time.Time) error
 	// m_user.recent_playlist_idsを更新する。先頭に追加し、重複を除去し、最大5件に制限する。
@@ -103,6 +104,7 @@ type Querier interface {
 	SaveAuthorization(ctx context.Context, arg SaveAuthorizationParams) (SaveAuthorizationRow, error)
 	// トランザクションレベルのロック（ノンブロッキング）
 	TryAcquireAdvisoryXactLock(ctx context.Context, dollar_1 int64) (bool, error)
+	UnmarkVideoWatched(ctx context.Context, arg UnmarkVideoWatchedParams) error
 	UpdatePlaylist(ctx context.Context, arg UpdatePlaylistParams) (uuid.UUID, error)
 	// ユーザーを更新する。
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
