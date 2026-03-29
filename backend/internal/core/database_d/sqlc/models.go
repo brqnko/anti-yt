@@ -189,3 +189,9 @@ type TVideoWatch struct {
 	UpdatedAt            time.Time
 	PublicID             uuid.UUID
 }
+
+type TVideoWatched struct {
+	TVideoWatchedID int64
+	MUserID         int64
+	MVideoID        int64
+}

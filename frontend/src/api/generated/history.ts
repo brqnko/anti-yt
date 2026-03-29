@@ -36,6 +36,30 @@ const postVideosVideoIdHeartbeats = (
       );
     }
   /**
+ * 動画を視聴済みとしてマークする
+ * @summary Mark video as watched
+ */
+const postVideosVideoIdWatched = (
+    videoId: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/api/v1/videos/${videoId}/watched`, method: 'POST'
+    },
+      );
+    }
+  /**
+ * 動画の視聴済みマークを解除する
+ * @summary Unmark video as watched
+ */
+const deleteVideosVideoIdWatched = (
+    videoId: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/api/v1/videos/${videoId}/watched`, method: 'DELETE'
+    },
+      );
+    }
+  /**
  * 視聴履歴を取得
  * @summary Get video history
  */
@@ -61,7 +85,9 @@ const getStatisticsWeekly = (
     },
       );
     }
-  return {postVideosVideoIdHeartbeats,getHistory,getStatisticsWeekly}};
+  return {postVideosVideoIdHeartbeats,postVideosVideoIdWatched,deleteVideosVideoIdWatched,getHistory,getStatisticsWeekly}};
 export type PostVideosVideoIdHeartbeatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getHistory>['postVideosVideoIdHeartbeats']>>>
+export type PostVideosVideoIdWatchedResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getHistory>['postVideosVideoIdWatched']>>>
+export type DeleteVideosVideoIdWatchedResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getHistory>['deleteVideosVideoIdWatched']>>>
 export type GetHistoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getHistory>['getHistory']>>>
 export type GetStatisticsWeeklyResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getHistory>['getStatisticsWeekly']>>>

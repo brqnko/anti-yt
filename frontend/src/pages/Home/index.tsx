@@ -1,6 +1,5 @@
-import { useState, useRef, useEffect, useMemo } from "preact/hooks";
+import { useState, useRef, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "preact-iso";
 import { useTitle } from "../../hooks/useTitle";
 import { useCanonical } from "../../hooks/useCanonical";
 import { useColorMode } from "../../hooks/useColorMode";
@@ -134,13 +133,6 @@ export default function Home() {
   const { t, i18n } = useTranslation();
   const { mode, setMode } = useColorMode();
   const { isAuthenticated, isLoading } = useAuth();
-  const { query } = useLocation();
-  const showExpiredBanner = useMemo(() => {
-    if (typeof query === "string") {
-      return new URLSearchParams(query).get("expired") === "1";
-    }
-    return (query as Record<string, string>)?.expired === "1";
-  }, [query]);
   useTitle("");
   useCanonical("/");
 
@@ -170,13 +162,6 @@ export default function Home() {
 
   return (
     <div class="flex flex-col h-dvh w-full overflow-hidden font-display antialiased">
-      {/* Session expired banner */}
-      {showExpiredBanner && (
-        <div class="flex items-center justify-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-sm font-medium">
-          <Icon name="warning" class="text-base" />
-          {t("home.sessionExpired")}
-        </div>
-      )}
       {/* Header */}
       <header class="flex items-center justify-between py-4 px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 z-30 bg-slate-100 dark:bg-[#0c0c0c] border-b border-slate-200 dark:border-white/5">
         <a href="/" class="no-underline text-charcoal dark:text-white">

@@ -1353,6 +1353,62 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /api/v1/videos/{video_id}/watched:
+    parameters:
+      - name: video_id
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: 動画の内部ID
+        in: path
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
+      - $ref: '#/components/parameters/HeaderTimezone'
+    post:
+      tags: [ history ]
+      summary: Mark video as watched
+      description: 動画を視聴済みとしてマークする
+      operationId: postVideosVideoIdWatched
+      responses:
+        "204":
+          description: 204 No Content
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags: [ history ]
+      summary: Unmark video as watched
+      description: 動画の視聴済みマークを解除する
+      operationId: deleteVideosVideoIdWatched
+      responses:
+        "204":
+          description: 204 No Content
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   # ========================================
   # user - ユーザー
   # ========================================

@@ -21,6 +21,7 @@ export interface VideoCardProps {
   playlistId?: string;
   isSubscribed?: boolean;
   onToggleSubscription?: () => Promise<void>;
+  onMarkWatched?: () => Promise<void>;
 }
 
 function VideoThumbnail({
@@ -80,17 +81,18 @@ function VideoThumbnail({
 }
 
 function VideoCardMenu({
-  channelName,
   isSubscribed,
   onToggleSubscription,
+  onMarkWatched,
 }: {
-  channelName: string;
   isSubscribed: boolean;
   onToggleSubscription: () => Promise<void>;
+  onMarkWatched?: () => Promise<void>;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [toggling, setToggling] = useState(false);
+  const [marking, setMarking] = useState(false);
   const [subscribed, setSubscribed] = useState(isSubscribed);
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -119,6 +121,17 @@ function VideoCardMenu({
       setSubscribed((prev) => !prev);
     } finally {
       setToggling(false);
+    }
+  };
+
+  const handleMarkWatched = async () => {
+    if (marking || !onMarkWatched) return;
+    setMarking(true);
+    try {
+      await onMarkWatched();
+      setOpen(false);
+    } finally {
+      setMarking(false);
     }
   };
 
@@ -158,10 +171,7 @@ function VideoCardMenu({
             >
               <Icon name="close" />
             </button>
-            <h2 class="text-2xl font-bold text-charcoal dark:text-white mb-2">
-              {channelName}
-            </h2>
-            <div class="flex items-center justify-between mt-6">
+            <div class="flex items-center justify-between">
               <div class="flex flex-col">
                 <span class="text-sm font-bold text-charcoal dark:text-white">
                   {t("videoCard.subscribeChannel")}
@@ -188,6 +198,29 @@ function VideoCardMenu({
                 </div>
               </button>
             </div>
+            {onMarkWatched && (
+              <div class="flex items-center justify-between mt-4">
+                <div class="flex flex-col">
+                  <span class="text-sm font-bold text-charcoal dark:text-white">
+                    {t("videoCard.markWatched")}
+                  </span>
+                  <span class="text-xs text-text-muted-light dark:text-text-muted-dark">
+                    {t("videoCard.markWatchedDesc")}
+                  </span>
+                </div>
+                <button
+                  class={`flex-shrink-0 ml-3 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    marking
+                      ? "bg-gray-200 dark:bg-gray-700 text-text-muted-light dark:text-text-muted-dark cursor-not-allowed"
+                      : "bg-primary text-white hover:bg-primary/90 cursor-pointer"
+                  } border-none`}
+                  onClick={handleMarkWatched}
+                  disabled={marking}
+                >
+                  {t("videoCard.markWatchedButton")}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -208,6 +241,7 @@ export function VideoCard({
   playlistId,
   isSubscribed,
   onToggleSubscription,
+  onMarkWatched,
 }: VideoCardProps) {
   const { t } = useTranslation();
   const progressPercent =
@@ -298,9 +332,9 @@ export function VideoCard({
             </a>
             {channel && onToggleSubscription && (
               <VideoCardMenu
-                channelName={channel.displayName}
                 isSubscribed={isSubscribed ?? false}
                 onToggleSubscription={onToggleSubscription}
+                onMarkWatched={onMarkWatched}
               />
             )}
           </div>
