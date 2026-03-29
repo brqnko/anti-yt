@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
+	"github.com/brqnko/anti-yt/backend/internal/core/report"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -62,7 +63,7 @@ func TestDomainErrorMiddleware(t *testing.T) {
 				}
 			}
 
-			mw := DomainErrorMiddleware(inner, "test")
+			mw := DomainErrorMiddleware(report.NewService())(inner, "test")
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
 

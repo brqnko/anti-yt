@@ -39,7 +39,7 @@ func (w *discordClient) SendWebhookMessage(ctx context.Context, message string) 
 	if err != nil {
 		return fmt.Errorf("discord SendWebhookMessage: do request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return fmt.Errorf("discord SendWebhookMessage: unexpected status %d", resp.StatusCode)

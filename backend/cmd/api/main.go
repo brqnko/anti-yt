@@ -24,6 +24,7 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/llm"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
+	"github.com/brqnko/anti-yt/backend/internal/core/report"
 	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/brqnko/anti-yt/backend/internal/job"
@@ -44,6 +45,7 @@ type config struct {
 	youtubeDataAPIKey      string
 	adminAPIKey            string
 	geminiAPIKey           string
+	discordWebhookURL     string
 
 	port int
 
@@ -101,6 +103,7 @@ func run(ctx context.Context) int {
 		youtubeDataAPIKey:      os.Getenv("YOUTUBE_DATA_API_KEY"),
 		adminAPIKey:            os.Getenv("ADMIN_API_KEY"),
 		geminiAPIKey:           os.Getenv("GEMINI_API_KEY"),
+		discordWebhookURL:     os.Getenv("DISCORD_WEBHOOK_URL"),
 		port:                   port,
 	}
 	clear(dbPassword)
@@ -168,6 +171,12 @@ func run(ctx context.Context) int {
 	}
 	slog.Info("gemini api ok")
 
+	var reportOpts []report.Option
+	if cfg.discordWebhookURL != "" {
+		reportOpts = append(reportOpts, report.WithDiscordWebhook(cfg.discordWebhookURL))
+	}
+	reportService := report.NewService(reportOpts...)
+
 	scheduler := scheduler.NewService()
 	if err := scheduler.AddFunc("0 0 * * *", job.NewLLMSummaryJob(db, llmService)); err != nil {
 		slog.Error("failed to setup llm summary job", slog.Any("error", err))
@@ -186,7 +195,7 @@ func run(ctx context.Context) int {
 	v1.HandlerFromMux(v1.NewStrictHandler(
 		v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour, ytService, 1*time.Hour, scheduler),
 		[]v1.StrictMiddlewareFunc{
-			middleware_d.DomainErrorMiddleware,
+			middleware_d.DomainErrorMiddleware(reportService),
 			middleware_d.ResponseCookieMiddleware,
 			middleware_d.ScreenTimeMiddleware(db),
 			middleware_d.SlogMiddleware,
