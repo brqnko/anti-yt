@@ -9,6 +9,7 @@ import type {
   GetAuthGoogleCallbackParams,
   GetAuthGoogleParams,
   GetAuthOauthYoutubeCallbackParams,
+  GetAuthOauthYoutubeParams,
   GetUsersMeSessions200,
   GetUsersMeSessionsParams
 } from './antiYtApi.schemas';
@@ -62,10 +63,11 @@ const getAuthGoogleCallback = (
  * @summary YouTube OAuth authentication
  */
 const getAuthOauthYoutube = (
-    
+    params?: GetAuthOauthYoutubeParams,
  ) => {
       return customInstance<unknown>(
-      {url: `/api/v1/auth/oauth/youtube`, method: 'GET'
+      {url: `/api/v1/auth/oauth/youtube`, method: 'GET',
+        params
     },
       );
     }

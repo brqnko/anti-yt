@@ -85,11 +85,11 @@ export function DashboardHeader({
       </div>
 
       <form
-        class="flex-1 min-w-0 max-w-xl mx-auto flex gap-2 items-center"
+        class="flex-1 min-w-0 max-w-xl mx-auto flex items-center"
         onSubmit={handleSearch}
         role="search"
       >
-        <div class="flex flex-1 min-w-0 rounded-full border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark overflow-hidden focus-within:border-primary transition-colors">
+        <div class="flex flex-1 min-w-0 items-center rounded-full border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark overflow-hidden focus-within:border-primary transition-colors">
           <input
             type="text"
             value={searchInput}
@@ -98,20 +98,20 @@ export function DashboardHeader({
             class="flex-1 bg-transparent px-4 py-2 text-sm text-charcoal dark:text-white outline-none placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark"
             aria-label={t("search.inputPlaceholder")}
           />
+          <button
+            type="button"
+            class="relative shrink-0 p-1.5 mr-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer text-charcoal dark:text-white"
+            onClick={() => setFilterOpen(true)}
+            aria-label={t("search.filters.title")}
+          >
+            <Icon name="tune" class="text-xl" />
+            {activeFilterCount > 0 && (
+              <span class="absolute -top-0.5 -right-0.5 size-4 flex items-center justify-center rounded-full bg-primary text-white text-[10px] font-bold leading-none">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
         </div>
-        <button
-          type="button"
-          class="relative shrink-0 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer text-charcoal dark:text-white"
-          onClick={() => setFilterOpen(true)}
-          aria-label={t("search.filters.title")}
-        >
-          <Icon name="tune" class="text-xl" />
-          {activeFilterCount > 0 && (
-            <span class="absolute -top-0.5 -right-0.5 size-4 flex items-center justify-center rounded-full bg-primary text-white text-[10px] font-bold leading-none">
-              {activeFilterCount}
-            </span>
-          )}
-        </button>
       </form>
 
       <SearchFilterDialog

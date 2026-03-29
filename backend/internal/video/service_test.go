@@ -36,7 +36,8 @@ func TestService_GetVideoDetail(t *testing.T) {
 			}
 
 			svc := newTestService(t, pool)
-			view, err := svc.GetVideoDetail(ctx, videoID)
+			userID := uuid.Must(uuid.NewV7())
+			view, err := svc.GetVideoDetail(ctx, userID, videoID)
 
 			if tt.wantErr {
 				if err == nil {

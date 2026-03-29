@@ -24,10 +24,11 @@ type GetVideoDetailView struct {
 	ExternalChannelDisplayName      string
 	ExternalChannelIconUrl          string
 	ExternalChannelSubscribersCount uint64
+	IsWatched                       bool
 }
 
 type VideoQueryService interface {
-	Find(ctx context.Context, id uuid.UUID) (GetVideoDetailView, error)
+	Find(ctx context.Context, userID, videoID uuid.UUID) (GetVideoDetailView, error)
 }
 
 type videoQueryServiceImpl struct {
@@ -40,10 +41,13 @@ func NewVideoQueryService(db *pgxpool.Pool) VideoQueryService {
 	}
 }
 
-func (v *videoQueryServiceImpl) Find(ctx context.Context, id uuid.UUID) (_ GetVideoDetailView, err error) {
-	defer util.Wrap(&err, "videoQueryService.Find(id=%s)", id)
+func (v *videoQueryServiceImpl) Find(ctx context.Context, userID, videoID uuid.UUID) (_ GetVideoDetailView, err error) {
+	defer util.Wrap(&err, "videoQueryService.Find(videoID=%s)", videoID)
 
-	row, err := v.q.GetVideoDetail(ctx, id)
+	row, err := v.q.GetVideoDetail(ctx, sqlc.GetVideoDetailParams{
+		UserID:  userID,
+		VideoID: videoID,
+	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return GetVideoDetailView{}, err
@@ -63,6 +67,7 @@ func (v *videoQueryServiceImpl) Find(ctx context.Context, id uuid.UUID) (_ GetVi
 		ExternalChannelDisplayName:      row.ExternalDisplayName,
 		ExternalChannelIconUrl:          row.ExternalIconUrl,
 		ExternalChannelSubscribersCount: uint64(row.ExternalSubscribersCount),
+		IsWatched:                       row.IsWatched,
 	}, nil
 }
 

@@ -18,10 +18,10 @@ func NewService(db *pgxpool.Pool) *Service {
 	}
 }
 
-func (s *Service) GetVideoDetail(ctx context.Context, videoID uuid.UUID) (_ GetVideoDetailView, err error) {
+func (s *Service) GetVideoDetail(ctx context.Context, userID, videoID uuid.UUID) (_ GetVideoDetailView, err error) {
 	defer util.Wrap(&err, "Service.GetVideoDetail")
 
-	view, err := s.videoQS.Find(ctx, videoID)
+	view, err := s.videoQS.Find(ctx, userID, videoID)
 	if err != nil {
 		return GetVideoDetailView{}, err
 	}

@@ -21,9 +21,10 @@ import (
 )
 
 var (
-	ErrInvalidCSRFOrState = core.NewDomainError("auth.invalid_csrf_or_state", "invalid csrf or state")
-	ErrInvalidCSRF        = core.NewDomainError("auth.invalid_csrf", "invalid csrf: csrf != state")
-	ErrIDTokenNotFound    = oidc.ErrIDTokenNotFound
+	ErrInvalidCSRFOrState      = core.NewDomainError("auth.invalid_csrf_or_state", "invalid csrf or state")
+	ErrInvalidCSRF             = core.NewDomainError("auth.invalid_csrf", "invalid csrf: csrf != state")
+	ErrIDTokenNotFound         = oidc.ErrIDTokenNotFound
+	ErrNoImportOptionSelected  = core.NewDomainError("auth.no_import_option_selected", "at least one import option must be selected")
 )
 
 type Service struct {
@@ -285,10 +286,14 @@ func (s *Service) RemoveSession(ctx context.Context, userID, sessionID uuid.UUID
 	return removedPublicID, nil
 }
 
-func (s *Service) CreateYouTubeAuthCode(_ context.Context, userID uuid.UUID) (_ string, err error) {
+func (s *Service) CreateYouTubeAuthCode(_ context.Context, userID uuid.UUID, importSubscriptions, importLikes bool) (_ string, err error) {
 	defer util.Wrap(&err, "Service.CreateYouTubeAuthCode")
 
-	state, err := s.jwtService.SignOAuthStateToken(userID, "youtube", s.serverURL)
+	if !importSubscriptions && !importLikes {
+		return "", ErrNoImportOptionSelected
+	}
+
+	state, err := s.jwtService.SignYouTubeImportStateToken(userID, importSubscriptions, importLikes, s.serverURL)
 	if err != nil {
 		return "", err
 	}
@@ -299,8 +304,8 @@ func (s *Service) CreateYouTubeAuthCode(_ context.Context, userID uuid.UUID) (_ 
 func (s *Service) YouTubeOAuthCallback(ctx context.Context, state, code string) (err error) {
 	defer util.Wrap(&err, "Service.YouTubeOAuthCallback")
 
-	userID, provider, err := s.jwtService.VerifyOAuthStateToken(state)
-	if err != nil || provider != "youtube" {
+	userID, importSubscriptions, importLikes, err := s.jwtService.VerifyYouTubeImportStateToken(state)
+	if err != nil {
 		return ErrInvalidCSRFOrState
 	}
 
@@ -310,17 +315,18 @@ func (s *Service) YouTubeOAuthCallback(ctx context.Context, state, code string) 
 	}
 
 	// 登録してるチャンネルを取得
-	channels, err := s.ytService.FetchAllSubscriptions(ctx, ytAccessToken)
-	if err != nil {
-		return err
-	}
-	// 登録
-	for _, channel := range channels {
-		if _, err := s.channelService.SubscribeChannel(ctx, userID, string(channel.ID)); err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to subscribe channel(youtube oauth callback)", slog.String("channel_id", string(channel.ID)))
+	if importSubscriptions {
+		channels, err := s.ytService.FetchAllSubscriptions(ctx, ytAccessToken)
+		if err != nil {
+			return err
 		}
+		for _, channel := range channels {
+			if _, err := s.channelService.SubscribeChannel(ctx, userID, string(channel.ID)); err != nil {
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to subscribe channel(youtube oauth callback)", slog.String("channel_id", string(channel.ID)))
+			}
+		}
+		clear(channels)
 	}
-	clear(channels)
 
 	// 履歴のimport
 	// NOTE: YouTube Data API v3 は Watch History (HL) へのアクセスをサポートしていないためコメントアウト
@@ -463,8 +469,10 @@ func (s *Service) YouTubeOAuthCallback(ctx context.Context, state, code string) 
 	// clear(videoUUIDs)
 
 	// 高評価プレイリストをimport
-	if _, err := s.playlistService.CreatePlaylistWithAccessToken(ctx, userID, "高評価した動画", "", "private", "normal", ytAccessToken, "LL"); err != nil {
-		util.LoggerFromContext(ctx).InfoContext(ctx, "failed to import liked playlist(youtube oauth callback)", slog.Any("error", err))
+	if importLikes {
+		if _, err := s.playlistService.CreatePlaylistWithAccessToken(ctx, userID, "高評価した動画", "", "private", "normal", ytAccessToken, "LL"); err != nil {
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to import liked playlist(youtube oauth callback)", slog.Any("error", err))
+		}
 	}
 
 	return nil

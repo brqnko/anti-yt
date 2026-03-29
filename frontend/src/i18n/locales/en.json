@@ -226,7 +226,15 @@
     },
     "accountDetails": "Account",
     "youtubeImport": {
-      "button": "Import from YouTube"
+      "button": "Import from YouTube",
+      "dialogTitle": "Select data to import",
+      "subscriptions": "Channel subscriptions",
+      "subscriptionsDesc": "Import channels you subscribe to on YouTube",
+      "likes": "Liked videos",
+      "likesDesc": "Import videos you liked on YouTube",
+      "start": "Start import",
+      "cancel": "Cancel",
+      "selectAtLeastOne": "Please select at least one option"
     },
     "displayName": "Display Name",
     "displayNamePlaceholder": "Your name",
@@ -409,6 +417,15 @@
       "removing": "Removing...",
       "error": "Failed to remove. Please try again."
     }
+  },
+  "channels": {
+    "pageTitle": "Channels",
+    "exploreLink": "Recommended Channels",
+    "exploreLinkDesc": "Discover curated channels",
+    "noChannels": "No channels subscribed yet.",
+    "loadError": "Failed to load channels",
+    "retry": "Retry",
+    "loadMore": "Load more"
   },
   "explore": {
     "pageTitle": "Explore Channels",

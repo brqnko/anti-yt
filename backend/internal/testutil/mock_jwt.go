@@ -54,14 +54,14 @@ type ServiceMock struct {
 	// VerifyRegisterTokenFunc mocks the VerifyRegisterToken method.
 	VerifyRegisterTokenFunc func(token string) (uuid.UUID, uuid.UUID, error)
 
-	// SignOAuthStateTokenFunc mocks the SignOAuthStateToken method.
-	SignOAuthStateTokenFunc func(userID uuid.UUID, provider, serverURL string) (string, error)
+	// SignYouTubeImportStateTokenFunc mocks the SignYouTubeImportStateToken method.
+	SignYouTubeImportStateTokenFunc func(userID uuid.UUID, importSubscriptions, importLikes bool, serverURL string) (string, error)
 
 	// SignOIDCStateTokenFunc mocks the SignOIDCStateToken method.
 	SignOIDCStateTokenFunc func(platform, serverURL string) (string, error)
 
-	// VerifyOAuthStateTokenFunc mocks the VerifyOAuthStateToken method.
-	VerifyOAuthStateTokenFunc func(token string) (uuid.UUID, string, error)
+	// VerifyYouTubeImportStateTokenFunc mocks the VerifyYouTubeImportStateToken method.
+	VerifyYouTubeImportStateTokenFunc func(token string) (uuid.UUID, bool, bool, error)
 
 	// VerifyOIDCStateTokenFunc mocks the VerifyOIDCStateToken method.
 	VerifyOIDCStateTokenFunc func(token string) (string, error)
@@ -97,19 +97,20 @@ type ServiceMock struct {
 			// Token is the token argument value.
 			Token string
 		}
-		// SignOAuthStateToken holds details about calls to the SignOAuthStateToken method.
-		SignOAuthStateToken []struct {
-			UserID    uuid.UUID
-			Provider  string
-			ServerURL string
+		// SignYouTubeImportStateToken holds details about calls to the SignYouTubeImportStateToken method.
+		SignYouTubeImportStateToken []struct {
+			UserID              uuid.UUID
+			ImportSubscriptions bool
+			ImportLikes         bool
+			ServerURL           string
 		}
 		// SignOIDCStateToken holds details about calls to the SignOIDCStateToken method.
 		SignOIDCStateToken []struct {
 			Platform  string
 			ServerURL string
 		}
-		// VerifyOAuthStateToken holds details about calls to the VerifyOAuthStateToken method.
-		VerifyOAuthStateToken []struct {
+		// VerifyYouTubeImportStateToken holds details about calls to the VerifyYouTubeImportStateToken method.
+		VerifyYouTubeImportStateToken []struct {
 			Token string
 		}
 		// VerifyOIDCStateToken holds details about calls to the VerifyOIDCStateToken method.
@@ -124,9 +125,9 @@ type ServiceMock struct {
 	}
 	lockSignRegisterToken     sync.RWMutex
 	lockSignUserAccessToken   sync.RWMutex
-	lockSignOAuthStateToken    sync.RWMutex
-	lockSignOIDCStateToken    sync.RWMutex
-	lockVerifyOAuthStateToken sync.RWMutex
+	lockSignYouTubeImportStateToken  sync.RWMutex
+	lockSignOIDCStateToken           sync.RWMutex
+	lockVerifyYouTubeImportStateToken sync.RWMutex
 	lockVerifyOIDCStateToken  sync.RWMutex
 	lockTokenDuration         sync.RWMutex
 	lockVerifyRegisterToken   sync.RWMutex
@@ -272,40 +273,44 @@ func (mock *ServiceMock) VerifyRegisterTokenCalls() []struct {
 	return calls
 }
 
-// SignOAuthStateToken calls SignOAuthStateTokenFunc.
-func (mock *ServiceMock) SignOAuthStateToken(userID uuid.UUID, provider, serverURL string) (string, error) {
-	if mock.SignOAuthStateTokenFunc == nil {
-		panic("ServiceMock.SignOAuthStateTokenFunc: method is nil but Service.SignOAuthStateToken was just called")
+// SignYouTubeImportStateToken calls SignYouTubeImportStateTokenFunc.
+func (mock *ServiceMock) SignYouTubeImportStateToken(userID uuid.UUID, importSubscriptions, importLikes bool, serverURL string) (string, error) {
+	if mock.SignYouTubeImportStateTokenFunc == nil {
+		panic("ServiceMock.SignYouTubeImportStateTokenFunc: method is nil but Service.SignYouTubeImportStateToken was just called")
 	}
 	callInfo := struct {
-		UserID    uuid.UUID
-		Provider  string
-		ServerURL string
+		UserID              uuid.UUID
+		ImportSubscriptions bool
+		ImportLikes         bool
+		ServerURL           string
 	}{
-		UserID:    userID,
-		Provider:  provider,
-		ServerURL: serverURL,
+		UserID:              userID,
+		ImportSubscriptions: importSubscriptions,
+		ImportLikes:         importLikes,
+		ServerURL:           serverURL,
 	}
-	mock.lockSignOAuthStateToken.Lock()
-	mock.calls.SignOAuthStateToken = append(mock.calls.SignOAuthStateToken, callInfo)
-	mock.lockSignOAuthStateToken.Unlock()
-	return mock.SignOAuthStateTokenFunc(userID, provider, serverURL)
+	mock.lockSignYouTubeImportStateToken.Lock()
+	mock.calls.SignYouTubeImportStateToken = append(mock.calls.SignYouTubeImportStateToken, callInfo)
+	mock.lockSignYouTubeImportStateToken.Unlock()
+	return mock.SignYouTubeImportStateTokenFunc(userID, importSubscriptions, importLikes, serverURL)
 }
 
-// SignOAuthStateTokenCalls gets all the calls that were made to SignOAuthStateToken.
-func (mock *ServiceMock) SignOAuthStateTokenCalls() []struct {
-	UserID    uuid.UUID
-	Provider  string
-	ServerURL string
+// SignYouTubeImportStateTokenCalls gets all the calls that were made to SignYouTubeImportStateToken.
+func (mock *ServiceMock) SignYouTubeImportStateTokenCalls() []struct {
+	UserID              uuid.UUID
+	ImportSubscriptions bool
+	ImportLikes         bool
+	ServerURL           string
 } {
 	var calls []struct {
-		UserID    uuid.UUID
-		Provider  string
-		ServerURL string
+		UserID              uuid.UUID
+		ImportSubscriptions bool
+		ImportLikes         bool
+		ServerURL           string
 	}
-	mock.lockSignOAuthStateToken.RLock()
-	calls = mock.calls.SignOAuthStateToken
-	mock.lockSignOAuthStateToken.RUnlock()
+	mock.lockSignYouTubeImportStateToken.RLock()
+	calls = mock.calls.SignYouTubeImportStateToken
+	mock.lockSignYouTubeImportStateToken.RUnlock()
 	return calls
 }
 
@@ -342,32 +347,32 @@ func (mock *ServiceMock) SignOIDCStateTokenCalls() []struct {
 	return calls
 }
 
-// VerifyOAuthStateToken calls VerifyOAuthStateTokenFunc.
-func (mock *ServiceMock) VerifyOAuthStateToken(token string) (uuid.UUID, string, error) {
-	if mock.VerifyOAuthStateTokenFunc == nil {
-		panic("ServiceMock.VerifyOAuthStateTokenFunc: method is nil but Service.VerifyOAuthStateToken was just called")
+// VerifyYouTubeImportStateToken calls VerifyYouTubeImportStateTokenFunc.
+func (mock *ServiceMock) VerifyYouTubeImportStateToken(token string) (uuid.UUID, bool, bool, error) {
+	if mock.VerifyYouTubeImportStateTokenFunc == nil {
+		panic("ServiceMock.VerifyYouTubeImportStateTokenFunc: method is nil but Service.VerifyYouTubeImportStateToken was just called")
 	}
 	callInfo := struct {
 		Token string
 	}{
 		Token: token,
 	}
-	mock.lockVerifyOAuthStateToken.Lock()
-	mock.calls.VerifyOAuthStateToken = append(mock.calls.VerifyOAuthStateToken, callInfo)
-	mock.lockVerifyOAuthStateToken.Unlock()
-	return mock.VerifyOAuthStateTokenFunc(token)
+	mock.lockVerifyYouTubeImportStateToken.Lock()
+	mock.calls.VerifyYouTubeImportStateToken = append(mock.calls.VerifyYouTubeImportStateToken, callInfo)
+	mock.lockVerifyYouTubeImportStateToken.Unlock()
+	return mock.VerifyYouTubeImportStateTokenFunc(token)
 }
 
-// VerifyOAuthStateTokenCalls gets all the calls that were made to VerifyOAuthStateToken.
-func (mock *ServiceMock) VerifyOAuthStateTokenCalls() []struct {
+// VerifyYouTubeImportStateTokenCalls gets all the calls that were made to VerifyYouTubeImportStateToken.
+func (mock *ServiceMock) VerifyYouTubeImportStateTokenCalls() []struct {
 	Token string
 } {
 	var calls []struct {
 		Token string
 	}
-	mock.lockVerifyOAuthStateToken.RLock()
-	calls = mock.calls.VerifyOAuthStateToken
-	mock.lockVerifyOAuthStateToken.RUnlock()
+	mock.lockVerifyYouTubeImportStateToken.RLock()
+	calls = mock.calls.VerifyYouTubeImportStateToken
+	mock.lockVerifyYouTubeImportStateToken.RUnlock()
 	return calls
 }
 

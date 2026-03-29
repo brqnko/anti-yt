@@ -179,7 +179,7 @@ function DashboardContent() {
             <p class="text-sm mt-1">{t("dashboard.noVideosDesc")}</p>
             <a
               class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
-              href="/channels"
+              href="/channels/explore"
             >
               <Icon name="recommend" class="text-[18px]" />
               {t("dashboard.nav.recommendedChannels")}

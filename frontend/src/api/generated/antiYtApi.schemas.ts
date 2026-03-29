@@ -183,6 +183,17 @@ state: string;
 error?: string;
 };
 
+export type GetAuthOauthYoutubeParams = {
+/**
+ * チャンネル登録をインポートするかどうか
+ */
+subscriptions?: boolean;
+/**
+ * 高評価動画をインポートするかどうか
+ */
+likes?: boolean;
+};
+
 export type GetAuthOauthYoutubeCallbackParams = {
 /**
  * YouTubeから発行された認可コード
@@ -555,6 +566,8 @@ export type GetVideosVideoId200 = {
   external_channel_icon_url: string;
   /** @minimum 0 */
   external_channel_subscribers_count: number;
+  /** ユーザーが視聴済みかどうか */
+  is_watched: boolean;
 };
 
 export type PostVideosVideoIdHeartbeatsBody = {

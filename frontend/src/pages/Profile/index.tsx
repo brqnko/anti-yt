@@ -49,6 +49,9 @@ function ProfileContent() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveFading, setSaveFading] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importSubscriptions, setImportSubscriptions] = useState(false);
+  const [importLikes, setImportLikes] = useState(false);
 
   const trimmedName = displayName.trim();
   const nameLength = [...trimmedName].length;
@@ -203,8 +206,8 @@ function ProfileContent() {
               </div>
               <div class="px-6 py-4 border-t border-border-light dark:border-border-dark flex items-center">
                 <button
-                  onClick={() => { window.location.href = "/api/v1/auth/oauth/youtube"; }}
-                  class="flex items-center justify-center gap-2.5 rounded-xl bg-white dark:bg-[#242424] px-5 py-2.5 text-sm font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-[#FF0000]/50 transition-all hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[#FF0000] focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
+                  onClick={() => setShowImportDialog(true)}
+                  class="flex items-center justify-center gap-2.5 rounded-xl bg-white dark:bg-[#242424] px-5 py-2.5 text-sm font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-[#FF0000]/50 transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF0000] focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
                 >
                   <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z" fill="#FF0000"/>
@@ -380,6 +383,86 @@ function ProfileContent() {
                   <Icon name="progress_activity" class="text-[18px] animate-spin" />
                 )}
                 {t("profile.deleteConfirm")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* YouTube Import Dialog */}
+      {showImportDialog && (
+        <div
+          class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60"
+          onClick={() => setShowImportDialog(false)}
+        >
+          <div
+            class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 class="text-lg font-bold text-charcoal dark:text-white">
+              {t("profile.youtubeImport.dialogTitle")}
+            </h3>
+
+            <div class="flex flex-col gap-3">
+              <label class="flex items-start gap-3 p-3 rounded-lg border border-border-light dark:border-border-dark hover:border-primary/30 transition-colors cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={importSubscriptions}
+                  onChange={() => setImportSubscriptions((v) => !v)}
+                  class="mt-0.5 size-4 accent-primary cursor-pointer"
+                />
+                <div class="flex flex-col">
+                  <span class="text-sm font-bold text-charcoal dark:text-white">
+                    {t("profile.youtubeImport.subscriptions")}
+                  </span>
+                  <span class="text-xs text-text-muted-light dark:text-text-muted-dark mt-0.5">
+                    {t("profile.youtubeImport.subscriptionsDesc")}
+                  </span>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 rounded-lg border border-border-light dark:border-border-dark hover:border-primary/30 transition-colors cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={importLikes}
+                  onChange={() => setImportLikes((v) => !v)}
+                  class="mt-0.5 size-4 accent-primary cursor-pointer"
+                />
+                <div class="flex flex-col">
+                  <span class="text-sm font-bold text-charcoal dark:text-white">
+                    {t("profile.youtubeImport.likes")}
+                  </span>
+                  <span class="text-xs text-text-muted-light dark:text-text-muted-dark mt-0.5">
+                    {t("profile.youtubeImport.likesDesc")}
+                  </span>
+                </div>
+              </label>
+            </div>
+
+            {!importSubscriptions && !importLikes && (
+              <p class="text-xs text-red-500 font-medium">
+                {t("profile.youtubeImport.selectAtLeastOne")}
+              </p>
+            )}
+
+            <div class="flex justify-end gap-3">
+              <button
+                onClick={() => setShowImportDialog(false)}
+                class="px-5 py-2.5 rounded-lg font-bold text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+              >
+                {t("profile.youtubeImport.cancel")}
+              </button>
+              <button
+                disabled={!importSubscriptions && !importLikes}
+                onClick={() => {
+                  const params = new URLSearchParams();
+                  if (importSubscriptions) params.set("subscriptions", "true");
+                  if (importLikes) params.set("likes", "true");
+                  window.location.href = `/api/v1/auth/oauth/youtube?${params.toString()}`;
+                }}
+                class="px-5 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors cursor-pointer border-none"
+              >
+                {t("profile.youtubeImport.start")}
               </button>
             </div>
           </div>

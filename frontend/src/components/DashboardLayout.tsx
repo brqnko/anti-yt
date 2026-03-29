@@ -130,15 +130,15 @@ export function DashboardLayout({
               </a>
               <a
                 class={`flex items-center gap-3 px-3 py-2 rounded-lg no-underline ${
-                  url === "/channels"
+                  url === "/channels" || url === "/channels/explore"
                     ? "bg-primary/10 text-primary font-bold"
                     : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-charcoal dark:hover:text-white font-medium transition-colors"
                 }`}
                 href="/channels"
-                aria-current={url === "/channels" ? "page" : undefined}
+                aria-current={url === "/channels" || url === "/channels/explore" ? "page" : undefined}
               >
-                <Icon name="recommend" />
-                {t("dashboard.nav.recommendedChannels")}
+                <Icon name="subscriptions" />
+                {t("dashboard.nav.bottomChannels")}
               </a>
               <a
                 class={`flex items-center gap-3 px-3 py-2 rounded-lg no-underline ${
@@ -271,13 +271,13 @@ export function DashboardLayout({
         <a
           href="/channels"
           class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors ${
-            url === "/channels"
+            url === "/channels" || url === "/channels/explore"
               ? "text-primary font-bold"
               : "text-text-muted-light dark:text-text-muted-dark"
           }`}
-          aria-current={url === "/channels" ? "page" : undefined}
+          aria-current={url === "/channels" || url === "/channels/explore" ? "page" : undefined}
         >
-          <Icon name="recommend" class="text-xl" />
+          <Icon name="subscriptions" class="text-xl" />
           {t("dashboard.nav.bottomChannels")}
         </a>
         <a
