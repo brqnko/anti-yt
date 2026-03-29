@@ -18,6 +18,56 @@ type BulkInsertPlaylistVideosParams struct {
 	PlaylistPosition int64
 }
 
+const copyPlaylistVideos = `-- name: CopyPlaylistVideos :one
+WITH inserted AS (
+    INSERT INTO
+        m_playlist_video (m_playlist_id, m_video_id, playlist_position)
+    SELECT
+        $1, pv.m_video_id, pv.playlist_position
+    FROM
+        m_playlist_video pv
+    WHERE
+        pv.m_playlist_id = (
+            SELECT
+                p.m_playlist_id
+            FROM
+                m_playlist p
+            WHERE
+                (
+                    p.m_user_id = (
+                        SELECT
+                            u.m_user_id
+                        FROM
+                            m_user u
+                        WHERE
+                            u.public_id = $2
+                        LIMIT
+                            1
+                    )
+                    OR p.m_channel_id != 0
+                )
+                AND p.public_id = $3
+            LIMIT
+                1
+        )
+    RETURNING 1
+)
+SELECT COUNT(*)::int AS copied_count FROM inserted
+`
+
+type CopyPlaylistVideosParams struct {
+	DestPlaylistID   int64
+	UserID           uuid.UUID
+	SourcePlaylistID uuid.UUID
+}
+
+func (q *Queries) CopyPlaylistVideos(ctx context.Context, arg CopyPlaylistVideosParams) (int, error) {
+	row := q.db.QueryRow(ctx, copyPlaylistVideos, arg.DestPlaylistID, arg.UserID, arg.SourcePlaylistID)
+	var copied_count int
+	err := row.Scan(&copied_count)
+	return copied_count, err
+}
+
 const deletePlaylist = `-- name: DeletePlaylist :one
 WITH deleted AS (
     DELETE FROM

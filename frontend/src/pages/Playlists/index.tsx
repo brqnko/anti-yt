@@ -18,7 +18,7 @@ function PlaylistCard({ playlist }: { playlist: GetPlaylists200ItemsItem }) {
   return (
     <a
       href={`/playlists/${playlist.playlist_id}`}
-      class="group relative flex flex-col bg-card-light dark:bg-card-dark rounded-xl hover:-translate-y-0.5 border border-transparent hover:border-primary/20 transition-all duration-300 overflow-hidden no-underline"
+      class="group relative flex flex-col bg-card-light dark:bg-card-dark rounded-xl border border-transparent hover:border-primary/20 transition-all duration-300 overflow-hidden no-underline"
     >
       <div class="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
         {playlist.top_video_thumbnail_url ? (

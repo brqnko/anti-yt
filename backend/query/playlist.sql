@@ -443,6 +443,42 @@ WHERE
 ORDER BY
     t.ord;
 
+-- name: CopyPlaylistVideos :one
+WITH inserted AS (
+    INSERT INTO
+        m_playlist_video (m_playlist_id, m_video_id, playlist_position)
+    SELECT
+        @dest_playlist_id, pv.m_video_id, pv.playlist_position
+    FROM
+        m_playlist_video pv
+    WHERE
+        pv.m_playlist_id = (
+            SELECT
+                p.m_playlist_id
+            FROM
+                m_playlist p
+            WHERE
+                (
+                    p.m_user_id = (
+                        SELECT
+                            u.m_user_id
+                        FROM
+                            m_user u
+                        WHERE
+                            u.public_id = @user_id
+                        LIMIT
+                            1
+                    )
+                    OR p.m_channel_id != 0
+                )
+                AND p.public_id = @source_playlist_id
+            LIMIT
+                1
+        )
+    RETURNING 1
+)
+SELECT COUNT(*)::int AS copied_count FROM inserted;
+
 -- name: BulkInsertPlaylistVideos :copyfrom
 INSERT INTO
     m_playlist_video (

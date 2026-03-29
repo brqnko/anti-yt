@@ -16,6 +16,7 @@ type PlaylistRepository interface {
 	InsertVideo(ctx context.Context, userID, playlistID, videoID uuid.UUID) error
 	BulkInsertVideos(ctx context.Context, playlistInternalID int64, videoInternalIDs []int64) error
 	RemoveVideo(ctx context.Context, userID, playlistID, videoID uuid.UUID) error
+	CopyVideos(ctx context.Context, userID uuid.UUID, sourcePlaylistID uuid.UUID, destPlaylistInternalID int64) (int, error)
 }
 
 type playlistRepositoryImpl struct {
@@ -123,6 +124,20 @@ func (r *playlistRepositoryImpl) RemoveVideo(ctx context.Context, userID, playli
 		VideoID:    videoID,
 	})
 	return err
+}
+
+func (r *playlistRepositoryImpl) CopyVideos(ctx context.Context, userID uuid.UUID, sourcePlaylistID uuid.UUID, destPlaylistInternalID int64) (_ int, err error) {
+	defer util.Wrap(&err, "playlistRepository.CopyVideos(sourcePlaylistID=%s, destPlaylistInternalID=%d)", sourcePlaylistID, destPlaylistInternalID)
+
+	copiedCount, err := r.q.CopyPlaylistVideos(ctx, sqlc.CopyPlaylistVideosParams{
+		DestPlaylistID:   destPlaylistInternalID,
+		UserID:           userID,
+		SourcePlaylistID: sourcePlaylistID,
+	})
+	if err != nil {
+		return 0, err
+	}
+	return copiedCount, nil
 }
 
 var _ PlaylistRepository = (*playlistRepositoryImpl)(nil)

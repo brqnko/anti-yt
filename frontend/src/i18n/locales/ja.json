@@ -387,6 +387,16 @@
       "confirm": "削除",
       "deleting": "削除中..."
     },
+    "copy": "マイプレイリストにコピー",
+    "copyDialog": {
+      "title": "プレイリストをコピー",
+      "titleLabel": "タイトル",
+      "descriptionLabel": "説明",
+      "cancel": "キャンセル",
+      "copy": "コピー",
+      "copying": "コピー中...",
+      "error": "コピーに失敗しました。再度お試しください。"
+    },
     "removeVideoDialog": {
       "title": "動画を削除しますか？",
       "description": "「{{title}}」をこのプレイリストから削除しますか？",

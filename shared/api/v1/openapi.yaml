@@ -2064,6 +2064,80 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /api/v1/playlists/{playlist_id}/copy:
+    parameters:
+      - name: playlist_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+        in: path
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
+      - $ref: '#/components/parameters/HeaderTimezone'
+    post:
+      tags: [ playlist ]
+      summary: Copy playlist
+      description: プレイリストを自分用にコピーする
+      operationId: postPlaylistsPlaylistIdCopy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                playlist_title:
+                  type: string
+                playlist_description:
+                  type: string
+              required: [ playlist_title, playlist_description ]
+      responses:
+        "201":
+          description: 201 Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  playlist_id:
+                    type: string
+                    format: uuid
+                  playlist_type:
+                    $ref: "#/components/schemas/PlaylistType"
+                  playlist_visibility:
+                    $ref: "#/components/schemas/PlaylistVisibility"
+                  playlist_title:
+                    type: string
+                  playlist_description:
+                    type: string
+                  playlist_video_count:
+                    type: integer
+                    minimum: 0
+                  playlist_registered_at:
+                    type: string
+                    format: date-time
+                  playlist_updated_at:
+                    type: string
+                    format: date-time
+                required: [ playlist_id, playlist_type, playlist_visibility, playlist_title, playlist_description, playlist_video_count, playlist_registered_at, playlist_updated_at ]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /api/v1/playlists/{playlist_id}/videos:
     parameters:
       - name: playlist_id

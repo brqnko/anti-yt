@@ -376,6 +376,119 @@ function AddVideoDialog({
   );
 }
 
+function CopyPlaylistDialog({
+  open,
+  playlist,
+  onClose,
+  onCopied,
+}: {
+  open: boolean;
+  playlist: GetPlaylistsPlaylistId200;
+  onClose: () => void;
+  onCopied: (playlistId: string) => void;
+}) {
+  const { t } = useTranslation();
+  const [title, setTitle] = useState(playlist.playlist_title);
+  const [description, setDescription] = useState(playlist.playlist_description);
+  const [isCopying, setIsCopying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEscapeKey(open, onClose);
+
+  useEffect(() => {
+    if (open) {
+      setTitle(playlist.playlist_title);
+      setDescription(playlist.playlist_description);
+      setError(null);
+    }
+  }, [open, playlist]);
+
+  const handleCopy = async () => {
+    if (!title.trim() || isCopying) return;
+    setIsCopying(true);
+    setError(null);
+    try {
+      const res = await getPlaylist().postPlaylistsPlaylistIdCopy(playlist.playlist_id, {
+        playlist_title: title.trim(),
+        playlist_description: description.trim(),
+      });
+      onCopied(res.playlist_id);
+    } catch (err) {
+      const code = getApiErrorCode(err);
+      setError(code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : t("playlistDetail.copyDialog.error"));
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("playlistDetail.copyDialog.title")}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-md p-6 flex flex-col gap-4">
+        <h2 class="text-xl font-bold text-charcoal dark:text-white">
+          {t("playlistDetail.copyDialog.title")}
+        </h2>
+        <div class="flex flex-col gap-3">
+          <div>
+            <label class="block text-sm font-medium text-charcoal dark:text-white mb-1">
+              {t("playlistDetail.copyDialog.titleLabel")}
+            </label>
+            <input
+              type="text"
+              class="w-full h-10 px-3 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-charcoal dark:text-white"
+              value={title}
+              onInput={(e) => setTitle((e.target as HTMLInputElement).value)}
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-charcoal dark:text-white mb-1">
+              {t("playlistDetail.copyDialog.descriptionLabel")}
+            </label>
+            <textarea
+              class="w-full h-24 px-3 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-charcoal dark:text-white resize-none"
+              value={description}
+              onInput={(e) =>
+                setDescription((e.target as HTMLTextAreaElement).value)
+              }
+            />
+          </div>
+        </div>
+        {error && (
+          <p class="text-sm text-red-500" role="alert">
+            {error}
+          </p>
+        )}
+        <div class="flex justify-end gap-3 pt-2">
+          <button
+            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+            onClick={onClose}
+          >
+            {t("playlistDetail.copyDialog.cancel")}
+          </button>
+          <button
+            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors cursor-pointer border-none disabled:opacity-50"
+            onClick={handleCopy}
+            disabled={!title.trim() || isCopying}
+          >
+            {isCopying
+              ? t("playlistDetail.copyDialog.copying")
+              : t("playlistDetail.copyDialog.copy")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
   const { t } = useTranslation();
   const { route } = useLocation();
@@ -397,6 +510,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
   const [removeError, setRemoveError] = useState(false);
 
   const [showAddVideo, setShowAddVideo] = useState(false);
+  const [showCopy, setShowCopy] = useState(false);
 
   useTitle(playlistInfo?.playlist_title ?? t("playlistDetail.pageTitle"));
 
@@ -624,7 +738,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
             </div>
 
             {/* Actions */}
-            {playlistInfo.playlist_type === "normal" && (
+            {playlistInfo.playlist_type === "normal" ? (
               <div class="flex gap-2 flex-shrink-0">
                 <button
                   class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors cursor-pointer border-none"
@@ -646,6 +760,16 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                 >
                   <Icon name="delete" class="text-[18px]" />
                   {t("playlistDetail.delete")}
+                </button>
+              </div>
+            ) : (
+              <div class="flex gap-2 flex-shrink-0">
+                <button
+                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors cursor-pointer border-none"
+                  onClick={() => setShowCopy(true)}
+                >
+                  <Icon name="content_copy" class="text-[18px]" />
+                  {t("playlistDetail.copy")}
                 </button>
               </div>
             )}
@@ -750,6 +874,18 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
         onClose={() => setShowAddVideo(false)}
         onAdded={loadInitial}
       />
+
+      {playlistInfo.playlist_type !== "normal" && (
+        <CopyPlaylistDialog
+          open={showCopy}
+          playlist={playlistInfo}
+          onClose={() => setShowCopy(false)}
+          onCopied={(newPlaylistId) => {
+            setShowCopy(false);
+            route(`/playlists/${newPlaylistId}`);
+          }}
+        />
+      )}
     </DashboardLayout>
   );
 }
