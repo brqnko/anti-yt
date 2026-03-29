@@ -17,6 +17,10 @@ RETURNING
     m_user_authorization_id,
     (xmax = 0) AS is_created;
 
+-- m_user_authorizationの件数を取得する（日次レポート用）
+-- name: CountAuthorizations :one
+SELECT count(*) FROM m_user_authorization;
+
 -- authorization_idから、そのユーザーのpublic_idを取得する。
 -- authorization_idが存在しない場合はpgx.ErrNoRowsが返される。
 -- 退会済みの場合はtrueが返ってくる。

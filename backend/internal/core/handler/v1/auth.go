@@ -12,7 +12,12 @@ import (
 )
 
 func (h *APIHandler) GetAuthGoogle(ctx context.Context, request GetAuthGoogleRequestObject) (GetAuthGoogleResponseObject, error) {
-	url, csrf, err := h.authService.CreateAuthCode(ctx)
+	platform := "web"
+	if request.Params.Platform != nil {
+		platform = string(*request.Params.Platform)
+	}
+
+	url, csrf, err := h.authService.CreateAuthCode(ctx, platform)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +40,7 @@ func (h *APIHandler) GetAuthGoogle(ctx context.Context, request GetAuthGoogleReq
 }
 
 func (h *APIHandler) GetAuthGoogleCallback(ctx context.Context, request GetAuthGoogleCallbackRequestObject) (GetAuthGoogleCallbackResponseObject, error) {
-	resultAccessToken, resultRefreshToken, resultCSRFToken, resultRedirectPath, resultAccessTokenExpiresAt, resultRefreshTokenExpiresAt, err := h.authService.GoogleOIDCCallback(ctx,
+	resultAccessToken, resultRefreshToken, resultCSRFToken, resultRedirectPath, resultPlatform, resultAccessTokenExpiresAt, resultRefreshTokenExpiresAt, err := h.authService.GoogleOIDCCallback(ctx,
 		request.Params.Csrf,
 		request.Params.State,
 		request.Params.Code,
@@ -46,6 +51,14 @@ func (h *APIHandler) GetAuthGoogleCallback(ctx context.Context, request GetAuthG
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	if resultPlatform == "mobile" {
+		return GetAuthGoogleCallback302Response{
+			Headers: GetAuthGoogleCallback302ResponseHeaders{
+				Location: fmt.Sprintf("antiyt://auth/callback?access_token=%s&refresh_token=%s&csrf_token=%s", resultAccessToken, resultRefreshToken, resultCSRFToken),
+			},
+		}, nil
 	}
 
 	hutil.AddResponseCookie(ctx, (&http.Cookie{

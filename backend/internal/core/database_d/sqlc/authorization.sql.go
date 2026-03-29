@@ -12,6 +12,18 @@ import (
 	"github.com/google/uuid"
 )
 
+const countAuthorizations = `-- name: CountAuthorizations :one
+SELECT count(*) FROM m_user_authorization
+`
+
+// m_user_authorizationの件数を取得する（日次レポート用）
+func (q *Queries) CountAuthorizations(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countAuthorizations)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getUserIDByAuthorization = `-- name: GetUserIDByAuthorization :one
 SELECT
     m_user.public_id,
