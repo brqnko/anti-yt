@@ -53,7 +53,7 @@ type Querier interface {
 	// m_user.public_idから、ユーザーのプロファイルとスクリーン時間制限範囲を取得する。
 	GetUserProfile(ctx context.Context, userPublicID uuid.UUID) ([]GetUserProfileRow, error)
 	GetValuableChannelForUpdate(ctx context.Context, channelPublicID uuid.UUID) (GetValuableChannelForUpdateRow, error)
-	GetVideoDetail(ctx context.Context, videoID uuid.UUID) (GetVideoDetailRow, error)
+	GetVideoDetail(ctx context.Context, arg GetVideoDetailParams) (GetVideoDetailRow, error)
 	GetVideoWatchTitlesByUser(ctx context.Context, lowerID uuid.UUID) ([]GetVideoWatchTitlesByUserRow, error)
 	InsertPlaylistVideo(ctx context.Context, arg InsertPlaylistVideoParams) error
 	// リフレッシュトークンをテーブルに保存する。

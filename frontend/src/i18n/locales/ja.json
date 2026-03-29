@@ -226,7 +226,15 @@
     },
     "accountDetails": "アカウント",
     "youtubeImport": {
-      "button": "YouTubeからインポート"
+      "button": "YouTubeからインポート",
+      "dialogTitle": "インポートするデータを選択",
+      "subscriptions": "チャンネル登録データ",
+      "subscriptionsDesc": "YouTubeで登録しているチャンネルをインポートします",
+      "likes": "高評価データ",
+      "likesDesc": "YouTubeで高評価した動画をインポートします",
+      "start": "インポート開始",
+      "cancel": "キャンセル",
+      "selectAtLeastOne": "少なくとも1つ選択してください"
     },
     "displayName": "表示名",
     "displayNamePlaceholder": "あなたの名前",
@@ -408,6 +416,15 @@
       "removing": "削除中...",
       "error": "削除に失敗しました。再度お試しください。"
     }
+  },
+  "channels": {
+    "pageTitle": "チャンネル",
+    "exploreLink": "おすすめチャンネル",
+    "exploreLinkDesc": "厳選されたチャンネルを探す",
+    "noChannels": "チャンネルが登録されていません",
+    "loadError": "チャンネルの読み込みに失敗しました",
+    "retry": "再試行",
+    "loadMore": "もっと見る"
   },
   "explore": {
     "pageTitle": "チャンネルを探す",

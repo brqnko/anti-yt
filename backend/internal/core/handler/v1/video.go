@@ -2,10 +2,17 @@ package v1
 
 import (
 	"context"
+
+	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 )
 
 func (h *APIHandler) GetVideosVideoId(ctx context.Context, request GetVideosVideoIdRequestObject) (GetVideosVideoIdResponseObject, error) {
-	videoDetail, err := h.videoService.GetVideoDetail(ctx, request.VideoId)
+	userID, err := hutil.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	videoDetail, err := h.videoService.GetVideoDetail(ctx, userID, request.VideoId)
 	if err != nil {
 		return nil, err
 	}
@@ -22,5 +29,6 @@ func (h *APIHandler) GetVideosVideoId(ctx context.Context, request GetVideosVide
 		ChannelCustomId:                 videoDetail.ChannelCustomId,
 		ExternalChannelIconUrl:          videoDetail.ExternalChannelIconUrl,
 		ExternalChannelSubscribersCount: int(videoDetail.ExternalChannelSubscribersCount),
+		IsWatched:                       videoDetail.IsWatched,
 	}, nil
 }

@@ -102,7 +102,10 @@ func (h *APIHandler) GetAuthOauthYoutube(ctx context.Context, request GetAuthOau
 		return nil, err
 	}
 
-	url, err := h.authService.CreateYouTubeAuthCode(ctx, userID)
+	importSubscriptions := request.Params.Subscriptions != nil && *request.Params.Subscriptions
+	importLikes := request.Params.Likes != nil && *request.Params.Likes
+
+	url, err := h.authService.CreateYouTubeAuthCode(ctx, userID, importSubscriptions, importLikes)
 	if err != nil {
 		return nil, err
 	}

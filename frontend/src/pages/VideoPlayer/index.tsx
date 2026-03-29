@@ -6,6 +6,7 @@ import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getVideo } from "../../api/generated/video";
+import { getHistory } from "../../api/generated/history";
 import { getPlaylist } from "../../api/generated/playlist";
 import { formatDuration, formatSubscriberCount, formatTimeAgo } from "../../utils/format";
 import { buildWatchUrl } from "../../utils/url";
@@ -321,6 +322,8 @@ function VideoPlayerContent() {
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
   const [showImportVideo, setShowImportVideo] = useState(false);
   const [showEditPlaylist, setShowEditPlaylist] = useState(false);
+  const [markingWatched, setMarkingWatched] = useState(false);
+  const [markedWatched, setMarkedWatched] = useState(false);
 
   useEffect(() => {
     if (!showPlaylistDialog) return;
@@ -355,9 +358,13 @@ function VideoPlayerContent() {
     if (!videoId) return;
     setIsLoading(true);
     setError(false);
+    setMarkedWatched(false);
     getVideo()
       .getVideosVideoId(videoId)
-      .then((res) => setVideo(res))
+      .then((res) => {
+        setVideo(res);
+        setMarkedWatched(res.is_watched);
+      })
       .catch(() => setError(true))
       .finally(() => setIsLoading(false));
   }, [videoId]);
@@ -944,6 +951,28 @@ function VideoPlayerContent() {
                     </div>
                   </div>
                 <div class="flex items-center gap-2 flex-shrink-0 self-end">
+                  <button
+                    class={`flex items-center gap-2 h-10 px-4 rounded-lg border font-semibold text-sm transition-colors ${
+                      markedWatched
+                        ? "bg-primary/10 border-primary/50 text-primary cursor-default"
+                        : markingWatched
+                          ? "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark text-text-muted-light dark:text-text-muted-dark cursor-not-allowed opacity-50"
+                          : "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white cursor-pointer"
+                    }`}
+                    disabled={markingWatched || markedWatched}
+                    onClick={async () => {
+                      if (markingWatched || markedWatched || !videoId) return;
+                      setMarkingWatched(true);
+                      try {
+                        await getHistory().postVideosVideoIdWatched(videoId);
+                        setMarkedWatched(true);
+                      } finally {
+                        setMarkingWatched(false);
+                      }
+                    }}
+                  >
+                    {t("videoCard.markWatchedButton")}
+                  </button>
                   <button
                     class={`flex items-center gap-2 h-10 px-4 rounded-lg border font-semibold text-sm transition-colors cursor-pointer ${
                       isLooping

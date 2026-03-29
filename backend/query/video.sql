@@ -208,7 +208,14 @@ SELECT
     channel.external_display_name,
     channel.external_custom_id AS channel_custom_id,
     channel.external_icon_url,
-    channel.external_subscribers_count
+    channel.external_subscribers_count,
+    EXISTS (
+        SELECT 1 FROM t_video_watched
+        WHERE t_video_watched.m_video_id = video.m_video_id
+            AND t_video_watched.m_user_id = (
+                SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_id LIMIT 1
+            )
+    )::bool AS is_watched
 FROM
     m_video video
     INNER JOIN m_channel channel ON video.m_channel_id = channel.m_channel_id
