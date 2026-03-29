@@ -57,8 +57,14 @@ type ServiceMock struct {
 	// SignOAuthStateTokenFunc mocks the SignOAuthStateToken method.
 	SignOAuthStateTokenFunc func(userID uuid.UUID, provider, serverURL string) (string, error)
 
+	// SignOIDCStateTokenFunc mocks the SignOIDCStateToken method.
+	SignOIDCStateTokenFunc func(platform, serverURL string) (string, error)
+
 	// VerifyOAuthStateTokenFunc mocks the VerifyOAuthStateToken method.
 	VerifyOAuthStateTokenFunc func(token string) (uuid.UUID, string, error)
+
+	// VerifyOIDCStateTokenFunc mocks the VerifyOIDCStateToken method.
+	VerifyOIDCStateTokenFunc func(token string) (string, error)
 
 	// VerifyUserAccessTokenFunc mocks the VerifyUserAccessToken method.
 	VerifyUserAccessTokenFunc func(token string) (uuid.UUID, uuid.UUID, time.Time, error)
@@ -97,8 +103,17 @@ type ServiceMock struct {
 			Provider  string
 			ServerURL string
 		}
+		// SignOIDCStateToken holds details about calls to the SignOIDCStateToken method.
+		SignOIDCStateToken []struct {
+			Platform  string
+			ServerURL string
+		}
 		// VerifyOAuthStateToken holds details about calls to the VerifyOAuthStateToken method.
 		VerifyOAuthStateToken []struct {
+			Token string
+		}
+		// VerifyOIDCStateToken holds details about calls to the VerifyOIDCStateToken method.
+		VerifyOIDCStateToken []struct {
 			Token string
 		}
 		// VerifyUserAccessToken holds details about calls to the VerifyUserAccessToken method.
@@ -109,8 +124,10 @@ type ServiceMock struct {
 	}
 	lockSignRegisterToken     sync.RWMutex
 	lockSignUserAccessToken   sync.RWMutex
-	lockSignOAuthStateToken   sync.RWMutex
+	lockSignOAuthStateToken    sync.RWMutex
+	lockSignOIDCStateToken    sync.RWMutex
 	lockVerifyOAuthStateToken sync.RWMutex
+	lockVerifyOIDCStateToken  sync.RWMutex
 	lockTokenDuration         sync.RWMutex
 	lockVerifyRegisterToken   sync.RWMutex
 	lockVerifyUserAccessToken sync.RWMutex
@@ -292,6 +309,39 @@ func (mock *ServiceMock) SignOAuthStateTokenCalls() []struct {
 	return calls
 }
 
+// SignOIDCStateToken calls SignOIDCStateTokenFunc.
+func (mock *ServiceMock) SignOIDCStateToken(platform, serverURL string) (string, error) {
+	if mock.SignOIDCStateTokenFunc == nil {
+		panic("ServiceMock.SignOIDCStateTokenFunc: method is nil but Service.SignOIDCStateToken was just called")
+	}
+	callInfo := struct {
+		Platform  string
+		ServerURL string
+	}{
+		Platform:  platform,
+		ServerURL: serverURL,
+	}
+	mock.lockSignOIDCStateToken.Lock()
+	mock.calls.SignOIDCStateToken = append(mock.calls.SignOIDCStateToken, callInfo)
+	mock.lockSignOIDCStateToken.Unlock()
+	return mock.SignOIDCStateTokenFunc(platform, serverURL)
+}
+
+// SignOIDCStateTokenCalls gets all the calls that were made to SignOIDCStateToken.
+func (mock *ServiceMock) SignOIDCStateTokenCalls() []struct {
+	Platform  string
+	ServerURL string
+} {
+	var calls []struct {
+		Platform  string
+		ServerURL string
+	}
+	mock.lockSignOIDCStateToken.RLock()
+	calls = mock.calls.SignOIDCStateToken
+	mock.lockSignOIDCStateToken.RUnlock()
+	return calls
+}
+
 // VerifyOAuthStateToken calls VerifyOAuthStateTokenFunc.
 func (mock *ServiceMock) VerifyOAuthStateToken(token string) (uuid.UUID, string, error) {
 	if mock.VerifyOAuthStateTokenFunc == nil {
@@ -318,6 +368,35 @@ func (mock *ServiceMock) VerifyOAuthStateTokenCalls() []struct {
 	mock.lockVerifyOAuthStateToken.RLock()
 	calls = mock.calls.VerifyOAuthStateToken
 	mock.lockVerifyOAuthStateToken.RUnlock()
+	return calls
+}
+
+// VerifyOIDCStateToken calls VerifyOIDCStateTokenFunc.
+func (mock *ServiceMock) VerifyOIDCStateToken(token string) (string, error) {
+	if mock.VerifyOIDCStateTokenFunc == nil {
+		panic("ServiceMock.VerifyOIDCStateTokenFunc: method is nil but Service.VerifyOIDCStateToken was just called")
+	}
+	callInfo := struct {
+		Token string
+	}{
+		Token: token,
+	}
+	mock.lockVerifyOIDCStateToken.Lock()
+	mock.calls.VerifyOIDCStateToken = append(mock.calls.VerifyOIDCStateToken, callInfo)
+	mock.lockVerifyOIDCStateToken.Unlock()
+	return mock.VerifyOIDCStateTokenFunc(token)
+}
+
+// VerifyOIDCStateTokenCalls gets all the calls that were made to VerifyOIDCStateToken.
+func (mock *ServiceMock) VerifyOIDCStateTokenCalls() []struct {
+	Token string
+} {
+	var calls []struct {
+		Token string
+	}
+	mock.lockVerifyOIDCStateToken.RLock()
+	calls = mock.calls.VerifyOIDCStateToken
+	mock.lockVerifyOIDCStateToken.RUnlock()
 	return calls
 }
 

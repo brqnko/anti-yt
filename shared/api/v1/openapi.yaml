@@ -81,6 +81,15 @@ paths:
       operationId: getAuthGoogle
       security: [ ]
       tags: [ auth ]
+      parameters:
+        - name: platform
+          in: query
+          required: false
+          description: デバイスのタイプ (mobile or web)
+          schema:
+            type: string
+            enum: [ web, mobile ]
+            default: web
       responses:
         "302":
           description: 302 redirect

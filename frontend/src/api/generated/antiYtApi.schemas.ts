@@ -152,6 +152,22 @@ export type HeaderDeviceFingerprintParameter = string;
 
 export type HeaderTimezoneParameter = string;
 
+export type GetAuthGoogleParams = {
+/**
+ * デバイスのタイプ (mobile or web)
+ */
+platform?: GetAuthGooglePlatform;
+};
+
+export type GetAuthGooglePlatform = typeof GetAuthGooglePlatform[keyof typeof GetAuthGooglePlatform];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetAuthGooglePlatform = {
+  web: 'web',
+  mobile: 'mobile',
+} as const;
+
 export type GetAuthGoogleCallbackParams = {
 /**
  * Googleから発行された認可コード

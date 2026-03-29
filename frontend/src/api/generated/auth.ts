@@ -7,6 +7,7 @@
  */
 import type {
   GetAuthGoogleCallbackParams,
+  GetAuthGoogleParams,
   GetAuthOauthYoutubeCallbackParams,
   GetUsersMeSessions200,
   GetUsersMeSessionsParams
@@ -35,10 +36,11 @@ const postAuthRefresh = (
  * @summary Google authentication
  */
 const getAuthGoogle = (
-    
+    params?: GetAuthGoogleParams,
  ) => {
       return customInstance<unknown>(
-      {url: `/api/v1/auth/google`, method: 'GET'
+      {url: `/api/v1/auth/google`, method: 'GET',
+        params
     },
       );
     }

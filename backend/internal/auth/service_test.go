@@ -64,7 +64,7 @@ func TestService_CreateAuthCode(t *testing.T) {
 			oidcMock := defaultOIDCMock("sub123")
 			svc := newTestService(t, nil, oidcMock, testutil.DefaultJWTMock())
 
-			url, csrf, err := svc.CreateAuthCode(context.Background())
+			url, csrf, err := svc.CreateAuthCode(context.Background(), "web")
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -176,7 +176,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 				if tt.seedUser {
 					// まず一回コールバックを呼んで authorization + refresh token を作成
-					_, _, _, _, _, _, err := svc.GoogleOIDCCallback(ctx, "setup", "setup", "auth-code", "127.0.0.1", "JP", "fp", "Mozilla/5.0")
+					_, _, _, _, _, _, _, err := svc.GoogleOIDCCallback(ctx, "setup", "setup", "auth-code", "127.0.0.1", "JP", "fp", "Mozilla/5.0")
 					if err != nil {
 						t.Fatalf("seed: GoogleOIDCCallback failed: %v", err)
 					}
@@ -198,7 +198,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 				svc = newTestService(t, nil, oidcMock, jwtMock)
 			}
 
-			at, rt, _, redirect, _, _, err := svc.GoogleOIDCCallback(ctx, tt.csrf, tt.state, tt.code, "192.168.1.1", "US", "fingerprint", "Mozilla/5.0")
+			at, rt, _, redirect, _, _, _, err := svc.GoogleOIDCCallback(ctx, tt.csrf, tt.state, tt.code, "192.168.1.1", "US", "fingerprint", "Mozilla/5.0")
 
 			if tt.wantErr != nil {
 				if err == nil {
@@ -243,7 +243,7 @@ func TestService_Logout(t *testing.T) {
 			svc := newTestService(t, pool, oidcMock, jwtMock)
 
 			// セットアップ: authorization + refresh token を作成
-			_, refreshTokenRaw, _, _, _, _, err := svc.GoogleOIDCCallback(ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "Mozilla/5.0")
+			_, refreshTokenRaw, _, _, _, _, _, err := svc.GoogleOIDCCallback(ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "Mozilla/5.0")
 			if err != nil {
 				t.Fatalf("setup: GoogleOIDCCallback failed: %v", err)
 			}
@@ -286,7 +286,7 @@ func TestService_RefreshToken(t *testing.T) {
 			svc := newTestService(t, pool, oidcMock, jwtMock)
 
 			// セットアップ: authorization + refresh token を作成
-			_, refreshTokenRaw, _, _, _, _, err := svc.GoogleOIDCCallback(ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "Mozilla/5.0")
+			_, refreshTokenRaw, _, _, _, _, _, err := svc.GoogleOIDCCallback(ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "Mozilla/5.0")
 			if err != nil {
 				t.Fatalf("setup: GoogleOIDCCallback failed: %v", err)
 			}
@@ -356,7 +356,7 @@ func TestService_GetSessions(t *testing.T) {
 
 			// セットアップ: 複数の refresh token を作成
 			for i := 0; i < tt.tokenCount; i++ {
-				_, _, _, _, _, _, err := svc.GoogleOIDCCallback(ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "Mozilla/5.0")
+				_, _, _, _, _, _, _, err := svc.GoogleOIDCCallback(ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "Mozilla/5.0")
 				if err != nil {
 					t.Fatalf("setup: GoogleOIDCCallback[%d] failed: %v", i, err)
 				}
@@ -407,7 +407,7 @@ func TestService_RemoveSession(t *testing.T) {
 			svc := newTestService(t, pool, oidcMock, jwtMock)
 
 			// セットアップ: refresh token を作成
-			_, _, _, _, _, _, err := svc.GoogleOIDCCallback(ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "Mozilla/5.0")
+			_, _, _, _, _, _, _, err := svc.GoogleOIDCCallback(ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "Mozilla/5.0")
 			if err != nil {
 				t.Fatalf("setup: GoogleOIDCCallback failed: %v", err)
 			}

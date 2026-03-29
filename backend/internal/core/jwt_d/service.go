@@ -31,14 +31,21 @@ type OAuthStateClaims struct {
 	jwt.RegisteredClaims
 }
 
+type OIDCStateClaims struct {
+	Platform string `json:"platform"`
+	jwt.RegisteredClaims
+}
+
 type Service interface {
 	SignUserAccessToken(userID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error)
 	SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error)
 	SignOAuthStateToken(userID uuid.UUID, provider, serverURL string) (_ string, err error)
+	SignOIDCStateToken(platform, serverURL string) (_ string, err error)
 	TokenDuration() time.Duration
 	VerifyUserAccessToken(token string) (_, _ uuid.UUID, _ time.Time, err error)
 	VerifyRegisterToken(token string) (_, _ uuid.UUID, err error)
 	VerifyOAuthStateToken(token string) (_ uuid.UUID, _ string, err error)
+	VerifyOIDCStateToken(token string) (_ string, err error)
 }
 
 type serviceImpl struct {
@@ -220,6 +227,55 @@ func (s *serviceImpl) SignOAuthStateToken(userID uuid.UUID, provider, serverURL 
 		return "", err
 	}
 	return signed, nil
+}
+
+func (s *serviceImpl) SignOIDCStateToken(platform, serverURL string) (_ string, err error) {
+	defer util.Wrap(&err, "jwtService.SignOIDCStateToken(platform=%s)", platform)
+
+	now := time.Now().UTC()
+	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, OIDCStateClaims{
+		Platform: platform,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    serverURL,
+			Subject:   "oidc_state",
+			Audience:  []string{serverURL},
+			ExpiresAt: &jwt.NumericDate{Time: now.Add(10 * time.Minute)},
+			NotBefore: &jwt.NumericDate{Time: now},
+			IssuedAt:  &jwt.NumericDate{Time: now},
+		},
+	})
+	signed, err := token.SignedString(s.privateKey)
+	if err != nil {
+		return "", err
+	}
+	return signed, nil
+}
+
+func (s *serviceImpl) VerifyOIDCStateToken(token string) (_ string, err error) {
+	defer util.Wrap(&err, "jwtService.VerifyOIDCStateToken")
+
+	claims := &OIDCStateClaims{}
+	parsedToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodEd25519); !ok {
+			return nil, ErrInvalidToken
+		}
+		return s.publicKey, nil
+	})
+	if err != nil || !parsedToken.Valid {
+		return "", ErrInvalidToken
+	}
+
+	if sub, _ := claims.GetSubject(); sub != "oidc_state" {
+		return "", ErrInvalidToken
+	}
+	if iss, _ := claims.GetIssuer(); iss != s.serverURL {
+		return "", ErrInvalidToken
+	}
+	if aud, _ := claims.GetAudience(); len(aud) != 1 || aud[0] != s.serverURL {
+		return "", ErrInvalidToken
+	}
+
+	return claims.Platform, nil
 }
 
 func (s *serviceImpl) VerifyOAuthStateToken(token string) (_ uuid.UUID, _ string, err error) {

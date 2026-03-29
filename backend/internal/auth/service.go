@@ -69,35 +69,44 @@ func NewService(
 	}
 }
 
-func (s *Service) CreateAuthCode(ctx context.Context) (_, _ string, err error) {
+func (s *Service) CreateAuthCode(ctx context.Context, platform string) (_, _ string, err error) {
 	defer util.Wrap(&err, "Service.CreateAuthCode")
 
-	csrfToken, err := util.RandomStringUrlSafe(32)
+	if platform == "" {
+		platform = "web"
+	}
+
+	stateToken, err := s.jwtService.SignOIDCStateToken(platform, s.serverURL)
 	if err != nil {
 		return "", "", err
 	}
 
-	return s.oidcService.AuthCodeURL(csrfToken), csrfToken, nil
+	return s.oidcService.AuthCodeURL(stateToken), stateToken, nil
 }
 
-func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipAddress, countryCode, deviceFingerprint, userAgent string) (_, _, _, _ string, _, _ time.Time, err error) {
+func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipAddress, countryCode, deviceFingerprint, userAgent string) (_, _, _, _ string, _ string, _, _ time.Time, err error) {
 	defer util.Wrap(&err, "Service.GoogleOIDCCallback")
 
 	if csrf == "" || state == "" {
-		return "", "", "", "", time.Time{}, time.Time{}, ErrInvalidCSRFOrState
+		return "", "", "", "", "", time.Time{}, time.Time{}, ErrInvalidCSRFOrState
 	}
 	if csrf != state {
-		return "", "", "", "", time.Time{}, time.Time{}, ErrInvalidCSRF
+		return "", "", "", "", "", time.Time{}, time.Time{}, ErrInvalidCSRF
+	}
+
+	platform, err := s.jwtService.VerifyOIDCStateToken(state)
+	if err != nil {
+		return "", "", "", "", "", time.Time{}, time.Time{}, ErrInvalidCSRFOrState
 	}
 
 	sub, err := s.oidcService.ExchangeAndVerify(ctx, code)
 	if err != nil {
-		return "", "", "", "", time.Time{}, time.Time{}, err
+		return "", "", "", "", "", time.Time{}, time.Time{}, err
 	}
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return "", "", "", "", time.Time{}, time.Time{}, err
+		return "", "", "", "", "", time.Time{}, time.Time{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -108,12 +117,12 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 
 	authorization, err := NewAuthorization("https://accounts.google.com", sub) // TODO: DI
 	if err != nil {
-		return "", "", "", "", time.Time{}, time.Time{}, err
+		return "", "", "", "", "", time.Time{}, time.Time{}, err
 	}
 
 	authorizationID, err := NewAuthorizationRepository(q).Save(ctx, authorization)
 	if err != nil {
-		return "", "", "", "", time.Time{}, time.Time{}, err
+		return "", "", "", "", "", time.Time{}, time.Time{}, err
 	}
 
 	// もし、userテーブルに存在するなら、ログイン用リフレッシュトークンを作成してダッシュボードにリダイレクトさせる。
@@ -122,7 +131,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 	// どちらにせよ、リフレッシュトークンは発行する。
 	refreshTokenRawStr, err := util.RandomStringUrlSafe(32)
 	if err != nil {
-		return "", "", "", "", time.Time{}, time.Time{}, err
+		return "", "", "", "", "", time.Time{}, time.Time{}, err
 	}
 	refreshToken, err := NewRefreshToken(
 		userAgent,
@@ -134,17 +143,17 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 		WithRefreshTokenRaw(refreshTokenRawStr),
 	)
 	if err != nil {
-		return "", "", "", "", time.Time{}, time.Time{}, err
+		return "", "", "", "", "", time.Time{}, time.Time{}, err
 	}
 	_, err = NewRefreshTokenRepository(q).Save(ctx, authorizationID, refreshToken)
 	if err != nil {
-		return "", "", "", "", time.Time{}, time.Time{}, err
+		return "", "", "", "", "", time.Time{}, time.Time{}, err
 	}
 
 	// csrfはどのみち必要になるのでここで作っておく
 	csrfGenerated, err := util.RandomStringUrlSafe(32)
 	if err != nil {
-		return "", "", "", "", time.Time{}, time.Time{}, err
+		return "", "", "", "", "", time.Time{}, time.Time{}, err
 	}
 
 	// userテーブルに存在する場合、リフレッシュトークンを保存して、アクセストークンを発行する。
@@ -156,38 +165,38 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 	if err == nil && !isDeactivated { // 現役で存在する場合
 		at, atExp, err := s.jwtService.SignUserAccessToken(userPublicID, refreshToken.AccessTokenJTI, s.serverURL)
 		if err != nil {
-			return "", "", "", "", time.Time{}, time.Time{}, err
+			return "", "", "", "", "", time.Time{}, time.Time{}, err
 		}
 
 		if err := tx.Commit(ctx); err != nil {
-			return "", "", "", "", time.Time{}, time.Time{}, err
+			return "", "", "", "", "", time.Time{}, time.Time{}, err
 		}
 
-		return at, refreshTokenRawStr, csrfGenerated, "dashboard", atExp, refreshToken.ExpiresAt, nil
+		return at, refreshTokenRawStr, csrfGenerated, "dashboard", platform, atExp, refreshToken.ExpiresAt, nil
 	} else if err == nil && isDeactivated { // 退会済みだが、レコードが残っている場合
 		at, atExp, err := s.jwtService.SignRegisterToken(authorization.ID, refreshToken.AccessTokenJTI, s.serverURL)
 		if err != nil {
-			return "", "", "", "", time.Time{}, time.Time{}, err
+			return "", "", "", "", "", time.Time{}, time.Time{}, err
 		}
 
 		if err := tx.Commit(ctx); err != nil {
-			return "", "", "", "", time.Time{}, time.Time{}, err
+			return "", "", "", "", "", time.Time{}, time.Time{}, err
 		}
 
-		return at, refreshTokenRawStr, csrfGenerated, "reactivation", atExp, refreshToken.ExpiresAt, nil
+		return at, refreshTokenRawStr, csrfGenerated, "reactivation", platform, atExp, refreshToken.ExpiresAt, nil
 	} else if errors.Is(err, pgx.ErrNoRows) { // 存在しない場合
 		at, atExp, err := s.jwtService.SignRegisterToken(authorization.ID, refreshToken.AccessTokenJTI, s.serverURL)
 		if err != nil {
-			return "", "", "", "", time.Time{}, time.Time{}, err
+			return "", "", "", "", "", time.Time{}, time.Time{}, err
 		}
 
 		if err := tx.Commit(ctx); err != nil {
-			return "", "", "", "", time.Time{}, time.Time{}, err
+			return "", "", "", "", "", time.Time{}, time.Time{}, err
 		}
 
-		return at, refreshTokenRawStr, csrfGenerated, "register", atExp, refreshToken.ExpiresAt, nil
+		return at, refreshTokenRawStr, csrfGenerated, "register", platform, atExp, refreshToken.ExpiresAt, nil
 	} else { // ただのDBエラー
-		return "", "", "", "", time.Time{}, time.Time{}, err
+		return "", "", "", "", "", time.Time{}, time.Time{}, err
 	}
 }
 

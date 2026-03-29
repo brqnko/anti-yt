@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
+	"github.com/brqnko/anti-yt/backend/internal/core/discord_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/admin"
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/middleware_d"
@@ -181,6 +182,12 @@ func run(ctx context.Context) int {
 	if err := scheduler.AddFunc("0 0 * * *", job.NewLLMSummaryJob(db, llmService)); err != nil {
 		slog.Error("failed to setup llm summary job", slog.Any("error", err))
 		return 1
+	}
+	if cfg.discordWebhookURL != "" {
+		if err := scheduler.AddFunc("0 0 * * *", job.NewAuthorizationReportJob(db, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
+			slog.Error("failed to setup authorization report job", slog.Any("error", err))
+			return 1
+		}
 	}
 
 	r := chi.NewRouter()

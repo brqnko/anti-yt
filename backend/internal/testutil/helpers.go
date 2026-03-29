@@ -28,6 +28,15 @@ func DefaultJWTMock() *ServiceMock {
 		VerifyRegisterTokenFunc: func(token string) (uuid.UUID, uuid.UUID, error) {
 			return uuid.Nil, uuid.Nil, nil
 		},
+		SignOIDCStateTokenFunc: func(platform, serverURL string) (string, error) {
+			return "oidc-state-" + platform, nil
+		},
+		VerifyOIDCStateTokenFunc: func(token string) (string, error) {
+			if token == "oidc-state-mobile" {
+				return "mobile", nil
+			}
+			return "web", nil
+		},
 	}
 }
 
