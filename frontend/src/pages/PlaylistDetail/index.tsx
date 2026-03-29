@@ -624,29 +624,31 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
             </div>
 
             {/* Actions */}
-            <div class="flex gap-2 flex-shrink-0">
-              <button
-                class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors cursor-pointer border-none"
-                onClick={() => setShowAddVideo(true)}
-              >
-                <Icon name="add" class="text-[18px]" />
-                {t("playlistDetail.addVideo")}
-              </button>
-              <button
-                class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-transparent border border-border-light dark:border-border-dark text-sm font-medium text-charcoal dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                onClick={() => setShowEdit(true)}
-              >
-                <Icon name="edit" class="text-[18px]" />
-                {t("playlistDetail.edit")}
-              </button>
-              <button
-                class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-transparent border border-red-300 dark:border-red-800 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
-                onClick={() => setShowDelete(true)}
-              >
-                <Icon name="delete" class="text-[18px]" />
-                {t("playlistDetail.delete")}
-              </button>
-            </div>
+            {playlistInfo.playlist_type === "normal" && (
+              <div class="flex gap-2 flex-shrink-0">
+                <button
+                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors cursor-pointer border-none"
+                  onClick={() => setShowAddVideo(true)}
+                >
+                  <Icon name="add" class="text-[18px]" />
+                  {t("playlistDetail.addVideo")}
+                </button>
+                <button
+                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-transparent border border-border-light dark:border-border-dark text-sm font-medium text-charcoal dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                  onClick={() => setShowEdit(true)}
+                >
+                  <Icon name="edit" class="text-[18px]" />
+                  {t("playlistDetail.edit")}
+                </button>
+                <button
+                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-transparent border border-red-300 dark:border-red-800 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                  onClick={() => setShowDelete(true)}
+                >
+                  <Icon name="delete" class="text-[18px]" />
+                  {t("playlistDetail.delete")}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -681,13 +683,15 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                         playlistId={playlistId}
                       />
                     </div>
-                    <button
-                      class="flex-shrink-0 p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer bg-transparent border-none opacity-100 lg:opacity-0 lg:group-hover/row:opacity-100 focus:opacity-100"
-                      onClick={() => setRemoveTarget(video)}
-                      title={t("playlistDetail.removeVideo")}
-                    >
-                      <Icon name="close" class="text-[20px]" />
-                    </button>
+                    {playlistInfo.playlist_type === "normal" && (
+                      <button
+                        class="flex-shrink-0 p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer bg-transparent border-none opacity-100 lg:opacity-0 lg:group-hover/row:opacity-100 focus:opacity-100"
+                        onClick={() => setRemoveTarget(video)}
+                        title={t("playlistDetail.removeVideo")}
+                      >
+                        <Icon name="close" class="text-[20px]" />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
