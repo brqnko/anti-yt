@@ -16,7 +16,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.0
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/api v0.271.0
-	google.golang.org/genai v1.51.0
+	google.golang.org/genai v1.52.0
 )
 
 require (
