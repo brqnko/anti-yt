@@ -36,12 +36,14 @@ RUN wget -O /tmp/golangci-lint.tar.gz \
         golangci-lint-2.11.3-linux-${TARGETARCH}/golangci-lint \
     && rm /tmp/golangci-lint.tar.gz
 
-RUN wget -O /usr/local/bin/goose \
-        https://github.com/pressly/goose/releases/download/v3.27.0/goose_linux_${TARGETARCH} \
+RUN GOOSE_ARCH=$([ "$TARGETARCH" = "amd64" ] && echo "x86_64" || echo "$TARGETARCH") \
+    && wget -O /usr/local/bin/goose \
+        https://github.com/pressly/goose/releases/download/v3.27.0/goose_linux_${GOOSE_ARCH} \
     && chmod +x /usr/local/bin/goose
 
-RUN wget -O /tmp/moq.tar.gz \
-        https://github.com/matryer/moq/releases/download/v0.6.0/moq_Linux_${TARGETARCH}.tar.gz \
+RUN MOQ_ARCH=$([ "$TARGETARCH" = "amd64" ] && echo "x86_64" || echo "$TARGETARCH") \
+    && wget -O /tmp/moq.tar.gz \
+        https://github.com/matryer/moq/releases/download/v0.6.0/moq_Linux_${MOQ_ARCH}.tar.gz \
     && tar -xzf /tmp/moq.tar.gz -C /tmp moq \
     && cp /tmp/moq /usr/local/bin/moq \
     && chmod +x /usr/local/bin/moq \
