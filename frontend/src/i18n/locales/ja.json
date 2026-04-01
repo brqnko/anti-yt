@@ -321,7 +321,8 @@
     "title": "アナリティクス",
     "timeWasted": "視聴時間",
     "dailyAverage": "1日の平均",
-    "weeklyAverageGoal": "週間平均 目標達成度",
+    "totalVideos": "視聴した動画",
+    "totalVideosUnit": "本",
     "weeklyUsageTrends": "今週の利用状況",
     "dailyLimit": "1日の制限 ({{hours}}時間)",
     "tooltipVideos": "{{count}}本の動画",
@@ -423,7 +424,15 @@
     "noChannels": "チャンネルが登録されていません",
     "loadError": "チャンネルの読み込みに失敗しました",
     "retry": "再試行",
-    "loadMore": "もっと見る"
+    "loadMore": "もっと見る",
+    "unsubscribeError": "登録解除に失敗しました",
+    "unsubscribeDialog": {
+      "title": "チャンネル登録を解除",
+      "description": "「{{name}}」の登録を解除しますか？フィードに表示されなくなります。",
+      "cancel": "キャンセル",
+      "remove": "登録解除",
+      "removing": "解除中..."
+    }
   },
   "explore": {
     "pageTitle": "チャンネルを探す",
