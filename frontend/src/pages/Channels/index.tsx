@@ -11,6 +11,108 @@ import { Icon } from "../../components/Icon";
 
 const PAGE_SIZE = 30;
 
+function RemoveChannelDialog({
+  open,
+  channel,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean;
+  channel: GetChannelsSubscribed200ItemsItem | null;
+  onClose: () => void;
+  onConfirm: () => Promise<void>;
+}) {
+  const { t } = useTranslation();
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setIsRemoving(false);
+      setError(null);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
+
+  if (!open || !channel) return null;
+
+  const handleConfirm = async () => {
+    if (isRemoving) return;
+    setIsRemoving(true);
+    setError(null);
+    try {
+      await onConfirm();
+      onClose();
+    } catch {
+      setError(t("channels.unsubscribeError"));
+    } finally {
+      setIsRemoving(false);
+    }
+  };
+
+  return (
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl ring-1 ring-black/10 dark:ring-white/10 border border-gray-100 dark:border-neutral-800 p-8 max-w-sm w-full">
+        <button
+          class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
+          onClick={onClose}
+        >
+          <Icon name="close" />
+        </button>
+        <div class="flex items-center gap-3 mb-4">
+          <h2 class="text-lg font-bold text-charcoal dark:text-white">
+            {t("channels.unsubscribeDialog.title")}
+          </h2>
+        </div>
+        <div class="flex items-center gap-3 p-3 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark mb-4">
+          <img
+            src={channel.external_channel_icon_url}
+            alt=""
+            loading="lazy"
+            class="rounded-full size-10 shrink-0 border border-border-light dark:border-border-dark object-cover"
+          />
+          <div class="flex flex-col min-w-0">
+            <p class="font-bold truncate text-sm">{channel.external_channel_display_name}</p>
+            <p class="text-xs text-text-muted-light dark:text-text-muted-dark">{channel.channel_custom_id}</p>
+          </div>
+        </div>
+        <p class="text-sm text-text-muted-light dark:text-text-muted-dark mb-4">
+          {t("channels.unsubscribeDialog.description", { name: channel.external_channel_display_name })}
+        </p>
+        {error && (
+          <p class="text-sm text-red-500 mb-4">{error}</p>
+        )}
+        <div class="flex justify-end gap-3">
+          <button
+            class="px-4 py-2 rounded-xl text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer"
+            onClick={onClose}
+          >
+            {t("channels.unsubscribeDialog.cancel")}
+          </button>
+          <button
+            class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isRemoving}
+            onClick={handleConfirm}
+          >
+            {isRemoving
+              ? t("channels.unsubscribeDialog.removing")
+              : t("channels.unsubscribeDialog.remove")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ChannelsContent() {
   const { t } = useTranslation();
   useTitle(t("channels.pageTitle"));
@@ -20,6 +122,7 @@ function ChannelsContent() {
   const [error, setError] = useState(false);
   const [hasNext, setHasNext] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState<GetChannelsSubscribed200ItemsItem | null>(null);
   const cursorRef = useRef<string | undefined>(undefined);
 
   const loadChannels = useCallback(async () => {
@@ -40,6 +143,12 @@ function ChannelsContent() {
   useEffect(() => {
     loadChannels();
   }, [loadChannels]);
+
+  const handleRemoveConfirm = useCallback(async () => {
+    if (!removeTarget) return;
+    await getChannel().deleteChannelsChannelIdSubscribe(removeTarget.channel_id);
+    setChannels((prev) => prev.filter((ch) => ch.channel_id !== removeTarget.channel_id));
+  }, [removeTarget]);
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasNext) return;
@@ -102,32 +211,41 @@ function ChannelsContent() {
               <p class="text-lg font-medium">{t("channels.noChannels")}</p>
             </div>
           ) : (
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-3">
               {channels.map((ch) => (
-                <a
+                <div
                   key={ch.channel_id}
-                  href={`/channels/${ch.channel_id}`}
-                  class="flex items-center gap-4 px-4 py-3 rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark hover:border-primary/50 dark:hover:border-primary/50 transition-colors no-underline"
+                  class="flex items-center gap-4 p-3 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark group hover:border-primary/50 transition-colors"
                 >
-                  <img
-                    alt={ch.external_channel_display_name}
-                    loading="lazy"
-                    class="size-11 rounded-full object-cover bg-gray-100 shrink-0"
-                    src={ch.external_channel_icon_url}
-                  />
-                  <div class="flex-1 min-w-0">
-                    <p class="font-bold text-charcoal dark:text-white text-sm leading-snug truncate">
-                      {ch.external_channel_display_name}
-                    </p>
-                    <p class="text-xs text-text-muted-light dark:text-text-muted-dark mt-0.5">
-                      {ch.channel_custom_id}
-                      {" · "}
-                      {formatSubscriberCount(ch.channel_subscribers_count)}{" "}
-                      {t("channelDetail.subscribers")}
-                    </p>
-                  </div>
-                  <Icon name="chevron_right" class="text-xl text-text-muted-light dark:text-text-muted-dark shrink-0" />
-                </a>
+                  <a
+                    href={`/channels/${ch.channel_id}`}
+                    class="flex items-center gap-4 grow min-w-0 no-underline text-inherit"
+                  >
+                    <img
+                      src={ch.external_channel_icon_url}
+                      alt=""
+                      loading="lazy"
+                      class="rounded-full size-12 shrink-0 border border-border-light dark:border-border-dark object-cover"
+                    />
+                    <div class="flex flex-col grow min-w-0">
+                      <p class="font-bold truncate">
+                        {ch.external_channel_display_name}
+                      </p>
+                      <p class="text-xs text-text-muted-light dark:text-text-muted-dark">
+                        {ch.channel_custom_id}
+                        {" · "}
+                        {formatSubscriberCount(ch.channel_subscribers_count)}{" "}
+                        {t("channelDetail.subscribers")}
+                      </p>
+                    </div>
+                  </a>
+                  <button
+                    class="size-8 flex items-center justify-center rounded-full text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all cursor-pointer bg-transparent border-none shrink-0"
+                    onClick={() => setRemoveTarget(ch)}
+                  >
+                    <Icon name="close" class="text-[20px]" />
+                  </button>
+                </div>
               ))}
               {hasNext && (
                 <button
@@ -142,6 +260,13 @@ function ChannelsContent() {
           )}
         </div>
       </div>
+
+      <RemoveChannelDialog
+        open={!!removeTarget}
+        channel={removeTarget}
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={handleRemoveConfirm}
+      />
     </DashboardLayout>
   );
 }
