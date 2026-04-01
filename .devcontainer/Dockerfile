@@ -1,8 +1,9 @@
-FROM debian:12.13-slim
+FROM debian:bookworm-slim
 
 ARG TARGETARCH
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    git openssh-client \
     nginx \
     sudo curl wget bash unzip jq ca-certificates gnupg \
     && curl -fsSL https://deb.nodesource.com/setup_25.x | bash - \
