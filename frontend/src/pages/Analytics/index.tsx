@@ -89,7 +89,6 @@ function AnalyticsContent() {
   }, [dailyBars, dailyLimitHours]);
 
   const [activeBar, setActiveBar] = useState<number | null>(null);
-  const [barsReady, setBarsReady] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
 
   const dismissTooltip = useCallback((e: MouseEvent) => {
@@ -103,13 +102,6 @@ function AnalyticsContent() {
     return () => document.removeEventListener("click", dismissTooltip);
   }, [dismissTooltip]);
 
-  useEffect(() => {
-    if (!isLoading) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setBarsReady(true));
-      });
-    }
-  }, [isLoading, items]);
 
   if (isLoading) {
     return (
@@ -208,7 +200,7 @@ function AnalyticsContent() {
                 )}
 
                 {dailyBars.map((bar, i) => {
-                  const pct = barsReady && maxHours > 0 ? Math.min((bar.hours / maxHours) * 100, 100) : 0;
+                  const pct = maxHours > 0 ? Math.min((bar.hours / maxHours) * 100, 100) : 0;
                   const isActive = activeBar === i;
                   const toggle = () => setActiveBar(isActive ? null : i);
                   return (
@@ -234,8 +226,6 @@ function AnalyticsContent() {
                         }`}
                         style={{
                           height: `${Math.max(pct, 3)}%`,
-                          opacity: barsReady ? 1 : 0,
-                          transition: "height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease",
                         }}
                       >
                         <div
