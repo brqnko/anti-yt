@@ -88,9 +88,6 @@ export function ChannelInfoCard({
             <div class="bg-background-light dark:bg-background-dark border border-primary/20 p-4 rounded-xl flex items-center gap-4">
               <div class="flex flex-col">
                 <span class="text-sm font-bold">{t("channelDetail.whitelistChannel")}</span>
-                <span class="text-xs text-text-muted-light dark:text-text-muted-dark">
-                  {t("channelDetail.whitelistDesc")}
-                </span>
               </div>
               <button
                 class="relative inline-flex items-center cursor-pointer bg-transparent border-none p-0"

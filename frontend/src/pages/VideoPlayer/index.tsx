@@ -768,13 +768,13 @@ function VideoPlayerContent() {
   return (
     <DashboardLayout>
       <div class="flex-1 overflow-y-auto">
-        <div class="max-w-[1536px] mx-auto px-6 py-8 flex flex-col xl:flex-row xl:items-start gap-8">
+        <div class="max-w-[1536px] mx-auto px-0 sm:px-6 py-0 sm:py-8 flex flex-col xl:flex-row xl:items-start gap-8">
           {/* Main content */}
           <div class="flex-1 min-w-0">
             {/* YouTube Player */}
             <div
               ref={playerWrapperRef}
-              class="w-full bg-black rounded-xl overflow-hidden ring-1 ring-white/10 relative aspect-video group/player"
+              class="w-full bg-black overflow-hidden ring-1 ring-white/10 relative aspect-video group/player"
             >
               {/* YouTube iframe gets injected here */}
               <div id={PLAYER_CONTAINER_ID} class="absolute inset-0 w-full h-full" />
