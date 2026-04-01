@@ -7,7 +7,8 @@ INSERT INTO
         language_code,
         daily_screen_time_seconds,
         joined_at,
-        public_id
+        public_id,
+        recent_playlist_ids
     )
 SELECT
     m_user_authorization.m_user_authorization_id,
@@ -15,7 +16,8 @@ SELECT
     @language_code,
     @daily_screen_time_seconds,
     @joined_at,
-    @public_id
+    @public_id,
+    '{}'::bigint[]
 FROM
     m_user_authorization
 WHERE
