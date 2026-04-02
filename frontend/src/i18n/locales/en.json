@@ -15,7 +15,10 @@
     "subscribeDesc": "Allow into your feed",
     "markWatched": "Mark as watched",
     "markWatchedDesc": "Hide from your feed",
-    "markWatchedButton": "Watched"
+    "markWatchedButton": "Watched",
+    "unmarkWatched": "Mark as unwatched",
+    "unmarkWatchedDesc": "Show in your feed again",
+    "unmarkWatchedButton": "Unwatched"
   },
   "legal": {
     "navTerms": "Terms of Service",

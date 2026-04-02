@@ -900,7 +900,7 @@ function VideoPlayerContent() {
               <h1 class="text-xl font-bold leading-tight tracking-tight">
                 {video.external_video_title}
               </h1>
-              <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 mt-4 pb-6 border-b border-border-light dark:border-border-dark">
+              <div class="mt-4 pb-6 border-b border-border-light dark:border-border-dark">
                 <div class="flex items-center gap-4">
                     <a
                       href={`/channels/${video.channel_id}`}
@@ -933,14 +933,15 @@ function VideoPlayerContent() {
                       </p>
                     </div>
                   </div>
-                <div class="flex items-center gap-2 flex-shrink-0 self-end">
+              </div>
+              <div class="flex items-center gap-6 mt-3 pb-3 border-b border-border-light dark:border-border-dark">
                   <button
-                    class={`flex items-center gap-2 h-10 px-4 rounded-lg border font-semibold text-sm transition-colors ${
+                    class={`flex flex-col items-center gap-0.5 bg-transparent border-none transition-colors ${
                       markingWatched
-                        ? "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark text-text-muted-light dark:text-text-muted-dark cursor-not-allowed opacity-50"
+                        ? "text-text-muted-light dark:text-text-muted-dark cursor-not-allowed opacity-50"
                         : markedWatched
-                          ? "bg-primary/10 border-primary/50 text-primary cursor-pointer hover:bg-primary/5"
-                          : "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white cursor-pointer"
+                          ? "text-primary cursor-pointer hover:text-primary/80"
+                          : "text-charcoal dark:text-white cursor-pointer hover:text-primary"
                     }`}
                     disabled={markingWatched}
                     onClick={async () => {
@@ -959,33 +960,35 @@ function VideoPlayerContent() {
                       }
                     }}
                   >
-                    {t("videoCard.markWatchedButton")}
+                    <Icon name="check_circle" class="text-lg" />
+                    <span class="text-[10px] font-semibold">{t("videoCard.markWatchedButton")}</span>
                   </button>
                   <button
-                    class={`flex items-center gap-2 h-10 px-4 rounded-lg border font-semibold text-sm transition-colors cursor-pointer ${
+                    class={`flex flex-col items-center gap-0.5 bg-transparent border-none transition-colors cursor-pointer ${
                       isLooping
-                        ? "bg-primary/10 border-primary/50 text-primary"
-                        : "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white"
+                        ? "text-primary hover:text-primary/80"
+                        : "text-charcoal dark:text-white hover:text-primary"
                     }`}
                     onClick={toggleLoop}
                   >
-                    {t("videoPlayer.loop")}
+                    <Icon name="repeat" class="text-lg" />
+                    <span class="text-[10px] font-semibold">{t("videoPlayer.loop")}</span>
                   </button>
                   <button
-                    class="flex items-center gap-2 h-10 px-4 rounded-lg bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white font-semibold text-sm transition-colors cursor-pointer"
+                    class="flex flex-col items-center gap-0.5 bg-transparent border-none text-charcoal dark:text-white hover:text-primary transition-colors cursor-pointer"
                     onClick={openPlaylistDialog}
                   >
-                    {t("videoPlayer.addToPlaylist")}
+                    <Icon name="bookmark_add" class="text-lg" />
+                    <span class="text-[10px] font-semibold">{t("videoPlayer.addToPlaylist")}</span>
                   </button>
                 </div>
-              </div>
 
               {/* Description */}
               {video.external_video_description && (
                 <div class="mt-6">
                   <div class="bg-border-light/50 dark:bg-[#332e27]/30 p-6 rounded-xl">
                     <p class="text-base text-charcoal dark:text-white mb-3">
-                      <span class="font-bold">{new Date(video.external_video_created_at).toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" }).replace(/-/g, "/")}</span>{t("videoPlayer.postedSuffix")}
+                      {formatTimeAgo(video.external_video_created_at, t)}{t("videoPlayer.postedSuffix")}
                     </p>
                     <div
                       ref={descRef}

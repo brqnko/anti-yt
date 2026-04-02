@@ -7,6 +7,7 @@ import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { ChannelInfoCard } from "../../components/ChannelInfoCard";
 import { getChannel } from "../../api/generated/channel";
+import { getHistory } from "../../api/generated/history";
 import { VideoCard } from "../../components/VideoCard";
 import type {
   GetChannelsChannelId200,
@@ -30,6 +31,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
   const [hasNextVideos, setHasNextVideos] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [order, setOrder] = useState<GetChannelsChannelIdVideosOrder>("newer");
+  const [watchedVideoIds, setWatchedVideoIds] = useState<Set<string>>(new Set());
   const cursorRef = useRef<string | undefined>(undefined);
 
   useTitle(channelInfo?.external_channel_display_name ?? t("channelDetail.pageTitle"));
@@ -66,6 +68,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
         if (videosRes.status === "fulfilled") {
           setVideos(videosRes.value.items);
           setHasNextVideos(videosRes.value.has_next);
+          setWatchedVideoIds(new Set(videosRes.value.items.filter(v => v.is_watched).map(v => v.video_id)));
           const lastItem = videosRes.value.items[videosRes.value.items.length - 1];
           cursorRef.current = lastItem?.video_id;
         }
@@ -88,6 +91,13 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       const res = await getChannel().getChannelsChannelIdVideos(channelId, { limit: PAGE_SIZES.CHANNEL_VIDEOS, cursor: cursorRef.current, order });
       setVideos(prev => [...prev, ...res.items]);
       setHasNextVideos(res.has_next);
+      setWatchedVideoIds(prev => {
+        const next = new Set(prev);
+        for (const v of res.items) {
+          if (v.is_watched) next.add(v.video_id);
+        }
+        return next;
+      });
       const lastItem = res.items[res.items.length - 1];
       cursorRef.current = lastItem?.video_id;
     } finally {
@@ -96,6 +106,21 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
   }, [channelId, isLoadingMore, hasNextVideos, order]);
 
   const sentinelRef = useInfiniteScroll(loadMore);
+
+  const handleToggleWatched = useCallback(async (videoId: string) => {
+    const isCurrentlyWatched = watchedVideoIds.has(videoId);
+    if (isCurrentlyWatched) {
+      await getHistory().deleteVideosVideoIdWatched(videoId);
+      setWatchedVideoIds(prev => {
+        const next = new Set(prev);
+        next.delete(videoId);
+        return next;
+      });
+    } else {
+      await getHistory().postVideosVideoIdWatched(videoId);
+      setWatchedVideoIds(prev => new Set(prev).add(videoId));
+    }
+  }, [watchedVideoIds]);
 
   const handleToggleSubscription = async () => {
     if (isToggling || !channelInfo) return;
@@ -239,6 +264,8 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
                     lengthSeconds={video.external_video_length_seconds}
                     dateStr={video.external_video_created_at}
                     watchedSeconds={video.last_watch_seconds}
+                    isWatched={watchedVideoIds.has(video.video_id)}
+                    onMarkWatched={() => handleToggleWatched(video.video_id)}
                   />
                 ))}
               </div>

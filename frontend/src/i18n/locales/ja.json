@@ -15,7 +15,10 @@
     "subscribeDesc": "フィードに表示を許可する",
     "markWatched": "視聴済みにする",
     "markWatchedDesc": "フィードから非表示にします",
-    "markWatchedButton": "視聴済み"
+    "markWatchedButton": "視聴済み",
+    "unmarkWatched": "未視聴にする",
+    "unmarkWatchedDesc": "フィードに再表示します",
+    "unmarkWatchedButton": "未視聴にする"
   },
   "legal": {
     "navTerms": "利用規約",
