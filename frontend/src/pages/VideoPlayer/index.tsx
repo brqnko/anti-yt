@@ -770,7 +770,7 @@ function VideoPlayerContent() {
   return (
     <DashboardLayout>
       <div class="flex-1 overflow-y-auto">
-        <div class="max-w-[1536px] mx-auto px-0 sm:px-6 py-0 sm:py-8 flex flex-col xl:flex-row xl:items-start gap-8">
+        <div class="max-w-[1536px] mx-auto px-0 sm:px-6 py-0 sm:py-8 pb-8 flex flex-col xl:flex-row xl:items-start gap-8">
           {/* Main content */}
           <div class="flex-1 min-w-0">
             {/* YouTube Player */}

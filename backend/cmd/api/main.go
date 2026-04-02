@@ -189,6 +189,10 @@ func run(ctx context.Context) int {
 		slog.Error("failed to setup purge left user job", slog.Any("error", err))
 		return 1
 	}
+	if err := scheduler.AddFunc("0 * * * *", job.NewPurgeJTIBlacklistJob(db)); err != nil {
+		slog.Error("failed to setup purge jti blacklist job", slog.Any("error", err))
+		return 1
+	}
 	if cfg.discordWebhookURL != "" {
 		if err := scheduler.AddFunc("0 0 * * *", job.NewAuthorizationReportJob(db, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
 			slog.Error("failed to setup authorization report job", slog.Any("error", err))
