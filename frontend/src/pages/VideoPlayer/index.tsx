@@ -592,8 +592,8 @@ function VideoPlayerContent() {
     const handler = () => {
       const fs = !!document.fullscreenElement;
       setIsFullscreen(fs);
-      // Unlock orientation when exiting fullscreen
-      if (!fs) {
+      // Unlock orientation when exiting fullscreen (skip on iPhone)
+      if (!fs && !/iPhone/i.test(navigator.userAgent)) {
         screen.orientation?.unlock?.();
       }
     };
@@ -608,11 +608,14 @@ function VideoPlayerContent() {
       await document.exitFullscreen();
     } else {
       await el.requestFullscreen?.();
-      // Lock to landscape on mobile when entering fullscreen
-      try {
-        await screen.orientation?.lock?.("landscape");
-      } catch {
-        // Screen Orientation API not supported or permission denied — ignore
+      // Lock to landscape on mobile when entering fullscreen (skip on iPhone — not supported and causes issues)
+      const isIPhone = /iPhone/i.test(navigator.userAgent);
+      if (!isIPhone) {
+        try {
+          await screen.orientation?.lock?.("landscape");
+        } catch {
+          // Screen Orientation API not supported or permission denied — ignore
+        }
       }
     }
   }, []);
