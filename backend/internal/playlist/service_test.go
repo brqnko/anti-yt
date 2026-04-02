@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/testutil"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
 
 func TestService_CreatePlaylist(t *testing.T) {
@@ -240,8 +240,8 @@ func TestService_DeletePlaylist(t *testing.T) {
 			if err == nil {
 				t.Fatal("expected error after deletion, got nil")
 			}
-			if !errors.Is(err, pgx.ErrNoRows) {
-				t.Fatalf("expected pgx.ErrNoRows, got %v", err)
+			if !errors.Is(err, core.ErrNotFound) {
+				t.Fatalf("expected core.ErrNotFound, got %v", err)
 			}
 		})
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
@@ -50,7 +51,7 @@ func (v *videoQueryServiceImpl) Find(ctx context.Context, userID, videoID uuid.U
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return GetVideoDetailView{}, err
+			return GetVideoDetailView{}, core.ErrNotFound
 		}
 		return GetVideoDetailView{}, err
 	}

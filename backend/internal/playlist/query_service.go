@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
@@ -145,7 +146,7 @@ func (p *playlistQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID, p
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return GetPlaylistDetailView{}, err
+			return GetPlaylistDetailView{}, core.ErrNotFound
 		}
 		return GetPlaylistDetailView{}, err
 	}

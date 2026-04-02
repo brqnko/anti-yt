@@ -6,11 +6,10 @@ import (
 	"log/slog"
 	"net/http"
 
-	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 	"github.com/brqnko/anti-yt/backend/internal/core"
+	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 	"github.com/brqnko/anti-yt/backend/internal/core/report"
 	"github.com/brqnko/anti-yt/backend/internal/util"
-	"github.com/jackc/pgx/v5"
 )
 
 func DomainErrorMiddleware(reportService *report.Service) func(v1.StrictHandlerFunc, string) v1.StrictHandlerFunc {
@@ -21,12 +20,11 @@ func DomainErrorMiddleware(reportService *report.Service) func(v1.StrictHandlerF
 				return response, nil
 			}
 
-			if errors.Is(err, pgx.ErrNoRows) {
-				return writeErrorJSON(w, http.StatusNotFound, "Not Found", "resource not found")
-			}
-
 			var domainErr *core.DomainError
 			if errors.As(err, &domainErr) {
+				if errors.Is(err, core.ErrNotFound) {
+					return writeErrorJSON(w, http.StatusNotFound, domainErr.Code(), domainErr.Error())
+				}
 				return writeErrorJSON(w, http.StatusBadRequest, domainErr.Code(), domainErr.Error())
 			}
 

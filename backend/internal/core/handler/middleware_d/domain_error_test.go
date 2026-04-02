@@ -10,7 +10,6 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/report"
-	"github.com/jackc/pgx/v5"
 )
 
 func TestDomainErrorMiddleware(t *testing.T) {
@@ -29,9 +28,9 @@ func TestDomainErrorMiddleware(t *testing.T) {
 		},
 		{
 			name:       "not_found",
-			err:        pgx.ErrNoRows,
+			err:        core.ErrNotFound,
 			wantStatus: http.StatusNotFound,
-			wantTitle:  "Not Found",
+			wantTitle:  "not_found",
 		},
 		{
 			name:       "domain_error",
