@@ -42,6 +42,8 @@ import PlaylistRemove from "~icons/material-symbols/playlist-remove";
 import ProgressActivity from "~icons/material-symbols/progress-activity";
 import Recommend from "~icons/material-symbols/recommend-outline";
 import Refresh from "~icons/material-symbols/refresh";
+import Repeat from "~icons/material-symbols/repeat";
+import BookmarkAdd from "~icons/material-symbols/bookmark-add-outline";
 import Schedule from "~icons/material-symbols/schedule-outline";
 import School from "~icons/material-symbols/school-outline";
 import Search from "~icons/material-symbols/search";
@@ -103,6 +105,8 @@ const iconMap: Record<string, string> = {
   progress_activity: ProgressActivity,
   recommend: Recommend,
   refresh: Refresh,
+  repeat: Repeat,
+  bookmark_add: BookmarkAdd,
   schedule: Schedule,
   school: School,
   search: Search,

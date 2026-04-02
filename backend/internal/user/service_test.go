@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/testutil"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
 
 func TestService_CreateNewUser(t *testing.T) {
@@ -332,8 +332,8 @@ func TestService_GetUserStatus_NotFound(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for non-existent user, got nil")
 	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		t.Fatalf("expected pgx.ErrNoRows, got %v", err)
+	if !errors.Is(err, core.ErrNotFound) {
+		t.Fatalf("expected core.ErrNotFound, got %v", err)
 	}
 }
 

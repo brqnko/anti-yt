@@ -504,7 +504,6 @@ function VideoPlayerContent() {
 
   const {
     isReady,
-    loadError,
     playerState,
     currentTime,
     currentTimeRef,
@@ -593,8 +592,8 @@ function VideoPlayerContent() {
     const handler = () => {
       const fs = !!document.fullscreenElement;
       setIsFullscreen(fs);
-      // Unlock orientation when exiting fullscreen
-      if (!fs) {
+      // Unlock orientation when exiting fullscreen (skip on iPhone)
+      if (!fs && !/iPhone/i.test(navigator.userAgent)) {
         screen.orientation?.unlock?.();
       }
     };
@@ -609,11 +608,14 @@ function VideoPlayerContent() {
       await document.exitFullscreen();
     } else {
       await el.requestFullscreen?.();
-      // Lock to landscape on mobile when entering fullscreen
-      try {
-        await screen.orientation?.lock?.("landscape");
-      } catch {
-        // Screen Orientation API not supported or permission denied — ignore
+      // Lock to landscape on mobile when entering fullscreen (skip on iPhone — not supported and causes issues)
+      const isIPhone = /iPhone/i.test(navigator.userAgent);
+      if (!isIPhone) {
+        try {
+          await screen.orientation?.lock?.("landscape");
+        } catch {
+          // Screen Orientation API not supported or permission denied — ignore
+        }
       }
     }
   }, []);
@@ -809,23 +811,7 @@ function VideoPlayerContent() {
                 </div>
               )}
 
-              {/* Loading overlay before player is ready */}
-              {!isReady && (
-                <div class="absolute inset-0 z-20">
-                  <img
-                    src={video.external_video_thumbnail_url}
-                    alt=""
-                    class="absolute inset-0 w-full h-full object-cover"
-                  />
-                  <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
-                    {loadError ? (
-                      <Icon name="error" class="text-5xl text-white" />
-                    ) : (
-                      <Icon name="progress_activity" class="text-5xl animate-spin text-white" />
-                    )}
-                  </div>
-                </div>
-              )}
+
 
               {/* Player controls overlay */}
               <div
@@ -913,11 +899,11 @@ function VideoPlayerContent() {
             </div>
 
             {/* Video info */}
-            <div class="mt-8">
+            <div class="mt-8 px-4 sm:px-0">
               <h1 class="text-xl font-bold leading-tight tracking-tight">
                 {video.external_video_title}
               </h1>
-              <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 mt-4 pb-6 border-b border-border-light dark:border-border-dark">
+              <div class="mt-4 pb-6 border-b border-border-light dark:border-border-dark">
                 <div class="flex items-center gap-4">
                     <a
                       href={`/channels/${video.channel_id}`}
@@ -950,54 +936,62 @@ function VideoPlayerContent() {
                       </p>
                     </div>
                   </div>
-                <div class="flex items-center gap-2 flex-shrink-0 self-end">
+              </div>
+              <div class="flex items-center gap-6 mt-3 pb-3 border-b border-border-light dark:border-border-dark">
                   <button
-                    class={`flex items-center gap-2 h-10 px-4 rounded-lg border font-semibold text-sm transition-colors ${
-                      markedWatched
-                        ? "bg-primary/10 border-primary/50 text-primary cursor-default"
-                        : markingWatched
-                          ? "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark text-text-muted-light dark:text-text-muted-dark cursor-not-allowed opacity-50"
-                          : "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white cursor-pointer"
+                    class={`flex flex-col items-center gap-0.5 bg-transparent border-none transition-colors ${
+                      markingWatched
+                        ? "text-text-muted-light dark:text-text-muted-dark cursor-not-allowed opacity-50"
+                        : markedWatched
+                          ? "text-primary cursor-pointer hover:text-primary/80"
+                          : "text-charcoal dark:text-white cursor-pointer hover:text-primary"
                     }`}
-                    disabled={markingWatched || markedWatched}
+                    disabled={markingWatched}
                     onClick={async () => {
-                      if (markingWatched || markedWatched || !videoId) return;
+                      if (markingWatched || !videoId) return;
                       setMarkingWatched(true);
                       try {
-                        await getHistory().postVideosVideoIdWatched(videoId);
-                        setMarkedWatched(true);
+                        if (markedWatched) {
+                          await getHistory().deleteVideosVideoIdWatched(videoId);
+                          setMarkedWatched(false);
+                        } else {
+                          await getHistory().postVideosVideoIdWatched(videoId);
+                          setMarkedWatched(true);
+                        }
                       } finally {
                         setMarkingWatched(false);
                       }
                     }}
                   >
-                    {t("videoCard.markWatchedButton")}
+                    <Icon name="check_circle" class="text-lg" />
+                    <span class="text-[10px] font-semibold">{t("videoCard.markWatchedButton")}</span>
                   </button>
                   <button
-                    class={`flex items-center gap-2 h-10 px-4 rounded-lg border font-semibold text-sm transition-colors cursor-pointer ${
+                    class={`flex flex-col items-center gap-0.5 bg-transparent border-none transition-colors cursor-pointer ${
                       isLooping
-                        ? "bg-primary/10 border-primary/50 text-primary"
-                        : "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white"
+                        ? "text-primary hover:text-primary/80"
+                        : "text-charcoal dark:text-white hover:text-primary"
                     }`}
                     onClick={toggleLoop}
                   >
-                    {t("videoPlayer.loop")}
+                    <Icon name="repeat" class="text-lg" />
+                    <span class="text-[10px] font-semibold">{t("videoPlayer.loop")}</span>
                   </button>
                   <button
-                    class="flex items-center gap-2 h-10 px-4 rounded-lg bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white font-semibold text-sm transition-colors cursor-pointer"
+                    class="flex flex-col items-center gap-0.5 bg-transparent border-none text-charcoal dark:text-white hover:text-primary transition-colors cursor-pointer"
                     onClick={openPlaylistDialog}
                   >
-                    {t("videoPlayer.addToPlaylist")}
+                    <Icon name="bookmark_add" class="text-lg" />
+                    <span class="text-[10px] font-semibold">{t("videoPlayer.addToPlaylist")}</span>
                   </button>
                 </div>
-              </div>
 
               {/* Description */}
               {video.external_video_description && (
                 <div class="mt-6">
                   <div class="bg-border-light/50 dark:bg-[#332e27]/30 p-6 rounded-xl">
                     <p class="text-base text-charcoal dark:text-white mb-3">
-                      <span class="font-bold">{new Date(video.external_video_created_at).toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" }).replace(/-/g, "/")}</span>{t("videoPlayer.postedSuffix")}
+                      {formatTimeAgo(video.external_video_created_at, t)}{t("videoPlayer.postedSuffix")}
                     </p>
                     <div
                       ref={descRef}
@@ -1022,7 +1016,7 @@ function VideoPlayerContent() {
           </div>
 
           {/* Sidebar */}
-          <aside class="w-full xl:w-[420px] shrink-0 flex flex-col gap-8">
+          <aside class="w-full xl:w-[420px] shrink-0 flex flex-col gap-8 px-4 sm:px-0">
             {/* Quick Notes */}
             <div
               class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden"

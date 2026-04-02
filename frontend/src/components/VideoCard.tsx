@@ -21,6 +21,7 @@ export interface VideoCardProps {
   playlistId?: string;
   isSubscribed?: boolean;
   onToggleSubscription?: () => Promise<void>;
+  isWatched?: boolean;
   onMarkWatched?: () => Promise<void>;
 }
 
@@ -83,10 +84,12 @@ function VideoThumbnail({
 function VideoCardMenu({
   isSubscribed,
   onToggleSubscription,
+  isWatched,
   onMarkWatched,
 }: {
-  isSubscribed: boolean;
-  onToggleSubscription: () => Promise<void>;
+  isSubscribed?: boolean;
+  onToggleSubscription?: () => Promise<void>;
+  isWatched?: boolean;
   onMarkWatched?: () => Promise<void>;
 }) {
   const { t } = useTranslation();
@@ -171,53 +174,57 @@ function VideoCardMenu({
             >
               <Icon name="close" />
             </button>
-            <div class="flex items-center justify-between">
-              <div class="flex flex-col">
-                <span class="text-sm font-bold text-charcoal dark:text-white">
-                  {t("videoCard.subscribeChannel")}
-                </span>
-                <span class="text-xs text-text-muted-light dark:text-text-muted-dark">
-                  {t("videoCard.subscribeDesc")}
-                </span>
-              </div>
-              <button
-                class="relative inline-flex items-center cursor-pointer bg-transparent border-none p-0 flex-shrink-0 ml-3"
-                onClick={handleToggle}
-                disabled={toggling}
-              >
-                <div
-                  class={`w-14 h-7 rounded-full transition-colors duration-200 ${
-                    subscribed ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"
-                  } ${toggling ? "opacity-50" : ""}`}
-                >
-                  <div
-                    class={`absolute top-0.5 left-[4px] bg-white border border-gray-300 rounded-full h-6 w-6 transition-transform duration-200 ${
-                      subscribed ? "translate-x-full" : ""
-                    }`}
-                  />
-                </div>
-              </button>
-            </div>
-            {onMarkWatched && (
-              <div class="flex items-center justify-between mt-4">
+            {onToggleSubscription && (
+              <div class="flex items-center justify-between">
                 <div class="flex flex-col">
                   <span class="text-sm font-bold text-charcoal dark:text-white">
-                    {t("videoCard.markWatched")}
+                    {t("videoCard.subscribeChannel")}
                   </span>
                   <span class="text-xs text-text-muted-light dark:text-text-muted-dark">
-                    {t("videoCard.markWatchedDesc")}
+                    {t("videoCard.subscribeDesc")}
+                  </span>
+                </div>
+                <button
+                  class="relative inline-flex items-center cursor-pointer bg-transparent border-none p-0 flex-shrink-0 ml-3"
+                  onClick={handleToggle}
+                  disabled={toggling}
+                >
+                  <div
+                    class={`w-14 h-7 rounded-full transition-colors duration-200 ${
+                      subscribed ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"
+                    } ${toggling ? "opacity-50" : ""}`}
+                  >
+                    <div
+                      class={`absolute top-0.5 left-[4px] bg-white border border-gray-300 rounded-full h-6 w-6 transition-transform duration-200 ${
+                        subscribed ? "translate-x-full" : ""
+                      }`}
+                    />
+                  </div>
+                </button>
+              </div>
+            )}
+            {onMarkWatched && (
+              <div class={`flex items-center justify-between${onToggleSubscription ? " mt-4" : ""}`}>
+                <div class="flex flex-col">
+                  <span class="text-sm font-bold text-charcoal dark:text-white">
+                    {isWatched ? t("videoCard.unmarkWatched") : t("videoCard.markWatched")}
+                  </span>
+                  <span class="text-xs text-text-muted-light dark:text-text-muted-dark">
+                    {isWatched ? t("videoCard.unmarkWatchedDesc") : t("videoCard.markWatchedDesc")}
                   </span>
                 </div>
                 <button
                   class={`flex-shrink-0 ml-3 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     marking
                       ? "bg-gray-200 dark:bg-gray-700 text-text-muted-light dark:text-text-muted-dark cursor-not-allowed"
-                      : "bg-primary text-white hover:bg-primary/90 cursor-pointer"
+                      : isWatched
+                        ? "bg-gray-200 dark:bg-gray-700 text-charcoal dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer"
+                        : "bg-primary text-white hover:bg-primary/90 cursor-pointer"
                   } border-none`}
                   onClick={handleMarkWatched}
                   disabled={marking}
                 >
-                  {t("videoCard.markWatchedButton")}
+                  {isWatched ? t("videoCard.unmarkWatchedButton") : t("videoCard.markWatchedButton")}
                 </button>
               </div>
             )}
@@ -241,6 +248,7 @@ export function VideoCard({
   playlistId,
   isSubscribed,
   onToggleSubscription,
+  isWatched,
   onMarkWatched,
 }: VideoCardProps) {
   const { t } = useTranslation();
@@ -330,10 +338,11 @@ export function VideoCard({
             >
               {title}
             </a>
-            {channel && onToggleSubscription && (
+            {(onMarkWatched || (channel && onToggleSubscription)) && (
               <VideoCardMenu
                 isSubscribed={isSubscribed ?? false}
                 onToggleSubscription={onToggleSubscription}
+                isWatched={isWatched}
                 onMarkWatched={onMarkWatched}
               />
             )}

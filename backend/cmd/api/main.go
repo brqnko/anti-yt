@@ -144,6 +144,8 @@ func run(ctx context.Context) int {
 		slog.Error("failed to clean up jti blacklist", slog.Any("error", err))
 	}
 
+	job.NewPurgeLeftUserJob(db).Run()
+
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 	oidcService, err := oidc.NewGoogleOIDCService(initCtx, cfg.oidcGoogleClientID, cfg.oidcGoogleClientSecret, fmt.Sprintf("%s/v1/auth/google/callback", cfg.serverURL))
@@ -181,6 +183,10 @@ func run(ctx context.Context) int {
 	scheduler := scheduler.NewService()
 	if err := scheduler.AddFunc("0 0 * * *", job.NewLLMSummaryJob(db, llmService)); err != nil {
 		slog.Error("failed to setup llm summary job", slog.Any("error", err))
+		return 1
+	}
+	if err := scheduler.AddFunc("0 0 * * *", job.NewPurgeLeftUserJob(db)); err != nil {
+		slog.Error("failed to setup purge left user job", slog.Any("error", err))
 		return 1
 	}
 	if cfg.discordWebhookURL != "" {

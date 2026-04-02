@@ -139,6 +139,7 @@ type GetChannelUploadsView struct {
 	ExternalVideoLengthSeconds int
 	ExternalVideoThumbnailUrl  string
 	ExternalVideoTitle         string
+	IsWatched                  bool
 	LastWatchSeconds           *int
 	VideoId                    uuid.UUID
 }
@@ -168,6 +169,7 @@ func (c *channelQueryServiceImpl) GetChannelUploads(ctx context.Context, userID,
 				ExternalVideoLengthSeconds: row.ExternalLengthSeconds,
 				ExternalVideoThumbnailUrl:  row.ExternalThumbnailUrl,
 				ExternalVideoTitle:         row.ExternalTitle,
+				IsWatched:                  row.IsWatched,
 				LastWatchSeconds:           lastWatchSeconds,
 				VideoId:                    row.PublicID,
 			}
@@ -196,6 +198,7 @@ func (c *channelQueryServiceImpl) GetChannelUploads(ctx context.Context, userID,
 			ExternalVideoLengthSeconds: row.ExternalLengthSeconds,
 			ExternalVideoThumbnailUrl:  row.ExternalThumbnailUrl,
 			ExternalVideoTitle:         row.ExternalTitle,
+			IsWatched:                  row.IsWatched,
 			LastWatchSeconds:           lastWatchSeconds,
 			VideoId:                    row.PublicID,
 		}

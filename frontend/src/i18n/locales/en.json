@@ -15,7 +15,10 @@
     "subscribeDesc": "Allow into your feed",
     "markWatched": "Mark as watched",
     "markWatchedDesc": "Hide from your feed",
-    "markWatchedButton": "Watched"
+    "markWatchedButton": "Watched",
+    "unmarkWatched": "Mark as unwatched",
+    "unmarkWatchedDesc": "Show in your feed again",
+    "unmarkWatchedButton": "Unwatched"
   },
   "legal": {
     "navTerms": "Terms of Service",
@@ -85,43 +88,8 @@
     }
   },
   "register": {
-    "pageTitle": "Register",
-    "step": "Step {{current}} of {{total}}",
-    "continue": "Continue",
-    "submit": "Register",
-    "agreementPrefix": "By registering, you agree to our ",
-    "termsLink": "Terms of Service",
-    "agreementAnd": " and ",
-    "privacyLink": "Privacy Policy",
-    "agreementSuffix": ".",
     "error": {
-      "title": "Registration Failed",
-      "description": "Something went wrong during registration. You can edit your details and try again.",
-      "close": "OK"
-    },
-    "profileDetails": {
-      "title": "Profile Details",
-      "subtitle": "Personalize your experience to get started.",
-      "displayName": "Display Name",
-      "displayNamePlaceholder": "e.g. CoolCat42",
-      "contentLanguage": "Content Language"
-    },
-    "restrictions": {
-      "title": "Initial Restrictions",
-      "subtitle": "Define strict boundaries to reclaim your time. You can adjust these later.",
-      "dailyWatchLimit": "Daily Watch Limit",
-      "dailyWatchLimitDesc": "Total viewing time allowed per 24 hours",
-      "unlimited": "Unlimited",
-      "limited": "Limited",
-      "hours": "Hours",
-      "minutes": "Minutes",
-      "scheduledAccess": "Scheduled Access",
-      "scheduledAccessDesc": "Permitted viewing windows",
-      "addTimeRange": "Add Time Range",
-      "removeRange": "Remove range",
-      "back": "Back",
-      "zeroTimeError": "Daily watch limit must be greater than 0 minutes.",
-      "overlapError": "Time ranges must not overlap."
+      "title": "Registration Failed"
     }
   },
   "dashboard": {

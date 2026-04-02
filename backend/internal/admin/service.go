@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/channel"
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
@@ -58,10 +59,10 @@ func (s *Service) CreateNewValuableChannel(ctx context.Context, externalChannelI
 	// すでに保存されているかを確認する
 	// 保存されてない場合はfetchしてそれを使う
 	foundChannel, err := channel.NewChannelRepository(q).FindByIdOrHandle(ctx, channelIDOrHandle)
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+	if err != nil && !errors.Is(err, core.ErrNotFound) {
 		return nil, err
 	}
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, core.ErrNotFound) {
 		// YouTubeからチャンネル情報を取得
 		channelDetail, err := s.ytService.FetchChannelDetailByIDOrHandle(ctx, channelIDOrHandle)
 		fetchedAt := time.Now().UTC()
@@ -189,10 +190,10 @@ func (s *Service) ImportChannelVideos(ctx context.Context, externalChannelID str
 	q := sqlc.New(s.db)
 
 	foundChannel, err := channel.NewChannelRepository(q).FindByIdOrHandle(ctx, channelIDOrHandle)
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+	if err != nil && !errors.Is(err, core.ErrNotFound) {
 		return 0, err
 	}
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, core.ErrNotFound) {
 		channelDetail, err := s.ytService.FetchChannelDetailByIDOrHandle(ctx, channelIDOrHandle)
 		fetchedAt := time.Now().UTC()
 		if err != nil {
@@ -260,10 +261,10 @@ func (s *Service) ImportChannelPlaylists(ctx context.Context, externalChannelID 
 	q := sqlc.New(s.db)
 
 	foundChannel, err := channel.NewChannelRepository(q).FindByIdOrHandle(ctx, channelIDOrHandle)
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+	if err != nil && !errors.Is(err, core.ErrNotFound) {
 		return 0, err
 	}
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, core.ErrNotFound) {
 		channelDetail, err := s.ytService.FetchChannelDetailByIDOrHandle(ctx, channelIDOrHandle)
 		if err != nil {
 			return 0, err
