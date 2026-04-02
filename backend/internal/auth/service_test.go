@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/testutil"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -435,8 +435,8 @@ func TestService_RemoveSession(t *testing.T) {
 				if err == nil {
 					t.Fatal("expected error but got nil")
 				}
-				if !errors.Is(err, pgx.ErrNoRows) {
-					t.Fatalf("expected pgx.ErrNoRows, got %v", err)
+				if !errors.Is(err, core.ErrNotFound) {
+					t.Fatalf("expected core.ErrNotFound, got %v", err)
 				}
 				return
 			}

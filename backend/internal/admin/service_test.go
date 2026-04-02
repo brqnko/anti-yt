@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/brqnko/anti-yt/backend/internal/testutil"
-	"github.com/jackc/pgx/v5"
 )
 
 func TestService_CreateNewValuableChannel(t *testing.T) {
@@ -254,8 +254,8 @@ func TestService_RemoveValuableChannel(t *testing.T) {
 			if err == nil {
 				t.Fatal("expected error after removal, got nil")
 			}
-			if !errors.Is(err, pgx.ErrNoRows) {
-				t.Fatalf("expected pgx.ErrNoRows, got %v", err)
+			if !errors.Is(err, core.ErrNotFound) {
+				t.Fatalf("expected core.ErrNotFound, got %v", err)
 			}
 		})
 	}

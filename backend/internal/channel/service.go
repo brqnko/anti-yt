@@ -74,10 +74,10 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 	// すでに保存されているかを確認する
 	// 保存されてない場合はfetchしてそれを使う
 	foundChannel, err := NewChannelRepository(q).FindByIdOrHandle(ctx, channelIDOrHandle)
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) { // ただのDBエラー
+	if err != nil && !errors.Is(err, core.ErrNotFound) { // ただのDBエラー
 		return nil, err
 	}
-	if errors.Is(err, pgx.ErrNoRows) { // 保存されてない場合
+	if errors.Is(err, core.ErrNotFound) { // 保存されてない場合
 		// YouTubeからチャンネル情報を取得
 		channelDetail, err := s.ytService.FetchChannelDetailByIDOrHandle(ctx, channelIDOrHandle)
 		fetchedAt := time.Now().UTC()

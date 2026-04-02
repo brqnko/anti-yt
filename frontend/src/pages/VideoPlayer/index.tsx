@@ -896,7 +896,7 @@ function VideoPlayerContent() {
             </div>
 
             {/* Video info */}
-            <div class="mt-8">
+            <div class="mt-8 px-4 sm:px-0">
               <h1 class="text-xl font-bold leading-tight tracking-tight">
                 {video.external_video_title}
               </h1>
@@ -936,19 +936,24 @@ function VideoPlayerContent() {
                 <div class="flex items-center gap-2 flex-shrink-0 self-end">
                   <button
                     class={`flex items-center gap-2 h-10 px-4 rounded-lg border font-semibold text-sm transition-colors ${
-                      markedWatched
-                        ? "bg-primary/10 border-primary/50 text-primary cursor-default"
-                        : markingWatched
-                          ? "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark text-text-muted-light dark:text-text-muted-dark cursor-not-allowed opacity-50"
+                      markingWatched
+                        ? "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark text-text-muted-light dark:text-text-muted-dark cursor-not-allowed opacity-50"
+                        : markedWatched
+                          ? "bg-primary/10 border-primary/50 text-primary cursor-pointer hover:bg-primary/5"
                           : "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white cursor-pointer"
                     }`}
-                    disabled={markingWatched || markedWatched}
+                    disabled={markingWatched}
                     onClick={async () => {
-                      if (markingWatched || markedWatched || !videoId) return;
+                      if (markingWatched || !videoId) return;
                       setMarkingWatched(true);
                       try {
-                        await getHistory().postVideosVideoIdWatched(videoId);
-                        setMarkedWatched(true);
+                        if (markedWatched) {
+                          await getHistory().deleteVideosVideoIdWatched(videoId);
+                          setMarkedWatched(false);
+                        } else {
+                          await getHistory().postVideosVideoIdWatched(videoId);
+                          setMarkedWatched(true);
+                        }
                       } finally {
                         setMarkingWatched(false);
                       }
@@ -1005,7 +1010,7 @@ function VideoPlayerContent() {
           </div>
 
           {/* Sidebar */}
-          <aside class="w-full xl:w-[420px] shrink-0 flex flex-col gap-8">
+          <aside class="w-full xl:w-[420px] shrink-0 flex flex-col gap-8 px-4 sm:px-0">
             {/* Quick Notes */}
             <div
               class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden"

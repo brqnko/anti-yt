@@ -185,7 +185,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 		}
 
 		return at, refreshTokenRawStr, csrfGenerated, "reactivation", platform, atExp, refreshToken.ExpiresAt, nil
-	} else if errors.Is(err, pgx.ErrNoRows) { // 存在しない場合
+	} else if errors.Is(err, core.ErrNotFound) { // 存在しない場合
 		at, atExp, err := s.jwtService.SignRegisterToken(authorization.ID, refreshToken.AccessTokenJTI, s.serverURL)
 		if err != nil {
 			return "", "", "", "", "", time.Time{}, time.Time{}, err

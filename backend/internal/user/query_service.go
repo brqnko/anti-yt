@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
@@ -47,7 +48,7 @@ func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (_ Us
 		return UserStatusView{}, err
 	}
 	if len(rows) == 0 {
-		return UserStatusView{}, pgx.ErrNoRows
+		return UserStatusView{}, core.ErrNotFound
 	}
 
 	first := rows[0]
@@ -93,7 +94,7 @@ func (u *userQueryServiceImpl) FindByAuthorizationID(ctx context.Context, author
 	row, err := u.q.GetUserIDByAuthorization(ctx, authorizationID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return uuid.Nil, false, err
+			return uuid.Nil, false, core.ErrNotFound
 		}
 		return uuid.Nil, false, err
 	}
