@@ -25,6 +25,9 @@ type Querier interface {
 	CountAuthorizations(ctx context.Context) (int64, error)
 	// m_user_authorization_idに紐づくh_userとm_userの数を数える
 	CountUsersByAuthorization(ctx context.Context, publicID uuid.UUID) (int32, error)
+	// authorization_public_idに紐づく退会済みユーザーを削除する（再登録用）。
+	// 退会済みユーザーが存在しない場合はpgx.ErrNoRowsが返される。
+	DeleteLeftUserByAuthorization(ctx context.Context, userAuthorizationPublicID uuid.UUID) (int64, error)
 	DeletePlaylist(ctx context.Context, arg DeletePlaylistParams) (uuid.UUID, error)
 	DeletePlaylistVideo(ctx context.Context, arg DeletePlaylistVideoParams) (int64, error)
 	// m_user.m_user_idから、そのユーザーのスクリーン時間の範囲制限を削除する

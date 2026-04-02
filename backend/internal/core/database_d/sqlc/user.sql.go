@@ -118,6 +118,26 @@ func (q *Queries) CountUsersByAuthorization(ctx context.Context, publicID uuid.U
 	return total_count, err
 }
 
+const deleteLeftUserByAuthorization = `-- name: DeleteLeftUserByAuthorization :one
+DELETE FROM h_user
+WHERE h_user.m_user_authorization_id = (
+    SELECT m_user_authorization.m_user_authorization_id
+    FROM m_user_authorization
+    WHERE m_user_authorization.public_id = $1
+    LIMIT 1
+)
+RETURNING h_user_id
+`
+
+// authorization_public_idに紐づく退会済みユーザーを削除する（再登録用）。
+// 退会済みユーザーが存在しない場合はpgx.ErrNoRowsが返される。
+func (q *Queries) DeleteLeftUserByAuthorization(ctx context.Context, userAuthorizationPublicID uuid.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, deleteLeftUserByAuthorization, userAuthorizationPublicID)
+	var h_user_id int64
+	err := row.Scan(&h_user_id)
+	return h_user_id, err
+}
+
 const deleteScreenTimeRangesByUserID = `-- name: DeleteScreenTimeRangesByUserID :exec
 DELETE FROM
     m_user_screen_time_range

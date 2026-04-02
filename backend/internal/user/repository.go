@@ -20,6 +20,7 @@ type UserRepository interface {
 	SaveScreenTimeRanges(ctx context.Context, mUserID int64, rangeSet *DailyScreenTimeLimitRangeSet) error
 	Remove(ctx context.Context, userID uuid.UUID, leaveReasonCode LeaveReasonCode) error
 	CountByAuthorization(ctx context.Context, authorizationID uuid.UUID) (int32, error)
+	DeleteLeftByAuthorization(ctx context.Context, authorizationID uuid.UUID) (int64, error)
 }
 
 type userRepositoryImpl struct {
@@ -150,6 +151,19 @@ func (r *userRepositoryImpl) CountByAuthorization(ctx context.Context, authoriza
 		return 0, err
 	}
 	return count, nil
+}
+
+func (r *userRepositoryImpl) DeleteLeftByAuthorization(ctx context.Context, authorizationID uuid.UUID) (_ int64, err error) {
+	defer util.Wrap(&err, "userRepository.DeleteLeftByAuthorization(authorizationID=%s)", authorizationID)
+
+	hUserID, err := r.q.DeleteLeftUserByAuthorization(ctx, authorizationID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, core.ErrNotFound
+		}
+		return 0, err
+	}
+	return hUserID, nil
 }
 
 var _ UserRepository = (*userRepositoryImpl)(nil)
