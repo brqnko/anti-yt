@@ -504,7 +504,6 @@ function VideoPlayerContent() {
 
   const {
     isReady,
-    loadError,
     playerState,
     currentTime,
     currentTimeRef,
@@ -809,23 +808,7 @@ function VideoPlayerContent() {
                 </div>
               )}
 
-              {/* Loading overlay before player is ready */}
-              {!isReady && (
-                <div class="absolute inset-0 z-20">
-                  <img
-                    src={video.external_video_thumbnail_url}
-                    alt=""
-                    class="absolute inset-0 w-full h-full object-cover"
-                  />
-                  <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
-                    {loadError ? (
-                      <Icon name="error" class="text-5xl text-white" />
-                    ) : (
-                      <Icon name="progress_activity" class="text-5xl animate-spin text-white" />
-                    )}
-                  </div>
-                </div>
-              )}
+
 
               {/* Player controls overlay */}
               <div

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/dbtype"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -37,7 +38,7 @@ func (r *userRepositoryImpl) FindForUpdate(ctx context.Context, userID uuid.UUID
 	row, err := r.q.GetUserForUpdate(ctx, userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, err
+			return nil, core.ErrNotFound
 		}
 		return nil, err
 	}
