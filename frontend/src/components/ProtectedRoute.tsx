@@ -6,7 +6,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { LoadingSpinner } from "./LoadingSpinner";
 
 const ScreenTimeBlock = lazy(
-  () => import("../pages/ScreenTimeBlock/index.tsx"),
+  () => import("../pages/ScreenTimeBlock/index"),
 );
 
 interface ProtectedRouteProps {

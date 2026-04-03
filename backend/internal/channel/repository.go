@@ -33,7 +33,7 @@ type channelRepositoryImpl struct {
 }
 
 func (c *channelRepositoryImpl) Save(ctx context.Context, channel *Channel) (_ int64, err error) {
-	defer util.Wrap(&err, "channelRepository.Save")
+	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).Save")
 
 	if err := c.q.ClearStaleChannelCustomID(ctx, sqlc.ClearStaleChannelCustomIDParams{
 		ExternalCustomID: channel.Channel.CustomID,
@@ -65,7 +65,7 @@ func (c *channelRepositoryImpl) Save(ctx context.Context, channel *Channel) (_ i
 }
 
 func (c *channelRepositoryImpl) FindForUpdate(ctx context.Context, id uuid.UUID) (_ *Channel, err error) {
-	defer util.Wrap(&err, "channelRepository.FindForUpdate(id=%s)", id)
+	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).FindForUpdate(id=%s)", id)
 
 	row, err := c.q.GetChannelForUpdate(ctx, id)
 	if err != nil {
@@ -98,7 +98,7 @@ func (c *channelRepositoryImpl) FindForUpdate(ctx context.Context, id uuid.UUID)
 }
 
 func (c *channelRepositoryImpl) FindByIdOrHandle(ctx context.Context, idOrHandle string) (_ *Channel, err error) {
-	defer util.Wrap(&err, "channelRepository.FindByIdOrHandle")
+	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).FindByIdOrHandle")
 
 	row, err := c.q.FindChannelByExternalID(ctx, sqlc.FindChannelByExternalIDParams{
 		ExternalID:       idOrHandle,
@@ -134,7 +134,7 @@ func (c *channelRepositoryImpl) FindByIdOrHandle(ctx context.Context, idOrHandle
 }
 
 func (c *channelRepositoryImpl) FindToFetchRSSForUpdate(ctx context.Context, userID uuid.UUID, rssFetchDuration time.Duration, limit int32) (_ []*Channel, err error) {
-	defer util.Wrap(&err, "channelRepository.FindToFetchRSSForUpdate(userID=%s)", userID)
+	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).FindToFetchRSSForUpdate(userID=%s)", userID)
 
 	rows, err := c.q.ListStaleRSSChannelsForUpdate(ctx, sqlc.ListStaleRSSChannelsForUpdateParams{
 		UserID:     userID,
@@ -173,7 +173,7 @@ func (c *channelRepositoryImpl) FindToFetchRSSForUpdate(ctx context.Context, use
 }
 
 func (s *channelRepositoryImpl) SaveSubscription(ctx context.Context, subscribedChannel *SubscribedChannel) (_ int64, err error) {
-	defer util.Wrap(&err, "channelRepository.SaveSubscription")
+	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).SaveSubscription")
 
 	id, err := s.q.InsertSubscription(ctx, sqlc.InsertSubscriptionParams{
 		UserPublicID: subscribedChannel.SubscriberID,
@@ -188,7 +188,7 @@ func (s *channelRepositoryImpl) SaveSubscription(ctx context.Context, subscribed
 }
 
 func (s *channelRepositoryImpl) RemoveSubscription(ctx context.Context, userID, channelID uuid.UUID) (rowAffected int64, err error) {
-	defer util.Wrap(&err, "channelRepository.RemoveSubscription(userID=%s, channelID=%s)", userID, channelID)
+	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).RemoveSubscription(userID=%s, channelID=%s)", userID, channelID)
 
 	row, err := s.q.DeleteSubscription(ctx, sqlc.DeleteSubscriptionParams{
 		UserPublicID: userID,
@@ -218,7 +218,7 @@ func NewValuableChannelRepository(q sqlc.Querier) ValuableChannelRepository {
 }
 
 func (v *valuableChannelRepositoryImpl) Save(ctx context.Context, vc *ValuableChannel) (_ int64, err error) {
-	defer util.Wrap(&err, "valuableChannelRepository.Save(channelID=%s)", vc.ChannelID)
+	defer util.Wrap(&err, "channel.(*valuableChannelRepositoryImpl).Save(channelID=%s)", vc.ChannelID)
 
 	id, err := v.q.UpsertValuableChannel(ctx, sqlc.UpsertValuableChannelParams{
 		ChannelPublicID:     vc.ChannelID,
@@ -232,7 +232,7 @@ func (v *valuableChannelRepositoryImpl) Save(ctx context.Context, vc *ValuableCh
 }
 
 func (v *valuableChannelRepositoryImpl) Remove(ctx context.Context, channelID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "valuableChannelRepository.Remove(channelID=%s)", channelID)
+	defer util.Wrap(&err, "channel.(*valuableChannelRepositoryImpl).Remove(channelID=%s)", channelID)
 
 	if err := v.q.DeleteValuableChannel(ctx, channelID); err != nil {
 		return err
@@ -241,7 +241,7 @@ func (v *valuableChannelRepositoryImpl) Remove(ctx context.Context, channelID uu
 }
 
 func (v *valuableChannelRepositoryImpl) FindForUpdate(ctx context.Context, channelID uuid.UUID) (_ *ValuableChannel, err error) {
-	defer util.Wrap(&err, "valuableChannelRepository.FindForUpdate(channelID=%s)", channelID)
+	defer util.Wrap(&err, "channel.(*valuableChannelRepositoryImpl).FindForUpdate(channelID=%s)", channelID)
 
 	row, err := v.q.GetValuableChannelForUpdate(ctx, channelID)
 	if err != nil {

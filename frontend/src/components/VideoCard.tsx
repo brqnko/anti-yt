@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { formatDuration, formatTimeAgo } from "../utils/format";
 import { buildWatchUrl } from "../utils/url";
+import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
 
 export interface VideoCardProps {
@@ -97,24 +98,10 @@ function VideoCardMenu({
   const [toggling, setToggling] = useState(false);
   const [marking, setMarking] = useState(false);
   const [subscribed, setSubscribed] = useState(isSubscribed);
-  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setSubscribed(isSubscribed);
   }, [isSubscribed]);
-
-  useEffect(() => {
-    if (!open) return;
-    document.body.style.overflow = "hidden";
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open]);
 
   const handleToggle = async () => {
     if (toggling) return;
@@ -152,28 +139,7 @@ function VideoCardMenu({
       >
         <Icon name="more_vert" class="text-[20px]" />
       </button>
-      {open && (
-        <div
-          class="fixed inset-0 z-50 flex items-center justify-center p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t("videoCard.moreOptions")}
-        >
-          <div
-            class="absolute inset-0 bg-black/60"
-            onClick={() => setOpen(false)}
-          />
-          <div
-            ref={dialogRef}
-            class="relative bg-white dark:bg-[#2a2721] rounded-2xl ring-1 ring-black/10 dark:ring-white/10 border border-gray-100 dark:border-neutral-800 p-8 max-w-sm w-full"
-          >
-            <button
-              class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
-              onClick={() => setOpen(false)}
-              aria-label={t("common.close")}
-            >
-              <Icon name="close" />
-            </button>
+      <Dialog open={open} onClose={() => setOpen(false)} ariaLabel={t("videoCard.moreOptions")} maxWidth="max-w-sm" showCloseButton closeButtonLabel={t("common.close")}>
             {onToggleSubscription && (
               <div class="flex items-center justify-between">
                 <div class="flex flex-col">
@@ -228,9 +194,7 @@ function VideoCardMenu({
                 </button>
               </div>
             )}
-          </div>
-        </div>
-      )}
+      </Dialog>
     </>
   );
 }

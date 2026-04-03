@@ -83,116 +83,78 @@ WHERE
     AND watch_end_at > CURRENT_TIMESTAMP
     AND t_video_watch.updated_at < CURRENT_TIMESTAMP - INTERVAL '2 minutes';
 
--- name: UpsertWatchHeartbeat :exec
-WITH resolved_user AS (
-    SELECT
-        m_user_id
-    FROM
-        m_user
-    WHERE
-        m_user.public_id = @user_public_id
-    LIMIT
-        1
-),
-resolved_video AS (
-    SELECT
+-- name: GetLastHeartbeatForUpdate :one
+SELECT
+    (
+        SELECT
+            m_video.public_id
+        FROM
+            m_video
+        WHERE
+            m_video.m_video_id = t_video_watch.m_video_id
+        LIMIT 1
+    ) AS video_id,
+    (
+        SELECT
+            m_video.external_length_seconds
+        FROM
+            m_video
+        WHERE
+            m_video.m_video_id = t_video_watch.m_video_id
+        LIMIT 1
+    ) AS video_length,
+    t_video_watch.updated_at,
+    t_video_watch.public_id,
+    t_video_watch.watch_start_at,
+    t_video_watch.watch_end_at,
+    t_video_watch.watch_position_seconds,
+    t_video_watch.t_video_watch_id
+FROM
+    t_video_watch
+WHERE
+    m_user_id = (
+        SELECT
+            m_user_id
+        FROM
+            m_user
+        WHERE
+            m_user.public_id = @user_public_id
+        LIMIT
+            1
+    )
+    AND watch_end_at > CURRENT_TIMESTAMP
+LIMIT 1
+FOR UPDATE;
+
+-- name: InsertHeartbeat :exec
+INSERT INTO
+    t_video_watch (
+        m_user_id,
         m_video_id,
-        external_length_seconds
-    FROM
-        m_video
-    WHERE
-        m_video.public_id = @video_public_id
-    LIMIT
-        1
-),
-latest_active AS (
-    SELECT
-        t_video_watch_id,
-        m_video_id
-    FROM
-        t_video_watch
-    WHERE
-        m_user_id = (SELECT m_user_id FROM resolved_user)
-        AND watch_end_at > CURRENT_TIMESTAMP
-    ORDER BY
-        watch_start_at DESC
-    LIMIT
-        1
-),
-close_old AS (
-    -- 別の動画なら終了させる
-    UPDATE
-        t_video_watch
-    SET
-        watch_end_at = CURRENT_TIMESTAMP,
-        updated_at = CURRENT_TIMESTAMP
-    FROM
-        latest_active
-    WHERE
-        t_video_watch.t_video_watch_id = latest_active.t_video_watch_id
-        AND latest_active.m_video_id != (SELECT m_video_id FROM resolved_video)
-    RETURNING
-        t_video_watch.t_video_watch_id
-),
-update_same AS (
-    -- 同じ動画ならポジションを更新
-    UPDATE
-        t_video_watch
-    SET
-        watch_position_seconds = CASE
-            WHEN @watch_position_seconds::int >= (SELECT external_length_seconds FROM resolved_video)
-            THEN 0
-            ELSE @watch_position_seconds::int
-        END,
-        watch_end_at = TIMESTAMP '9999-12-31',
-        updated_at = CURRENT_TIMESTAMP
-    FROM
-        latest_active
-    WHERE
-        t_video_watch.t_video_watch_id = latest_active.t_video_watch_id
-        AND latest_active.m_video_id = (SELECT m_video_id FROM resolved_video)
-    RETURNING
-        t_video_watch.t_video_watch_id
-),
-do_insert AS (
-    INSERT INTO
-        t_video_watch (
-            m_user_id,
-            m_video_id,
-            public_id,
-            watch_start_at,
-            watch_end_at,
-            watch_position_seconds
-        )
-    SELECT
-        (SELECT m_user_id FROM resolved_user),
-        (SELECT m_video_id FROM resolved_video),
-        @public_id,
-        @watch_start_at,
-        TIMESTAMP '9999-12-31',
-        CASE
-            WHEN @watch_position_seconds::int >= (SELECT external_length_seconds FROM resolved_video)
-            THEN 0
-            ELSE @watch_position_seconds::int
-        END
-    WHERE
-        NOT EXISTS (SELECT 1 FROM update_same)
-    RETURNING
-        t_video_watch_id
-),
-mark_watched AS (
-    INSERT INTO
-        t_video_watched (m_user_id, m_video_id)
-    SELECT
-        (SELECT m_user_id FROM resolved_user),
-        (SELECT m_video_id FROM resolved_video)
-    WHERE
-        @watch_position_seconds::int >= (SELECT external_length_seconds FROM resolved_video)
-    ON CONFLICT (m_user_id, m_video_id) DO NOTHING
-    RETURNING
-        t_video_watched_id
-)
-SELECT 1;
+        public_id,
+        watch_start_at,
+        watch_end_at,
+        watch_position_seconds
+    )
+VALUES (
+    (SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_public_id LIMIT 1),
+    (SELECT m_video.m_video_id FROM m_video WHERE m_video.public_id = @video_public_id LIMIT 1),
+    @public_id,
+    @watch_start_at,
+    @watch_end_at,
+    @watch_position_seconds
+);
+
+-- name: UpdateHeartbeat :exec
+UPDATE
+    t_video_watch
+SET
+    watch_position_seconds = @watch_position_seconds,
+    watch_start_at = @watch_start_at,
+    watch_end_at = @watch_end_at,
+    updated_at = CURRENT_TIMESTAMP
+WHERE
+    t_video_watch.t_video_watch_id = @t_video_watch_id;
 
 -- name: ListDailyWatchStatsByRange :many
 SELECT

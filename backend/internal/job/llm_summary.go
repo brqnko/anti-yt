@@ -63,7 +63,7 @@ Video titles watched:
 
 // UTC時刻のYMDで[]byteを構築します
 func createTodaysBits() (_ []byte, err error) {
-	defer util.Wrap(&err, "createTodaysBits")
+	defer util.Wrap(&err, "job.createTodaysBits")
 
 	y, m, d := time.Now().UTC().Date()
 	buf := new(bytes.Buffer)
@@ -100,22 +100,8 @@ func timeToUUID(t time.Time) uuid.UUID {
 	return u
 }
 
-func buildSummaryPrompt(titles, languageCode string) []llm.Prompt {
-	tmpl, ok := summaryPromptTemplates[languageCode]
-	if !ok {
-		tmpl = summaryPromptTemplates["en"]
-	}
-
-	return []llm.Prompt{
-		{
-			Role:    "user",
-			Message: fmt.Sprintf(tmpl, titles),
-		},
-	}
-}
-
 func (j *llmSummaryJob) run(ctx context.Context) (err error) {
-	defer util.Wrap(&err, "llmSummaryJob.run")
+	defer util.Wrap(&err, "job.(*llmSummaryJob).run")
 
 	tx, err := j.db.Begin(ctx)
 	if err != nil {
@@ -155,7 +141,16 @@ func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 			continue
 		}
 
-		prompts := buildSummaryPrompt(titles, row.LanguageCode)
+		tmpl, ok := summaryPromptTemplates[row.LanguageCode]
+		if !ok {
+			tmpl = summaryPromptTemplates["en"]
+		}
+		prompts := []llm.Prompt{
+			{
+				Role:    "user",
+				Message: fmt.Sprintf(tmpl, titles),
+			},
+		}
 		resp, err := j.llmService.Completion(ctx, prompts, llm.WithJSONSchema(summarySchema))
 		if err != nil {
 			util.LoggerFromContext(ctx).ErrorContext(ctx, "llm completion failed in summary job", slog.Int64("user_id", row.UserID), slog.Any("error", err))

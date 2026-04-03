@@ -76,7 +76,7 @@ func NewPlaylistQueryService(db *pgxpool.Pool) PlaylistQueryService {
 }
 
 func (p *playlistQueryServiceImpl) FindPlaylists(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetPlaylistsView, err error) {
-	defer util.Wrap(&err, "playlistQueryService.FindPlaylists(userID=%s)", userID)
+	defer util.Wrap(&err, "playlist.(*playlistQueryServiceImpl).FindPlaylists(userID=%s)", userID)
 
 	rows, err := p.q.ListUserPlaylists(ctx, sqlc.ListUserPlaylistsParams{
 		UserID:     userID,
@@ -109,7 +109,7 @@ func (p *playlistQueryServiceImpl) FindPlaylists(ctx context.Context, userID uui
 }
 
 func (p *playlistQueryServiceImpl) FindChannelPlaylists(ctx context.Context, channelID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetChannelPlaylistsView, err error) {
-	defer util.Wrap(&err, "playlistQueryService.FindChannelPlaylists(channelID=%s)", channelID)
+	defer util.Wrap(&err, "playlist.(*playlistQueryServiceImpl).FindChannelPlaylists(channelID=%s)", channelID)
 
 	rows, err := p.q.ListChannelPlaylists(ctx, sqlc.ListChannelPlaylistsParams{
 		ChannelID:  channelID,
@@ -138,7 +138,7 @@ func (p *playlistQueryServiceImpl) FindChannelPlaylists(ctx context.Context, cha
 }
 
 func (p *playlistQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID, playlistID uuid.UUID) (_ GetPlaylistDetailView, err error) {
-	defer util.Wrap(&err, "playlistQueryService.Find(userID=%s, playlistID=%s)", userID, playlistID)
+	defer util.Wrap(&err, "playlist.(*playlistQueryServiceImpl).Find(userID=%s, playlistID=%s)", userID, playlistID)
 
 	row, err := p.q.GetPlaylistWithThumbnail(ctx, sqlc.GetPlaylistWithThumbnailParams{
 		UserID:     userID,
@@ -170,7 +170,7 @@ func (p *playlistQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID, p
 }
 
 func (p *playlistQueryServiceImpl) FindPlaylistItems(ctx context.Context, userID, playlistID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetPlaylistItemView, err error) {
-	defer util.Wrap(&err, "playlistQueryService.FindPlaylistItems(userID=%s, playlistID=%s)", userID, playlistID)
+	defer util.Wrap(&err, "playlist.(*playlistQueryServiceImpl).FindPlaylistItems(userID=%s, playlistID=%s)", userID, playlistID)
 
 	rows, err := p.q.ListPlaylistVideos(ctx, sqlc.ListPlaylistVideosParams{
 		UserID:     userID,
@@ -204,7 +204,7 @@ func (p *playlistQueryServiceImpl) FindPlaylistItems(ctx context.Context, userID
 }
 
 func (p *playlistQueryServiceImpl) FindRecentPlaylists(ctx context.Context, userID uuid.UUID) (_ []GetChannelPlaylistsView, err error) {
-	defer util.Wrap(&err, "playlistQueryService.FindRecentPlaylists(userID=%s)", userID)
+	defer util.Wrap(&err, "playlist.(*playlistQueryServiceImpl).FindRecentPlaylists(userID=%s)", userID)
 
 	rows, err := p.q.ListRecentPlaylists(ctx, userID)
 	if err != nil {

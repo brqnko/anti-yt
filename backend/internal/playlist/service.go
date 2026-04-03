@@ -31,7 +31,7 @@ func NewService(db *pgxpool.Pool, ytService youtube_d.Service) *Service {
 }
 
 func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, description, visibilityStr, playlistTypeStr string, basePlaylistUrl *string) (_ *Playlist, err error) {
-	defer util.Wrap(&err, "Service.CreatePlaylist(userID=%s)", userID)
+	defer util.Wrap(&err, "playlist.(*Service).CreatePlaylist(userID=%s)", userID)
 
 	playlist, err := NewPlaylist(
 		title,
@@ -179,7 +179,7 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 }
 
 func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid.UUID, title, description, visibilityStr, playlistTypeStr, accessToken, playlistID string) (_ *Playlist, err error) {
-	defer util.Wrap(&err, "Service.CreatePlaylistWithAccessToken(userID=%s)", userID)
+	defer util.Wrap(&err, "playlist.(*Service).CreatePlaylistWithAccessToken(userID=%s)", userID)
 
 	playlist, err := NewPlaylist(
 		title,
@@ -304,7 +304,7 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 }
 
 func (s *Service) GetPlaylists(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetPlaylistsView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetPlaylists")
+	defer util.Wrap(&err, "playlist.(*Service).GetPlaylists")
 
 	playlists, err := s.playlistQS.FindPlaylists(ctx, userID, cursor, limit+1)
 	if err != nil {
@@ -318,7 +318,7 @@ func (s *Service) GetPlaylists(ctx context.Context, userID uuid.UUID, cursor *uu
 }
 
 func (s *Service) GetChannelPlaylists(ctx context.Context, channelID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetChannelPlaylistsView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetChannelPlaylists")
+	defer util.Wrap(&err, "playlist.(*Service).GetChannelPlaylists")
 
 	playlists, err := s.playlistQS.FindChannelPlaylists(ctx, channelID, cursor, limit+1)
 	if err != nil {
@@ -332,13 +332,13 @@ func (s *Service) GetChannelPlaylists(ctx context.Context, channelID uuid.UUID, 
 }
 
 func (s *Service) GetRecentPlaylists(ctx context.Context, userID uuid.UUID) (_ []GetChannelPlaylistsView, err error) {
-	defer util.Wrap(&err, "Service.GetRecentPlaylists")
+	defer util.Wrap(&err, "playlist.(*Service).GetRecentPlaylists")
 
 	return s.playlistQS.FindRecentPlaylists(ctx, userID)
 }
 
 func (s *Service) GetPlaylistDetail(ctx context.Context, userID, playlistID uuid.UUID) (_ GetPlaylistDetailView, err error) {
-	defer util.Wrap(&err, "Service.GetPlaylistDetail")
+	defer util.Wrap(&err, "playlist.(*Service).GetPlaylistDetail")
 
 	view, err := s.playlistQS.Find(ctx, userID, playlistID)
 	if err != nil {
@@ -348,13 +348,13 @@ func (s *Service) GetPlaylistDetail(ctx context.Context, userID, playlistID uuid
 }
 
 func (s *Service) DeletePlaylist(ctx context.Context, userID, playlistID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "Service.DeletePlaylist")
+	defer util.Wrap(&err, "playlist.(*Service).DeletePlaylist")
 
 	return NewPlaylistRepository(sqlc.New(s.db)).Remove(ctx, userID, playlistID)
 }
 
 func (s *Service) GetPlaylistItems(ctx context.Context, userID, playlistID uuid.UUID, videoCursor *uuid.UUID, limit int32) (_ []GetPlaylistItemView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetPlaylistItems")
+	defer util.Wrap(&err, "playlist.(*Service).GetPlaylistItems")
 
 	items, err := s.playlistQS.FindPlaylistItems(ctx, userID, playlistID, videoCursor, limit+1)
 	if err != nil {
@@ -368,7 +368,7 @@ func (s *Service) GetPlaylistItems(ctx context.Context, userID, playlistID uuid.
 }
 
 func (s *Service) UpdatePlaylist(ctx context.Context, userID, playlistID uuid.UUID, newPlaylistTitle *string, newPlaylistDescription *string) (_ *Playlist, err error) {
-	defer util.Wrap(&err, "Service.UpdatePlaylist")
+	defer util.Wrap(&err, "playlist.(*Service).UpdatePlaylist")
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -405,7 +405,7 @@ func (s *Service) UpdatePlaylist(ctx context.Context, userID, playlistID uuid.UU
 }
 
 func (s *Service) InsertVideoIntoPlaylist(ctx context.Context, userID, playlistID, videoID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "Service.InsertVideoIntoPlaylist")
+	defer util.Wrap(&err, "playlist.(*Service).InsertVideoIntoPlaylist")
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -440,7 +440,7 @@ func (s *Service) InsertVideoIntoPlaylist(ctx context.Context, userID, playlistI
 }
 
 func (s *Service) FetchAndInsertVideoIntoPlaylist(ctx context.Context, userID, playlistID uuid.UUID, externalVideoText string) (_ uuid.UUID, err error) {
-	defer util.Wrap(&err, "Service.FetchAndInsertVideoIntoPlaylist")
+	defer util.Wrap(&err, "playlist.(*Service).FetchAndInsertVideoIntoPlaylist")
 
 	// YouTube動画IDを抽出
 	ytVideoID, err := youtube_d.ExtractVideoID(externalVideoText)
@@ -503,7 +503,7 @@ func (s *Service) FetchAndInsertVideoIntoPlaylist(ctx context.Context, userID, p
 }
 
 func (s *Service) CopyPlaylist(ctx context.Context, userID uuid.UUID, sourcePlaylistID uuid.UUID, title, description string) (_ *Playlist, err error) {
-	defer util.Wrap(&err, "Service.CopyPlaylist(userID=%s, sourcePlaylistID=%s)", userID, sourcePlaylistID)
+	defer util.Wrap(&err, "playlist.(*Service).CopyPlaylist(userID=%s, sourcePlaylistID=%s)", userID, sourcePlaylistID)
 
 	playlist, err := NewPlaylist(
 		title,
@@ -555,7 +555,7 @@ func (s *Service) CopyPlaylist(ctx context.Context, userID uuid.UUID, sourcePlay
 }
 
 func (s *Service) RemoveVideoFromPlaylist(ctx context.Context, userID, playlistID, videoID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "Service.RemoveVideoFromPlaylist")
+	defer util.Wrap(&err, "playlist.(*Service).RemoveVideoFromPlaylist")
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {

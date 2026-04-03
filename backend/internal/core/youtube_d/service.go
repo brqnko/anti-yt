@@ -61,7 +61,7 @@ type serviceImpl struct {
 
 // NOTE: 削除された動画などはAPIから返ってこず、また順番も保証されないのでmapで返す
 func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (_ map[VideoID]Video, err error) {
-	defer util.Wrap(&err, "youTubeAPIService.FetchVideoDetail")
+	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchVideoDetail")
 
 	if len(videoIDs) == 0 {
 		return map[VideoID]Video{}, nil
@@ -149,7 +149,7 @@ func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) 
 }
 
 func (s *serviceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (_ Channel, err error) {
-	defer util.Wrap(&err, "youTubeAPIService.FetchChannelDetailByIDOrHandle")
+	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchChannelDetailByIDOrHandle")
 
 	if err := s.tryConsumeQuota(1); err != nil {
 		return Channel{}, err
@@ -219,7 +219,7 @@ func (s *serviceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channe
 }
 
 func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []ChannelID) (_ map[ChannelID]Channel, err error) {
-	defer util.Wrap(&err, "youTubeAPIService.FetchChannelDetail")
+	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchChannelDetail")
 
 	if len(channelIDs) == 0 {
 		return map[ChannelID]Channel{}, nil
@@ -297,7 +297,7 @@ func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []Chann
 }
 
 func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error) {
-	defer util.Wrap(&err, "youTubeAPIService.FetchPlaylistVideoIDs")
+	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchPlaylistVideoIDs")
 
 	if err := s.tryConsumeQuota(1); err != nil {
 		return nil, "", err
@@ -334,7 +334,7 @@ func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID stri
 }
 
 func (s *serviceImpl) FetchChannelPlaylists(ctx context.Context, channelID ChannelID, pageToken string) (_ []Playlist, _ string, err error) {
-	defer util.Wrap(&err, "youTubeAPIService.FetchChannelPlaylists")
+	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchChannelPlaylists")
 
 	if err := s.tryConsumeQuota(1); err != nil {
 		return nil, "", err
@@ -378,7 +378,7 @@ func (s *serviceImpl) FetchChannelPlaylists(ctx context.Context, channelID Chann
 }
 
 func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToken string, opts SearchOptions) (_ []VideoID, _ string, err error) {
-	defer util.Wrap(&err, "youTubeAPIService.SearchVideoIDs")
+	defer util.Wrap(&err, "youtube_d.(*serviceImpl).SearchVideoIDs")
 
 	if err := s.tryConsumeQuota(100); err != nil {
 		return nil, "", err
@@ -453,7 +453,7 @@ func (s *serviceImpl) tryConsumeQuota(quota int) error {
 }
 
 func NewService(ctx context.Context, apiKey, oauthClientID, oauthClientSecret, oauthRedirectURL string) (_ Service, err error) {
-	defer util.Wrap(&err, "NewYouTubeAPIServiceImpl")
+	defer util.Wrap(&err, "youtube_d.NewService")
 
 	ytClient, err := youtube.NewService(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
@@ -480,7 +480,7 @@ func (s *serviceImpl) OAuthAuthCodeURL(state string) string {
 }
 
 func (s *serviceImpl) OAuthExchange(ctx context.Context, code string) (_ string, err error) {
-	defer util.Wrap(&err, "serviceImpl.OAuthExchange")
+	defer util.Wrap(&err, "youtube_d.(*serviceImpl).OAuthExchange")
 
 	token, err := s.oauthConfig.Exchange(ctx, code)
 	if err != nil {
@@ -490,7 +490,7 @@ func (s *serviceImpl) OAuthExchange(ctx context.Context, code string) (_ string,
 }
 
 func (s *serviceImpl) FetchAllSubscriptions(ctx context.Context, accessToken string) (_ []Channel, err error) {
-	defer util.Wrap(&err, "serviceImpl.FetchAllSubscriptions")
+	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchAllSubscriptions")
 
 	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}))
 	ytClient, err := youtube.NewService(ctx, option.WithHTTPClient(httpClient))
@@ -526,7 +526,7 @@ func (s *serviceImpl) FetchAllSubscriptions(ctx context.Context, accessToken str
 
 
 func (s *serviceImpl) FetchPlaylistVideoIDsWithOAuth(ctx context.Context, accessToken string, playlistID string, pageToken string) (_ []VideoID, _ string, err error) {
-	defer util.Wrap(&err, "serviceImpl.FetchPlaylistVideoIDsWithOAuth")
+	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchPlaylistVideoIDsWithOAuth")
 
 	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}))
 	ytClient, err := youtube.NewService(ctx, option.WithHTTPClient(httpClient))
@@ -565,7 +565,7 @@ func (s *serviceImpl) FetchPlaylistVideoIDsWithOAuth(ctx context.Context, access
 }
 
 func (s *serviceImpl) FetchWatchHistory(ctx context.Context, accessToken string, pageToken string) (_ []WatchHistory, _ string, err error) {
-	defer util.Wrap(&err, "serviceImpl.FetchWatchHistory")
+	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchWatchHistory")
 
 	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}))
 	ytClient, err := youtube.NewService(ctx, option.WithHTTPClient(httpClient))

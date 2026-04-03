@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/user"
@@ -22,7 +23,6 @@ type Service struct {
 }
 
 func NewService(db *pgxpool.Pool) *Service {
-
 	return &Service{
 		db:        db,
 		historyQS: NewHistoryQueryService(db),
@@ -30,7 +30,7 @@ func NewService(db *pgxpool.Pool) *Service {
 }
 
 func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, positionSeconds int, playlistID *uuid.UUID, loc *time.Location) (_ *int, err error) {
-	defer util.Wrap(&err, "Service.Heartbeat")
+	defer util.Wrap(&err, "history.(*Service).Heartbeat")
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -47,16 +47,43 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 		return nil, err
 	}
 
-	if err := NewHistoryRepository().Heartbeat(ctx, q, userID, videoID, positionSeconds, playlistID); err != nil {
+	// TODO: publish redent playlist
+	lastHeartbeat, lastVideoLength, lastHeartbeatID, lastUpdatedAt, err := NewHistoryRepository(q).GetLastHeartbeatForUpdate(ctx, userID)
+	if err == nil { // 最後のheartbeatの取得に成功
+		heartbeat, err := lastHeartbeat.Rotate(videoID, positionSeconds, lastVideoLength, lastUpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		if err := NewHistoryRepository(q).UpdateHeartbeat(ctx, lastHeartbeatID, lastHeartbeat); err != nil {
+			return nil, err
+		}
+		if err := NewHistoryRepository(q).CreateHeartbeat(ctx, heartbeat); err != nil {
+			return nil, err
+		}
+	} else if errors.Is(err, core.ErrNotFound) { // 初めてのHeartbeatの場合
+		// 普通にheartbeatを作成して挿入する
+		heartbeat, err := NewHeartbeat(videoID, userID, positionSeconds)
+		if err != nil {
+			return nil, err
+		}
+		if err := NewHistoryRepository(q).CreateHeartbeat(ctx, heartbeat); err != nil {
+			return nil, err
+		}
+	} else { // DBエラー
+		return nil, err
+	}
+
+	now := time.Now().In(loc)
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+	watchStats, err := q.GetDailyWatchSummary(ctx, sqlc.GetDailyWatchSummaryParams{
+		PublicID:   userID,
+		TodayStart: todayStart,
+	})
+	if err != nil {
 		return nil, err
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return nil, err
-	}
-
-	watchStats, err := s.historyQS.FindTotalWatchSeconds(ctx, userID, loc)
-	if err != nil {
 		return nil, err
 	}
 
@@ -68,19 +95,19 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 }
 
 func (s *Service) MarkVideoWatched(ctx context.Context, userID, videoID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "Service.MarkVideoWatched")
+	defer util.Wrap(&err, "history.(*Service).MarkVideoWatched")
 
-	return NewHistoryRepository().MarkVideoWatched(ctx, sqlc.New(s.db), userID, videoID)
+	return NewHistoryRepository(sqlc.New(s.db)).MarkVideoWatched(ctx, userID, videoID)
 }
 
 func (s *Service) UnmarkVideoWatched(ctx context.Context, userID, videoID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "Service.UnmarkVideoWatched")
+	defer util.Wrap(&err, "history.(*Service).UnmarkVideoWatched")
 
-	return NewHistoryRepository().UnmarkVideoWatched(ctx, sqlc.New(s.db), userID, videoID)
+	return NewHistoryRepository(sqlc.New(s.db)).UnmarkVideoWatched(ctx, userID, videoID)
 }
 
 func (s *Service) GetHistory(ctx context.Context, userID uuid.UUID, limit int, cursor *uuid.UUID, loc *time.Location) (_ []GetHistoryView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetHistory")
+	defer util.Wrap(&err, "history.(*Service).GetHistory")
 
 	views, err := s.historyQS.FindHistory(ctx, userID, cursor, int32(limit+1))
 	if err != nil {
@@ -98,7 +125,7 @@ func (s *Service) GetHistory(ctx context.Context, userID uuid.UUID, limit int, c
 }
 
 func (s *Service) GetStatisticsByWeek(ctx context.Context, userID uuid.UUID, targetWeek time.Time, loc *time.Location) (_ *string, _ []GetStatisticsWeeklyView, err error) {
-	defer util.Wrap(&err, "Service.GetStatisticsByWeek")
+	defer util.Wrap(&err, "history.(*Service).GetStatisticsByWeek")
 
 	aiSummary, views, err := s.historyQS.FindStatisticsByWeek(ctx, userID, targetWeek)
 	if err != nil {

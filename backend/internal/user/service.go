@@ -38,7 +38,7 @@ func NewService(db *pgxpool.Pool, jwtService jwt_d.Service, serverURL string) *S
 }
 
 func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailyScreenLimit *int, screenLimits []struct{ Start, End int }, displayName string, languageCode string, loc *time.Location) (_ *User, _ string, _ time.Time, err error) {
-	defer util.Wrap(&err, "Service.CreateNewUser")
+	defer util.Wrap(&err, "user.(*Service).CreateNewUser")
 
 	authorizationID, jti, err := s.jwtService.VerifyRegisterToken(accessToken)
 	if err != nil {
@@ -104,7 +104,7 @@ func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailySc
 }
 
 func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName, newLanguageCode *string, newDailyScreenLimit *int, newScreenLimits *[]struct{ Start, End int }, loc *time.Location) (_ *User, err error) {
-	defer util.Wrap(&err, "Service.EditUser(userID=%s)", userID)
+	defer util.Wrap(&err, "user.(*Service).EditUser(userID=%s)", userID)
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -159,7 +159,7 @@ func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName
 }
 
 func (s *Service) GetUserStatus(ctx context.Context, userID uuid.UUID) (_ UserStatusView, err error) {
-	defer util.Wrap(&err, "Service.GetUserStatus")
+	defer util.Wrap(&err, "user.(*Service).GetUserStatus")
 
 	view, err := s.userQS.Find(ctx, userID)
 	if err != nil {
@@ -169,7 +169,7 @@ func (s *Service) GetUserStatus(ctx context.Context, userID uuid.UUID) (_ UserSt
 }
 
 func (s *Service) RemoveUser(ctx context.Context, userID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "Service.RemoveUser")
+	defer util.Wrap(&err, "user.(*Service).RemoveUser")
 
 	if err := NewUserRepository(sqlc.New(s.db)).Remove(ctx, userID, LeaveReasonCode(0)); err != nil {
 		return err

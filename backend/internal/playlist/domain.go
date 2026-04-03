@@ -26,7 +26,7 @@ var visibilityCodeMap = []struct {
 }
 
 func NewVisibilityCode(s string) (_ VisibilityCode, err error) {
-	defer util.Wrap(&err, "NewVisibilityCode")
+	defer util.Wrap(&err, "playlist.NewVisibilityCode")
 
 	for _, c := range visibilityCodeMap {
 		if s == c.str {
@@ -50,7 +50,7 @@ func (v VisibilityCode) String() string {
 type PlaylistTitle string
 
 func NewPlaylistTitle(s string) (_ PlaylistTitle, err error) {
-	defer util.Wrap(&err, "NewPlaylistTitle")
+	defer util.Wrap(&err, "playlist.NewPlaylistTitle")
 
 	if len(s) == 0 || len(s) > 128 {
 		return "", ErrInvalidPlaylistTitle
@@ -65,7 +65,7 @@ func (p PlaylistTitle) String() string {
 type PlaylistDescription string
 
 func NewPlaylistDescription(s string) (_ PlaylistDescription, err error) {
-	defer util.Wrap(&err, "NewPlaylistDescription")
+	defer util.Wrap(&err, "playlist.NewPlaylistDescription")
 
 	if len(s) > 255 {
 		return "", ErrInvalidPlaylistDescription
@@ -81,7 +81,7 @@ func (p *Playlist) SetTitle(s *string) (err error) {
 	if s == nil {
 		return nil
 	}
-	defer util.Wrap(&err, "Playlist.SetTitle")
+	defer util.Wrap(&err, "playlist.(*Playlist).SetTitle")
 	t, err := NewPlaylistTitle(*s)
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func (p *Playlist) SetDescription(s *string) (err error) {
 	if s == nil {
 		return nil
 	}
-	defer util.Wrap(&err, "Playlist.SetDescription")
+	defer util.Wrap(&err, "playlist.(*Playlist).SetDescription")
 	d, err := NewPlaylistDescription(*s)
 	if err != nil {
 		return err
@@ -107,7 +107,7 @@ var ErrNegativeVideoCount = core.NewDomainError("playlist.negative_video_count",
 var ErrVideoCountUnderflow = core.NewDomainError("playlist.video_count_underflow", "video count is already 0")
 
 func (p *Playlist) SetVideoCount(count int) (err error) {
-	defer util.Wrap(&err, "Playlist.SetVideoCount")
+	defer util.Wrap(&err, "playlist.(*Playlist).SetVideoCount")
 	if count < 0 {
 		return ErrNegativeVideoCount
 	}
@@ -120,7 +120,7 @@ func (p *Playlist) IncrementVideoCount() {
 }
 
 func (p *Playlist) DecrementVideoCount() (err error) {
-	defer util.Wrap(&err, "Playlist.DecrementVideoCount")
+	defer util.Wrap(&err, "playlist.(*Playlist).DecrementVideoCount")
 	if p.VideoCount <= 0 {
 		return ErrVideoCountUnderflow
 	}
@@ -140,7 +140,7 @@ var playlistCodeMap = []struct {
 }
 
 func NewPlaylistCode(s string) (_ PlaylistCode, err error) {
-	defer util.Wrap(&err, "NewPlaylistCode")
+	defer util.Wrap(&err, "playlist.NewPlaylistCode")
 
 	for _, c := range playlistCodeMap {
 		if s == c.str {
@@ -212,7 +212,7 @@ func NewPlaylist(
 	playlistTypeStr string,
 	opts ...PlaylistOption,
 ) (_ *Playlist, err error) {
-	defer util.Wrap(&err, "NewPlaylist")
+	defer util.Wrap(&err, "playlist.NewPlaylist")
 
 	t, err := NewPlaylistTitle(title)
 	if err != nil {

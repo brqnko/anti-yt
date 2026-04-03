@@ -48,7 +48,7 @@ func NewService(
 }
 
 func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channelText string) (_ *Channel, err error) {
-	defer util.Wrap(&err, "Service.SubscribeChannel")
+	defer util.Wrap(&err, "channel.(*Service).SubscribeChannel")
 
 	// ユーザーはURLやハンドルやチャンネルIDで入力してくる
 	channelIDOrHandle, err := youtube_d.ExtractChannelIDOrHandle(channelText)
@@ -146,7 +146,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 }
 
 func (s *Service) UnsubscribeChannel(ctx context.Context, userID, channelID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "Service.UnsubscribeChannel")
+	defer util.Wrap(&err, "channel.(*Service).UnsubscribeChannel")
 
 	_, err = NewChannelRepository(sqlc.New(s.db)).RemoveSubscription(ctx, userID, channelID)
 	if err != nil {
@@ -157,7 +157,7 @@ func (s *Service) UnsubscribeChannel(ctx context.Context, userID, channelID uuid
 }
 
 func (s *Service) GetSubscriptions(ctx context.Context, userID uuid.UUID, limit int32, cursor *uuid.UUID) (_ []GetSubscriptionsView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetSubscriptions")
+	defer util.Wrap(&err, "channel.(*Service).GetSubscriptions")
 
 	if limit < 1 || 50 < limit { // openapiもあるが一応チェック
 		return nil, false, ErrInvalidSubscriptionLimit
@@ -175,7 +175,7 @@ func (s *Service) GetSubscriptions(ctx context.Context, userID uuid.UUID, limit 
 }
 
 func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32, order string) (_ []GetChannelUploadsView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetChannelUploads")
+	defer util.Wrap(&err, "channel.(*Service).GetChannelUploads")
 
 	if limit < 1 || 50 < limit {
 		return nil, false, ErrInvalidGetUploadLimit
@@ -246,7 +246,7 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 }
 
 func (s *Service) GetChannelDetail(ctx context.Context, channelID uuid.UUID) (_ GetChannelDetailView, err error) {
-	defer util.Wrap(&err, "Service.GetChannelDetail")
+	defer util.Wrap(&err, "channel.(*Service).GetChannelDetail")
 
 	detail, err := s.channelQS.GetChannelDetail(ctx, channelID)
 	if err != nil {
@@ -257,7 +257,7 @@ func (s *Service) GetChannelDetail(ctx context.Context, channelID uuid.UUID) (_ 
 }
 
 func (s *Service) GetChannelFeeds(ctx context.Context) (_ []GetValuableChannelView, err error) {
-	defer util.Wrap(&err, "Service.GetChannelFeeds")
+	defer util.Wrap(&err, "channel.(*Service).GetChannelFeeds")
 
 	channels, err := s.valuableChannelQS.GetValuableChannels(ctx)
 	if err != nil {

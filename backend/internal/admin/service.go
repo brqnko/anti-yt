@@ -33,7 +33,7 @@ func NewService(db *pgxpool.Pool, ytService youtube_d.Service) *Service {
 }
 
 func (s *Service) CreateNewValuableChannel(ctx context.Context, externalChannelID string, reason, description string) (_ *channel.ValuableChannel, err error) {
-	defer util.Wrap(&err, "Service.CreateNewValuableChannel")
+	defer util.Wrap(&err, "admin.(*Service).CreateNewValuableChannel")
 
 	// ユーザーはURLやハンドルやチャンネルIDで入力してくる
 	channelIDOrHandle, err := youtube_d.ExtractChannelIDOrHandle(externalChannelID)
@@ -128,7 +128,7 @@ func (s *Service) CreateNewValuableChannel(ctx context.Context, externalChannelI
 }
 
 func (s *Service) UpdateValuableChannel(ctx context.Context, externalChannelID string, reaason, description *string) (_ *channel.ValuableChannel, err error) {
-	defer util.Wrap(&err, "Service.UpdateValuableChannel")
+	defer util.Wrap(&err, "admin.(*Service).UpdateValuableChannel")
 
 	// ユーザーはURLやハンドルやチャンネルIDで入力してくる
 	channelIDOrHandle, err := youtube_d.ExtractChannelIDOrHandle(externalChannelID)
@@ -180,7 +180,7 @@ func (s *Service) UpdateValuableChannel(ctx context.Context, externalChannelID s
 }
 
 func (s *Service) ImportChannelVideos(ctx context.Context, externalChannelID string) (_ int, err error) {
-	defer util.Wrap(&err, "Service.ImportChannelVideos")
+	defer util.Wrap(&err, "admin.(*Service).ImportChannelVideos")
 
 	channelIDOrHandle, err := youtube_d.ExtractChannelIDOrHandle(externalChannelID)
 	if err != nil {
@@ -251,7 +251,7 @@ func (s *Service) ImportChannelVideos(ctx context.Context, externalChannelID str
 }
 
 func (s *Service) ImportChannelPlaylists(ctx context.Context, externalChannelID string) (_ int, err error) {
-	defer util.Wrap(&err, "Service.ImportChannelPlaylists")
+	defer util.Wrap(&err, "admin.(*Service).ImportChannelPlaylists")
 
 	channelIDOrHandle, err := youtube_d.ExtractChannelIDOrHandle(externalChannelID)
 	if err != nil {
@@ -472,7 +472,7 @@ func (s *Service) ImportChannelPlaylists(ctx context.Context, externalChannelID 
 }
 
 func (s *Service) RemoveValuableChannel(ctx context.Context, externalChannelID string) (err error) {
-	defer util.Wrap(&err, "Service.RemoveValuableChannel")
+	defer util.Wrap(&err, "admin.(*Service).RemoveValuableChannel")
 
 	channelIDOrHandle, err := youtube_d.ExtractChannelIDOrHandle(externalChannelID)
 	if err != nil {

@@ -2,14 +2,16 @@ import { useState, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { mutate } from "swr";
 import { getChannel } from "../api/generated/channel";
+import type { PostChannelsSubscribe201 } from "../api/generated/antiYtApi.schemas";
 import { CACHE_KEYS } from "../api/cache-keys";
 import { getApiErrorCode } from "../utils/api-error";
+import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
 
 interface AddChannelDialogProps {
   open: boolean;
   onClose: () => void;
-  onAdded: () => void;
+  onAdded: (channel: PostChannelsSubscribe201) => void;
 }
 
 export function AddChannelDialog({
@@ -30,24 +32,6 @@ export function AddChannelDialog({
     }
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    document.body.style.overflow = "hidden";
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (e.key === "a" && (e.metaKey || e.ctrlKey)) {
-        const target = e.target as HTMLElement;
-        const isEditable = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
-        if (!isEditable) e.preventDefault();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open, onClose]);
-
   if (!open) return null;
 
   const handleSubmit = async () => {
@@ -56,11 +40,11 @@ export function AddChannelDialog({
     setIsSubmitting(true);
     setError(null);
     try {
-      await getChannel().postChannelsSubscribe({
+      const res = await getChannel().postChannelsSubscribe({
         channel_id: trimmed,
       });
       await mutate(CACHE_KEYS.dashboardSubscriptions);
-      onAdded();
+      onAdded(res);
       onClose();
     } catch (err) {
       const code = getApiErrorCode(err);
@@ -71,24 +55,7 @@ export function AddChannelDialog({
   };
 
   return (
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("dashboard.addChannelDialog.title")}
-    >
-      <div
-        class="absolute inset-0 bg-black/60"
-        onClick={onClose}
-      />
-      <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl ring-1 ring-black/10 dark:ring-white/10 border border-gray-100 dark:border-neutral-800 p-8 max-w-sm w-full">
-        <button
-          class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
-          onClick={onClose}
-          aria-label={t("dashboard.addChannelDialog.cancel")}
-        >
-          <Icon name="close" />
-        </button>
+    <Dialog open={open} onClose={onClose} ariaLabel={t("dashboard.addChannelDialog.title")} maxWidth="max-w-sm" showCloseButton closeButtonLabel={t("dashboard.addChannelDialog.cancel")}>
         <h2 class="text-2xl font-bold text-charcoal dark:text-white mb-2">
           {t("dashboard.addChannelDialog.title")}
         </h2>
@@ -141,7 +108,6 @@ export function AddChannelDialog({
               : t("dashboard.addChannelDialog.add")}
           </button>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }

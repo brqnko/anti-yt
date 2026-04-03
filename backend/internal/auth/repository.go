@@ -27,7 +27,7 @@ type authorizationRepositoryImpl struct {
 }
 
 func (a *authorizationRepositoryImpl) Save(ctx context.Context, authorization *Authorization) (_ int64, err error) {
-	defer util.Wrap(&err, "authorizationRepository.Save")
+	defer util.Wrap(&err, "auth.(*authorizationRepositoryImpl).Save")
 
 	saveAuthorization, err := a.q.SaveAuthorization(ctx, sqlc.SaveAuthorizationParams{
 		Issuer:         authorization.Issuer,
@@ -62,7 +62,7 @@ func NewRefreshTokenRepository(q sqlc.Querier) RefreshTokenRepository {
 }
 
 func (r *refreshTokenRepositoryImpl) Save(ctx context.Context, authorizationID int64, refreshToken *RefreshToken) (_ int64, err error) {
-	defer util.Wrap(&err, "refreshTokenRepository.Save(authorizationID=%d)", authorizationID)
+	defer util.Wrap(&err, "auth.(*refreshTokenRepositoryImpl).Save(authorizationID=%d)", authorizationID)
 
 	refreshTokenID, err := r.q.InsertRefreshToken(ctx, sqlc.InsertRefreshTokenParams{
 		MUserAuthorizationID: authorizationID,
@@ -89,7 +89,7 @@ func (r *refreshTokenRepositoryImpl) Save(ctx context.Context, authorizationID i
 }
 
 func (r *refreshTokenRepositoryImpl) RevokeByTokenHash(ctx context.Context, userID uuid.UUID, tokenHash string, jtiExpiresAt time.Time) (err error) {
-	defer util.Wrap(&err, "refreshTokenRepository.RevokeByTokenHash(userID=%s)", userID)
+	defer util.Wrap(&err, "auth.(*refreshTokenRepositoryImpl).RevokeByTokenHash(userID=%s)", userID)
 
 	if _, err := r.q.RevokeRefreshTokenByHash(ctx, sqlc.RevokeRefreshTokenByHashParams{
 		UserPublicID: userID,
@@ -102,7 +102,7 @@ func (r *refreshTokenRepositoryImpl) RevokeByTokenHash(ctx context.Context, user
 }
 
 func (r *refreshTokenRepositoryImpl) RevokeByID(ctx context.Context, userID, sessionID uuid.UUID, jtiExpiresAt time.Time) (_ uuid.UUID, err error) {
-	defer util.Wrap(&err, "refreshTokenRepository.RevokeByID(userID=%s, sessionID=%s)", userID, sessionID)
+	defer util.Wrap(&err, "auth.(*refreshTokenRepositoryImpl).RevokeByID(userID=%s, sessionID=%s)", userID, sessionID)
 
 	removedPublicID, err := r.q.RevokeRefreshTokenByID(ctx, sqlc.RevokeRefreshTokenByIDParams{
 		RefreshTokenPublicID: sessionID,
@@ -119,7 +119,7 @@ func (r *refreshTokenRepositoryImpl) RevokeByID(ctx context.Context, userID, ses
 }
 
 func (r *refreshTokenRepositoryImpl) RotateRefreshToken(ctx context.Context, newRefreshToken *RefreshToken, tokenHashForCheck string, updatedAtForCheck time.Time) (_ uuid.UUID, err error) {
-	defer util.Wrap(&err, "refreshTokenRepository.RotateRefreshToken")
+	defer util.Wrap(&err, "auth.(*refreshTokenRepositoryImpl).RotateRefreshToken")
 
 	var userID uuid.UUID
 	userID, err = r.q.RotateRefreshToken(ctx, sqlc.RotateRefreshTokenParams{

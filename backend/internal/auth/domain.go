@@ -66,7 +66,7 @@ func WithRefreshTokenLastLoggedInAt(lastLoggedInAt time.Time) RefreshTokenOption
 }
 
 func NewRefreshToken(userAgent, deviceFingerprint, ipAddress, countryCode, cityName string, expiresAt time.Time, opts ...RefreshTokenOption) (_ *RefreshToken, err error) {
-	defer util.Wrap(&err, "NewRefreshToken")
+	defer util.Wrap(&err, "auth.NewRefreshToken")
 
 	id, err := uuid.NewV7()
 	if err != nil {
@@ -130,7 +130,7 @@ func WithAuthorizationID(id uuid.UUID) AuthorizationOption {
 }
 
 func NewAuthorization(issuer, sub string, options ...AuthorizationOption) (_ *Authorization, err error) {
-	defer util.Wrap(&err, "NewAuthorization")
+	defer util.Wrap(&err, "auth.NewAuthorization")
 
 	id, err := uuid.NewV7()
 	if err != nil {

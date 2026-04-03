@@ -19,7 +19,7 @@ type authorizationReportJob struct {
 }
 
 func (j *authorizationReportJob) run(ctx context.Context) (err error) {
-	defer util.Wrap(&err, "authorizationReportJob.run")
+	defer util.Wrap(&err, "job.(*authorizationReportJob).run")
 
 	count, err := j.authQS.CountAuthorizations(ctx)
 	if err != nil {

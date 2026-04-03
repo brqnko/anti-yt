@@ -1,5 +1,6 @@
 import { useState, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
+import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
 import { GetSearchOrder } from "../api/generated/antiYtApi.schemas";
 
@@ -36,19 +37,6 @@ export function SearchFilterDialog({
     if (open) setDraft(filters);
   }, [open, filters]);
 
-  useEffect(() => {
-    if (!open) return;
-    document.body.style.overflow = "hidden";
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open, onClose]);
-
   if (!open) return null;
 
   const handleApply = () => {
@@ -67,22 +55,7 @@ export function SearchFilterDialog({
     draft.order || draft.published_after || draft.published_before || draft.region_code || draft.relevance_language;
 
   return (
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("search.filters.title")}
-    >
-      <div class="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl ring-1 ring-black/10 dark:ring-white/10 border border-gray-100 dark:border-neutral-800 p-8 max-w-md w-full max-h-[85vh] overflow-y-auto">
-        <button
-          class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
-          onClick={onClose}
-          aria-label={t("search.filters.close")}
-        >
-          <Icon name="close" />
-        </button>
-
+    <Dialog open={open} onClose={onClose} ariaLabel={t("search.filters.title")} showCloseButton closeButtonLabel={t("search.filters.close")} panelClass="max-h-[85vh] overflow-y-auto">
         <h2 class="text-2xl font-bold text-charcoal dark:text-white mb-6">
           {t("search.filters.title")}
         </h2>
@@ -206,7 +179,6 @@ export function SearchFilterDialog({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }

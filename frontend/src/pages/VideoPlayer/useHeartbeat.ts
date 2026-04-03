@@ -4,8 +4,8 @@ import { getHistory } from "../../api/generated/history";
 import { getCookie } from "../../utils/cookie";
 import { getCachedVisitorId } from "../../api/axios-instance";
 
-const HEARTBEAT_INTERVAL_MS = 60_000;
-const HEARTBEAT_DEBOUNCE_MS = 2_000;
+const HEARTBEAT_INTERVAL_TICKS = 60; // 60 ticks = 60 seconds (onSyncTick fires every 1s)
+const HEARTBEAT_DEBOUNCE_TICKS = 2;
 
 /** Fire-and-forget heartbeat that survives page unload / navigation. */
 function sendBeaconHeartbeat(videoId: string, positionSeconds: number, playlistId: string | null): void {
@@ -44,8 +44,9 @@ interface UseHeartbeatOptions {
 /**
  * Manages watch-time heartbeats for the video player.
  *
- * Sends periodic heartbeats while playing, handles final heartbeat on
- * pause/unload, and counts down remaining daily screen time.
+ * Instead of running its own timers, exposes a `tick()` that should be called
+ * from the player's onSyncTick (every ~1 s while playing). Sends a heartbeat
+ * every HEARTBEAT_INTERVAL_TICKS ticks and counts down remaining daily screen time.
  */
 export function useHeartbeat({
   videoId,
@@ -55,17 +56,14 @@ export function useHeartbeat({
   togglePlay,
 }: UseHeartbeatOptions): {
   remainingSeconds: number | null;
-  tickRemaining: () => void;
+  tick: () => void;
 } {
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 
-  const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const heartbeatDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const heartbeatFailCountRef = useRef(0);
+  const tickCountRef = useRef(0);
   const finalHeartbeatSentRef = useRef(false);
   const lastFinalSentAtRef = useRef(0);
 
-  // Keep videoId/playlistId accessible in callbacks without adding it to effect deps where not needed
   const videoIdRef = useRef(videoId);
   videoIdRef.current = videoId;
   const playlistIdRef = useRef(playlistId);
@@ -74,7 +72,6 @@ export function useHeartbeat({
   // PlayerState.PLAYING === 1
   const isPlaying = playerState === 1;
 
-  // Send a final heartbeat via keepalive fetch. Guarded to fire at most once per pause/unload.
   const sendFinalHeartbeat = useCallback(() => {
     if (finalHeartbeatSentRef.current) return;
     const now = Date.now();
@@ -96,73 +93,57 @@ export function useHeartbeat({
     return () => window.removeEventListener("beforeunload", handler);
   }, [videoId, isPlaying, sendFinalHeartbeat]);
 
-  // Heartbeat for watch time tracking (with debounce on play start)
+  // Reset tick counter & final-heartbeat guard when playback resumes
   useEffect(() => {
-    if (!videoId || !isPlaying) {
-      if (heartbeatDebounceRef.current) {
-        clearTimeout(heartbeatDebounceRef.current);
-        heartbeatDebounceRef.current = null;
-      }
-      if (heartbeatRef.current) {
-        clearInterval(heartbeatRef.current);
-        heartbeatRef.current = null;
-      }
-      return;
+    if (isPlaying) {
+      tickCountRef.current = 0;
+      finalHeartbeatSentRef.current = false;
+    }
+  }, [isPlaying]);
+
+  const sendHeartbeat = useCallback(() => {
+    const vid = videoIdRef.current;
+    if (!vid) return;
+    getHistory()
+      .postVideosVideoIdHeartbeats(vid, {
+        current_position_seconds: Math.floor(currentTimeRef.current),
+        ...(playlistIdRef.current ? { playlist_id: playlistIdRef.current } : {}),
+      })
+      .then((res) => {
+        const remaining = res.daily_remaining_seconds ?? null;
+        setRemainingSeconds(remaining);
+        if (remaining !== null && remaining <= 0) {
+          togglePlay();
+          window.dispatchEvent(
+            new CustomEvent("screen-time:blocked", { detail: { reason: "limit_exceeded" } }),
+          );
+        }
+      })
+      .catch((err: unknown) => {
+        const status = (err as { response?: { status?: number } })?.response?.status;
+        console.warn(`[heartbeat] request failed (status=${status ?? "unknown"}) — pausing playback`);
+        togglePlay();
+      });
+  }, [currentTimeRef, togglePlay]);
+
+  // Send a heartbeat via the API when the video ends (ENDED === 0)
+  useEffect(() => {
+    if (playerState === 0 && videoId) {
+      sendHeartbeat();
+    }
+  }, [playerState, videoId, sendHeartbeat]);
+
+  // Called from onSyncTick every ~1 s while playing.
+  const tick = useCallback(() => {
+    tickCountRef.current += 1;
+
+    // Heartbeat: first after debounce, then every interval
+    const count = tickCountRef.current;
+    if (count >= HEARTBEAT_DEBOUNCE_TICKS && (count - HEARTBEAT_DEBOUNCE_TICKS) % HEARTBEAT_INTERVAL_TICKS === 0) {
+      sendHeartbeat();
     }
 
-    // Reset guard — playback resumed, allow a new final heartbeat on next pause/unload
-    finalHeartbeatSentRef.current = false;
-    heartbeatFailCountRef.current = 0;
-
-    const sendHeartbeat = () => {
-      getHistory()
-        .postVideosVideoIdHeartbeats(videoId, {
-          current_position_seconds: Math.floor(currentTimeRef.current),
-          ...(playlistIdRef.current ? { playlist_id: playlistIdRef.current } : {}),
-        })
-        .then((res) => {
-          heartbeatFailCountRef.current = 0;
-          const remaining = res.daily_remaining_seconds ?? null;
-          setRemainingSeconds(remaining);
-          if (remaining !== null && remaining <= 0) {
-            togglePlay();
-            window.dispatchEvent(
-              new CustomEvent("screen-time:blocked", { detail: { reason: "limit_exceeded" } }),
-            );
-          }
-        })
-        .catch((err: unknown) => {
-          const status = (err as { response?: { status?: number } })?.response?.status;
-          console.warn(`[heartbeat] request failed (status=${status ?? "unknown"})`);
-          heartbeatFailCountRef.current += 1;
-          if (heartbeatFailCountRef.current >= 3) {
-            console.warn("[heartbeat] 3 consecutive failures — pausing playback");
-            togglePlay();
-          }
-        });
-    };
-
-    // Debounce: wait before sending first heartbeat to avoid bursts from rapid pause/play
-    heartbeatDebounceRef.current = setTimeout(() => {
-      sendHeartbeat();
-      heartbeatRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
-    }, HEARTBEAT_DEBOUNCE_MS);
-
-    return () => {
-      if (heartbeatDebounceRef.current) {
-        clearTimeout(heartbeatDebounceRef.current);
-        heartbeatDebounceRef.current = null;
-      }
-      if (heartbeatRef.current) {
-        clearInterval(heartbeatRef.current);
-        heartbeatRef.current = null;
-      }
-      sendFinalHeartbeat();
-    };
-  }, [videoId, isPlaying, togglePlay, sendFinalHeartbeat, currentTimeRef]);
-
-  // Called by the player's syncTick so remaining countdown shares the same timer.
-  const tickRemaining = useCallback(() => {
+    // Countdown remaining screen time
     setRemainingSeconds((prev) => {
       if (prev === null) return null;
       if (prev <= 1) {
@@ -174,7 +155,7 @@ export function useHeartbeat({
       }
       return prev - 1;
     });
-  }, [togglePlay]);
+  }, [sendHeartbeat, togglePlay]);
 
-  return { remainingSeconds, tickRemaining };
+  return { remainingSeconds, tick };
 }
