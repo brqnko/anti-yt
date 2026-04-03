@@ -4,6 +4,7 @@ import { formatDuration, formatTimeAgo } from "../utils/format";
 import { buildWatchUrl } from "../utils/url";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
+import { Toggle } from "./Toggle";
 
 export interface VideoCardProps {
   videoId: string;
@@ -150,23 +151,9 @@ function VideoCardMenu({
                     {t("videoCard.subscribeDesc")}
                   </span>
                 </div>
-                <button
-                  class="relative inline-flex items-center cursor-pointer bg-transparent border-none p-0 flex-shrink-0 ml-3"
-                  onClick={handleToggle}
-                  disabled={toggling}
-                >
-                  <div
-                    class={`w-14 h-7 rounded-full transition-colors duration-200 ${
-                      subscribed ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"
-                    } ${toggling ? "opacity-50" : ""}`}
-                  >
-                    <div
-                      class={`absolute top-0.5 left-[4px] bg-white border border-gray-300 rounded-full h-6 w-6 transition-transform duration-200 ${
-                        subscribed ? "translate-x-full" : ""
-                      }`}
-                    />
-                  </div>
-                </button>
+                <div class="ml-3">
+                  <Toggle checked={subscribed} disabled={toggling} onClick={handleToggle} />
+                </div>
               </div>
             )}
             {onMarkWatched && (
