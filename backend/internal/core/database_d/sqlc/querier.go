@@ -44,6 +44,7 @@ type Querier interface {
 	// m_user.public_idから、そのユーザーが今日視聴していた合計時間(seconds)と設定している制限時間を返す。
 	// その日に一本も動画を視聴していない場合は0を返します。
 	GetDailyWatchSummary(ctx context.Context, arg GetDailyWatchSummaryParams) (GetDailyWatchSummaryRow, error)
+	GetLastHeartbeatForUpdate(ctx context.Context, userPublicID uuid.UUID) (GetLastHeartbeatForUpdateRow, error)
 	GetLatestMonthlyVideoWatchSummary(ctx context.Context, userID uuid.UUID) (GetLatestMonthlyVideoWatchSummaryRow, error)
 	GetPlaylistForUpdate(ctx context.Context, arg GetPlaylistForUpdateParams) (GetPlaylistForUpdateRow, error)
 	GetPlaylistWithThumbnail(ctx context.Context, arg GetPlaylistWithThumbnailParams) (GetPlaylistWithThumbnailRow, error)
@@ -58,6 +59,7 @@ type Querier interface {
 	GetValuableChannelForUpdate(ctx context.Context, channelPublicID uuid.UUID) (GetValuableChannelForUpdateRow, error)
 	GetVideoDetail(ctx context.Context, arg GetVideoDetailParams) (GetVideoDetailRow, error)
 	GetVideoWatchTitlesByUser(ctx context.Context, lowerID uuid.UUID) ([]GetVideoWatchTitlesByUserRow, error)
+	InsertHeartbeat(ctx context.Context, arg InsertHeartbeatParams) error
 	InsertPlaylistVideo(ctx context.Context, arg InsertPlaylistVideoParams) error
 	// リフレッシュトークンをテーブルに保存する。
 	// m_refresh_token_idが返される。
@@ -115,6 +117,7 @@ type Querier interface {
 	// トランザクションレベルのロック（ノンブロッキング）
 	TryAcquireAdvisoryXactLock(ctx context.Context, dollar_1 int64) (bool, error)
 	UnmarkVideoWatched(ctx context.Context, arg UnmarkVideoWatchedParams) error
+	UpdateHeartbeat(ctx context.Context, arg UpdateHeartbeatParams) error
 	UpdatePlaylist(ctx context.Context, arg UpdatePlaylistParams) (uuid.UUID, error)
 	// ユーザーを更新する。
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
@@ -124,7 +127,6 @@ type Querier interface {
 	UpsertRatelimit(ctx context.Context, arg UpsertRatelimitParams) (UpsertRatelimitRow, error)
 	UpsertValuableChannel(ctx context.Context, arg UpsertValuableChannelParams) (int64, error)
 	UpsertVideo(ctx context.Context, arg UpsertVideoParams) (UpsertVideoRow, error)
-	UpsertWatchHeartbeat(ctx context.Context, arg UpsertWatchHeartbeatParams) error
 }
 
 var _ Querier = (*Queries)(nil)

@@ -71,7 +71,7 @@ func NewService(
 }
 
 func (s *Service) CreateAuthCode(ctx context.Context, platform string) (_, _ string, err error) {
-	defer util.Wrap(&err, "Service.CreateAuthCode")
+	defer util.Wrap(&err, "auth.(*Service).CreateAuthCode")
 
 	if platform == "" {
 		platform = "web"
@@ -86,7 +86,7 @@ func (s *Service) CreateAuthCode(ctx context.Context, platform string) (_, _ str
 }
 
 func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipAddress, countryCode, deviceFingerprint, userAgent string) (_, _, _, _ string, _ string, _, _ time.Time, err error) {
-	defer util.Wrap(&err, "Service.GoogleOIDCCallback")
+	defer util.Wrap(&err, "auth.(*Service).GoogleOIDCCallback")
 
 	if csrf == "" || state == "" {
 		return "", "", "", "", "", time.Time{}, time.Time{}, ErrInvalidCSRFOrState
@@ -202,7 +202,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 }
 
 func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) (err error) {
-	defer util.Wrap(&err, "Service.Logout")
+	defer util.Wrap(&err, "auth.(*Service).Logout")
 
 	q := sqlc.New(s.db)
 	userID, _, _, _ := s.jwtService.VerifyUserAccessToken(accessToken)
@@ -212,7 +212,7 @@ func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) 
 }
 
 func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, countryCode, deviceFingerprint, userAgent string) (_, _ string, _, _ time.Time, err error) {
-	defer util.Wrap(&err, "Service.RefreshToken")
+	defer util.Wrap(&err, "auth.(*Service).RefreshToken")
 
 	tokenHash := util.Sha256Hex(refreshToken)
 
@@ -262,7 +262,7 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 }
 
 func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetSessionsView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetSessions")
+	defer util.Wrap(&err, "auth.(*Service).GetSessions")
 
 	view, err := s.refreshTokenQS.GetSessions(ctx, userID, cursor, limit+1)
 	if err != nil {
@@ -275,7 +275,7 @@ func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID, cursor *uui
 }
 
 func (s *Service) RemoveSession(ctx context.Context, userID, sessionID uuid.UUID) (_ uuid.UUID, err error) {
-	defer util.Wrap(&err, "Service.RemoveSession")
+	defer util.Wrap(&err, "auth.(*Service).RemoveSession")
 
 	q := sqlc.New(s.db)
 	removedPublicID, err := NewRefreshTokenRepository(q).RevokeByID(ctx, userID, sessionID, time.Now().UTC().Add(s.jwtService.TokenDuration()))
@@ -287,7 +287,7 @@ func (s *Service) RemoveSession(ctx context.Context, userID, sessionID uuid.UUID
 }
 
 func (s *Service) CreateYouTubeAuthCode(_ context.Context, userID uuid.UUID, importSubscriptions, importLikes bool) (_ string, err error) {
-	defer util.Wrap(&err, "Service.CreateYouTubeAuthCode")
+	defer util.Wrap(&err, "auth.(*Service).CreateYouTubeAuthCode")
 
 	if !importSubscriptions && !importLikes {
 		return "", ErrNoImportOptionSelected
@@ -302,7 +302,7 @@ func (s *Service) CreateYouTubeAuthCode(_ context.Context, userID uuid.UUID, imp
 }
 
 func (s *Service) YouTubeOAuthCallback(ctx context.Context, state, code string) (err error) {
-	defer util.Wrap(&err, "Service.YouTubeOAuthCallback")
+	defer util.Wrap(&err, "auth.(*Service).YouTubeOAuthCallback")
 
 	userID, importSubscriptions, importLikes, err := s.jwtService.VerifyYouTubeImportStateToken(state)
 	if err != nil {

@@ -34,7 +34,7 @@ func NewService(db *pgxpool.Pool, ytService youtube_d.Service, rssFetchDuration 
 }
 
 func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetFeed")
+	defer util.Wrap(&err, "feed.(*Service).GetFeed")
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -118,7 +118,7 @@ type SearchVideoView struct {
 }
 
 func (s *Service) Search(ctx context.Context, query string, limit int, cursor *string, opts youtube_d.SearchOptions) (_ []SearchVideoView, _ bool, _ *string, err error) {
-	defer util.Wrap(&err, "Service.Search")
+	defer util.Wrap(&err, "feed.(*Service).Search")
 
 	pageToken := ""
 	if cursor != nil {

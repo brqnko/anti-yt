@@ -34,7 +34,7 @@ func NewUserRepository(q sqlc.Querier) UserRepository {
 }
 
 func (r *userRepositoryImpl) FindForUpdate(ctx context.Context, userID uuid.UUID) (_ *User, err error) {
-	defer util.Wrap(&err, "userRepository.FindForUpdate(userID=%s)", userID)
+	defer util.Wrap(&err, "user.(*userRepositoryImpl).FindForUpdate(userID=%s)", userID)
 
 	row, err := r.q.GetUserForUpdate(ctx, userID)
 	if err != nil {
@@ -64,7 +64,7 @@ func (r *userRepositoryImpl) FindForUpdate(ctx context.Context, userID uuid.UUID
 }
 
 func (r *userRepositoryImpl) FindScreenTimeRanges(ctx context.Context, userID uuid.UUID) (_ *DailyScreenTimeLimitRangeSet, err error) {
-	defer util.Wrap(&err, "userRepository.FindScreenTimeRanges(userID=%s)", userID)
+	defer util.Wrap(&err, "user.(*userRepositoryImpl).FindScreenTimeRanges(userID=%s)", userID)
 
 	rows, err := r.q.ListScreenTimeRanges(ctx, userID)
 	if err != nil {
@@ -82,7 +82,7 @@ func (r *userRepositoryImpl) FindScreenTimeRanges(ctx context.Context, userID uu
 }
 
 func (r *userRepositoryImpl) Save(ctx context.Context, u *User, authorizationID uuid.UUID) (_ int64, err error) {
-	defer util.Wrap(&err, "userRepository.Save(authorizationID=%s)", authorizationID)
+	defer util.Wrap(&err, "user.(*userRepositoryImpl).Save(authorizationID=%s)", authorizationID)
 
 	mUserID, err := r.q.InsertUser(ctx, sqlc.InsertUserParams{
 		DisplayName:               u.DisplayName.String(),
@@ -99,7 +99,7 @@ func (r *userRepositoryImpl) Save(ctx context.Context, u *User, authorizationID 
 }
 
 func (r *userRepositoryImpl) Update(ctx context.Context, u *User) (_ int64, err error) {
-	defer util.Wrap(&err, "userRepository.Update")
+	defer util.Wrap(&err, "user.(*userRepositoryImpl).Update")
 
 	mUserID, err := r.q.UpdateUser(ctx, sqlc.UpdateUserParams{
 		DisplayName:            u.DisplayName.String(),
@@ -114,7 +114,7 @@ func (r *userRepositoryImpl) Update(ctx context.Context, u *User) (_ int64, err 
 }
 
 func (r *userRepositoryImpl) SaveScreenTimeRanges(ctx context.Context, mUserID int64, rangeSet *DailyScreenTimeLimitRangeSet) (err error) {
-	defer util.Wrap(&err, "userRepository.SaveScreenTimeRanges(mUserID=%d)", mUserID)
+	defer util.Wrap(&err, "user.(*userRepositoryImpl).SaveScreenTimeRanges(mUserID=%d)", mUserID)
 
 	params := make([]sqlc.BulkInsertScreenTimeRangesParams, len(rangeSet.Ranges))
 	for i, r := range rangeSet.Ranges {
@@ -131,7 +131,7 @@ func (r *userRepositoryImpl) SaveScreenTimeRanges(ctx context.Context, mUserID i
 }
 
 func (r *userRepositoryImpl) Remove(ctx context.Context, userID uuid.UUID, leaveReasonCode LeaveReasonCode) (err error) {
-	defer util.Wrap(&err, "userRepository.Remove(userID=%s)", userID)
+	defer util.Wrap(&err, "user.(*userRepositoryImpl).Remove(userID=%s)", userID)
 
 	if err := r.q.ArchiveUser(ctx, sqlc.ArchiveUserParams{
 		LeaveReasonCode: int(leaveReasonCode),
@@ -144,7 +144,7 @@ func (r *userRepositoryImpl) Remove(ctx context.Context, userID uuid.UUID, leave
 }
 
 func (r *userRepositoryImpl) CountByAuthorization(ctx context.Context, authorizationID uuid.UUID) (_ int32, err error) {
-	defer util.Wrap(&err, "userRepository.CountByAuthorization(authorizationID=%s)", authorizationID)
+	defer util.Wrap(&err, "user.(*userRepositoryImpl).CountByAuthorization(authorizationID=%s)", authorizationID)
 
 	count, err := r.q.CountUsersByAuthorization(ctx, authorizationID)
 	if err != nil {
@@ -154,7 +154,7 @@ func (r *userRepositoryImpl) CountByAuthorization(ctx context.Context, authoriza
 }
 
 func (r *userRepositoryImpl) DeleteLeftByAuthorization(ctx context.Context, authorizationID uuid.UUID) (_ int64, err error) {
-	defer util.Wrap(&err, "userRepository.DeleteLeftByAuthorization(authorizationID=%s)", authorizationID)
+	defer util.Wrap(&err, "user.(*userRepositoryImpl).DeleteLeftByAuthorization(authorizationID=%s)", authorizationID)
 
 	hUserID, err := r.q.DeleteLeftUserByAuthorization(ctx, authorizationID)
 	if err != nil {

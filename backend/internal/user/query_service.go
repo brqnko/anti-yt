@@ -41,7 +41,7 @@ func NewUserQueryService(db *pgxpool.Pool) UserQueryService {
 }
 
 func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (_ UserStatusView, err error) {
-	defer util.Wrap(&err, "userQueryService.Find(userID=%s)", userID)
+	defer util.Wrap(&err, "user.(*userQueryServiceImpl).Find(userID=%s)", userID)
 
 	rows, err := u.q.GetUserProfile(ctx, userID)
 	if err != nil {
@@ -89,7 +89,7 @@ func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (_ Us
 }
 
 func (u *userQueryServiceImpl) FindByAuthorizationID(ctx context.Context, authorizationID int64) (_ uuid.UUID, _ bool, err error) {
-	defer util.Wrap(&err, "userQueryService.FindByAuthorizationID(authorizationID=%d)", authorizationID)
+	defer util.Wrap(&err, "user.(*userQueryServiceImpl).FindByAuthorizationID(authorizationID=%d)", authorizationID)
 
 	row, err := u.q.GetUserIDByAuthorization(ctx, authorizationID)
 	if err != nil {

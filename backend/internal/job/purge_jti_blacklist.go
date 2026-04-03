@@ -16,7 +16,7 @@ type purgeJTIBlacklistJob struct {
 }
 
 func (j *purgeJTIBlacklistJob) run(ctx context.Context) (err error) {
-	defer util.Wrap(&err, "purgeJTIBlacklistJob.run")
+	defer util.Wrap(&err, "job.(*purgeJTIBlacklistJob).run")
 
 	return sqlc.New(j.db).PurgeExpiredJTIBlacklist(ctx, time.Now().UTC())
 }

@@ -30,7 +30,7 @@ func NewPlaylistRepository(q sqlc.Querier) PlaylistRepository {
 }
 
 func (r *playlistRepositoryImpl) Save(ctx context.Context, playlist *Playlist) (_ int64, err error) {
-	defer util.Wrap(&err, "playlistRepository.Save(playlistID=%s)", playlist.ID)
+	defer util.Wrap(&err, "playlist.(*playlistRepositoryImpl).Save(playlistID=%s)", playlist.ID)
 
 	var userPublicID uuid.UUID
 	if playlist.UserID != nil {
@@ -97,7 +97,7 @@ func (r *playlistRepositoryImpl) InsertVideo(ctx context.Context, userID, playli
 }
 
 func (r *playlistRepositoryImpl) BulkInsertVideos(ctx context.Context, playlistInternalID int64, videoInternalIDs []int64) (err error) {
-	defer util.Wrap(&err, "playlistRepository.BulkInsertVideos(playlistInternalID=%d)", playlistInternalID)
+	defer util.Wrap(&err, "playlist.(*playlistRepositoryImpl).BulkInsertVideos(playlistInternalID=%d)", playlistInternalID)
 
 	params := make([]sqlc.BulkInsertPlaylistVideosParams, len(videoInternalIDs))
 	for i, videoID := range videoInternalIDs {
@@ -127,7 +127,7 @@ func (r *playlistRepositoryImpl) RemoveVideo(ctx context.Context, userID, playli
 }
 
 func (r *playlistRepositoryImpl) CopyVideos(ctx context.Context, userID uuid.UUID, sourcePlaylistID uuid.UUID, destPlaylistInternalID int64) (_ int, err error) {
-	defer util.Wrap(&err, "playlistRepository.CopyVideos(sourcePlaylistID=%s, destPlaylistInternalID=%d)", sourcePlaylistID, destPlaylistInternalID)
+	defer util.Wrap(&err, "playlist.(*playlistRepositoryImpl).CopyVideos(sourcePlaylistID=%s, destPlaylistInternalID=%d)", sourcePlaylistID, destPlaylistInternalID)
 
 	copiedCount, err := r.q.CopyPlaylistVideos(ctx, sqlc.CopyPlaylistVideosParams{
 		DestPlaylistID:   destPlaylistInternalID,

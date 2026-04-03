@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
+import { useEscapeKey } from "../../hooks/useEscapeKey";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
+import { Dialog } from "../../components/Dialog";
 import { getPlaylist } from "../../api/generated/playlist";
 import { getApiErrorCode } from "../../utils/api-error";
 import { formatTimeAgo } from "../../utils/format";
@@ -19,20 +21,6 @@ import type {
   GetPlaylistsPlaylistIdVideos200ItemsItem,
 } from "../../api/generated/antiYtApi.schemas";
 
-function useEscapeKey(open: boolean, onClose: () => void) {
-  useEffect(() => {
-    if (!open) return;
-    document.body.style.overflow = "hidden";
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open, onClose]);
-}
 
 function EditPlaylistDialog({
   open,
@@ -50,8 +38,6 @@ function EditPlaylistDialog({
   const [description, setDescription] = useState(playlist.playlist_description);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEscapeKey(open, onClose);
 
   useEffect(() => {
     if (open) {
@@ -84,19 +70,8 @@ function EditPlaylistDialog({
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("playlistDetail.editDialog.title")}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-md p-6 flex flex-col gap-4">
+    <Dialog open={open} onClose={onClose} ariaLabel={t("playlistDetail.editDialog.title")} panelClass="flex flex-col gap-4">
         <h2 class="text-xl font-bold text-charcoal dark:text-white">
           {t("playlistDetail.editDialog.title")}
         </h2>
@@ -147,8 +122,7 @@ function EditPlaylistDialog({
               : t("playlistDetail.editDialog.save")}
           </button>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }
 
@@ -164,20 +138,9 @@ function DeleteConfirmDialog({
   isDeleting: boolean;
 }) {
   const { t } = useTranslation();
-  useEscapeKey(open, onClose);
-  if (!open) return null;
 
   return (
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("playlistDetail.deleteDialog.title")}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-sm p-6 flex flex-col gap-4">
+    <Dialog open={open} onClose={onClose} ariaLabel={t("playlistDetail.deleteDialog.title")} maxWidth="max-w-sm" panelClass="flex flex-col gap-4">
         <h2 class="text-xl font-bold text-charcoal dark:text-white">
           {t("playlistDetail.deleteDialog.title")}
         </h2>
@@ -201,8 +164,7 @@ function DeleteConfirmDialog({
               : t("playlistDetail.deleteDialog.confirm")}
           </button>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }
 
@@ -222,20 +184,9 @@ function RemoveVideoDialog({
   error: boolean;
 }) {
   const { t } = useTranslation();
-  useEscapeKey(open, onClose);
-  if (!open) return null;
 
   return (
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("playlistDetail.removeVideoDialog.title")}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-sm p-6 flex flex-col gap-4">
+    <Dialog open={open} onClose={onClose} ariaLabel={t("playlistDetail.removeVideoDialog.title")} maxWidth="max-w-sm" panelClass="flex flex-col gap-4">
         <h2 class="text-xl font-bold text-charcoal dark:text-white">
           {t("playlistDetail.removeVideoDialog.title")}
         </h2>
@@ -264,8 +215,7 @@ function RemoveVideoDialog({
               : t("playlistDetail.removeVideoDialog.confirm")}
           </button>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }
 
@@ -284,8 +234,6 @@ function AddVideoDialog({
   const [text, setText] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEscapeKey(open, onClose);
 
   useEffect(() => {
     if (open) {
@@ -313,19 +261,8 @@ function AddVideoDialog({
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("playlistDetail.addVideo")}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-md p-6 flex flex-col gap-4">
+    <Dialog open={open} onClose={onClose} ariaLabel={t("playlistDetail.addVideo")} panelClass="flex flex-col gap-4">
         <h2 class="text-xl font-bold text-charcoal dark:text-white">
           {t("playlistDetail.addVideo")}
         </h2>
@@ -371,8 +308,7 @@ function AddVideoDialog({
             {isAdding ? t("playlistDetail.addVideoAdding") : t("playlistDetail.addVideoButton")}
           </button>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }
 
@@ -392,8 +328,6 @@ function CopyPlaylistDialog({
   const [description, setDescription] = useState(playlist.playlist_description);
   const [isCopying, setIsCopying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEscapeKey(open, onClose);
 
   useEffect(() => {
     if (open) {
@@ -421,19 +355,8 @@ function CopyPlaylistDialog({
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("playlistDetail.copyDialog.title")}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-md p-6 flex flex-col gap-4">
+    <Dialog open={open} onClose={onClose} ariaLabel={t("playlistDetail.copyDialog.title")} panelClass="flex flex-col gap-4">
         <h2 class="text-xl font-bold text-charcoal dark:text-white">
           {t("playlistDetail.copyDialog.title")}
         </h2>
@@ -484,8 +407,7 @@ function CopyPlaylistDialog({
               : t("playlistDetail.copyDialog.copy")}
           </button>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }
 

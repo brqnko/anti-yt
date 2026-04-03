@@ -16,7 +16,7 @@ type purgeLeftUserJob struct {
 }
 
 func (j *purgeLeftUserJob) run(ctx context.Context) (err error) {
-	defer util.Wrap(&err, "purgeLeftUserJob.run")
+	defer util.Wrap(&err, "job.(*purgeLeftUserJob).run")
 
 	q := sqlc.New(j.db)
 

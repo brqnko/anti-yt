@@ -85,6 +85,77 @@ func (q *Queries) GetDailyWatchSummary(ctx context.Context, arg GetDailyWatchSum
 	return i, err
 }
 
+const getLastHeartbeatForUpdate = `-- name: GetLastHeartbeatForUpdate :one
+SELECT
+    (
+        SELECT
+            m_video.public_id
+        FROM
+            m_video
+        WHERE
+            m_video.m_video_id = t_video_watch.m_video_id
+        LIMIT 1
+    ) AS video_id,
+    (
+        SELECT
+            m_video.external_length_seconds
+        FROM
+            m_video
+        WHERE
+            m_video.m_video_id = t_video_watch.m_video_id
+        LIMIT 1
+    ) AS video_length,
+    t_video_watch.updated_at,
+    t_video_watch.public_id,
+    t_video_watch.watch_start_at,
+    t_video_watch.watch_end_at,
+    t_video_watch.watch_position_seconds,
+    t_video_watch.t_video_watch_id
+FROM
+    t_video_watch
+WHERE
+    m_user_id = (
+        SELECT
+            m_user_id
+        FROM
+            m_user
+        WHERE
+            m_user.public_id = $1
+        LIMIT
+            1
+    )
+    AND watch_end_at > CURRENT_TIMESTAMP
+LIMIT 1
+FOR UPDATE
+`
+
+type GetLastHeartbeatForUpdateRow struct {
+	VideoID              uuid.UUID
+	VideoLength          int
+	UpdatedAt            time.Time
+	PublicID             uuid.UUID
+	WatchStartAt         time.Time
+	WatchEndAt           time.Time
+	WatchPositionSeconds int
+	TVideoWatchID        int64
+}
+
+func (q *Queries) GetLastHeartbeatForUpdate(ctx context.Context, userPublicID uuid.UUID) (GetLastHeartbeatForUpdateRow, error) {
+	row := q.db.QueryRow(ctx, getLastHeartbeatForUpdate, userPublicID)
+	var i GetLastHeartbeatForUpdateRow
+	err := row.Scan(
+		&i.VideoID,
+		&i.VideoLength,
+		&i.UpdatedAt,
+		&i.PublicID,
+		&i.WatchStartAt,
+		&i.WatchEndAt,
+		&i.WatchPositionSeconds,
+		&i.TVideoWatchID,
+	)
+	return i, err
+}
+
 const getLatestMonthlyVideoWatchSummary = `-- name: GetLatestMonthlyVideoWatchSummary :one
 SELECT
     s.ai_summary_title,
@@ -110,6 +181,47 @@ func (q *Queries) GetLatestMonthlyVideoWatchSummary(ctx context.Context, userID 
 	var i GetLatestMonthlyVideoWatchSummaryRow
 	err := row.Scan(&i.AiSummaryTitle, &i.AiSummaryDescription, &i.CreatedAt)
 	return i, err
+}
+
+const insertHeartbeat = `-- name: InsertHeartbeat :exec
+INSERT INTO
+    t_video_watch (
+        m_user_id,
+        m_video_id,
+        public_id,
+        watch_start_at,
+        watch_end_at,
+        watch_position_seconds
+    )
+VALUES (
+    (SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1),
+    (SELECT m_video.m_video_id FROM m_video WHERE m_video.public_id = $2 LIMIT 1),
+    $3,
+    $4,
+    $5,
+    $6
+)
+`
+
+type InsertHeartbeatParams struct {
+	UserPublicID         uuid.UUID
+	VideoPublicID        uuid.UUID
+	PublicID             uuid.UUID
+	WatchStartAt         time.Time
+	WatchEndAt           time.Time
+	WatchPositionSeconds int
+}
+
+func (q *Queries) InsertHeartbeat(ctx context.Context, arg InsertHeartbeatParams) error {
+	_, err := q.db.Exec(ctx, insertHeartbeat,
+		arg.UserPublicID,
+		arg.VideoPublicID,
+		arg.PublicID,
+		arg.WatchStartAt,
+		arg.WatchEndAt,
+		arg.WatchPositionSeconds,
+	)
+	return err
 }
 
 const listDailyWatchStatsByRange = `-- name: ListDailyWatchStatsByRange :many
@@ -298,133 +410,31 @@ func (q *Queries) UnmarkVideoWatched(ctx context.Context, arg UnmarkVideoWatched
 	return err
 }
 
-const upsertWatchHeartbeat = `-- name: UpsertWatchHeartbeat :exec
-WITH resolved_user AS (
-    SELECT
-        m_user_id
-    FROM
-        m_user
-    WHERE
-        m_user.public_id = $1
-    LIMIT
-        1
-),
-resolved_video AS (
-    SELECT
-        m_video_id,
-        external_length_seconds
-    FROM
-        m_video
-    WHERE
-        m_video.public_id = $2
-    LIMIT
-        1
-),
-latest_active AS (
-    SELECT
-        t_video_watch_id,
-        m_video_id
-    FROM
-        t_video_watch
-    WHERE
-        m_user_id = (SELECT m_user_id FROM resolved_user)
-        AND watch_end_at > CURRENT_TIMESTAMP
-    ORDER BY
-        watch_start_at DESC
-    LIMIT
-        1
-),
-close_old AS (
-    -- 別の動画なら終了させる
-    UPDATE
-        t_video_watch
-    SET
-        watch_end_at = CURRENT_TIMESTAMP,
-        updated_at = CURRENT_TIMESTAMP
-    FROM
-        latest_active
-    WHERE
-        t_video_watch.t_video_watch_id = latest_active.t_video_watch_id
-        AND latest_active.m_video_id != (SELECT m_video_id FROM resolved_video)
-    RETURNING
-        t_video_watch.t_video_watch_id
-),
-update_same AS (
-    -- 同じ動画ならポジションを更新
-    UPDATE
-        t_video_watch
-    SET
-        watch_position_seconds = CASE
-            WHEN $3::int >= (SELECT external_length_seconds FROM resolved_video)
-            THEN 0
-            ELSE $3::int
-        END,
-        watch_end_at = TIMESTAMP '9999-12-31',
-        updated_at = CURRENT_TIMESTAMP
-    FROM
-        latest_active
-    WHERE
-        t_video_watch.t_video_watch_id = latest_active.t_video_watch_id
-        AND latest_active.m_video_id = (SELECT m_video_id FROM resolved_video)
-    RETURNING
-        t_video_watch.t_video_watch_id
-),
-do_insert AS (
-    INSERT INTO
-        t_video_watch (
-            m_user_id,
-            m_video_id,
-            public_id,
-            watch_start_at,
-            watch_end_at,
-            watch_position_seconds
-        )
-    SELECT
-        (SELECT m_user_id FROM resolved_user),
-        (SELECT m_video_id FROM resolved_video),
-        $4,
-        $5,
-        TIMESTAMP '9999-12-31',
-        CASE
-            WHEN $3::int >= (SELECT external_length_seconds FROM resolved_video)
-            THEN 0
-            ELSE $3::int
-        END
-    WHERE
-        NOT EXISTS (SELECT 1 FROM update_same)
-    RETURNING
-        t_video_watch_id
-),
-mark_watched AS (
-    INSERT INTO
-        t_video_watched (m_user_id, m_video_id)
-    SELECT
-        (SELECT m_user_id FROM resolved_user),
-        (SELECT m_video_id FROM resolved_video)
-    WHERE
-        $3::int >= (SELECT external_length_seconds FROM resolved_video)
-    ON CONFLICT (m_user_id, m_video_id) DO NOTHING
-    RETURNING
-        t_video_watched_id
-)
-SELECT 1
+const updateHeartbeat = `-- name: UpdateHeartbeat :exec
+UPDATE
+    t_video_watch
+SET
+    watch_position_seconds = $1,
+    watch_start_at = $2,
+    watch_end_at = $3,
+    updated_at = CURRENT_TIMESTAMP
+WHERE
+    t_video_watch.t_video_watch_id = $4
 `
 
-type UpsertWatchHeartbeatParams struct {
-	UserPublicID         uuid.UUID
-	VideoPublicID        uuid.UUID
+type UpdateHeartbeatParams struct {
 	WatchPositionSeconds int
-	PublicID             uuid.UUID
 	WatchStartAt         time.Time
+	WatchEndAt           time.Time
+	TVideoWatchID        int64
 }
 
-func (q *Queries) UpsertWatchHeartbeat(ctx context.Context, arg UpsertWatchHeartbeatParams) error {
-	_, err := q.db.Exec(ctx, upsertWatchHeartbeat,
-		arg.UserPublicID,
-		arg.VideoPublicID,
+func (q *Queries) UpdateHeartbeat(ctx context.Context, arg UpdateHeartbeatParams) error {
+	_, err := q.db.Exec(ctx, updateHeartbeat,
 		arg.WatchPositionSeconds,
-		arg.PublicID,
 		arg.WatchStartAt,
+		arg.WatchEndAt,
+		arg.TVideoWatchID,
 	)
 	return err
 }

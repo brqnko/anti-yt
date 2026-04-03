@@ -31,7 +31,7 @@ func NewVideo(
 	video youtube_d.Video,
 	opts ...VideoOption,
 ) (_ *Video, err error) {
-	defer util.Wrap(&err, "NewVideo(channelID=%s)", channelID)
+	defer util.Wrap(&err, "video.NewVideo(channelID=%s)", channelID)
 
 	id, err := util.NewUUIDv7WithTime(video.CreatedAt)
 	if err != nil {

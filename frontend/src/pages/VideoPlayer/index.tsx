@@ -8,6 +8,7 @@ import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getVideo } from "../../api/generated/video";
 import { getHistory } from "../../api/generated/history";
 import { getPlaylist } from "../../api/generated/playlist";
+import { Dialog } from "../../components/Dialog";
 import { formatDuration, formatSubscriberCount, formatTimeAgo } from "../../utils/format";
 import { buildWatchUrl } from "../../utils/url";
 import { getApiErrorCode } from "../../utils/api-error";
@@ -25,21 +26,6 @@ import { Icon } from "../../components/Icon";
 
 const PLAYER_CONTAINER_ID = "yt-player";
 
-function useEscapeKey(open: boolean, onClose: () => void) {
-  useEffect(() => {
-    if (!open) return;
-    document.body.style.overflow = "hidden";
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open, onClose]);
-}
-
 function AddVideoDialog({
   open,
   playlistId,
@@ -55,8 +41,6 @@ function AddVideoDialog({
   const [text, setText] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEscapeKey(open, onClose);
 
   useEffect(() => {
     if (open) {
@@ -84,19 +68,8 @@ function AddVideoDialog({
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("playlistDetail.addVideo")}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-md p-6 flex flex-col gap-4">
+    <Dialog open={open} onClose={onClose} ariaLabel={t("playlistDetail.addVideo")} panelClass="flex flex-col gap-4">
         <h2 class="text-xl font-bold text-charcoal dark:text-white">
           {t("playlistDetail.addVideo")}
         </h2>
@@ -142,8 +115,7 @@ function AddVideoDialog({
             {isAdding ? t("playlistDetail.addVideoAdding") : t("playlistDetail.addVideoButton")}
           </button>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }
 
@@ -163,8 +135,6 @@ function EditPlaylistDialog({
   const [description, setDescription] = useState(playlist.playlist_description);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEscapeKey(open, onClose);
 
   useEffect(() => {
     if (open) {
@@ -196,19 +166,8 @@ function EditPlaylistDialog({
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("playlistDetail.editDialog.title")}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-md p-6 flex flex-col gap-4">
+    <Dialog open={open} onClose={onClose} ariaLabel={t("playlistDetail.editDialog.title")} panelClass="flex flex-col gap-4">
         <h2 class="text-xl font-bold text-charcoal dark:text-white">
           {t("playlistDetail.editDialog.title")}
         </h2>
@@ -259,8 +218,7 @@ function EditPlaylistDialog({
               : t("playlistDetail.editDialog.save")}
           </button>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }
 
@@ -325,16 +283,10 @@ function VideoPlayerContent() {
   const [markingWatched, setMarkingWatched] = useState(false);
   const [markedWatched, setMarkedWatched] = useState(false);
 
-  useEffect(() => {
-    if (!showPlaylistDialog) return;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
-  }, [showPlaylistDialog]);
-
   // Refs for values used in keyboard handler / cleanup to avoid stale closures
   const durationRef = useRef(0);
   const volumeRef = useRef(100);
-  const tickRemainingRef = useRef<(() => void) | null>(null);
+  const heartbeatTickRef = useRef<(() => void) | null>(null);
 
   // Refs for auto-play next video in playlist
   const playlistVideosRef = useRef(playlistVideos);
@@ -521,7 +473,7 @@ function VideoPlayerContent() {
     videoId: video?.external_video_id ?? "",
     containerId: PLAYER_CONTAINER_ID,
     onStateChange: handlePlayerStateChange,
-    onSyncTick: () => tickRemainingRef.current?.(),
+    onSyncTick: () => heartbeatTickRef.current?.(),
   });
 
   // Seek to start time from ?t= query param once player is ready
@@ -567,14 +519,14 @@ function VideoPlayerContent() {
   volumeRef.current = volume;
   isSeekingRef.current = isSeeking;
 
-  const { remainingSeconds, tickRemaining } = useHeartbeat({
+  const { remainingSeconds, tick: heartbeatTick } = useHeartbeat({
     videoId: video?.video_id ?? null,
     playlistId,
     playerState,
     currentTimeRef,
     togglePlay,
   });
-  tickRemainingRef.current = tickRemaining;
+  heartbeatTickRef.current = heartbeatTick;
 
   // Check if description overflows (ResizeObserver for font-load safety)
   useEffect(() => {
@@ -1183,24 +1135,13 @@ function VideoPlayerContent() {
         </div>
       </div>
       {/* Add to Playlist Dialog */}
-      {showPlaylistDialog && (
-        <div
-          class="fixed inset-0 z-50 flex items-center justify-center p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t("videoPlayer.addToPlaylist")}
-        >
-          <div
-            class="absolute inset-0 bg-black/60"
-            onClick={() => setShowPlaylistDialog(false)}
-          />
-          <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl ring-1 ring-black/10 dark:ring-white/10 border border-gray-100 dark:border-neutral-800 p-6 max-w-md w-full max-h-[80vh] flex flex-col">
-            <button
-              class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
-              onClick={() => setShowPlaylistDialog(false)}
-            >
-              <Icon name="close" />
-            </button>
+      <Dialog
+        open={showPlaylistDialog}
+        onClose={() => setShowPlaylistDialog(false)}
+        ariaLabel={t("videoPlayer.addToPlaylist")}
+        showCloseButton
+        panelClass="max-h-[80vh] flex flex-col p-6"
+      >
             <h2 class="text-xl font-bold text-charcoal dark:text-white mb-4">
               {t("videoPlayer.addToPlaylist")}
             </h2>
@@ -1252,9 +1193,7 @@ function VideoPlayerContent() {
                 })
               )}
             </div>
-          </div>
-        </div>
-      )}
+      </Dialog>
 
       {playlistId && (
         <AddVideoDialog

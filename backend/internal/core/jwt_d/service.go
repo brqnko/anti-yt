@@ -70,7 +70,7 @@ func (s *serviceImpl) TokenDuration() time.Duration {
 }
 
 func (s *serviceImpl) SignUserAccessToken(userID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error) {
-	defer util.Wrap(&err, "jwtService.SignUserAccessToken(userID=%s)", userID)
+	defer util.Wrap(&err, "jwt_d.(*serviceImpl).SignUserAccessToken(userID=%s)", userID)
 
 	now := time.Now().UTC()
 	expiresAt := now.Add(s.accessTokenDuration)
@@ -94,7 +94,7 @@ func (s *serviceImpl) SignUserAccessToken(userID, jti uuid.UUID, serverURL strin
 }
 
 func (s *serviceImpl) SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error) {
-	defer util.Wrap(&err, "jwtService.SignRegisterToken(authorizationID=%s)", authorizationID)
+	defer util.Wrap(&err, "jwt_d.(*serviceImpl).SignRegisterToken(authorizationID=%s)", authorizationID)
 
 	now := time.Now().UTC()
 	expiresAt := now.Add(s.accessTokenDuration)
@@ -118,7 +118,7 @@ func (s *serviceImpl) SignRegisterToken(authorizationID, jti uuid.UUID, serverUR
 }
 
 func (s *serviceImpl) VerifyRegisterToken(token string) (_ uuid.UUID, _ uuid.UUID, err error) {
-	defer util.Wrap(&err, "jwtService.VerifyRegisterToken")
+	defer util.Wrap(&err, "jwt_d.(*serviceImpl).VerifyRegisterToken")
 
 	claims := &RegisterClaims{}
 
@@ -159,7 +159,7 @@ func (s *serviceImpl) VerifyRegisterToken(token string) (_ uuid.UUID, _ uuid.UUI
 }
 
 func (s *serviceImpl) VerifyUserAccessToken(token string) (_ uuid.UUID, _ uuid.UUID, _ time.Time, err error) {
-	defer util.Wrap(&err, "jwtService.VerifyUserAccessToken")
+	defer util.Wrap(&err, "jwt_d.(*serviceImpl).VerifyUserAccessToken")
 
 	claims := &UserClaims{}
 
@@ -208,7 +208,7 @@ func (s *serviceImpl) VerifyUserAccessToken(token string) (_ uuid.UUID, _ uuid.U
 }
 
 func (s *serviceImpl) SignOIDCStateToken(platform, serverURL string) (_ string, err error) {
-	defer util.Wrap(&err, "jwtService.SignOIDCStateToken(platform=%s)", platform)
+	defer util.Wrap(&err, "jwt_d.(*serviceImpl).SignOIDCStateToken(platform=%s)", platform)
 
 	now := time.Now().UTC()
 	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, OIDCStateClaims{
@@ -230,7 +230,7 @@ func (s *serviceImpl) SignOIDCStateToken(platform, serverURL string) (_ string, 
 }
 
 func (s *serviceImpl) VerifyOIDCStateToken(token string) (_ string, err error) {
-	defer util.Wrap(&err, "jwtService.VerifyOIDCStateToken")
+	defer util.Wrap(&err, "jwt_d.(*serviceImpl).VerifyOIDCStateToken")
 
 	claims := &OIDCStateClaims{}
 	parsedToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
@@ -257,7 +257,7 @@ func (s *serviceImpl) VerifyOIDCStateToken(token string) (_ string, err error) {
 }
 
 func (s *serviceImpl) SignYouTubeImportStateToken(userID uuid.UUID, importSubscriptions, importLikes bool, serverURL string) (_ string, err error) {
-	defer util.Wrap(&err, "jwtService.SignYouTubeImportStateToken(userID=%s)", userID)
+	defer util.Wrap(&err, "jwt_d.(*serviceImpl).SignYouTubeImportStateToken(userID=%s)", userID)
 
 	now := time.Now().UTC()
 	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, YouTubeImportStateClaims{
@@ -281,7 +281,7 @@ func (s *serviceImpl) SignYouTubeImportStateToken(userID uuid.UUID, importSubscr
 }
 
 func (s *serviceImpl) VerifyYouTubeImportStateToken(token string) (_ uuid.UUID, _ bool, _ bool, err error) {
-	defer util.Wrap(&err, "jwtService.VerifyYouTubeImportStateToken")
+	defer util.Wrap(&err, "jwt_d.(*serviceImpl).VerifyYouTubeImportStateToken")
 
 	claims := &YouTubeImportStateClaims{}
 	parsedToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {

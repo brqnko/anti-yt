@@ -22,7 +22,7 @@ func NewVideoRepository(q sqlc.Querier) VideoRepository {
 }
 
 func (v *videoRepositoryImpl) Save(ctx context.Context, video *Video) (_ int64, err error) {
-	defer util.Wrap(&err, "videoRepository.Save")
+	defer util.Wrap(&err, "video.(*videoRepositoryImpl).Save")
 
 	row, err := v.q.UpsertVideo(ctx, sqlc.UpsertVideoParams{
 		ChannelID:             video.ChannelID,

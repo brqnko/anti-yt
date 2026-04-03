@@ -84,7 +84,7 @@ func NewValuableChannelQueryService(db *pgxpool.Pool) ValuableChannelQueryServic
 }
 
 func (v *valuableChannelQueryServiceImpl) GetValuableChannels(ctx context.Context) (_ []GetValuableChannelView, err error) {
-	defer util.Wrap(&err, "valuableChannelQueryService.GetValuableChannels")
+	defer util.Wrap(&err, "channel.(*valuableChannelQueryServiceImpl).GetValuableChannels")
 
 	rows, err := v.q.ListValuableChannels(ctx)
 	if err != nil {
@@ -117,7 +117,7 @@ type GetChannelDetailView struct {
 }
 
 func (c *channelQueryServiceImpl) GetChannelDetail(ctx context.Context, channelID uuid.UUID) (_ GetChannelDetailView, err error) {
-	defer util.Wrap(&err, "channelQueryService.GetChannelDetail(channelID=%s)", channelID)
+	defer util.Wrap(&err, "channel.(*channelQueryServiceImpl).GetChannelDetail(channelID=%s)", channelID)
 
 	row, err := c.q.GetChannelByPublicID(ctx, channelID)
 	if err != nil {
@@ -145,7 +145,7 @@ type GetChannelUploadsView struct {
 }
 
 func (c *channelQueryServiceImpl) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32, order string) (_ []GetChannelUploadsView, err error) {
-	defer util.Wrap(&err, "channelQueryService.GetChannelUploads(userID=%s, channelID=%s)", userID, channelID)
+	defer util.Wrap(&err, "channel.(*channelQueryServiceImpl).GetChannelUploads(userID=%s, channelID=%s)", userID, channelID)
 
 	if order == "older" {
 		rows, err := c.q.ListChannelVideosOlder(ctx, sqlc.ListChannelVideosOlderParams{
