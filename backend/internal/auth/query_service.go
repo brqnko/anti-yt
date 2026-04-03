@@ -11,7 +11,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type AuthorizationQueryService interface{}
+type AuthorizationQueryService interface {
+	CountAuthorizations(ctx context.Context) (int64, error)
+}
 
 type authorizationQueryServiceImpl struct {
 	q sqlc.Querier
@@ -21,6 +23,12 @@ func NewAuthorizationQueryService(db *pgxpool.Pool) AuthorizationQueryService {
 	return &authorizationQueryServiceImpl{
 		q: sqlc.New(db),
 	}
+}
+
+func (a *authorizationQueryServiceImpl) CountAuthorizations(ctx context.Context) (_ int64, err error) {
+	defer util.Wrap(&err, "authorizationQueryService.CountAuthorizations")
+
+	return a.q.CountAuthorizations(ctx)
 }
 
 var _ AuthorizationQueryService = (*authorizationQueryServiceImpl)(nil)

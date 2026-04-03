@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/auth"
 	"github.com/brqnko/anti-yt/backend/internal/core/discord_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -14,15 +14,14 @@ import (
 )
 
 type authorizationReportJob struct {
-	db      *pgxpool.Pool
+	authQS  auth.AuthorizationQueryService
 	discord discord_d.Service
 }
 
 func (j *authorizationReportJob) run(ctx context.Context) (err error) {
 	defer util.Wrap(&err, "authorizationReportJob.run")
 
-	q := sqlc.New(j.db)
-	count, err := q.CountAuthorizations(ctx)
+	count, err := j.authQS.CountAuthorizations(ctx)
 	if err != nil {
 		return err
 	}
@@ -42,7 +41,7 @@ func (j *authorizationReportJob) Run() {
 
 func NewAuthorizationReportJob(db *pgxpool.Pool, discord discord_d.Service) scheduler.Job {
 	return &authorizationReportJob{
-		db:      db,
+		authQS:  auth.NewAuthorizationQueryService(db),
 		discord: discord,
 	}
 }

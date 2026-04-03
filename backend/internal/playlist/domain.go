@@ -136,6 +136,7 @@ var playlistCodeMap = []struct {
 }{
 	{code: 0, str: "normal"},
 	{code: 1, str: "external_auto"},
+	{code: 2, str: "watch_later"},
 }
 
 func NewPlaylistCode(s string) (_ PlaylistCode, err error) {
