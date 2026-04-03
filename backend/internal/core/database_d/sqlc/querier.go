@@ -70,6 +70,7 @@ type Querier interface {
 	ListChannelPlaylists(ctx context.Context, arg ListChannelPlaylistsParams) ([]ListChannelPlaylistsRow, error)
 	ListChannelVideos(ctx context.Context, arg ListChannelVideosParams) ([]ListChannelVideosRow, error)
 	ListChannelVideosOlder(ctx context.Context, arg ListChannelVideosOlderParams) ([]ListChannelVideosOlderRow, error)
+	ListChannelsBulkFetchedAfter(ctx context.Context, bulkFetchedAfter time.Time) ([]ListChannelsBulkFetchedAfterRow, error)
 	ListDailyWatchStatsByRange(ctx context.Context, arg ListDailyWatchStatsByRangeParams) ([]ListDailyWatchStatsByRangeRow, error)
 	// 退会済みユーザーの一覧を取得する。
 	ListLeftUsers(ctx context.Context) ([]ListLeftUsersRow, error)
@@ -94,6 +95,8 @@ type Querier interface {
 	PurgeLeftUser(ctx context.Context, arg PurgeLeftUserParams) error
 	// m_user.recent_playlist_idsを更新する。先頭に追加し、重複を除去し、最大5件に制限する。
 	PushRecentPlaylistId(ctx context.Context, arg PushRecentPlaylistIdParams) error
+	// セッションレベルのアドバイザリロックを解除
+	ReleaseAdvisoryLock(ctx context.Context, dollar_1 int64) (bool, error)
 	// m_refresh_tokenのtoken_hashから、そのレコードを削除します。
 	// 削除されたレコードに紐づくjtiをブラックリストに保存します。
 	// 削除されたレコードのpublic_idが返されます。

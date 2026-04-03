@@ -193,6 +193,20 @@ func run(ctx context.Context) int {
 		slog.Error("failed to setup purge jti blacklist job", slog.Any("error", err))
 		return 1
 	}
+	// YouTubeクオータをリセット前に消費するジョブ
+	// PDT(夏): midnight PT = 07:00 UTC → 06:50 UTC
+	// PST(冬): midnight PT = 08:00 UTC → 07:50 UTC
+	// Go側でリセットまで15分以内かを判定し、該当しない方はスキップする
+	exhaustQuotaJob := job.NewExhaustQuotaJob(db, ytService, reportService)
+	if err := scheduler.AddFunc("50 6 * * *", exhaustQuotaJob); err != nil {
+		slog.Error("failed to setup exhaust quota job (PDT)", slog.Any("error", err))
+		return 1
+	}
+	if err := scheduler.AddFunc("50 7 * * *", exhaustQuotaJob); err != nil {
+		slog.Error("failed to setup exhaust quota job (PST)", slog.Any("error", err))
+		return 1
+	}
+
 	if cfg.discordWebhookURL != "" {
 		if err := scheduler.AddFunc("0 0 * * *", job.NewAuthorizationReportJob(db, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
 			slog.Error("failed to setup authorization report job", slog.Any("error", err))

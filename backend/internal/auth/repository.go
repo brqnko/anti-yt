@@ -115,6 +115,7 @@ func (r *refreshTokenRepositoryImpl) RevokeByID(ctx context.Context, userID, ses
 		}
 		return uuid.Nil, err
 	}
+
 	return removedPublicID, nil
 }
 

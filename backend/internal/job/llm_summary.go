@@ -16,7 +16,6 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core/llm"
 	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
 	"github.com/brqnko/anti-yt/backend/internal/util"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/genai"
@@ -80,25 +79,6 @@ func createTodaysBits() (_ []byte, err error) {
 	return buf.Bytes(), nil
 }
 
-// uuidv7をtime.Timeから実装する。右のbitは0で埋め尽くす
-func timeToUUID(t time.Time) uuid.UUID {
-	var u uuid.UUID
-
-	ms := uint64(t.UnixMilli())
-
-	u[0] = byte(ms >> 40)
-	u[1] = byte(ms >> 32)
-	u[2] = byte(ms >> 24)
-	u[3] = byte(ms >> 16)
-	u[4] = byte(ms >> 8)
-	u[5] = byte(ms)
-
-	u[6] = 0x70
-
-	u[8] = 0x80
-
-	return u
-}
 
 func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 	defer util.Wrap(&err, "job.(*llmSummaryJob).run")
@@ -127,7 +107,7 @@ func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 	y, m, d := startedAt.Date()
 	rows, err := q.GetVideoWatchTitlesByUser(
 		ctx,
-		timeToUUID(time.Date(y, m, d, 0, 0, 0, 0, time.UTC).AddDate(0, 0, -7)),
+		util.UUIDv7MinForTime(time.Date(y, m, d, 0, 0, 0, 0, time.UTC).AddDate(0, 0, -7)),
 	)
 	if err != nil {
 		return err

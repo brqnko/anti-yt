@@ -73,10 +73,11 @@ func (r *userRepositoryImpl) FindScreenTimeRanges(ctx context.Context, userID uu
 
 	ranges := make([]DailyScreenTimeLimitRange, len(rows))
 	for i, row := range rows {
-		ranges[i] = DailyScreenTimeLimitRange{
-			StartTimeSeconds: int(row.ScreenTimeRangeStart),
-			EndTimeSeconds:   int(row.ScreenTimeRangeEnd),
+		r, err := NewDailyScreenTimeLimitRange(int(row.ScreenTimeRangeStart), int(row.ScreenTimeRangeEnd))
+		if err != nil {
+			return nil, err
 		}
+		ranges[i] = r
 	}
 	return &DailyScreenTimeLimitRangeSet{Ranges: ranges}, nil
 }
