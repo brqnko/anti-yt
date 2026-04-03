@@ -54,16 +54,10 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 		if err != nil {
 			return nil, err
 		}
-		if heartbeat == nil {
-			// ローテーション不要（同じ動画を継続視聴中）: positionだけ更新
-			lastHeartbeat.WatchPositionSeconds = positionSeconds
-			if err := NewHistoryRepository(q).UpdateHeartbeat(ctx, lastHeartbeatID, lastHeartbeat); err != nil {
-				return nil, err
-			}
-		} else {
-			if err := NewHistoryRepository(q).UpdateHeartbeat(ctx, lastHeartbeatID, lastHeartbeat); err != nil {
-				return nil, err
-			}
+		if err := NewHistoryRepository(q).UpdateHeartbeat(ctx, lastHeartbeatID, lastHeartbeat); err != nil {
+			return nil, err
+		}
+		if heartbeat != nil {
 			if err := NewHistoryRepository(q).CreateHeartbeat(ctx, heartbeat); err != nil {
 				return nil, err
 			}

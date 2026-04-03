@@ -109,12 +109,11 @@ func (h *Heartbeat) Rotate(videoID uuid.UUID, watchPositionSeconds, lastVideoLen
 	// YouTube動画でエンディングがあることを考慮した
 	if lastVideoLength > 0 && watchPositionSeconds+30 >= lastVideoLength {
 		h.WatchEndAt = time.Now().UTC()
-		heartbeat, err := NewHeartbeat(videoID, h.UserID, 0)
-		if err != nil {
-			return nil, err
-		}
-		return heartbeat, nil
+		h.WatchPositionSeconds = WatchPositionSeconds(watchPositionSeconds)
+		return nil, nil
 	}
 
+	// 同じ動画を継続視聴中: positionだけ更新
+	h.WatchPositionSeconds = WatchPositionSeconds(watchPositionSeconds)
 	return nil, nil
 }
