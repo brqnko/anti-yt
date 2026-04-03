@@ -11,7 +11,8 @@ SELECT
     m_channel.external_created_at,
     m_channel.external_uploads_playlist_id,
     m_channel.fetched_at,
-    m_channel.rss_fetched_at
+    m_channel.rss_fetched_at,
+    m_channel.bulk_fetched_at
 FROM
     m_channel
 WHERE
@@ -43,10 +44,11 @@ INSERT INTO
         external_uploads_playlist_id,
         public_id,
         rss_fetched_at,
-        fetched_at
+        fetched_at,
+        bulk_fetched_at
     )
 VALUES
-    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 ON CONFLICT (external_id) DO UPDATE SET
     external_display_name = EXCLUDED.external_display_name,
     external_custom_id = EXCLUDED.external_custom_id,
@@ -57,7 +59,8 @@ ON CONFLICT (external_id) DO UPDATE SET
     external_uploads_playlist_id = EXCLUDED.external_uploads_playlist_id,
     updated_at = CURRENT_TIMESTAMP,
     rss_fetched_at = EXCLUDED.rss_fetched_at,
-    fetched_at = EXCLUDED.fetched_at
+    fetched_at = EXCLUDED.fetched_at,
+    bulk_fetched_at = EXCLUDED.bulk_fetched_at
 RETURNING
     m_channel.m_channel_id,
     m_channel.public_id;
@@ -174,7 +177,8 @@ SELECT
     m_channel.external_created_at,
     m_channel.rss_fetched_at,
     m_channel.fetched_at,
-    m_channel.external_uploads_playlist_id
+    m_channel.external_uploads_playlist_id,
+    m_channel.bulk_fetched_at
 FROM
     m_channel
 WHERE
@@ -195,7 +199,8 @@ SELECT
     c.external_created_at,
     c.external_uploads_playlist_id,
     c.rss_fetched_at,
-    c.fetched_at
+    c.fetched_at,
+    c.bulk_fetched_at
 FROM
     m_channel c
     INNER JOIN m_user_subscribing_channel sub ON c.m_channel_id = sub.m_channel_id
@@ -216,3 +221,22 @@ ORDER BY
 LIMIT
     @query_limit
 FOR UPDATE;
+
+-- name: ListChannelsBulkFetchedAfter :many
+SELECT
+    c.public_id,
+    c.external_id,
+    c.external_display_name,
+    c.external_description,
+    c.external_custom_id,
+    c.external_icon_url,
+    c.external_subscribers_count,
+    c.external_created_at,
+    c.external_uploads_playlist_id,
+    c.rss_fetched_at,
+    c.fetched_at,
+    c.bulk_fetched_at
+FROM
+    m_channel c
+WHERE
+    c.bulk_fetched_at > @bulk_fetched_after;

@@ -18,6 +18,7 @@ type ChannelRepository interface {
 	FindForUpdate(ctx context.Context, id uuid.UUID) (*Channel, error)
 	FindByIdOrHandle(ctx context.Context, idOrHandle string) (*Channel, error)
 	FindToFetchRSSForUpdate(ctx context.Context, userID uuid.UUID, rssFetchDuration time.Duration, limit int32) ([]*Channel, error)
+	FindBulkFetchedAfter(ctx context.Context, after time.Time) ([]*Channel, error)
 	SaveSubscription(ctx context.Context, subscribedChannel *SubscribedChannel) (int64, error)
 	RemoveSubscription(ctx context.Context, userID, channelID uuid.UUID) (int64, error)
 }
@@ -54,6 +55,7 @@ func (c *channelRepositoryImpl) Save(ctx context.Context, channel *Channel) (_ i
 		PublicID:                  channel.ID,
 		RssFetchedAt:              channel.RSSFetchedAt,
 		FetchedAt:                 channel.FetchedAt,
+		BulkFetchedAt:             channel.BulkFetchedAt,
 	})
 	if err != nil {
 		return 0, err
@@ -89,7 +91,13 @@ func (c *channelRepositoryImpl) FindForUpdate(ctx context.Context, id uuid.UUID)
 		return nil, err
 	}
 
-	ch, err := NewChannel(row.FetchedAt, row.RssFetchedAt, channelDetail, WithChannelID(row.PublicID))
+	ch, err := NewChannel(
+		row.FetchedAt,
+		row.RssFetchedAt,
+		channelDetail,
+		WithChannelID(row.PublicID),
+		WithBulkFetchedAt(row.BulkFetchedAt),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +133,7 @@ func (c *channelRepositoryImpl) FindByIdOrHandle(ctx context.Context, idOrHandle
 		return nil, err
 	}
 
-	ch, err := NewChannel(row.FetchedAt, row.RssFetchedAt, ytCh, WithChannelID(row.PublicID))
+	ch, err := NewChannel(row.FetchedAt, row.RssFetchedAt, ytCh, WithChannelID(row.PublicID), WithBulkFetchedAt(row.BulkFetchedAt))
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +169,54 @@ func (c *channelRepositoryImpl) FindToFetchRSSForUpdate(ctx context.Context, use
 			return nil, err
 		}
 
-		channel, err := NewChannel(row.FetchedAt, row.RssFetchedAt, channelDetail, WithChannelID(row.PublicID))
+		channel, err := NewChannel(
+			row.FetchedAt,
+			row.RssFetchedAt,
+			channelDetail,
+			WithChannelID(row.PublicID),
+			WithBulkFetchedAt(row.BulkFetchedAt),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		channels[i] = channel
+	}
+
+	return channels, nil
+}
+
+func (c *channelRepositoryImpl) FindBulkFetchedAfter(ctx context.Context, after time.Time) (_ []*Channel, err error) {
+	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).FindBulkFetchedAfter")
+
+	rows, err := c.q.ListChannelsBulkFetchedAfter(ctx, after)
+	if err != nil {
+		return nil, err
+	}
+
+	channels := make([]*Channel, len(rows))
+	for i, row := range rows {
+		channelDetail, err := youtube_d.NewChannel(
+			row.ExternalID,
+			row.ExternalDisplayName,
+			row.ExternalCustomID,
+			row.ExternalDescription,
+			row.ExternalIconUrl,
+			uint64(row.ExternalSubscribersCount),
+			row.ExternalUploadsPlaylistID,
+			row.ExternalCreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		channel, err := NewChannel(
+			row.FetchedAt,
+			row.RssFetchedAt,
+			channelDetail,
+			WithChannelID(row.PublicID),
+			WithBulkFetchedAt(row.BulkFetchedAt),
+		)
 		if err != nil {
 			return nil, err
 		}

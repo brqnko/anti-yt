@@ -149,7 +149,6 @@ func (l LanguageCode) String() string {
 }
 
 type DailyScreenTimeLimitRange struct {
-	ID               uuid.UUID
 	StartTimeSeconds int
 	EndTimeSeconds   int
 }
@@ -168,13 +167,7 @@ func NewDailyScreenTimeLimitRange(startTimeSeconds, endTimeSeconds int) (_ Daily
 		return DailyScreenTimeLimitRange{}, ErrDailyScreenTimeLimitOutOfRange
 	}
 
-	id, err := uuid.NewV7()
-	if err != nil {
-		return DailyScreenTimeLimitRange{}, err
-	}
-
 	return DailyScreenTimeLimitRange{
-		ID:               id,
 		StartTimeSeconds: startTimeSeconds,
 		EndTimeSeconds:   endTimeSeconds,
 	}, nil

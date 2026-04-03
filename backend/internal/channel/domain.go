@@ -44,10 +44,11 @@ func NewSubscribedChannel(channelID, subscriberID uuid.UUID, opts ...SubscribedC
 }
 
 type Channel struct {
-	ID           uuid.UUID
-	FetchedAt    time.Time
-	RSSFetchedAt time.Time
-	Channel      youtube_d.Channel
+	ID            uuid.UUID
+	FetchedAt     time.Time
+	RSSFetchedAt  time.Time
+	BulkFetchedAt time.Time
+	Channel       youtube_d.Channel
 }
 
 type ChannelOption func(*Channel)
@@ -55,6 +56,12 @@ type ChannelOption func(*Channel)
 func WithChannelID(id uuid.UUID) ChannelOption {
 	return func(c *Channel) {
 		c.ID = id
+	}
+}
+
+func WithBulkFetchedAt(bulkFetchedAt time.Time) ChannelOption {
+	return func(c *Channel) {
+		c.BulkFetchedAt = bulkFetchedAt
 	}
 }
 
@@ -67,10 +74,11 @@ func NewChannel(fetchedAt, rssFetchedAt time.Time, channel youtube_d.Channel, op
 	}
 
 	c := &Channel{
-		ID:           id,
-		FetchedAt:    fetchedAt,
-		RSSFetchedAt: rssFetchedAt,
-		Channel:      channel,
+		ID:            id,
+		FetchedAt:     fetchedAt,
+		RSSFetchedAt:  rssFetchedAt,
+		BulkFetchedAt: time.Now().UTC().AddDate(-1, 0, 0),
+		Channel:       channel,
 	}
 
 	for _, opt := range opts {
@@ -86,6 +94,10 @@ func (c *Channel) ShouldFetchRSSFeed(fetchDuration time.Duration) bool {
 
 func (c *Channel) MarkAsRSSFetched() {
 	c.RSSFetchedAt = time.Now().UTC()
+}
+
+func (c *Channel) MarkAsBulkFetched() {
+	c.BulkFetchedAt = time.Now().UTC()
 }
 
 type ValuableDescription string

@@ -9,6 +9,18 @@ import (
 	"context"
 )
 
+const releaseAdvisoryLock = `-- name: ReleaseAdvisoryLock :one
+SELECT pg_advisory_unlock($1::bigint) AS released
+`
+
+// セッションレベルのアドバイザリロックを解除
+func (q *Queries) ReleaseAdvisoryLock(ctx context.Context, dollar_1 int64) (bool, error) {
+	row := q.db.QueryRow(ctx, releaseAdvisoryLock, dollar_1)
+	var released bool
+	err := row.Scan(&released)
+	return released, err
+}
+
 const tryAcquireAdvisoryXactLock = `-- name: TryAcquireAdvisoryXactLock :one
 SELECT pg_try_advisory_xact_lock($1::bigint) AS acquired
 `
