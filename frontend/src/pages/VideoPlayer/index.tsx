@@ -589,34 +589,18 @@ function VideoPlayerContent() {
 
   // Fullscreen change listener
   useEffect(() => {
-    const handler = () => {
-      const fs = !!document.fullscreenElement;
-      setIsFullscreen(fs);
-      // Unlock orientation when exiting fullscreen (skip on iPhone)
-      if (!fs && !/iPhone/i.test(navigator.userAgent)) {
-        screen.orientation?.unlock?.();
-      }
-    };
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", handler);
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
 
-  const toggleFullscreen = useCallback(async () => {
+  const toggleFullscreen = useCallback(() => {
     const el = playerWrapperRef.current;
     if (!el) return;
     if (document.fullscreenElement) {
-      await document.exitFullscreen();
+      document.exitFullscreen();
     } else {
-      await el.requestFullscreen?.();
-      // Lock to landscape on mobile when entering fullscreen (skip on iPhone — not supported and causes issues)
-      const isIPhone = /iPhone/i.test(navigator.userAgent);
-      if (!isIPhone) {
-        try {
-          await screen.orientation?.lock?.("landscape");
-        } catch {
-          // Screen Orientation API not supported or permission denied — ignore
-        }
-      }
+      el.requestFullscreen?.();
     }
   }, []);
 
@@ -804,12 +788,6 @@ function VideoPlayerContent() {
                 </div>
               )}
 
-              {/* Buffering spinner */}
-              {isReady && playerState === PlayerState.BUFFERING && (
-                <div class="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-                  <Icon name="progress_activity" class="text-5xl animate-spin text-white" />
-                </div>
-              )}
 
 
 
@@ -991,13 +969,13 @@ function VideoPlayerContent() {
                 <div class="mt-6">
                   <div class="bg-border-light/50 dark:bg-[#332e27]/30 p-6 rounded-xl">
                     <p class="text-base text-charcoal dark:text-white mb-3">
-                      {formatTimeAgo(video.external_video_created_at, t)}{t("videoPlayer.postedSuffix")}
+                      {new Date(video.external_video_created_at).toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" }).replaceAll("-", "/")}
                     </p>
                     <div
                       ref={descRef}
                       class={`text-charcoal dark:text-white/80 leading-relaxed whitespace-pre-line overflow-hidden ${isDescExpanded ? "" : "max-h-[4.875rem]"}`}
                     >
-                        <Linkify text={video.external_video_description} />
+                        <Linkify text={video.external_video_description} onTimestamp={seekTo} />
                     </div>
                     {(descOverflows || isDescExpanded) && (
                       <button
