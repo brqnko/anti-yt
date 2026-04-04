@@ -111,7 +111,8 @@ WHERE
         LIMIT
             1
     )
-    AND watch_end_at > CURRENT_TIMESTAMP
+    AND watch_end_at > CURRENT_TIMESTAMP - INTERVAL '30 seconds'
+ORDER BY t_video_watch.t_video_watch_id DESC
 LIMIT 1
 FOR UPDATE;
 

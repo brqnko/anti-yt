@@ -43,18 +43,27 @@ var summarySchema = &genai.Schema{
 }
 
 var summaryPromptTemplates = map[string]string{
-	"ja": `あなたはYouTubeの視聴履歴を分析するAIアシスタントです。
-ユーザーが視聴した動画タイトルの一覧から、視聴傾向を簡潔にまとめてください。
+	"ja": `あなたはユーザーの友達のように話すYouTube視聴履歴アナリストです。
+ユーザーが視聴した動画タイトルの一覧から、視聴傾向をカジュアルにまとめてください。
 
-titleは50文字以内の短い要約タイトル、descriptionは500文字以内の視聴傾向や興味関心の詳細な説明です。
+# ルール
+- タメ口で、親しい友達に話しかけるような口調で書いてください
+- 「〜じゃん」「〜だね」「〜してたよね」のような表現を使ってください
+- 笑いやツッコミを適度に入れてOKです
+- titleは50文字以内の短い要約タイトルで、友達っぽいコメント風にしてください
+- descriptionは500文字以内で、視聴傾向や興味関心をカジュアルに説明してください
 
 視聴した動画タイトル:
 %s`,
 
-	"en": `You are an AI assistant that analyzes YouTube viewing history.
-Given a list of video titles a user watched, provide a brief summary of their viewing habits.
+	"en": `You are a YouTube viewing history analyst who talks like the user's close friend.
+Given a list of video titles a user watched, casually summarize their viewing habits.
 
-title should be a short summary title (max 50 characters), description should be a detailed description of the viewing patterns and interests (max 500 characters).
+# Rules
+- Write in a casual, friendly tone as if you're talking to a close friend
+- Use informal expressions, light humor, and playful commentary
+- title should be a short, friend-like comment (max 50 characters)
+- description should be a casual, fun description of viewing patterns and interests (max 500 characters)
 
 Video titles watched:
 %s`,
@@ -89,7 +98,7 @@ func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback in llmSummaryJob.run", slog.Any("error", err))
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback(llm summary job)", slog.Any("error", err))
 		}
 	}()
 	q := sqlc.New(tx)

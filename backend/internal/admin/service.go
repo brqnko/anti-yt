@@ -95,12 +95,12 @@ func (s *Service) CreateNewValuableChannel(ctx context.Context, externalChannelI
 		for _, vd := range videoDetails {
 			v, err := video.NewVideo(ch.ID, fetchedAt, vd)
 			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to newVideo", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(create valuable channel)", slog.Any("error", err))
 				continue
 			}
 
 			if _, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v); err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(create valuable channel)", slog.Any("error", err))
 			}
 		}
 

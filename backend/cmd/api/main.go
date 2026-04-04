@@ -253,7 +253,7 @@ func run(ctx context.Context) int {
 
 	<-ctx.Done()
 
-	slog.Info("gracefull shutdown")
+	slog.Info("graceful shutdown")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

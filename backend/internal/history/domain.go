@@ -89,6 +89,19 @@ func NewHeartbeat(videoID, userID uuid.UUID, watchPositionSeconds int, opts ...H
 func (h *Heartbeat) Rotate(videoID uuid.UUID, watchPositionSeconds, lastVideoLength int, lastUpdatedAt time.Time) (_ *Heartbeat, err error) {
 	defer util.Wrap(&err, "history.(*Heartbeat).Rotate")
 
+	// 既にcloseされたheartbeatが取得された場合(動画終了後の後続heartbeat)
+	if !h.WatchEndAt.After(time.Now().UTC()) {
+		if videoID == h.VideoID {
+			return nil, nil // 同じ動画の後続heartbeatは無視
+		}
+		// 違う動画の場合は新しいheartbeatを作成(既にcloseされているので再closeは不要)
+		heartbeat, err := NewHeartbeat(videoID, h.UserID, watchPositionSeconds)
+		if err != nil {
+			return nil, err
+		}
+		return heartbeat, nil
+	}
+
 	// 違う動画を再生した場合
 	if videoID != h.VideoID {
 		h.WatchEndAt = time.Now().UTC()

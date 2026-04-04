@@ -243,7 +243,10 @@ export function useYouTubePlayer({
           controls: 0,
           disablekb: 1,
           iv_load_policy: 3,
-          playsinline: 1,
+          playsinline: /iPhone|iPod/i.test(navigator.userAgent) ||
+            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+            ? 0
+            : 1,
           origin: window.location.origin,
         },
         events: {
