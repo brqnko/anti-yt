@@ -273,10 +273,7 @@
   "videoPlayer": {
     "pageTitle": "Video Player",
     "notFound": "Video not found",
-    "quickNotes": "Quick Notes",
-    "notesPlaceholder": "Type your thoughts here... notes are automatically time-stamped.",
-    "saveNote": "Save Note",
-    "curatedPlaylist": "Curated Playlist",
+"curatedPlaylist": "Curated Playlist",
     "viewPlaylist": "View Full Playlist",
     "addToPlaylist": "Save",
     "playlist": "Playlist",
