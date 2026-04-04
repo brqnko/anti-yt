@@ -58,7 +58,7 @@ const patchUsersMeStatus = (
       );
     }
   /**
- * アカウント削除。TODO OIDCにする
+ * アカウント削除
  * @summary Delete User's Account
  */
 const deleteUsersMe = (
