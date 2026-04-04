@@ -1,3 +1,3 @@
 # backend
 
-- docs/にer図があります
+- docs/schema/にer図があります

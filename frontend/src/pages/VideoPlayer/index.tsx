@@ -282,6 +282,8 @@ function VideoPlayerContent() {
   const [showEditPlaylist, setShowEditPlaylist] = useState(false);
   const [markingWatched, setMarkingWatched] = useState(false);
   const [markedWatched, setMarkedWatched] = useState(false);
+  const [markingWatchLater, setMarkingWatchLater] = useState(false);
+  const [markedWatchLater, setMarkedWatchLater] = useState(false);
 
   // Refs for values used in keyboard handler / cleanup to avoid stale closures
   const durationRef = useRef(0);
@@ -311,11 +313,13 @@ function VideoPlayerContent() {
     setIsLoading(true);
     setError(false);
     setMarkedWatched(false);
+    setMarkedWatchLater(false);
     getVideo()
       .getVideosVideoId(videoId)
       .then((res) => {
         setVideo(res);
         setMarkedWatched(res.is_watched);
+        setMarkedWatchLater(res.is_in_watch_later);
       })
       .catch(() => setError(true))
       .finally(() => setIsLoading(false));
@@ -870,6 +874,34 @@ function VideoPlayerContent() {
               <div class="flex items-center gap-6 mt-3 pb-3 border-b border-border-light dark:border-border-dark">
                   <button
                     class={`flex flex-col items-center gap-0.5 bg-transparent border-none transition-colors ${
+                      markingWatchLater
+                        ? "text-text-muted-light dark:text-text-muted-dark cursor-not-allowed opacity-50"
+                        : markedWatchLater
+                          ? "text-primary cursor-pointer hover:text-primary/80"
+                          : "text-charcoal dark:text-white cursor-pointer hover:text-primary"
+                    }`}
+                    disabled={markingWatchLater}
+                    onClick={async () => {
+                      if (markingWatchLater || !videoId) return;
+                      setMarkingWatchLater(true);
+                      try {
+                        if (markedWatchLater) {
+                          await getPlaylist().deleteVideosVideoIdWatchLater(videoId);
+                          setMarkedWatchLater(false);
+                        } else {
+                          await getPlaylist().postVideosVideoIdWatchLater(videoId);
+                          setMarkedWatchLater(true);
+                        }
+                      } finally {
+                        setMarkingWatchLater(false);
+                      }
+                    }}
+                  >
+                    <Icon name="schedule" class="text-lg" />
+                    <span class="text-[10px] font-semibold">{t("videoPlayer.watchLater")}</span>
+                  </button>
+                  <button
+                    class={`flex flex-col items-center gap-0.5 bg-transparent border-none transition-colors ${
                       markingWatched
                         ? "text-text-muted-light dark:text-text-muted-dark cursor-not-allowed opacity-50"
                         : markedWatched
@@ -911,8 +943,8 @@ function VideoPlayerContent() {
                     class="flex flex-col items-center gap-0.5 bg-transparent border-none text-charcoal dark:text-white hover:text-primary transition-colors cursor-pointer"
                     onClick={openPlaylistDialog}
                   >
-                    <Icon name="bookmark_add" class="text-lg" />
-                    <span class="text-[10px] font-semibold">{t("videoPlayer.addToPlaylist")}</span>
+                    <Icon name="playlist_add" class="text-lg" />
+                    <span class="text-[10px] font-semibold">{t("videoPlayer.playlist")}</span>
                   </button>
                 </div>
 

@@ -2,11 +2,14 @@ package playlist
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type PlaylistRepository interface {
@@ -17,6 +20,9 @@ type PlaylistRepository interface {
 	BulkInsertVideos(ctx context.Context, playlistInternalID int64, videoInternalIDs []int64) error
 	RemoveVideo(ctx context.Context, userID, playlistID, videoID uuid.UUID) error
 	CopyVideos(ctx context.Context, userID uuid.UUID, sourcePlaylistID uuid.UUID, destPlaylistInternalID int64) (int, error)
+	PushRecentPlaylistID(ctx context.Context, userID, playlistID uuid.UUID) error
+	FindWatchLaterForUpdate(ctx context.Context, userID uuid.UUID) (*Playlist, error)
+	InsertWatchLater(ctx context.Context, userID, playlistID, videoID uuid.UUID) error
 }
 
 type playlistRepositoryImpl struct {
@@ -32,13 +38,8 @@ func NewPlaylistRepository(q sqlc.Querier) PlaylistRepository {
 func (r *playlistRepositoryImpl) Save(ctx context.Context, playlist *Playlist) (_ int64, err error) {
 	defer util.Wrap(&err, "playlist.(*playlistRepositoryImpl).Save(playlistID=%s)", playlist.ID)
 
-	var userPublicID uuid.UUID
-	if playlist.UserID != nil {
-		userPublicID = *playlist.UserID
-	}
-
 	id, err := r.q.UpsertPlaylist(ctx, sqlc.UpsertPlaylistParams{
-		UserPublicID:        userPublicID,
+		UserPublicID:        playlist.UserID,
 		ChannelPublicID:     playlist.ChannelID,
 		PlaylistTitle:       string(playlist.Title),
 		PlaylistDescription: string(playlist.Description),
@@ -73,12 +74,12 @@ func (r *playlistRepositoryImpl) FindForUpdate(ctx context.Context, userID, play
 	}
 
 	p, err := NewPlaylist(
+		userID,
 		row.PlaylistTitle,
 		row.PlaylistDescription,
 		VisibilityCode(row.VisibilityCode).String(),
 		PlaylistCode(row.PlaylistCode).String(),
 		WithPlaylistID(row.PublicID),
-		WithPlaylistUserID(userID),
 		WithPlaylistVideoCount(row.VideoCount),
 		WithPlaylistRegisteredAt(row.RegisteredAt),
 	)
@@ -117,13 +118,22 @@ func (r *playlistRepositoryImpl) BulkInsertVideos(ctx context.Context, playlistI
 	return nil
 }
 
-func (r *playlistRepositoryImpl) RemoveVideo(ctx context.Context, userID, playlistID, videoID uuid.UUID) error {
-	_, err := r.q.DeletePlaylistVideo(ctx, sqlc.DeletePlaylistVideoParams{
+func (r *playlistRepositoryImpl) RemoveVideo(ctx context.Context, userID, playlistID, videoID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "plalyist.(*playlistRepositoryImpl).RemoveVideo")
+
+	_, err = r.q.DeletePlaylistVideo(ctx, sqlc.DeletePlaylistVideoParams{
 		UserID:     userID,
 		PlaylistID: playlistID,
 		VideoID:    videoID,
 	})
-	return err
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return core.ErrNotFound
+		}
+		return err
+	}
+
+	return nil
 }
 
 func (r *playlistRepositoryImpl) CopyVideos(ctx context.Context, userID uuid.UUID, sourcePlaylistID uuid.UUID, destPlaylistInternalID int64) (_ int, err error) {
@@ -138,6 +148,54 @@ func (r *playlistRepositoryImpl) CopyVideos(ctx context.Context, userID uuid.UUI
 		return 0, err
 	}
 	return copiedCount, nil
+}
+
+func (r *playlistRepositoryImpl) PushRecentPlaylistID(ctx context.Context, userID, playlistID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "playlist.(*playlistRepositoryImpl).PushRecentPlaylistID(userID=%s, playlistID=%s)", userID, playlistID)
+
+	return r.q.PushRecentPlaylistId(ctx, sqlc.PushRecentPlaylistIdParams{
+		PlaylistPublicID: playlistID,
+		UserPublicID:     userID,
+	})
+}
+
+func (r *playlistRepositoryImpl) FindWatchLaterForUpdate(ctx context.Context, userID uuid.UUID) (_ *Playlist, err error) {
+	defer util.Wrap(&err, "playlist.(*playlistRepositoryImpl).FindWatchLaterForUpdate")
+
+	row, err := r.q.GetWatchLaterForUpdate(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := NewPlaylist(
+		userID,
+		row.PlaylistTitle,
+		row.PlaylistDescription,
+		VisibilityCode(row.VisibilityCode).String(),
+		PlaylistCode(row.PlaylistCode).String(),
+		WithPlaylistID(row.PublicID),
+		WithPlaylistVideoCount(row.VideoCount),
+		WithPlaylistRegisteredAt(row.RegisteredAt),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
+}
+
+// InsertWatchLater watch laterとして挿入する。
+// 普通のinsertと違うのは、動画の重複チェックがあること
+func (r *playlistRepositoryImpl) InsertWatchLater(ctx context.Context, userID, playlistID, videoID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "playlist.(*playlistRepositoryImpl).InsertWatchLater")
+
+	if err := r.q.InsertWatchLater(ctx, sqlc.InsertWatchLaterParams{
+		VideoID:    videoID,
+		PlaylistID: playlistID,
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 var _ PlaylistRepository = (*playlistRepositoryImpl)(nil)

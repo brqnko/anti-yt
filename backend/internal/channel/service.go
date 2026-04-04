@@ -30,7 +30,6 @@ type Service struct {
 var (
 	ErrInvalidSubscriptionLimit = core.NewDomainError("channel.invalid_subscription_limit", "invalid subscription limit: out of range (should be [1..50])")
 	ErrInvalidGetUploadLimit    = core.NewDomainError("channel.invalid_get_upload_limit", "invalid get upload limit: out of range (should be [1..50])")
-	ErrInvalidChannelID         = core.NewDomainError("channel.invalid_channel_id", "invalid channel id")
 )
 
 func NewService(

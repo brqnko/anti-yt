@@ -15,8 +15,9 @@ RUN wget -O /tmp/go.tar.gz \
     && tar -C /usr/local -xzf /tmp/go.tar.gz \
     && rm /tmp/go.tar.gz
 
+ENV GOROOT=/usr/local/go
 ENV GOPATH=/root/go
-ENV PATH="/usr/local/go/bin:${PATH}"
+ENV PATH="${GOROOT}/bin:${PATH}"
 ENV PATH="${GOPATH}/bin:${PATH}"
 
 RUN wget -O /tmp/tbls.tar.gz \

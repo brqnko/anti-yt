@@ -32,7 +32,19 @@ SELECT
             AND t_video_watched.m_user_id = (
                 SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1
             )
-    )::bool AS is_watched
+    )::bool AS is_watched,
+    EXISTS (
+        SELECT 1 FROM m_playlist_video pv
+        WHERE pv.m_playlist_id = (
+                SELECT p.m_playlist_id FROM m_playlist p
+                WHERE p.m_user_id = (
+                        SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1
+                    )
+                    AND p.playlist_code = 2
+                LIMIT 1
+            )
+            AND pv.m_video_id = video.m_video_id
+    )::bool AS is_in_watch_later
 FROM
     m_video video
     INNER JOIN m_channel channel ON video.m_channel_id = channel.m_channel_id
@@ -61,6 +73,7 @@ type GetVideoDetailRow struct {
 	ExternalIconUrl          string
 	ExternalSubscribersCount int64
 	IsWatched                bool
+	IsInWatchLater           bool
 }
 
 func (q *Queries) GetVideoDetail(ctx context.Context, arg GetVideoDetailParams) (GetVideoDetailRow, error) {
@@ -80,6 +93,7 @@ func (q *Queries) GetVideoDetail(ctx context.Context, arg GetVideoDetailParams) 
 		&i.ExternalIconUrl,
 		&i.ExternalSubscribersCount,
 		&i.IsWatched,
+		&i.IsInWatchLater,
 	)
 	return i, err
 }

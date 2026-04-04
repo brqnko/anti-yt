@@ -268,53 +268,56 @@
 <!-- public.m_channel -->
 <g id="node8" class="node">
 <title>public.m_channel</title>
-<polygon fill="#efefef" stroke="none" points="2589,-1063.6 2589,-1099.2 2896.36,-1099.2 2896.36,-1063.6 2589,-1063.6"/>
-<polygon fill="none" stroke="black" points="2589,-1063.6 2589,-1099.2 2896.36,-1099.2 2896.36,-1063.6 2589,-1063.6"/>
-<text text-anchor="start" x="2616.21" y="-1077" font-family="Arial Bold" font-size="18.00">public.m_channel</text>
-<text text-anchor="start" x="2744.67" y="-1077" font-family="Arial" font-size="14.00">    </text>
-<text text-anchor="start" x="2775.78" y="-1077" font-family="Arial" font-size="14.00" fill="#666666">[BASE TABLE]</text>
-<polygon fill="none" stroke="black" points="2589,-1032.8 2589,-1063.6 2896.36,-1063.6 2896.36,-1032.8 2589,-1032.8"/>
-<text text-anchor="start" x="2596" y="-1045" font-family="Arial" font-size="14.00">m_channel_id </text>
-<text text-anchor="start" x="2687.06" y="-1045" font-family="Arial" font-size="14.00" fill="#666666">[bigint]</text>
-<polygon fill="none" stroke="black" points="2589,-1002 2589,-1032.8 2896.36,-1032.8 2896.36,-1002 2589,-1002"/>
-<text text-anchor="start" x="2596" y="-1014.2" font-family="Arial" font-size="14.00">external_id </text>
-<text text-anchor="start" x="2668.38" y="-1014.2" font-family="Arial" font-size="14.00" fill="#666666">[varchar(32)]</text>
-<polygon fill="none" stroke="black" points="2589,-971.2 2589,-1002 2896.36,-1002 2896.36,-971.2 2589,-971.2"/>
-<text text-anchor="start" x="2596" y="-983.4" font-family="Arial" font-size="14.00">external_display_name </text>
-<text text-anchor="start" x="2743.87" y="-983.4" font-family="Arial" font-size="14.00" fill="#666666">[varchar(64)]</text>
-<polygon fill="none" stroke="black" points="2589,-940.4 2589,-971.2 2896.36,-971.2 2896.36,-940.4 2589,-940.4"/>
-<text text-anchor="start" x="2596" y="-952.6" font-family="Arial" font-size="14.00">external_custom_id </text>
-<text text-anchor="start" x="2721.29" y="-952.6" font-family="Arial" font-size="14.00" fill="#666666">[varchar(64)]</text>
-<polygon fill="none" stroke="black" points="2589,-909.6 2589,-940.4 2896.36,-940.4 2896.36,-909.6 2589,-909.6"/>
-<text text-anchor="start" x="2596" y="-921.8" font-family="Arial" font-size="14.00">external_icon_url </text>
-<text text-anchor="start" x="2706.51" y="-921.8" font-family="Arial" font-size="14.00" fill="#666666">[varchar(512)]</text>
-<polygon fill="none" stroke="black" points="2589,-878.8 2589,-909.6 2896.36,-909.6 2896.36,-878.8 2589,-878.8"/>
-<text text-anchor="start" x="2596" y="-891" font-family="Arial" font-size="14.00">external_description </text>
-<text text-anchor="start" x="2725.19" y="-891" font-family="Arial" font-size="14.00" fill="#666666">[varchar(1024)]</text>
-<polygon fill="none" stroke="black" points="2589,-848 2589,-878.8 2896.36,-878.8 2896.36,-848 2589,-848"/>
-<text text-anchor="start" x="2596" y="-860.2" font-family="Arial" font-size="14.00">external_subscribers_count </text>
-<text text-anchor="start" x="2771.1" y="-860.2" font-family="Arial" font-size="14.00" fill="#666666">[bigint]</text>
-<polygon fill="none" stroke="black" points="2589,-817.2 2589,-848 2896.36,-848 2896.36,-817.2 2589,-817.2"/>
-<text text-anchor="start" x="2596" y="-829.4" font-family="Arial" font-size="14.00">external_created_at </text>
-<text text-anchor="start" x="2723.64" y="-829.4" font-family="Arial" font-size="14.00" fill="#666666">[timestamp with time zone]</text>
-<polygon fill="none" stroke="black" points="2589,-786.4 2589,-817.2 2896.36,-817.2 2896.36,-786.4 2589,-786.4"/>
-<text text-anchor="start" x="2596" y="-798.6" font-family="Arial" font-size="14.00">fetched_at </text>
-<text text-anchor="start" x="2665.28" y="-798.6" font-family="Arial" font-size="14.00" fill="#666666">[timestamp with time zone]</text>
-<polygon fill="none" stroke="black" points="2589,-755.6 2589,-786.4 2896.36,-786.4 2896.36,-755.6 2589,-755.6"/>
-<text text-anchor="start" x="2596" y="-767.8" font-family="Arial" font-size="14.00">created_at </text>
-<text text-anchor="start" x="2666.05" y="-767.8" font-family="Arial" font-size="14.00" fill="#666666">[timestamp with time zone]</text>
-<polygon fill="none" stroke="black" points="2589,-724.8 2589,-755.6 2896.36,-755.6 2896.36,-724.8 2589,-724.8"/>
-<text text-anchor="start" x="2596" y="-737" font-family="Arial" font-size="14.00">updated_at </text>
-<text text-anchor="start" x="2669.96" y="-737" font-family="Arial" font-size="14.00" fill="#666666">[timestamp with time zone]</text>
-<polygon fill="none" stroke="black" points="2589,-694 2589,-724.8 2896.36,-724.8 2896.36,-694 2589,-694"/>
-<text text-anchor="start" x="2596" y="-706.2" font-family="Arial" font-size="14.00">public_id </text>
-<text text-anchor="start" x="2655.15" y="-706.2" font-family="Arial" font-size="14.00" fill="#666666">[uuid]</text>
-<polygon fill="none" stroke="black" points="2589,-663.2 2589,-694 2896.36,-694 2896.36,-663.2 2589,-663.2"/>
-<text text-anchor="start" x="2596" y="-675.4" font-family="Arial" font-size="14.00">rss_fetched_at </text>
-<text text-anchor="start" x="2691.72" y="-675.4" font-family="Arial" font-size="14.00" fill="#666666">[timestamp with time zone]</text>
-<polygon fill="none" stroke="black" points="2589,-632.4 2589,-663.2 2896.36,-663.2 2896.36,-632.4 2589,-632.4"/>
-<text text-anchor="start" x="2596" y="-644.6" font-family="Arial" font-size="14.00">external_uploads_playlist_id </text>
-<text text-anchor="start" x="2775.78" y="-644.6" font-family="Arial" font-size="14.00" fill="#666666">[varchar(64)]</text>
+<polygon fill="#efefef" stroke="none" points="2589,-1079 2589,-1114.6 2896.36,-1114.6 2896.36,-1079 2589,-1079"/>
+<polygon fill="none" stroke="black" points="2589,-1079 2589,-1114.6 2896.36,-1114.6 2896.36,-1079 2589,-1079"/>
+<text text-anchor="start" x="2616.21" y="-1092.4" font-family="Arial Bold" font-size="18.00">public.m_channel</text>
+<text text-anchor="start" x="2744.67" y="-1092.4" font-family="Arial" font-size="14.00">    </text>
+<text text-anchor="start" x="2775.78" y="-1092.4" font-family="Arial" font-size="14.00" fill="#666666">[BASE TABLE]</text>
+<polygon fill="none" stroke="black" points="2589,-1048.2 2589,-1079 2896.36,-1079 2896.36,-1048.2 2589,-1048.2"/>
+<text text-anchor="start" x="2596" y="-1060.4" font-family="Arial" font-size="14.00">m_channel_id </text>
+<text text-anchor="start" x="2687.06" y="-1060.4" font-family="Arial" font-size="14.00" fill="#666666">[bigint]</text>
+<polygon fill="none" stroke="black" points="2589,-1017.4 2589,-1048.2 2896.36,-1048.2 2896.36,-1017.4 2589,-1017.4"/>
+<text text-anchor="start" x="2596" y="-1029.6" font-family="Arial" font-size="14.00">external_id </text>
+<text text-anchor="start" x="2668.38" y="-1029.6" font-family="Arial" font-size="14.00" fill="#666666">[varchar(32)]</text>
+<polygon fill="none" stroke="black" points="2589,-986.6 2589,-1017.4 2896.36,-1017.4 2896.36,-986.6 2589,-986.6"/>
+<text text-anchor="start" x="2596" y="-998.8" font-family="Arial" font-size="14.00">external_display_name </text>
+<text text-anchor="start" x="2743.87" y="-998.8" font-family="Arial" font-size="14.00" fill="#666666">[varchar(64)]</text>
+<polygon fill="none" stroke="black" points="2589,-955.8 2589,-986.6 2896.36,-986.6 2896.36,-955.8 2589,-955.8"/>
+<text text-anchor="start" x="2596" y="-968" font-family="Arial" font-size="14.00">external_custom_id </text>
+<text text-anchor="start" x="2721.29" y="-968" font-family="Arial" font-size="14.00" fill="#666666">[varchar(64)]</text>
+<polygon fill="none" stroke="black" points="2589,-925 2589,-955.8 2896.36,-955.8 2896.36,-925 2589,-925"/>
+<text text-anchor="start" x="2596" y="-937.2" font-family="Arial" font-size="14.00">external_icon_url </text>
+<text text-anchor="start" x="2706.51" y="-937.2" font-family="Arial" font-size="14.00" fill="#666666">[varchar(512)]</text>
+<polygon fill="none" stroke="black" points="2589,-894.2 2589,-925 2896.36,-925 2896.36,-894.2 2589,-894.2"/>
+<text text-anchor="start" x="2596" y="-906.4" font-family="Arial" font-size="14.00">external_description </text>
+<text text-anchor="start" x="2725.19" y="-906.4" font-family="Arial" font-size="14.00" fill="#666666">[varchar(1024)]</text>
+<polygon fill="none" stroke="black" points="2589,-863.4 2589,-894.2 2896.36,-894.2 2896.36,-863.4 2589,-863.4"/>
+<text text-anchor="start" x="2596" y="-875.6" font-family="Arial" font-size="14.00">external_subscribers_count </text>
+<text text-anchor="start" x="2771.1" y="-875.6" font-family="Arial" font-size="14.00" fill="#666666">[bigint]</text>
+<polygon fill="none" stroke="black" points="2589,-832.6 2589,-863.4 2896.36,-863.4 2896.36,-832.6 2589,-832.6"/>
+<text text-anchor="start" x="2596" y="-844.8" font-family="Arial" font-size="14.00">external_created_at </text>
+<text text-anchor="start" x="2723.64" y="-844.8" font-family="Arial" font-size="14.00" fill="#666666">[timestamp with time zone]</text>
+<polygon fill="none" stroke="black" points="2589,-801.8 2589,-832.6 2896.36,-832.6 2896.36,-801.8 2589,-801.8"/>
+<text text-anchor="start" x="2596" y="-814" font-family="Arial" font-size="14.00">fetched_at </text>
+<text text-anchor="start" x="2665.28" y="-814" font-family="Arial" font-size="14.00" fill="#666666">[timestamp with time zone]</text>
+<polygon fill="none" stroke="black" points="2589,-771 2589,-801.8 2896.36,-801.8 2896.36,-771 2589,-771"/>
+<text text-anchor="start" x="2596" y="-783.2" font-family="Arial" font-size="14.00">created_at </text>
+<text text-anchor="start" x="2666.05" y="-783.2" font-family="Arial" font-size="14.00" fill="#666666">[timestamp with time zone]</text>
+<polygon fill="none" stroke="black" points="2589,-740.2 2589,-771 2896.36,-771 2896.36,-740.2 2589,-740.2"/>
+<text text-anchor="start" x="2596" y="-752.4" font-family="Arial" font-size="14.00">updated_at </text>
+<text text-anchor="start" x="2669.96" y="-752.4" font-family="Arial" font-size="14.00" fill="#666666">[timestamp with time zone]</text>
+<polygon fill="none" stroke="black" points="2589,-709.4 2589,-740.2 2896.36,-740.2 2896.36,-709.4 2589,-709.4"/>
+<text text-anchor="start" x="2596" y="-721.6" font-family="Arial" font-size="14.00">public_id </text>
+<text text-anchor="start" x="2655.15" y="-721.6" font-family="Arial" font-size="14.00" fill="#666666">[uuid]</text>
+<polygon fill="none" stroke="black" points="2589,-678.6 2589,-709.4 2896.36,-709.4 2896.36,-678.6 2589,-678.6"/>
+<text text-anchor="start" x="2596" y="-690.8" font-family="Arial" font-size="14.00">rss_fetched_at </text>
+<text text-anchor="start" x="2691.72" y="-690.8" font-family="Arial" font-size="14.00" fill="#666666">[timestamp with time zone]</text>
+<polygon fill="none" stroke="black" points="2589,-647.8 2589,-678.6 2896.36,-678.6 2896.36,-647.8 2589,-647.8"/>
+<text text-anchor="start" x="2596" y="-660" font-family="Arial" font-size="14.00">external_uploads_playlist_id </text>
+<text text-anchor="start" x="2775.78" y="-660" font-family="Arial" font-size="14.00" fill="#666666">[varchar(64)]</text>
+<polygon fill="none" stroke="black" points="2589,-617 2589,-647.8 2896.36,-647.8 2896.36,-617 2589,-617"/>
+<text text-anchor="start" x="2596" y="-629.2" font-family="Arial" font-size="14.00">bulk_fetched_at </text>
+<text text-anchor="start" x="2698.74" y="-629.2" font-family="Arial" font-size="14.00" fill="#666666">[timestamp with time zone]</text>
 </g>
 <!-- public.m_video -->
 <g id="node9" class="node">
@@ -566,8 +569,8 @@
 <text text-anchor="start" x="5660.67" y="-938.4" font-family="Arial" font-size="14.00">    </text>
 <text text-anchor="start" x="5691.79" y="-938.4" font-family="Arial" font-size="14.00" fill="#666666">[BASE TABLE]</text>
 <polygon fill="none" stroke="black" points="5529.2,-894.2 5529.2,-925 5792.16,-925 5792.16,-894.2 5529.2,-894.2"/>
-<text text-anchor="start" x="5536.2" y="-906.4" font-family="Arial" font-size="14.00">t_ratelimit </text>
-<text text-anchor="start" x="5600.77" y="-906.4" font-family="Arial" font-size="14.00" fill="#666666">[bigint]</text>
+<text text-anchor="start" x="5536.2" y="-906.4" font-family="Arial" font-size="14.00">t_ratelimit_id </text>
+<text text-anchor="start" x="5619.46" y="-906.4" font-family="Arial" font-size="14.00" fill="#666666">[bigint]</text>
 <polygon fill="none" stroke="black" points="5529.2,-863.4 5529.2,-894.2 5792.16,-894.2 5792.16,-863.4 5529.2,-863.4"/>
 <text text-anchor="start" x="5536.2" y="-875.6" font-family="Arial" font-size="14.00">user_public_id </text>
 <text text-anchor="start" x="5630.37" y="-875.6" font-family="Arial" font-size="14.00" fill="#666666">[uuid]</text>

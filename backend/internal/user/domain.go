@@ -69,7 +69,7 @@ type DailyScreenTimeLimit struct {
 func NewDailyScreenTimeLimit(seconds *int) (_ DailyScreenTimeLimit, err error) {
 	defer util.Wrap(&err, "user.NewDailyScreenTimeLimit")
 
-	if seconds == nil || *seconds >= int((24 * time.Hour).Seconds()) {
+	if seconds == nil || *seconds >= int((24*time.Hour).Seconds()) {
 		return DailyScreenTimeLimit{duration: nil}, nil
 	}
 
