@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -173,7 +172,6 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 
 	// userテーブルに存在するかどうか
 	userPublicID, isDeactivated, err := s.userQS.FindByAuthorizationID(ctx, authorizationID)
-	fmt.Printf("あああああ	a%v %v\n", isDeactivated, err)
 
 	if err == nil && !isDeactivated { // 現役で存在する場合
 		at, atExp, err := s.jwtService.SignUserAccessToken(userPublicID, refreshToken.AccessTokenJTI, s.serverURL)

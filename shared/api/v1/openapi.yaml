@@ -1683,7 +1683,7 @@ paths:
     delete:
       tags: [ user ]
       summary: Delete User's Account
-      description: アカウント削除。TODO OIDCにする
+      description: アカウント削除
       operationId: deleteUsersMe
       responses:
         "204":

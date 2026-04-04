@@ -545,18 +545,29 @@ function VideoPlayerContent() {
 
   // Fullscreen change listener
   useEffect(() => {
-    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    const handler = () => {
+      const fs = !!document.fullscreenElement;
+      setIsFullscreen(fs);
+      if (!fs) {
+        screen.orientation?.unlock?.();
+      }
+    };
     document.addEventListener("fullscreenchange", handler);
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
 
-  const toggleFullscreen = useCallback(() => {
+  const toggleFullscreen = useCallback(async () => {
     const el = playerWrapperRef.current;
     if (!el) return;
     if (document.fullscreenElement) {
-      document.exitFullscreen();
+      await document.exitFullscreen();
     } else {
-      el.requestFullscreen?.();
+      await el.requestFullscreen?.();
+      try {
+        await screen.orientation?.lock?.("landscape");
+      } catch {
+        // Screen Orientation API not supported or permission denied — ignore
+      }
     }
   }, []);
 

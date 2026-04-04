@@ -89,14 +89,14 @@ func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) 
 	videos := make(map[VideoID]Video)
 	for _, item := range res.Items {
 		if item.ContentDetails == nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "item.ContentDetails is nil(fetchVideoDetail)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "item.ContentDetails is nil(fetch video detail)")
 			continue
 		}
 
 		lengthSeconds := 0
 		matches := iso8601DurationRe.FindStringSubmatch(item.ContentDetails.Duration)
 		if matches == nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "duration matches is nil(fetchVideoDetail)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "duration matches is nil(fetch video detail)")
 			continue
 		}
 		hours, _ := strconv.Atoi(matches[1])
@@ -105,12 +105,12 @@ func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) 
 		lengthSeconds = hours*3600 + minutes*60 + seconds
 
 		if item.Snippet == nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "item.Snippet is nil(fetchVideoDetail)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "item.Snippet is nil(fetch video detail)")
 			continue
 		}
 
 		if item.Snippet.Thumbnails == nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "item.Snippet.Thumbnails is nil(fetchVideoDetail)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "item.Snippet.Thumbnails is nil(fetch video detail)")
 			continue
 		}
 		var thumbnail string
@@ -119,13 +119,13 @@ func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) 
 		} else if item.Snippet.Thumbnails.Default != nil {
 			thumbnail = item.Snippet.Thumbnails.Default.Url
 		} else {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "no valid thumbnail in item.Snippet.Thumbnails(fetchVideoDetail)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "no valid thumbnail in item.Snippet.Thumbnails(fetch video detail)")
 			continue
 		}
 
 		createdAt, err := time.Parse(time.RFC3339, item.Snippet.PublishedAt)
 		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to parse createdAt(fetchVideoDetail)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to parse created at(fetch video detail)")
 			continue
 		}
 
@@ -139,7 +139,7 @@ func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) 
 			createdAt,
 		)
 		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to newVideo(fetchVideoDetail)", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(fetch video detail)", slog.Any("error", err))
 			continue
 		}
 		videos[video.ID] = video
@@ -241,18 +241,18 @@ func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []Chann
 
 	for _, found := range res.Items {
 		if found.Snippet == nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "found.Snippet == nil(fetchChannelDetail)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "found.Snippet is nil(fetch channel detail)")
 			continue
 		}
 
 		createdAt, err := time.Parse(time.RFC3339, found.Snippet.PublishedAt)
 		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to parse createdAt", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to parse created at(fetch channel detail)", slog.Any("error", err))
 			continue
 		}
 
 		if found.Snippet.Thumbnails == nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "found.Snippet.Thumbnails == nil(fetchVideoDetail)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "found.Snippet.Thumbnails is nil(fetch channel detail)")
 			continue
 		}
 		iconURL := ""
@@ -261,17 +261,17 @@ func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []Chann
 		} else if found.Snippet.Thumbnails.Default != nil {
 			iconURL = found.Snippet.Thumbnails.Default.Url
 		} else {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "no valid iconURL found(fetchVideoDetail)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "no valid icon url found(fetch channel detail)")
 			continue
 		}
 
 		if found.Statistics == nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "found.Statistics == nil(fetchVideoDetail)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "found.Statistics is nil(fetch channel detail)")
 			continue
 		}
 
 		if found.ContentDetails == nil || found.ContentDetails.RelatedPlaylists == nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "found.ContentDetails or found.ContentDetails.RelatedPlailits is nil(fetchVideoDetail)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "found.ContentDetails or RelatedPlaylists is nil(fetch channel detail)")
 			continue
 		}
 
@@ -286,7 +286,7 @@ func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []Chann
 			createdAt,
 		)
 		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to NewChannel(fetchVideoDetail)", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new channel(fetch channel detail)", slog.Any("error", err))
 			continue
 		}
 
@@ -319,12 +319,12 @@ func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID stri
 	videoIDs := make([]VideoID, 0, len(res.Items))
 	for _, item := range res.Items {
 		if item.ContentDetails == nil || item.ContentDetails.VideoId == "" {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "item.ContentDetails is nil or VideoId is empty(fetchPlaylistVideoIDs)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "item.ContentDetails is nil or VideoId is empty(fetch playlist video ids)")
 			continue
 		}
 		videoID, err := NewVideoID(item.ContentDetails.VideoId)
 		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to NewVideoID(fetchPlaylistVideoIDs)", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video id(fetch playlist video ids)", slog.Any("error", err))
 			continue
 		}
 		videoIDs = append(videoIDs, videoID)
@@ -356,13 +356,13 @@ func (s *serviceImpl) FetchChannelPlaylists(ctx context.Context, channelID Chann
 	playlists := make([]Playlist, 0, len(res.Items))
 	for _, item := range res.Items {
 		if item.Snippet == nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "item.Snippet is nil(fetchChannelPlaylists)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "item.Snippet is nil(fetch channel playlists)")
 			continue
 		}
 
 		createdAt, err := time.Parse(time.RFC3339, item.Snippet.PublishedAt)
 		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to parse createdAt(fetchChannelPlaylists)", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to parse created at(fetch channel playlists)", slog.Any("error", err))
 			continue
 		}
 
@@ -420,12 +420,12 @@ func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToke
 	videoIDs := make([]VideoID, 0, len(res.Items))
 	for _, item := range res.Items {
 		if item.Id == nil || item.Id.VideoId == "" {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "item.Id is nil or VideoId is empty(searchVideoIDs)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "item.Id is nil or VideoId is empty(search video ids)")
 			continue
 		}
 		videoID, err := NewVideoID(item.Id.VideoId)
 		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to NewVideoID(searchVideoIDs)", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video id(search video ids)", slog.Any("error", err))
 			continue
 		}
 		videoIDs = append(videoIDs, videoID)
@@ -550,12 +550,12 @@ func (s *serviceImpl) FetchPlaylistVideoIDsWithOAuth(ctx context.Context, access
 	videoIDs := make([]VideoID, 0, len(res.Items))
 	for _, item := range res.Items {
 		if item.ContentDetails == nil || item.ContentDetails.VideoId == "" {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "item.ContentDetails is nil or VideoId is empty(fetchPlaylistVideoIDsWithOAuth)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "item.ContentDetails is nil or VideoId is empty(fetch playlist video ids with oauth)")
 			continue
 		}
 		videoID, err := NewVideoID(item.ContentDetails.VideoId)
 		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to NewVideoID(fetchPlaylistVideoIDsWithOAuth)", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video id(fetch playlist video ids with oauth)", slog.Any("error", err))
 			continue
 		}
 		videoIDs = append(videoIDs, videoID)
@@ -589,17 +589,17 @@ func (s *serviceImpl) FetchWatchHistory(ctx context.Context, accessToken string,
 	histories := make([]WatchHistory, 0, len(res.Items))
 	for _, item := range res.Items {
 		if item.Snippet == nil || item.Snippet.ResourceId == nil || item.Snippet.ResourceId.VideoId == "" {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "item.Snippet or ResourceId is nil or VideoId is empty(fetchWatchHistory)")
+			util.LoggerFromContext(ctx).InfoContext(ctx, "item.Snippet or ResourceId is nil or VideoId is empty(fetch watch history)")
 			continue
 		}
 		videoID, err := NewVideoID(item.Snippet.ResourceId.VideoId)
 		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to NewVideoID(fetchWatchHistory)", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video id(fetch watch history)", slog.Any("error", err))
 			continue
 		}
 		watchedAt, err := time.Parse(time.RFC3339, item.Snippet.PublishedAt)
 		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to parse PublishedAt(fetchWatchHistory)", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to parse published at(fetch watch history)", slog.Any("error", err))
 			continue
 		}
 		histories = append(histories, WatchHistory{

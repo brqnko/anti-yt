@@ -38,7 +38,7 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback in exhaustQuotaJob.run", slog.Any("error", err))
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback(exhaust quota job)", slog.Any("error", err))
 		}
 	}()
 	q := sqlc.New(tx)
@@ -48,7 +48,6 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 		return err
 	}
 
-	// TODO
 	channels, err := channel.NewChannelRepository(q).FindBulkFetchedAfter(ctx, time.Now().UTC().Add(24*30*time.Hour))
 	if err != nil {
 		return err
@@ -76,11 +75,11 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 					for _, vd := range videoDetails {
 						v, err := video.NewVideo(c.ID, fetchedAt, vd)
 						if err != nil {
-							util.LoggerFromContext(ctx).InfoContext(ctx, "failed to newVideo", slog.Any("error", err))
+							util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(exhaust quota job)", slog.Any("error", err))
 							continue
 						}
 						if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
-							util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video", slog.Any("error", err))
+							util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(exhaust quota job)", slog.Any("error", err))
 							continue
 						}
 					}
@@ -199,11 +198,11 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 			for _, cd := range channelDetailMap {
 				ch, err := channel.NewChannel(fetchedAt, fetchedAt, cd)
 				if err != nil {
-					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new channel", slog.Any("error", err))
+					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new channel(exhaust quota job)", slog.Any("error", err))
 					continue
 				}
 				if _, err := channel.NewChannelRepository(q).Save(ctx, ch); err != nil {
-					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save channel", slog.Any("error", err))
+					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save channel(exhaust quota job)", slog.Any("error", err))
 					continue
 				}
 				savedChannels[cd.ID] = ch.ID
@@ -218,12 +217,12 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 				}
 				v, err := video.NewVideo(channelUUID, fetchedAt, vd)
 				if err != nil {
-					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to newVideo", slog.Any("error", err))
+					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(exhaust quota job)", slog.Any("error", err))
 					continue
 				}
 				savedVideoID, err := video.NewVideoRepository(q).Save(ctx, v)
 				if err != nil {
-					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video", slog.Any("error", err))
+					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(exhaust quota job)", slog.Any("error", err))
 					continue
 				}
 				savedVideos[v.Video.ID] = savedVideoID
@@ -240,13 +239,13 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 				playlist.WithPlaylistChannelID(c.ID),
 			)
 			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to create playlist domain", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to create playlist domain(exhaust quota job)", slog.Any("error", err))
 				continue
 			}
 
 			playlistRow, err := playlist.NewPlaylistRepository(q).Save(ctx, pl)
 			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save playlist", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save playlist(exhaust quota job)", slog.Any("error", err))
 				continue
 			}
 
@@ -261,18 +260,18 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 
 			if len(videoInternalIDs) > 0 {
 				if err := playlist.NewPlaylistRepository(q).BulkInsertVideos(ctx, playlistRow, videoInternalIDs); err != nil {
-					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to bulk insert videos", slog.Any("error", err))
+					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to bulk insert videos(exhaust quota job)", slog.Any("error", err))
 					continue
 				}
 			}
 
 			if err := pl.SetVideoCount(len(videoInternalIDs)); err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to set video count", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to set video count(exhaust quota job)", slog.Any("error", err))
 				continue
 			}
 
 			if _, err := playlist.NewPlaylistRepository(q).Save(ctx, pl); err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save playlist with video count", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save playlist with video count(exhaust quota job)", slog.Any("error", err))
 				continue
 			}
 		}
@@ -282,7 +281,7 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 		c.MarkAsRSSFetched()
 
 		if _, err := channel.NewChannelRepository(q).Save(ctx, c); err != nil {
-			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to save channel", slog.Any("error", err))
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to save channel(exhaust quota job)", slog.Any("error", err))
 			continue
 		}
 

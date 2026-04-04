@@ -113,7 +113,7 @@ func (r *playlistRepositoryImpl) BulkInsertVideos(ctx context.Context, playlistI
 		return err
 	}
 	if rowsAffected != int64(len(params)) {
-		util.LoggerFromContext(ctx).WarnContext(ctx, "rowsAffected mismatch(playlistRepository.BulkInsertVideos)", slog.Int("expected", len(params)), slog.Int64("actual", rowsAffected))
+		util.LoggerFromContext(ctx).WarnContext(ctx, "rows affected mismatch(bulk insert videos)", slog.Int("expected", len(params)), slog.Int64("actual", rowsAffected))
 	}
 	return nil
 }
