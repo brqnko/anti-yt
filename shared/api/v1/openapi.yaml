@@ -69,6 +69,41 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /api/v1/auth/reactivate:
+    parameters:
+      - $ref: '#/components/parameters/HeaderXRealIP'
+      - $ref: '#/components/parameters/HeaderCfIpCountry'
+      - $ref: '#/components/parameters/HeaderCfRay'
+      - $ref: '#/components/parameters/HeaderUserAgent'
+      - $ref: '#/components/parameters/HeaderDeviceFingerprint'
+      - $ref: '#/components/parameters/HeaderTimezone'
+    post:
+      summary: Reactivate account
+      description: リフレッシュトークンを用いて削除したアカウントの復元をする
+      operationId: postAuthReactivate
+      parameters:
+        - $ref: "#/components/parameters/HeaderCSRFToken"
+        - $ref: "#/components/parameters/CookieCSRFToken"
+      tags: [ auth ]
+      security: [ ]
+      responses:
+        "200":
+          description: 200 OK
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /api/v1/auth/google:
     parameters:
       - $ref: '#/components/parameters/HeaderXRealIP'

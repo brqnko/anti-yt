@@ -129,7 +129,7 @@ WHERE h_user.m_user_authorization_id = (
 RETURNING h_user_id
 `
 
-// authorization_public_idに紐づく退会済みユーザーを削除する（再登録用）。
+// authorization_public_idに紐づく退会済みユーザーを削除する
 // 退会済みユーザーが存在しない場合はpgx.ErrNoRowsが返される。
 func (q *Queries) DeleteLeftUserByAuthorization(ctx context.Context, userAuthorizationPublicID uuid.UUID) (int64, error) {
 	row := q.db.QueryRow(ctx, deleteLeftUserByAuthorization, userAuthorizationPublicID)

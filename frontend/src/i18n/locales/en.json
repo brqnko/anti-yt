@@ -87,6 +87,14 @@
       }
     }
   },
+  "reactivation": {
+    "title": "Welcome Back",
+    "description": "We found a previously deleted account associated with your sign-in. Restore your account to get started again.",
+    "reactivate": "Restore Account",
+    "error": {
+      "title": "Restoration Failed"
+    }
+  },
   "register": {
     "error": {
       "title": "Registration Failed"

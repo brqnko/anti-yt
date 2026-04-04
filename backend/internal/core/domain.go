@@ -1,6 +1,9 @@
 package core
 
-var ErrNotFound = NewDomainError("not_found", "resource not found")
+var (
+	ErrNotFound       = NewDomainError("not_found", "resource not found")
+	ErrJTIBlacklisted = NewDomainError("jti_blacklisted", "jti blacklisted")
+)
 
 type DomainError struct {
 	code string

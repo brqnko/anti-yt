@@ -130,6 +130,19 @@ func (h *APIHandler) GetAuthOauthYoutubeCallback(ctx context.Context, request Ge
 	}, nil
 }
 
+func (h *APIHandler) PostAuthReactivate(ctx context.Context, request PostAuthReactivateRequestObject) (PostAuthReactivateResponseObject, error) {
+	accessToken, ok := hutil.AccessTokenFromContext(ctx)
+	if !ok {
+		return nil, hutil.ErrUserIDNotFoundInContext
+	}
+
+	if err := h.authService.ReactivateAccount(ctx, accessToken); err != nil {
+		return nil, err
+	}
+
+	return PostAuthReactivate200Response{}, nil
+}
+
 func (h *APIHandler) PostAuthLogout(ctx context.Context, request PostAuthLogoutRequestObject) (PostAuthLogoutResponseObject, error) {
 	refreshToken, ok := hutil.RefreshTokenFromContext(ctx)
 	if !ok {

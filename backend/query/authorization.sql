@@ -12,9 +12,11 @@ UPDATE
 SET
     issuer = EXCLUDED.issuer,
     last_logged_in_at = EXCLUDED.last_logged_in_at,
+    public_id = EXCLUDED.public_id,
     updated_at = current_timestamp
 RETURNING
     m_user_authorization_id,
+    public_id,
     (xmax = 0) AS is_created;
 
 -- m_user_authorizationの件数を取得する（日次レポート用）

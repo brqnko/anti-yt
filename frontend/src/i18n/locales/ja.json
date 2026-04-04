@@ -87,6 +87,14 @@
       }
     }
   },
+  "reactivation": {
+    "title": "おかえりなさい",
+    "description": "以前削除されたアカウントが見つかりました。アカウントを復元して、もう一度始めましょう。",
+    "reactivate": "アカウントを復元",
+    "error": {
+      "title": "復元に失敗しました"
+    }
+  },
   "register": {
     "error": {
       "title": "登録に失敗しました"
