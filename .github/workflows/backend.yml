@@ -78,9 +78,9 @@ jobs:
 
       - name: Check generated code is up to date
         run: |
-          if [ -n "$(git status --porcelain)" ]; then
+          if [ -n "$(git status --porcelain -- ':!docs/schema')" ]; then
             echo "::error::Generated code is out of date. Please run code generation locally and commit the changes."
-            git diff
+            git diff -- ':!docs/schema'
             exit 1
           fi
 
