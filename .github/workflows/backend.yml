@@ -67,6 +67,9 @@ jobs:
       - name: Generate sqlc
         run: sqlc generate
 
+      - name: Install oapi-codegen
+        run: go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.6.0
+
       - name: Generate oapi-codegen
         run: go generate ./internal/core/handler/v1/
 
