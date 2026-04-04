@@ -240,7 +240,6 @@ function VideoPlayerContent() {
         })()
       : null,
   );
-  const [noteText, setNoteText] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(false);
@@ -990,63 +989,6 @@ function VideoPlayerContent() {
 
           {/* Sidebar */}
           <aside class="w-full xl:w-[420px] shrink-0 flex flex-col gap-8 px-4 sm:px-0">
-            {/* Quick Notes */}
-            <div
-              class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden"
-              style={{ height: playerHeight ? `${playerHeight}px` : undefined, minHeight: '400px', flex: 'none' }}
-            >
-              <div class="p-4 border-b border-border-light dark:border-border-dark flex items-center justify-between">
-                <h2 class="font-bold text-lg tracking-tight flex items-center gap-2">
-                  <Icon name="edit_note" class="text-primary" />
-                  {t("videoPlayer.quickNotes")}
-                </h2>
-              </div>
-              <div class="px-4 py-2 flex items-center gap-1 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark/50">
-                <button
-                  class="p-1.5 rounded transition-colors bg-transparent border-none text-charcoal/30 dark:text-white/30 cursor-not-allowed"
-                  title="Bold"
-                  disabled
-                >
-                  <Icon name="format_bold" class="text-xl" />
-                </button>
-                <button
-                  class="p-1.5 rounded transition-colors bg-transparent border-none text-charcoal/30 dark:text-white/30 cursor-not-allowed"
-                  title="Italic"
-                  disabled
-                >
-                  <Icon name="format_italic" class="text-xl" />
-                </button>
-                <button
-                  class="p-1.5 rounded transition-colors bg-transparent border-none text-charcoal/30 dark:text-white/30 cursor-not-allowed"
-                  title="Bullet List"
-                  disabled
-                >
-                  <Icon name="format_list_bulleted" class="text-xl" />
-                </button>
-                <div class="w-px h-6 bg-border-light dark:bg-border-dark mx-1" />
-                <button
-                  class="p-1.5 rounded transition-colors bg-transparent border-none text-charcoal/30 dark:text-white/30 cursor-not-allowed"
-                  title="Timestamp"
-                  disabled
-                >
-                  <Icon name="schedule" class="text-xl" />
-                </button>
-              </div>
-              <div class="relative flex-1 flex flex-col min-h-0">
-                <textarea
-                  class="w-full flex-1 min-h-0 p-4 bg-transparent border-none focus:ring-0 focus:outline-none text-sm leading-relaxed resize-none text-charcoal dark:text-white"
-                  placeholder={t("videoPlayer.notesPlaceholder")}
-                  value={noteText}
-                  onInput={(e) => setNoteText((e.target as HTMLTextAreaElement).value)}
-                />
-              </div>
-              <div class="p-4 bg-background-light dark:bg-background-dark/50 border-t border-border-light dark:border-border-dark flex items-center justify-end">
-                <button class="bg-primary text-white px-5 py-2 rounded-xl font-bold text-sm tracking-wide hover:opacity-90 transition-opacity border-none cursor-pointer">
-                  {t("videoPlayer.saveNote")}
-                </button>
-              </div>
-            </div>
-
             {/* Playlist sidebar */}
             {playlistId && playlistLoading && (
               <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark p-8">

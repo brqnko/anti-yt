@@ -273,10 +273,7 @@
   "videoPlayer": {
     "pageTitle": "動画プレーヤー",
     "notFound": "動画が見つかりません",
-    "quickNotes": "クイックノート",
-    "notesPlaceholder": "ここにメモを入力...自動的にタイムスタンプが付きます。",
-    "saveNote": "ノートを保存",
-    "curatedPlaylist": "キュレーションプレイリスト",
+"curatedPlaylist": "キュレーションプレイリスト",
     "viewPlaylist": "プレイリストを見る",
     "addToPlaylist": "保存",
     "playlist": "再生リスト",
