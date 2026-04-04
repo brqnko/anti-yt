@@ -152,26 +152,6 @@ DELETE FROM
 WHERE
     m_user_screen_time_range.m_user_id = $1;
 
--- m_user.recent_playlist_idsを更新する。先頭に追加し、重複を除去し、最大5件に制限する。
--- name: PushRecentPlaylistId :exec
-UPDATE m_user
-SET recent_playlist_ids = (
-    SELECT COALESCE(array_agg(val), '{}')
-    FROM (
-        SELECT val
-        FROM UNNEST(
-            ARRAY[(SELECT p.m_playlist_id FROM m_playlist p WHERE p.public_id = @playlist_public_id LIMIT 1)]
-            || m_user.recent_playlist_ids
-        ) WITH ORDINALITY AS t(val, ord)
-        WHERE val IS NOT NULL
-        GROUP BY val
-        ORDER BY MIN(ord)
-        LIMIT 5
-    ) sub
-),
-    updated_at = CURRENT_TIMESTAMP
-WHERE m_user.public_id = @user_public_id;
-
 -- m_userをh_userに移動します。
 -- name: ArchiveUser :exec
 WITH deleted AS (

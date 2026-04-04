@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"sort"
 	"time"
@@ -144,6 +145,11 @@ func (h *APIHandler) PostUsersMe(ctx context.Context, request PostUsersMeRequest
 	u, newAccessToken, accessTokenExpiresAt, err := h.userService.CreateNewUser(ctx, accessToken, request.Body.DailyScreenSeconds, screenTimeDto, request.Body.DisplayName, request.Body.LanguageCode, hutil.TimezoneFromContext(ctx))
 	if err != nil {
 		return nil, err
+	}
+
+	// Watch Laterプレイリストを作成
+	if _, err := h.playlistService.CreatePlaylist(ctx, u.ID, "Watch Later", "", "private", "watch_later", nil); err != nil {
+		slog.ErrorContext(ctx, "failed to create watch later playlist", slog.Any("error", err), slog.String("user_id", u.ID.String()))
 	}
 
 	// RegisterTokenからUserAccessTokenに切り替え

@@ -862,6 +862,14 @@
           "columns": [
             "public_id"
           ]
+        },
+        {
+          "name": "idx_1_h_user",
+          "def": "CREATE INDEX idx_1_h_user ON public.h_user USING btree (m_user_authorization_id)",
+          "table": "public.h_user",
+          "columns": [
+            "m_user_authorization_id"
+          ]
         }
       ],
       "constraints": [
@@ -1327,6 +1335,11 @@
           "name": "external_uploads_playlist_id",
           "type": "varchar(64)",
           "nullable": false
+        },
+        {
+          "name": "bulk_fetched_at",
+          "type": "timestamp with time zone",
+          "nullable": false
         }
       ],
       "indexes": [
@@ -1369,9 +1382,27 @@
           "columns": [
             "rss_fetched_at"
           ]
+        },
+        {
+          "name": "idx_2_m_channel",
+          "def": "CREATE INDEX idx_2_m_channel ON public.m_channel USING btree (bulk_fetched_at)",
+          "table": "public.m_channel",
+          "columns": [
+            "bulk_fetched_at"
+          ]
         }
       ],
       "constraints": [
+        {
+          "name": "m_channel_bulk_fetched_at_not_null",
+          "type": "n",
+          "def": "NOT NULL bulk_fetched_at",
+          "table": "public.m_channel",
+          "referenced_table": "",
+          "columns": [
+            "bulk_fetched_at"
+          ]
+        },
         {
           "name": "m_channel_created_at_not_null",
           "type": "n",
@@ -1845,6 +1876,15 @@
             "m_user_id",
             "m_video_id",
             "watch_start_at"
+          ]
+        },
+        {
+          "name": "idx_4_t_video_watch",
+          "def": "CREATE INDEX idx_4_t_video_watch ON public.t_video_watch USING btree (m_user_id, public_id DESC)",
+          "table": "public.t_video_watch",
+          "columns": [
+            "m_user_id",
+            "public_id"
           ]
         }
       ],
@@ -2735,7 +2775,7 @@
       "type": "BASE TABLE",
       "columns": [
         {
-          "name": "t_ratelimit",
+          "name": "t_ratelimit_id",
           "type": "bigint",
           "nullable": false
         },
@@ -2747,7 +2787,8 @@
         {
           "name": "consumed_quota",
           "type": "integer",
-          "nullable": false
+          "nullable": false,
+          "default": "0"
         },
         {
           "name": "created_at",
@@ -2765,10 +2806,10 @@
       "indexes": [
         {
           "name": "t_ratelimit_pkey",
-          "def": "CREATE UNIQUE INDEX t_ratelimit_pkey ON public.t_ratelimit USING btree (t_ratelimit)",
+          "def": "CREATE UNIQUE INDEX t_ratelimit_pkey ON public.t_ratelimit USING btree (t_ratelimit_id)",
           "table": "public.t_ratelimit",
           "columns": [
-            "t_ratelimit"
+            "t_ratelimit_id"
           ]
         },
         {
@@ -2802,13 +2843,13 @@
           ]
         },
         {
-          "name": "t_ratelimit_t_ratelimit_not_null",
+          "name": "t_ratelimit_t_ratelimit_id_not_null",
           "type": "n",
-          "def": "NOT NULL t_ratelimit",
+          "def": "NOT NULL t_ratelimit_id",
           "table": "public.t_ratelimit",
           "referenced_table": "",
           "columns": [
-            "t_ratelimit"
+            "t_ratelimit_id"
           ]
         },
         {
@@ -2834,11 +2875,11 @@
         {
           "name": "t_ratelimit_pkey",
           "type": "PRIMARY KEY",
-          "def": "PRIMARY KEY (t_ratelimit)",
+          "def": "PRIMARY KEY (t_ratelimit_id)",
           "table": "public.t_ratelimit",
           "referenced_table": "",
           "columns": [
-            "t_ratelimit"
+            "t_ratelimit_id"
           ]
         }
       ]

@@ -34,11 +34,11 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 	defer util.Wrap(&err, "playlist.(*Service).CreatePlaylist(userID=%s)", userID)
 
 	playlist, err := NewPlaylist(
+		userID,
 		title,
 		description,
 		visibilityStr,
 		playlistTypeStr,
-		WithPlaylistUserID(userID),
 	)
 	if err != nil {
 		return nil, err
@@ -182,11 +182,11 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 	defer util.Wrap(&err, "playlist.(*Service).CreatePlaylistWithAccessToken(userID=%s)", userID)
 
 	playlist, err := NewPlaylist(
+		userID,
 		title,
 		description,
 		visibilityStr,
 		playlistTypeStr,
-		WithPlaylistUserID(userID),
 	)
 	if err != nil {
 		return nil, err
@@ -350,7 +350,30 @@ func (s *Service) GetPlaylistDetail(ctx context.Context, userID, playlistID uuid
 func (s *Service) DeletePlaylist(ctx context.Context, userID, playlistID uuid.UUID) (err error) {
 	defer util.Wrap(&err, "playlist.(*Service).DeletePlaylist")
 
-	return NewPlaylistRepository(sqlc.New(s.db)).Remove(ctx, userID, playlistID)
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback", slog.Any("error", err))
+		}
+	}()
+
+	q := sqlc.New(tx)
+	playlist, err := NewPlaylistRepository(q).FindForUpdate(ctx, userID, playlistID)
+	if err != nil {
+		return err
+	}
+	if !playlist.IsModifiable() {
+		return ErrPlaylistNotModifiable
+	}
+
+	if err := NewPlaylistRepository(q).Remove(ctx, userID, playlistID); err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 func (s *Service) GetPlaylistItems(ctx context.Context, userID, playlistID uuid.UUID, videoCursor *uuid.UUID, limit int32) (_ []GetPlaylistItemView, _ bool, err error) {
@@ -384,6 +407,9 @@ func (s *Service) UpdatePlaylist(ctx context.Context, userID, playlistID uuid.UU
 	playlist, err := NewPlaylistRepository(q).FindForUpdate(ctx, userID, playlistID)
 	if err != nil {
 		return nil, err
+	}
+	if !playlist.IsModifiable() {
+		return nil, ErrPlaylistNotModifiable
 	}
 
 	if err := playlist.SetTitle(newPlaylistTitle); err != nil {
@@ -421,6 +447,9 @@ func (s *Service) InsertVideoIntoPlaylist(ctx context.Context, userID, playlistI
 	playlist, err := NewPlaylistRepository(q).FindForUpdate(ctx, userID, playlistID)
 	if err != nil {
 		return err
+	}
+	if !playlist.IsModifiable() {
+		return ErrPlaylistNotModifiable
 	}
 
 	if err := NewPlaylistRepository(q).InsertVideo(ctx, userID, playlistID, videoID); err != nil {
@@ -476,7 +505,7 @@ func (s *Service) FetchAndInsertVideoIntoPlaylist(ctx context.Context, userID, p
 	fetchedAt := time.Now().UTC()
 	q := sqlc.New(s.db)
 
-	// チャンネルをupsert
+	// チャンネルを挿入
 	ch, err := channel.NewChannel(fetchedAt, fetchedAt, cd)
 	if err != nil {
 		return uuid.Nil, err
@@ -506,11 +535,11 @@ func (s *Service) CopyPlaylist(ctx context.Context, userID uuid.UUID, sourcePlay
 	defer util.Wrap(&err, "playlist.(*Service).CopyPlaylist(userID=%s, sourcePlaylistID=%s)", userID, sourcePlaylistID)
 
 	playlist, err := NewPlaylist(
+		userID,
 		title,
 		description,
 		"private",
 		"normal",
-		WithPlaylistUserID(userID),
 	)
 	if err != nil {
 		return nil, err
@@ -572,11 +601,92 @@ func (s *Service) RemoveVideoFromPlaylist(ctx context.Context, userID, playlistI
 	if err != nil {
 		return err
 	}
+	if !playlist.IsModifiable() {
+		return ErrPlaylistNotModifiable
+	}
 
 	if err := NewPlaylistRepository(q).RemoveVideo(ctx, userID, playlistID, videoID); err != nil {
 		return err
 	}
 
+	if err := playlist.DecrementVideoCount(); err != nil {
+		return err
+	}
+
+	if _, err := NewPlaylistRepository(q).Save(ctx, playlist); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) MarkAsWatchLater(ctx context.Context, userID, videoID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "playlist.(*Service).MarkAsWatchLater")
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback", slog.Any("error", err))
+		}
+	}()
+	q := sqlc.New(tx)
+
+	// watch laterのプレイリストをロッキングリード
+	playlist, err := NewPlaylistRepository(q).FindWatchLaterForUpdate(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	// 動画をinsert
+	if err := NewPlaylistRepository(q).InsertWatchLater(ctx, userID, playlist.ID, videoID); err != nil {
+		return err
+	}
+
+	// 動画をインクリメントして保存
+	playlist.IncrementVideoCount()
+
+	if _, err := NewPlaylistRepository(q).Save(ctx, playlist); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) UnmarkAsWatchLater(ctx context.Context, userID, videoID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "playlist.(*Service).UnmarkAsWatchLater")
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback", slog.Any("error", err))
+		}
+	}()
+	q := sqlc.New(tx)
+
+	// watch laterのプレイリストをロッキングリード
+	playlist, err := NewPlaylistRepository(q).FindWatchLaterForUpdate(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	// 動画をremove
+	if err := NewPlaylistRepository(q).RemoveVideo(ctx, userID, playlist.ID, videoID); err != nil {
+		return err
+	}
+
+	// 動画をデクリメントて保存
 	if err := playlist.DecrementVideoCount(); err != nil {
 		return err
 	}

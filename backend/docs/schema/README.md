@@ -11,7 +11,7 @@
 | [public.h_user](public.h_user.md) | 11 |  | BASE TABLE |
 | [public.m_user_screen_time_range](public.m_user_screen_time_range.md) | 6 |  | BASE TABLE |
 | [public.m_user_subscribing_channel](public.m_user_subscribing_channel.md) | 6 |  | BASE TABLE |
-| [public.m_channel](public.m_channel.md) | 14 |  | BASE TABLE |
+| [public.m_channel](public.m_channel.md) | 15 |  | BASE TABLE |
 | [public.m_video](public.m_video.md) | 12 |  | BASE TABLE |
 | [public.t_video_watch](public.t_video_watch.md) | 9 |  | BASE TABLE |
 | [public.s_monthly_video_watch](public.s_monthly_video_watch.md) | 10 |  | BASE TABLE |

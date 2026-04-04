@@ -271,6 +271,8 @@
     "curatedPlaylist": "キュレーションプレイリスト",
     "viewPlaylist": "プレイリストを見る",
     "addToPlaylist": "保存",
+    "playlist": "再生リスト",
+    "watchLater": "後で見る",
     "loop": "ループ",
     "noPlaylists": "プレイリストがありません。",
     "remaining": "今日の残り",

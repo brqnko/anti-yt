@@ -79,7 +79,7 @@ func (h *APIHandler) PostVideosVideoIdWatched(ctx context.Context, request PostV
 		return nil, err
 	}
 
-	return PostVideosVideoIdWatched204Response{}, nil
+	return PostVideosVideoIdWatched201Response{}, nil
 }
 
 func (h *APIHandler) DeleteVideosVideoIdWatched(ctx context.Context, request DeleteVideosVideoIdWatchedRequestObject) (DeleteVideosVideoIdWatchedResponseObject, error) {

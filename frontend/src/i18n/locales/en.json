@@ -271,6 +271,8 @@
     "curatedPlaylist": "Curated Playlist",
     "viewPlaylist": "View Full Playlist",
     "addToPlaylist": "Save",
+    "playlist": "Playlist",
+    "watchLater": "Watch Later",
     "loop": "Loop",
     "noPlaylists": "No playlists yet.",
     "remaining": "Today's remaining",

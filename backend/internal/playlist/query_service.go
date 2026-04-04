@@ -206,24 +206,44 @@ func (p *playlistQueryServiceImpl) FindPlaylistItems(ctx context.Context, userID
 func (p *playlistQueryServiceImpl) FindRecentPlaylists(ctx context.Context, userID uuid.UUID) (_ []GetChannelPlaylistsView, err error) {
 	defer util.Wrap(&err, "playlist.(*playlistQueryServiceImpl).FindRecentPlaylists(userID=%s)", userID)
 
+	wl, wlErr := p.q.GetWatchLaterPlaylist(ctx, userID)
+
 	rows, err := p.q.ListRecentPlaylists(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	views := make([]GetChannelPlaylistsView, len(rows))
-	for i, row := range rows {
+	var views []GetChannelPlaylistsView
+
+	if wlErr == nil {
+		var topVideoThumbnailUrl *string
+		if wl.TopThumbnail != "" {
+			topVideoThumbnailUrl = &wl.TopThumbnail
+		}
+		views = append(views, GetChannelPlaylistsView{
+			PlaylistId:           wl.PublicID,
+			PlaylistTitle:        wl.PlaylistTitle,
+			PlaylistVideoCount:   wl.VideoCount,
+			PlaylistRegisteredAt: wl.RegisteredAt,
+			TopVideoThumbnailUrl: topVideoThumbnailUrl,
+		})
+	}
+
+	for _, row := range rows {
+		if wlErr == nil && row.PublicID == wl.PublicID {
+			continue
+		}
 		var topVideoThumbnailUrl *string
 		if row.TopThumbnail != "" {
 			topVideoThumbnailUrl = &row.TopThumbnail
 		}
-		views[i] = GetChannelPlaylistsView{
+		views = append(views, GetChannelPlaylistsView{
 			PlaylistId:           row.PublicID,
 			PlaylistTitle:        row.PlaylistTitle,
 			PlaylistVideoCount:   row.VideoCount,
 			PlaylistRegisteredAt: row.RegisteredAt,
 			TopVideoThumbnailUrl: topVideoThumbnailUrl,
-		}
+		})
 	}
 	return views, nil
 }

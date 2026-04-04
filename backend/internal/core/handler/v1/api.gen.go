@@ -1003,6 +1003,40 @@ type PostVideosVideoIdHeartbeatsParams struct {
 	XTimezone          HeaderTimezone          `json:"X-Timezone"`
 }
 
+// DeleteVideosVideoIdWatchLaterParams defines parameters for DeleteVideosVideoIdWatchLater.
+type DeleteVideosVideoIdWatchLaterParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+}
+
+// PostVideosVideoIdWatchLaterParams defines parameters for PostVideosVideoIdWatchLater.
+type PostVideosVideoIdWatchLaterParams struct {
+	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
+	XRealIP HeaderXRealIP `json:"X-Real-IP"`
+
+	// CfIpcountry Cloudflareが検出したクライアントの国コード（ISO 3166-1 alpha-2）
+	CfIpcountry HeaderCfIpCountry `json:"Cf-Ipcountry"`
+
+	// CfRay Cloudflareリクエストの一意識別子（トレーシング用）
+	CfRay HeaderCfRay `json:"Cf-Ray"`
+
+	// UserAgent クライアントのブラウザ・アプリケーション情報
+	UserAgent          HeaderUserAgent         `json:"User-Agent"`
+	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
+	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+}
+
 // DeleteVideosVideoIdWatchedParams defines parameters for DeleteVideosVideoIdWatched.
 type DeleteVideosVideoIdWatchedParams struct {
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
@@ -1185,6 +1219,12 @@ type ServerInterface interface {
 	// Heartbeats
 	// (POST /api/v1/videos/{video_id}/heartbeats)
 	PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdHeartbeatsParams)
+	// Remove video from watch later
+	// (DELETE /api/v1/videos/{video_id}/watch-later)
+	DeleteVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params DeleteVideosVideoIdWatchLaterParams)
+	// Add video to watch later
+	// (POST /api/v1/videos/{video_id}/watch-later)
+	PostVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdWatchLaterParams)
 	// Unmark video as watched
 	// (DELETE /api/v1/videos/{video_id}/watched)
 	DeleteVideosVideoIdWatched(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params DeleteVideosVideoIdWatchedParams)
@@ -1407,6 +1447,18 @@ func (_ Unimplemented) GetVideosVideoId(w http.ResponseWriter, r *http.Request, 
 // Heartbeats
 // (POST /api/v1/videos/{video_id}/heartbeats)
 func (_ Unimplemented) PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdHeartbeatsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Remove video from watch later
+// (DELETE /api/v1/videos/{video_id}/watch-later)
+func (_ Unimplemented) DeleteVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params DeleteVideosVideoIdWatchLaterParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Add video to watch later
+// (POST /api/v1/videos/{video_id}/watch-later)
+func (_ Unimplemented) PostVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdWatchLaterParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -7597,6 +7649,354 @@ func (siw *ServerInterfaceWrapper) PostVideosVideoIdHeartbeats(w http.ResponseWr
 	handler.ServeHTTP(w, r)
 }
 
+// DeleteVideosVideoIdWatchLater operation middleware
+func (siw *ServerInterfaceWrapper) DeleteVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "video_id" -------------
+	var videoId uuid.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "video_id", chi.URLParam(r, "video_id"), &videoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "video_id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DeleteVideosVideoIdWatchLaterParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "ipv4"})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
+		}
+
+		params.XRealIP = XRealIP
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "iso-3166-1-alpha-2"})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
+		}
+
+		params.CfIpcountry = CfIpcountry
+
+	} else {
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
+		}
+
+		params.CfRay = CfRay
+
+	} else {
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
+		}
+
+		params.UserAgent = UserAgent
+
+	} else {
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteVideosVideoIdWatchLater(w, r, videoId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostVideosVideoIdWatchLater operation middleware
+func (siw *ServerInterfaceWrapper) PostVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "video_id" -------------
+	var videoId uuid.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "video_id", chi.URLParam(r, "video_id"), &videoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "video_id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, CookieJwtAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PostVideosVideoIdWatchLaterParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-Real-IP" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Real-IP")]; found {
+		var XRealIP HeaderXRealIP
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Real-IP", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Real-IP", valueList[0], &XRealIP, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "ipv4"})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Real-IP", Err: err})
+			return
+		}
+
+		params.XRealIP = XRealIP
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Real-IP is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Real-IP", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "Cf-Ipcountry" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ipcountry")]; found {
+		var CfIpcountry HeaderCfIpCountry
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ipcountry", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ipcountry", valueList[0], &CfIpcountry, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "iso-3166-1-alpha-2"})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ipcountry", Err: err})
+			return
+		}
+
+		params.CfIpcountry = CfIpcountry
+
+	} else {
+		err := fmt.Errorf("Header parameter Cf-Ipcountry is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ipcountry", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "Cf-Ray" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Cf-Ray")]; found {
+		var CfRay HeaderCfRay
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Cf-Ray", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Cf-Ray", valueList[0], &CfRay, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Cf-Ray", Err: err})
+			return
+		}
+
+		params.CfRay = CfRay
+
+	} else {
+		err := fmt.Errorf("Header parameter Cf-Ray is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Cf-Ray", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "User-Agent" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("User-Agent")]; found {
+		var UserAgent HeaderUserAgent
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "User-Agent", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "User-Agent", valueList[0], &UserAgent, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "User-Agent", Err: err})
+			return
+		}
+
+		params.UserAgent = UserAgent
+
+	} else {
+		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Device-Fingerprint" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
+		var XDeviceFingerprint HeaderDeviceFingerprint
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
+			return
+		}
+
+		params.XDeviceFingerprint = XDeviceFingerprint
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-Timezone" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
+		var XTimezone HeaderTimezone
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Timezone", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Timezone", valueList[0], &XTimezone, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Timezone", Err: err})
+			return
+		}
+
+		params.XTimezone = XTimezone
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Timezone is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Timezone", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostVideosVideoIdWatchLater(w, r, videoId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // DeleteVideosVideoIdWatched operation middleware
 func (siw *ServerInterfaceWrapper) DeleteVideosVideoIdWatched(w http.ResponseWriter, r *http.Request) {
 
@@ -8321,6 +8721,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/api/v1/videos/{video_id}/heartbeats", wrapper.PostVideosVideoIdHeartbeats)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/api/v1/videos/{video_id}/watch-later", wrapper.DeleteVideosVideoIdWatchLater)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/videos/{video_id}/watch-later", wrapper.PostVideosVideoIdWatchLater)
 	})
 	r.Group(func(r chi.Router) {
 		r.Delete(options.BaseURL+"/api/v1/videos/{video_id}/watched", wrapper.DeleteVideosVideoIdWatched)
@@ -11395,6 +11801,9 @@ type GetVideosVideoId200JSONResponse struct {
 	ExternalVideoThumbnailUrl       string    `json:"external_video_thumbnail_url"`
 	ExternalVideoTitle              string    `json:"external_video_title"`
 
+	// IsInWatchLater あとで見るプレイリストに入っているかどうか
+	IsInWatchLater bool `json:"is_in_watch_later"`
+
 	// IsWatched ユーザーが視聴済みかどうか
 	IsWatched bool      `json:"is_watched"`
 	VideoId   uuid.UUID `json:"video_id"`
@@ -11559,6 +11968,152 @@ func (response PostVideosVideoIdHeartbeats500JSONResponse) VisitPostVideosVideoI
 	return json.NewEncoder(w).Encode(response)
 }
 
+type DeleteVideosVideoIdWatchLaterRequestObject struct {
+	VideoId uuid.UUID `json:"video_id"`
+	Params  DeleteVideosVideoIdWatchLaterParams
+}
+
+type DeleteVideosVideoIdWatchLaterResponseObject interface {
+	VisitDeleteVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error
+}
+
+type DeleteVideosVideoIdWatchLater204Response struct {
+}
+
+func (response DeleteVideosVideoIdWatchLater204Response) VisitDeleteVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteVideosVideoIdWatchLater400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response DeleteVideosVideoIdWatchLater400JSONResponse) VisitDeleteVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteVideosVideoIdWatchLater401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteVideosVideoIdWatchLater401JSONResponse) VisitDeleteVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteVideosVideoIdWatchLater403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeleteVideosVideoIdWatchLater403JSONResponse) VisitDeleteVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteVideosVideoIdWatchLater404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteVideosVideoIdWatchLater404JSONResponse) VisitDeleteVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteVideosVideoIdWatchLater429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response DeleteVideosVideoIdWatchLater429JSONResponse) VisitDeleteVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteVideosVideoIdWatchLater500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response DeleteVideosVideoIdWatchLater500JSONResponse) VisitDeleteVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostVideosVideoIdWatchLaterRequestObject struct {
+	VideoId uuid.UUID `json:"video_id"`
+	Params  PostVideosVideoIdWatchLaterParams
+}
+
+type PostVideosVideoIdWatchLaterResponseObject interface {
+	VisitPostVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error
+}
+
+type PostVideosVideoIdWatchLater201Response struct {
+}
+
+func (response PostVideosVideoIdWatchLater201Response) VisitPostVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error {
+	w.WriteHeader(201)
+	return nil
+}
+
+type PostVideosVideoIdWatchLater400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PostVideosVideoIdWatchLater400JSONResponse) VisitPostVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostVideosVideoIdWatchLater401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PostVideosVideoIdWatchLater401JSONResponse) VisitPostVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostVideosVideoIdWatchLater403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response PostVideosVideoIdWatchLater403JSONResponse) VisitPostVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostVideosVideoIdWatchLater404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PostVideosVideoIdWatchLater404JSONResponse) VisitPostVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostVideosVideoIdWatchLater429JSONResponse struct{ TooManyRequestsJSONResponse }
+
+func (response PostVideosVideoIdWatchLater429JSONResponse) VisitPostVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostVideosVideoIdWatchLater500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response PostVideosVideoIdWatchLater500JSONResponse) VisitPostVideosVideoIdWatchLaterResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type DeleteVideosVideoIdWatchedRequestObject struct {
 	VideoId uuid.UUID `json:"video_id"`
 	Params  DeleteVideosVideoIdWatchedParams
@@ -11641,11 +12196,11 @@ type PostVideosVideoIdWatchedResponseObject interface {
 	VisitPostVideosVideoIdWatchedResponse(w http.ResponseWriter) error
 }
 
-type PostVideosVideoIdWatched204Response struct {
+type PostVideosVideoIdWatched201Response struct {
 }
 
-func (response PostVideosVideoIdWatched204Response) VisitPostVideosVideoIdWatchedResponse(w http.ResponseWriter) error {
-	w.WriteHeader(204)
+func (response PostVideosVideoIdWatched201Response) VisitPostVideosVideoIdWatchedResponse(w http.ResponseWriter) error {
+	w.WriteHeader(201)
 	return nil
 }
 
@@ -11878,6 +12433,12 @@ type StrictServerInterface interface {
 	// Heartbeats
 	// (POST /api/v1/videos/{video_id}/heartbeats)
 	PostVideosVideoIdHeartbeats(ctx context.Context, request PostVideosVideoIdHeartbeatsRequestObject) (PostVideosVideoIdHeartbeatsResponseObject, error)
+	// Remove video from watch later
+	// (DELETE /api/v1/videos/{video_id}/watch-later)
+	DeleteVideosVideoIdWatchLater(ctx context.Context, request DeleteVideosVideoIdWatchLaterRequestObject) (DeleteVideosVideoIdWatchLaterResponseObject, error)
+	// Add video to watch later
+	// (POST /api/v1/videos/{video_id}/watch-later)
+	PostVideosVideoIdWatchLater(ctx context.Context, request PostVideosVideoIdWatchLaterRequestObject) (PostVideosVideoIdWatchLaterResponseObject, error)
 	// Unmark video as watched
 	// (DELETE /api/v1/videos/{video_id}/watched)
 	DeleteVideosVideoIdWatched(ctx context.Context, request DeleteVideosVideoIdWatchedRequestObject) (DeleteVideosVideoIdWatchedResponseObject, error)
@@ -12913,6 +13474,60 @@ func (sh *strictHandler) PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *h
 	}
 }
 
+// DeleteVideosVideoIdWatchLater operation middleware
+func (sh *strictHandler) DeleteVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params DeleteVideosVideoIdWatchLaterParams) {
+	var request DeleteVideosVideoIdWatchLaterRequestObject
+
+	request.VideoId = videoId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteVideosVideoIdWatchLater(ctx, request.(DeleteVideosVideoIdWatchLaterRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteVideosVideoIdWatchLater")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteVideosVideoIdWatchLaterResponseObject); ok {
+		if err := validResponse.VisitDeleteVideosVideoIdWatchLaterResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostVideosVideoIdWatchLater operation middleware
+func (sh *strictHandler) PostVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdWatchLaterParams) {
+	var request PostVideosVideoIdWatchLaterRequestObject
+
+	request.VideoId = videoId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostVideosVideoIdWatchLater(ctx, request.(PostVideosVideoIdWatchLaterRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostVideosVideoIdWatchLater")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostVideosVideoIdWatchLaterResponseObject); ok {
+		if err := validResponse.VisitPostVideosVideoIdWatchLaterResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // DeleteVideosVideoIdWatched operation middleware
 func (sh *strictHandler) DeleteVideosVideoIdWatched(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params DeleteVideosVideoIdWatchedParams) {
 	var request DeleteVideosVideoIdWatchedRequestObject
@@ -12996,116 +13611,118 @@ func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request, param
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"Js5/UDxd/P8AAAD//xSF1Eft+wAA",
+	"H4sIAAAAAAAC/+xde1PcRrb/KirdrbpO1RAGcFIb/mPxzYasN3YZex/X5UuJmQYUa6SJpLHD+lI1kvwY",
+	"DA6sgyGOSfw2GGywrx+xY4w/TKMZ5i9/hVvdLWkkTesxMGAG65/EaKQ+/Th9zu88+vQ5NiPl8pIIRFVh",
+	"u8+xeU7mckAFMv6rV5JO86C3/9iXx6XTQESPskDJyHxe5SWR7WbRTwz5LcXy6EkGf8KmWJHLAfS3Ig8N",
+	"qNYbMviuwMsgy3arcgGkWCUzAnIcalYdzaO3FVXmxWF2bCzFfgW4LJA9tDGBEfy8RuD7NkSiLZpESM8D",
+	"qQ/15XulgqjKo5QWBKmQHRI4GUBtsnxv3rz0O9TmoHYT6qvQeAj1e1C/A41n0ChBbcW88Rbqz6CxBo3x",
+	"92ulvv4jTFfH55+3dTCckB/h2jrfr43bc+gfYu9QW18+Y/UjbIhDkpzjVLab5RWpjTTfZjXPptgc9/1h",
+	"IA6rI2x3Z4rN8aLrr+AZOMaFj91YQuPVF6H+mox041WxfH5q8/FPZum++Xj6/VoJPTceobHrv6EJ0Z9U",
+	"ZhbDx4uoboVfDoEzfAZ8yYvDQM7LvKgG8s0/2si7be6Xt0LyOJ8D/5JEEELJeSU+f1KZqK/nmx6ov0NP",
+	"jVtQX8fs9MycvvJ+rbSxPvF+7ecehefaj0unRyUyv0GdPqEAuWcYkPmJQRkas/jhA6i/hMYb/NMcXvun",
+	"9rouQONZ2bhg3noatK6IaBuhupWJ/scxwAl9R2P22Fy5Wf35Bpq0o/jxOGJB/TVmxzloPIb6Y6j/Vnkx",
+	"WZl5il6/9dycLoUw5T/aEPm2vqOhfQffc7m8gN7vTHd9mv60o6Pr044vPmNTrr2ZP3OQsjJjqFklL4kK",
+	"wLL3T1z2GPiuABS8RBlJVK3V4vJ5gc9waOzt3yoSloy1DvxBBkNsN/sf7TW53k5+VdqPytKgAHKHgMrx",
+	"wn/JsiQTut7ZPJhOM3/isoxNfSzFfinJg3w2S6RwU7ritBjSjS6mRncsxfaJKpBFTugH8hkgk+92d2Y+",
+	"S6cZuxcM6QZjvZxiv5HUL6WCmN311TrIfCOpDKE9lmKPcqOCxGWPS9JhTh4Gu92dji7G6gFzXJIY0oex",
+	"FHtckv7KiaMWUym73a3OL3B3UBcYpw9jKfaEyBXUEUnm/wV2f+U6GA959IrVBKLg2yIInMlSHsgqTwRE",
+	"FjdPk4aLSBoaa1Bb2Xz4rPL8Sb20SbEqrwog7GMbrFCVSE0AnrRaStn9OeW8Lw1+CzJYfhwVuFGBV9Tj",
+	"+Ic6mkgeP8JKbclBEbaam2NTLBALOURJRCLUTaE2HJvC33iFH+QFXh2NSce88Kg6O1FZPW/e+D8XqbzM",
+	"n+FUQKdVv7whixM889ue1v6MDICIwEW/IFE1+WusGpcITihf16uzPyKuWHxqTq2SP81Xq2zK13kgZgdU",
+	"PkdZqsoLfeP3i+Xrull6wxz46qvuXM58e8dcm/oENcKpSDay3ez/HDiZbus4dTLd9sWp/+08mW7rOvVJ",
+	"98l022fk0R9oDKmonKwGkK3OTpgLEztA1jfnrj6karNAm3oEZSirzvHC6ICCl2VAARlJzCr1oymv/lCe",
+	"u495nLI+Zull9fo0iwE6n0PcmHbo86IKhgFWN1leyQvc6ABBJ/Ws/gDv4ZeWGLi9WLn3uzl9hfXg/i7K",
+	"MvDZ8Nb6DrmxTKHAZ2mL+a3EiyA7wFGZ8g7UlxGSxEht4+18uTRdnrvvbjbLqaDNWoa6tgVOHC5ww2Ag",
+	"I2VBZPuY3YubS7+6BVoDlhASyXg5bc7kVZBTojSAb2eOOc1ysowtm4LIf1cAfaQtBCL9rIjn1bPI/pG7",
+	"Z9nby3qGRcMAmYLMq6P9qIvAZd5/fVbtKaDB+2fy678fZ3oyGaAoxFBmeJHptc17qrHP4bcdc98ec57/",
+	"CxglKpAXh6R6Spyo8m2jKsPledYRkL6nZ4CskLc7Pk1/mkZzKuWBiH7sZhHU7iKyYAQPrZ3L8+1nOtqR",
+	"em0flqRhInKHAYUj/4x/Zo70HeqF2gI2DZ5gLfFMkivX31QnkWJA2xxjgb4s+gTgOSNfYro1t8nJ+u1z",
+	"CRrT2Dx57dZszIGcNMgLgJFk5iwY/MSe1e8KANv51qTmBU5FO4P1GotDXEFAe+UsGHTpLfIXaZeivMZO",
+	"+ayMrnRn/YR0pTsZGWR5GfFOyrKE8OuHJQKIvFiINp1o3y1d2Vxcq8y8qf5yB2qvsJwr4qE/wmKvRLOC",
+	"xlLIAAnaX07f213mEf6kI/oTL9hCH3VFf+QxQQ6mD0Z/4RgC6IOOGCT8iB191/lF9Hd+SD2WQhZK9Hc0",
+	"Q8otIdjuk6dSrFLI5Th5tLY/0OQBUbUgMVo7bhixO4t+YE+N1e0CWi9qr7R7jfqxVMwP3D65Bj46xjXw",
+	"es07MobGRREm7RlOEAa5zOkIqUK2gTm16qgfqF81p+ag9m9zahbqE9hfqIULmF6bVoSgsUlOQH28cv33",
+	"zduTULsG9Umo3fR1IkDUWHqlAdcMza1qrq5XHs9WZhYDqCgqQtZNIhPmd94eDccUChgGwBsnrMldELZE",
+	"P9kydgIJWMPA7rj70JgPtOASMbtnxWyPNXl46ZleKQsY1/7/OGWuIA1LBdUfn9ovw437SX1sI/anTgAC",
+	"yaS8pNDsMgv33sGmUwlq16E+UaeXjkoKVkyHyYr4BFwn2RfehjvTaebIX9hE4nw4iePIGGfZfHLEv+Ek",
+	"/N9RqaAWBoMNp39KheOFQVBncS9Wi3fL078TFiIAB2orRxDfEJsA6leJSyeAyyz0cwT14p9WJyKNLA0a",
+	"d3EPrkBjmehFqF8lhhw0fsG6sGT3aQJqD6F2EWoTQSClMOg0r9C0/KAkCYATacihuvzT5sNrG+u3zYlr",
+	"lZk32+iFwJ8GEdR3AWTY65yYdK278601ZPAuTGw5ipiLNuk8+2DLNp1bqsW17BzK+9+0awmziyg4c2Vy",
+	"4/eL5vokTpDwi0LzQiINW8Py8srGj97aksGQDJSRxNzaWXNrCRrXcFqc468p4SjbKk6Ru1qZWYTaeag9",
+	"KM8+wXmF5zHOXoX6Gyt47X7ZUgkYVhb1QLPtmLW0W+PkWjJmjJnw547WieXEWGwpIWmxDkNifIwT4ws0",
+	"JDMjnCgCQWm3TCliSCYSZackSk1OeE1hLB6wNRzs0um11qrfWSqC4YCi/knKjjaUGeVNibC4YICWV+Du",
+	"lq/TfYcYSWagMYWfjENjmWQvhOdvuIhRYuBjflw6VieROpow0owMODUo+cG3NNpK4/kPDp2Cokq5AXrC",
+	"hp8MdtC8hvo7aNzqO3TAN7GfePNCDoZQ9RAKWlCcBV/Xh82lR+WffijPXgobVRifUJrtO3TAvHihaix+",
+	"EictxSbiSCRZGcB59XGmkPRis3ihfO1JZHoO+J5I1wFn3kLzdSImzpW+UzemOkp8RhIHCrIQjy3u4LyE",
+	"Z9B4duLYYc8cynw8cg0vmI/5oLYAtVWoLUHtvC+f60TvSa7tXz1t/51u+2Kg7dS5zs6xPzQiBOjdjVod",
+	"2hajb4Cw2Q/jthRNWNAllh8edTC95JM4Rmv4Yia26J7wzDk6lxHBWcZiDBeysp9EgKtsoNuqMrVuzi86",
+	"Esy3ITdeFTcfLGAP1qy5PkfzWtWhg2yUv4q0RTR7eb5o3luA2gqRm3Q3d45XIw7HWPlOnWmcvkdE72dp",
+	"lxzuqJfD9d4l1Jn1Sagt2z1EIqomGw5A42dsV73Ck1M72BKUnJUpyIrPHRWhhYLsoC2ijhFOGRDB91QN",
+	"Rh8K1BbKj25jl5X9gjYJNb0+IuGPNaRw8mOwxnyEDdNfsEn6GvHbb1Mbb17GUZdOUqXzjwBs9UEwT4JJ",
+	"9gEmMe/NVo3FuqX6UHBia8CBlorecGYx/smzl1M1MRIPhSROmr2CHv4MVKaGAWz4oFDxQyrxvmzb+0LD",
+	"YOdq0mAsEIVRRCg+nEWOzDr4KzgjwkZh1v/7KCAMI5Q8p464AIpbUMU4Ob4roMUrpyNVZJ2s9MCA6Nd9",
+	"PosYH/gUY2MKrmF1RVX9Ybq8IRUVqnV8mip06sKVVoxRfby65cPrCGtVGOs4YaIePox6aM9bB1WVBhRF",
+	"/cFVn9HegNI46tDfRe2Rahn/QJDR3Armf5S5vj0T3GbcuErbeV8Gw7yiAtkJicQLczjfB52Xdr1yhs8C",
+	"Ke5AVSlvfaCOFHKDIscL8TS3T+u6J6SuuwGdC5yWZhl29QadvbKJ8v3wyjfvEr6J/v0g+teTjJAFAlCD",
+	"XV/61c2Fu9Xr9wLU6yH8dZ2GdcfQG0lZx76o3bTgDtLSbw4y30hMr6WMEg/PHhAgJ0SHZ0OjQ4n42AXx",
+	"gZV5A9h9snz5WmXxHfaiP8A5fBPOoRALxGsLxJfeAIj/G+lFguBxx5oEzOuGuPHqAdSeVW9dfL9WEsFZ",
+	"IHczTo5V9dbFFCMJWfTQnLpHnriqx/m6I8mklpyrUJxd0wg1jBYdtRWnYkOr2AuOP8jCv56sqHgmgK8J",
+	"AYfq3HV1Ysa7toT2678PtEN4ZeAsp2ZGQJY+rQKnqOSN+J0nNGPZWj4zwPkyYgYCBpgKWbmoJfFMRWLS",
+	"JEim3hQSOBUoNYuokEd9TOyhXQA0QyAkR4h+fNaFWuq9kuX5IlaHKzEyiL4E+y1niKA4nFbSwhlDOwsB",
+	"thvm26Uw3P4HKB8MgNAjkxFoJCy4GIBUosKZDSOZBLwk4CUQvJyxzW8bs2DVmgCWHQAsjhsmELmU58cr",
+	"Ny5DbanxvGaESnprCVNN1LFN1aKcCoYledSpdxreXBNya6ScrYEiEmR3WWOf4YQCNygAf0KPu5zrZ59v",
+	"M6EzJKMlKlmmNnUp36oF9L3pWiZRLa2qWpLEzd1TLCO8okrkSh+qStl8MLupPTef3i8/fh6qQL6yGtpX",
+	"lq1n9NoKMRuSozF7/WhMvDMx5GBKvCLuDZ4XaZEzIkGmum/LkiCdtlK99hvUrh2oLFwtX3vySfwzNgEm",
+	"vb/W0Qto3EKj0u9BY3lLIwm4yMMZgF1uvASNZSqoctn5viYa4BVbSkQI0xoDBoqTyky8c1OEYl5SeEQo",
+	"eCUJ/WpxZuPVYyR28SULketoBTGoh/idsZALKWIe3PfBNmfCUm5/ScCgPP1pUlinLnTT0JGm4N2beE4S",
+	"eFsPbzHPMSMOXrIxrv0kwbhNxrhx8sw9d8RsI8k8JKc8SfveL2nfUYeo9nJ+uGrdOxZ6aZv7jjL3x4V8",
+	"tuHA0NYy011fuW8xi9Nr171nu5Dijj6idzcsEd57lqyx/Hj6eiRYI8Ea9ViDlmVvP0uAxm7VoKu7a1G/",
+	"SmqdhZShcwOJ5pSfG+QUMFATHXQj3FOb3bxgUNFQPOO8cXW50+pre7okSCHEFe4hqoImWptbkS/BLi2H",
+	"XVoegITXbEswwh7ACGQxcLU1BxZQkQLNnG6XQcYSRQHpCHZI5eKVysxNu3wSRRsSA/izjTcvY9vXxwjt",
+	"PZuqkJwRbqkzwomJ06omDhFCwigWYCCbmDwfxrfafs61wcdCTxSPvzZXfqYaFlC/ao5fjjpm7OgA+x99",
+	"WTY50duaO5isaAT4SAUUcw1hJPTwNtTfxS4pFoup0okFlniPdxL8NO462E3jLQE+e9G3y/DikBQT7FBO",
+	"xXtZc1vH4hMotRXvMadmRhpVbo5aq/y2WL1xMciPjJoOUmzNcCk3z8U7FssDurf1b8jYtqsLEvncWvIZ",
+	"77ytuNQ8VlR7RsqPUm6KSqR4y9xsR7FwNy8tmaWL+E67ZZy2O4OzjqIjgTUB3ov4Yk8K8cYjZEnsK7G8",
+	"kthXoqN3P/Yl5Ue3r6JrVdCC/J00AD8B9XGn+Bm+KZt4PafiuzxDC5/5kjRdafVJ1cSPjtGPgZx0BjCc",
+	"lXk+JEu5HXC4LpPDYYSrG8+XjmbspEROUiInKZGTlMhJSuQkDqDWctDXFclJXPT7KcHbAfJUWFSefGde",
+	"uN+Yf8eBQM3x8PjlIbUQwD+lwvHCIHAOS584dhgWNaitQ+0m1FZtBBN1bjpa+O+wt4cXFSBv2dkRE3xs",
+	"Xd1597JL+bn7nfgTWlDk9+EFZDicTUtMLV5UpfguBgVwMgkF0tNp781Xnt+B+tXN25NQu0izpvpJCxGm",
+	"k9WQtlJ5MV3+dR5qK2bpZfX69P44fRpZy9wZPtRXob4IjaXy7CXz8ZxZmgugYv8ZPHxXcbCOVANd2Fws",
+	"bi79+n6ttLE+8X7t52+5FAPE4NrpAicOF7hhsJUBO4vt1HKPXaDdWVxWBgI4w4kZDJetsu1IsKLJ4VRE",
+	"P+V5x4beeDv0WuD2DA/O9vpuwQvuPdR+RJb93P3ydR3qJahfNsevIPP6wqPq7ATUrkF90rGw0apq796v",
+	"lY592ct0dXV9Yb69Y65NBc9ovjAo8MoIyA4MgiFJBnRLO7SWRYwOE39AkzvMDalAbkJ/zfkn5s2bOBK1",
+	"Bo3x92ulvv4jTFfH55+3dTCckB/h2jphUSMc+vXRFHOiP7h7MhjmJdGu9NYIk05ewr4lXHYJ7wqEneaL",
+	"UNers3eqxbvl4gLUVqrLP0HtvMXL+lXz/JJ5oUTAVexd5DDoQKz91OT7PonEqpfuj267Ki3hC7vRv99C",
+	"Y/n9WimkQgwZZx1CSfw2oRdi74J/J/ZVq24wmTiNmuk0inNRefPdS/XLn/ieEkNkl+9Bx5YAIwMFAbek",
+	"PPPOnoJRVE7lFZXPKO1nATgtBNfTrBafQm0Gaos4iuapOlR58XRzsRT7wEK/Q/PvhGRUwGx1ffPpbUx/",
+	"pTo7YS5MlOfuHyjPl8o35stz94MCUCpianUADSue79EyB3YWRXH8gMPv/oH29OHEqhLUJ6rFp9XZH62y",
+	"e/q6Of1vZHM90CrPz9OUXVjdyuZVqbRmNMuNxpg3W0kSzRpUU1P7hVgcyMqwnZFk1Fb48cavcXruJhVT",
+	"ifsUiWtstJ7TSWxJg6U8nNm9BW6P4ljqyKx9kJwd3RdaEukOpiZImcFRxlrgpCjfDqvMgoLn8Vwyq7tQ",
+	"gUi/A/VlqD/AxX1q5Yeo4Sg0DOWvoGnBpyzHC6MDSkYGIKQ0bXn1B6y/VqD+Guqr0FjC3qhnpEYt8U9H",
+	"6q+oosweuOWuyOxy33alaLYtcRM51074qyZ5p9d26zouNTbluZfBQ6+TQs+aLOxncOOIsCzafvwN4op+",
+	"QdqSEeim6ptL/xTsRM522OAQTyYxsNapJ0NiYFzGRki2NkVC3xvzwmqgPRd6Bblvf1kVAor68SOHjjBH",
+	"+g714uTDkIIBbpGWJLC2bJEAtIz/qTA9QWwVlLU6tW7OU+ztzcXH5srPOJ4afue0xT4IJxa2fTnS1sRc",
+	"YjbsJbOhtyDLQFRthnQYo44fE2y7Y+ejgzZz+cZzjHuDD0TXb+cE5u5zmEtxzHg9mWOJVP+opfoJfJav",
+	"5g+iiXMKam1XgKLwkhj/ZgH9DTQMJ3xPjsmEYQ67/dY5DdPyp1h2yu8/KEtnFSAHiu1ZaDxE0lV/CbUV",
+	"c/qKOU69LCrDq4Gi38tdUFvZeDtVHi9SmyGIIUDWmzfeblmse1Mn/KN8DPUnpMx0Q1cGIeGJ8IRzDtrf",
+	"7iVoTON7sPCVYosr1du/UkM8lGuZ4l3rxOcHuGxWBgpFrfcdRcrRGCeXm7GpgPQIQRoeBtkBXqTOTXm+",
+	"WHmhb2OGkFQa4IaBGCWH9EUrmUhfILo8MvpBMi3cSQn1A3KzZsrL7T5280ymd2U9o0hSGxI97dPTSEFb",
+	"SpfxJVWjOUysrh2J07ihTvs5619RdT792siu7RnupLMRj/V/XKwq+oRUrUvJEfeP2ENosUEiFHZYKJAD",
+	"je3n7CzLsUD7xykZ4KS7bz58Vnn+JEaCEzkEh//b7FqsrlvKVSkX875YaEzhP8ehsVznT6FdCd9iidFK",
+	"YRBNwCCQlbip4S2SNL1zWc+8gsAvSWcSOBXItOQsHaf7LWw+mID6BPWMKD4gehdqD3CwPsYFy8qAdQtq",
+	"lMdhkqSBlV+VoPYust2mJGSH5mBvJWU61tWuHuOkoftb64VBrM0RniPuWiEalyR2R6ve25oFKscLLoSB",
+	"H9MgRsAl1K6rpClAtimVmpJz/s3GN+0jgJPVQcCptJy1ZKX3R8KcpStxLA6XcyhB4yG2YVcJTIXaTahr",
+	"NhZcwy/8SP5RmVnEfjUCEH+xb9IrwaK+8apoli7aaf/L1aIG9XGoT6IGizo1Cc+Dfb+q8V6zopUZEsGO",
+	"cWe8kz1BLnHaeHul8nbl/VqpsnC1fO0JOXwYsyQkHWb74VDlxWRl5inGS04Cu4WLzFvPzekStf5YHB+u",
+	"D7IEzsGpXQgY0oLHMshxvMiLw8GrsfHmMokfl1cmoH7ZYtWiXjl/G2rn7flZPZhOI+j3bsZhsYgc/gSM",
+	"tBAY8ciD+kT1UD2GQWiby1Sh++5qJW2Kk/j0um29FK8ElrOMvrjHI9X+jnpymCNn2D92r9ueKBDpKg+J",
+	"2YQRrNWJU7YqwUD7AwM1uPOXN9+9NS/fCilvFXvTd9A2/b7N7/6wO74nm7W2uypFb/ZojWI7okK1ibbi",
+	"cUYZv2I/1SrUr24u3G1cd4Dk1rcPHo4Vc5x82uIkTmFqLq8Y5+cSjbHPNIbX1bxoWW7ONm9ERdD2dqIf",
+	"dm9j/zX2tka6YQRwghpcuK7naB/UX2A3ybSVBmn8BI1ljCE0nIRkWHoAV7ajOUX+DNSvCJWmGt4KyfWM",
+	"vMrEem8X3Pb72oQFmYKMbwQ5ecpn0ArqCJMZARn32escr2SS2H1zfNve2T/H9krSaR58fVbtKaCde/IU",
+	"ku8KXi+adj4sZThhRFJUhrzDplgcSmVHVDXf3d4u2L93/zH9xzRWFtYq1vlYl65sLq7VFDpO0KAV0fsF",
+	"aisbb2Zrb2J2oFWM9ATqXUnHJCpH+YRoLB+ooDZdC6XW3sbp4JRGn94vP35ee80WkbRm/XZUfaln6mfX",
+	"oH6X5ORC4w2p6lj7Elf2GTs19v8BAAD//1Cxh/bHAgEA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

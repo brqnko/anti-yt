@@ -9,6 +9,7 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/playlist"
 	"github.com/brqnko/anti-yt/backend/internal/user"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
@@ -47,7 +48,7 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 		return nil, err
 	}
 
-	// TODO: publish redent playlist
+	// TODO: publish recent playlist
 	lastHeartbeat, lastVideoLength, lastHeartbeatID, lastUpdatedAt, err := NewHistoryRepository(q).GetLastHeartbeatForUpdate(ctx, userID)
 	if err == nil { // 最後のheartbeatの取得に成功
 		heartbeat, err := lastHeartbeat.Rotate(videoID, positionSeconds, lastVideoLength, lastUpdatedAt)
@@ -84,7 +85,7 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 
 	// 最近再生したプレイリストに追加
 	if playlistID != nil {
-		if err := user.NewUserRepository(q).PushRecentPlaylistId(ctx, userID, *playlistID); err != nil {
+		if err := playlist.NewPlaylistRepository(q).PushRecentPlaylistID(ctx, userID, *playlistID); err != nil {
 			return nil, err
 		}
 	}

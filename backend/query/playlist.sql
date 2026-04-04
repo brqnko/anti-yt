@@ -52,28 +52,6 @@ ON CONFLICT (public_id) DO UPDATE SET
 RETURNING
     m_playlist.m_playlist_id;
 
--- name: UpdatePlaylist :one
-UPDATE
-    m_playlist playlist
-SET
-    playlist_title = COALESCE(sqlc.narg('new_playlist_title'), playlist.playlist_title),
-    playlist_description = COALESCE(sqlc.narg('new_playlist_description'), playlist.playlist_description),
-    updated_at = CURRENT_TIMESTAMP
-WHERE
-    playlist.m_user_id = (
-        SELECT
-            u.m_user_id
-        FROM
-            m_user u
-        WHERE
-            u.public_id = @user_id
-        LIMIT
-            1
-    )
-    AND playlist.public_id = @playlist_id
-RETURNING
-    playlist.public_id;
-
 -- name: GetPlaylistForUpdate :one
 SELECT
     playlist.public_id,
@@ -199,6 +177,7 @@ WITH deleted AS (
                 1
         )
         AND playlist.public_id = @playlist_id
+        AND playlist.playlist_code = 0
     RETURNING
         playlist.public_id
 )
@@ -369,7 +348,7 @@ WHERE
                     LIMIT
                         1
                 )
-                OR playlist.m_channel_id != 0
+                OR playlist.visibility_code = 1
             )
             AND playlist.public_id = @playlist_id
         LIMIT
@@ -469,7 +448,7 @@ WITH inserted AS (
                         LIMIT
                             1
                     )
-                    OR p.m_channel_id != 0
+                    OR p.visibility_code = 1
                 )
                 AND p.public_id = @source_playlist_id
             LIMIT
@@ -478,6 +457,86 @@ WITH inserted AS (
     RETURNING 1
 )
 SELECT COUNT(*)::int AS copied_count FROM inserted;
+
+-- name: GetWatchLaterForUpdate :one
+SELECT
+    playlist.public_id,
+    playlist.playlist_title,
+    playlist.playlist_description,
+    playlist.visibility_code,
+    playlist.playlist_code,
+    playlist.video_count,
+    playlist.registered_at
+FROM m_playlist playlist
+WHERE
+    playlist.m_user_id = (SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_id LIMIT 1)
+    AND playlist.playlist_code = 2
+LIMIT 1
+FOR UPDATE;
+
+-- name: InsertWatchLater :exec
+INSERT INTO
+    m_playlist_video (
+        m_playlist_id,
+        m_video_id,
+        playlist_position
+    )
+SELECT
+    m_playlist.m_playlist_id,
+    (SELECT m_video.m_video_id FROM m_video WHERE m_video.public_id = @video_id LIMIT 1),
+    COALESCE(
+            (
+                SELECT
+                    MAX(m_playlist_video.playlist_position) + 1048576 -- NOTE: 2^20
+                FROM
+                    m_playlist_video
+                WHERE
+                    m_playlist_video.m_playlist_id = m_playlist.m_playlist_id
+            ),
+            0
+    )
+FROM m_playlist
+WHERE
+    m_playlist.public_id = @playlist_id
+    AND NOT EXISTS(
+        SELECT 1 FROM m_playlist_video
+        WHERE
+            m_playlist_video.m_playlist_id = m_playlist.m_playlist_id
+            AND m_playlist_video.m_video_id = (SELECT m_video.m_video_id FROM m_video WHERE m_video.public_id = @video_id LIMIT 1));
+
+-- name: GetWatchLaterPlaylist :one
+SELECT
+    playlist.public_id,
+    playlist.playlist_title,
+    playlist.registered_at,
+    playlist.video_count,
+    COALESCE((
+        SELECT
+            video.external_thumbnail_url
+        FROM
+            m_playlist_video playlist_video
+            INNER JOIN m_video video ON playlist_video.m_video_id = video.m_video_id
+        WHERE
+            playlist_video.m_playlist_id = playlist.m_playlist_id
+        LIMIT
+            1
+    ), '')::varchar AS top_thumbnail
+FROM
+    m_playlist playlist
+WHERE
+    playlist.m_user_id = (
+        SELECT
+            u.m_user_id
+        FROM
+            m_user u
+        WHERE
+            u.public_id = @user_id
+        LIMIT
+            1
+    )
+    AND playlist.playlist_code = 2
+LIMIT
+    1;
 
 -- name: BulkInsertPlaylistVideos :copyfrom
 INSERT INTO
@@ -531,3 +590,23 @@ ORDER BY
     playlist.m_channel_id, playlist.public_id DESC
 LIMIT
     @query_limit;
+
+-- m_user.recent_playlist_idsを更新する。先頭に追加し、重複を除去し、最大5件に制限する。
+-- name: PushRecentPlaylistId :exec
+UPDATE m_user
+SET recent_playlist_ids = (
+    SELECT COALESCE(array_agg(val), '{}')
+    FROM (
+             SELECT val
+             FROM UNNEST(
+                          ARRAY[(SELECT p.m_playlist_id FROM m_playlist p WHERE p.public_id = @playlist_public_id LIMIT 1)]
+            || m_user.recent_playlist_ids
+        ) WITH ORDINALITY AS t(val, ord)
+             WHERE val IS NOT NULL
+             GROUP BY val
+             ORDER BY MIN(ord)
+                 LIMIT 5
+         ) sub
+),
+    updated_at = CURRENT_TIMESTAMP
+WHERE m_user.public_id = @user_public_id;

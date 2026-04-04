@@ -72,17 +72,6 @@ ORDER BY
 LIMIT
     @query_limit;
 
--- name: CloseStaleWatchSessions :exec
-UPDATE
-    t_video_watch
-SET
-    watch_end_at = t_video_watch.updated_at,
-    updated_at = CURRENT_TIMESTAMP
-WHERE
-    m_user_id = (SELECT m_user_id FROM m_user WHERE m_user.public_id = @user_public_id LIMIT 1)
-    AND watch_end_at > CURRENT_TIMESTAMP
-    AND t_video_watch.updated_at < CURRENT_TIMESTAMP - INTERVAL '2 minutes';
-
 -- name: GetLastHeartbeatForUpdate :one
 SELECT
     (

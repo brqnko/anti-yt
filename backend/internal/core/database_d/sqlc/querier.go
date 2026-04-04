@@ -19,7 +19,6 @@ type Querier interface {
 	BulkInsertScreenTimeRanges(ctx context.Context, arg []BulkInsertScreenTimeRangesParams) (int64, error)
 	// NOTE: SaveChannelの前にこれをする. CTEでやろうと思ったけど、トランザクション...
 	ClearStaleChannelCustomID(ctx context.Context, arg ClearStaleChannelCustomIDParams) error
-	CloseStaleWatchSessions(ctx context.Context, userPublicID uuid.UUID) error
 	CopyPlaylistVideos(ctx context.Context, arg CopyPlaylistVideosParams) (int, error)
 	// m_user_authorizationの件数を取得する（日次レポート用）
 	CountAuthorizations(ctx context.Context) (int64, error)
@@ -59,6 +58,8 @@ type Querier interface {
 	GetValuableChannelForUpdate(ctx context.Context, channelPublicID uuid.UUID) (GetValuableChannelForUpdateRow, error)
 	GetVideoDetail(ctx context.Context, arg GetVideoDetailParams) (GetVideoDetailRow, error)
 	GetVideoWatchTitlesByUser(ctx context.Context, lowerID uuid.UUID) ([]GetVideoWatchTitlesByUserRow, error)
+	GetWatchLaterForUpdate(ctx context.Context, userID uuid.UUID) (GetWatchLaterForUpdateRow, error)
+	GetWatchLaterPlaylist(ctx context.Context, userID uuid.UUID) (GetWatchLaterPlaylistRow, error)
 	InsertHeartbeat(ctx context.Context, arg InsertHeartbeatParams) error
 	InsertPlaylistVideo(ctx context.Context, arg InsertPlaylistVideoParams) error
 	// リフレッシュトークンをテーブルに保存する。
@@ -67,6 +68,7 @@ type Querier interface {
 	InsertSubscription(ctx context.Context, arg InsertSubscriptionParams) (int64, error)
 	// ユーザーを作成する。
 	InsertUser(ctx context.Context, arg InsertUserParams) (int64, error)
+	InsertWatchLater(ctx context.Context, arg InsertWatchLaterParams) error
 	ListChannelPlaylists(ctx context.Context, arg ListChannelPlaylistsParams) ([]ListChannelPlaylistsRow, error)
 	ListChannelVideos(ctx context.Context, arg ListChannelVideosParams) ([]ListChannelVideosRow, error)
 	ListChannelVideosOlder(ctx context.Context, arg ListChannelVideosOlderParams) ([]ListChannelVideosOlderRow, error)
@@ -121,7 +123,6 @@ type Querier interface {
 	TryAcquireAdvisoryXactLock(ctx context.Context, dollar_1 int64) (bool, error)
 	UnmarkVideoWatched(ctx context.Context, arg UnmarkVideoWatchedParams) error
 	UpdateHeartbeat(ctx context.Context, arg UpdateHeartbeatParams) error
-	UpdatePlaylist(ctx context.Context, arg UpdatePlaylistParams) (uuid.UUID, error)
 	// ユーザーを更新する。
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
 	UpsertChannel(ctx context.Context, arg UpsertChannelParams) (UpsertChannelRow, error)
