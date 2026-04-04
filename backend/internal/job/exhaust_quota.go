@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/channel"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/report"
@@ -44,6 +45,17 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 	}
 
 	// TODO
+	channels, err := channel.NewChannelRepository(q).FindBulkFetchedAfter(ctx, time.Now().UTC().Add(24*30*time.Hour))
+	if err != nil {
+		return err
+	}
+	for _, c := range channels {
+		if err := database_d.TryAdLock(ctx, q, []byte(c.ID[:])); err != nil {
+			// TODO: slog here
+			continue
+		}
+		// release ad lock
+	}
 
 	if err := tx.Commit(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
 		return err
