@@ -57,8 +57,15 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 		if err := NewHistoryRepository(q).UpdateHeartbeat(ctx, lastHeartbeatID, lastHeartbeat); err != nil {
 			return nil, err
 		}
+
 		if heartbeat != nil {
 			if err := NewHistoryRepository(q).CreateHeartbeat(ctx, heartbeat); err != nil {
+				return nil, err
+			}
+		}
+
+		if lastHeartbeat.WatchPositionSeconds.IsFinished(lastVideoLength) {
+			if err := NewHistoryRepository(q).MarkVideoWatched(ctx, userID, lastHeartbeat.VideoID); err != nil {
 				return nil, err
 			}
 		}
@@ -73,6 +80,13 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 		}
 	} else { // DBエラー
 		return nil, err
+	}
+
+	// 最近再生したプレイリストに追加
+	if playlistID != nil {
+		if err := user.NewUserRepository(q).PushRecentPlaylistId(ctx, userID, *playlistID); err != nil {
+			return nil, err
+		}
 	}
 
 	now := time.Now().In(loc)

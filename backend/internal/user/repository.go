@@ -21,6 +21,7 @@ type UserRepository interface {
 	Remove(ctx context.Context, userID uuid.UUID, leaveReasonCode LeaveReasonCode) error
 	CountByAuthorization(ctx context.Context, authorizationID uuid.UUID) (int32, error)
 	DeleteLeftByAuthorization(ctx context.Context, authorizationID uuid.UUID) (int64, error)
+	PushRecentPlaylistId(ctx context.Context, userID, playlistID uuid.UUID) error
 }
 
 type userRepositoryImpl struct {
@@ -165,6 +166,19 @@ func (r *userRepositoryImpl) DeleteLeftByAuthorization(ctx context.Context, auth
 		return 0, err
 	}
 	return hUserID, nil
+}
+
+func (r *userRepositoryImpl) PushRecentPlaylistId(ctx context.Context, userID, playlistID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "user.(*userRepositoryImpl).PushRecentPlaylistId(userID=%s, playlistID=%s)", userID, playlistID)
+
+	if err := r.q.PushRecentPlaylistId(ctx, sqlc.PushRecentPlaylistIdParams{
+		PlaylistPublicID: playlistID,
+		UserPublicID:     userID,
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 var _ UserRepository = (*userRepositoryImpl)(nil)

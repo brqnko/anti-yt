@@ -24,6 +24,10 @@ func NewWatchPositionSeconds(seconds int) (WatchPositionSeconds, error) {
 	return WatchPositionSeconds(seconds), nil
 }
 
+func (w WatchPositionSeconds) IsFinished(videoLengthSeconds int) bool {
+	return videoLengthSeconds > 0 && int(w)+30 >= videoLengthSeconds
+}
+
 type Heartbeat struct {
 	ID                   uuid.UUID
 	UserID               uuid.UUID
@@ -107,13 +111,17 @@ func (h *Heartbeat) Rotate(videoID uuid.UUID, watchPositionSeconds, lastVideoLen
 
 	// 動画を最後まで見終わった場合(30秒のpaddingつき)
 	// YouTube動画でエンディングがあることを考慮した
-	if lastVideoLength > 0 && watchPositionSeconds+30 >= lastVideoLength {
+	newPos, err := NewWatchPositionSeconds(watchPositionSeconds)
+	if err != nil {
+		return nil, err
+	}
+	if newPos.IsFinished(lastVideoLength) {
 		h.WatchEndAt = time.Now().UTC()
-		h.WatchPositionSeconds = WatchPositionSeconds(watchPositionSeconds)
+		h.WatchPositionSeconds = newPos
 		return nil, nil
 	}
 
 	// 同じ動画を継続視聴中: positionだけ更新
-	h.WatchPositionSeconds = WatchPositionSeconds(watchPositionSeconds)
+	h.WatchPositionSeconds = newPos
 	return nil, nil
 }
