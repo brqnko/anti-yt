@@ -35,12 +35,10 @@ jobs:
           --health-retries 5
 
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - uses: actions/checkout@v6
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
 
       - uses: actions/setup-go@v6
         with:
@@ -76,16 +74,12 @@ jobs:
       - name: Generate tbls docs
         run: tbls doc "postgres://postgres:postgres@localhost:5432/anti_yt_test?sslmode=disable" docs/schema --er-format svg --rm-dist --force
 
-      - name: Commit generated code if changed
+      - name: Check generated code is up to date
         run: |
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "chore: update generated code"
-            git push
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Generated code is out of date. Please run code generation locally and commit the changes."
+            git diff --stat
+            exit 1
           fi
 
       - uses: golangci/golangci-lint-action@v9
