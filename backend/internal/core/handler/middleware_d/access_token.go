@@ -37,6 +37,9 @@ func AccessTokenMiddleware(jwtService jwt_d.Service, db *pgxpool.Pool) func(v1.S
 			if r.URL.Path == "/api/v1/users" && r.Method == http.MethodPost {
 				return f(ctx, w, r, request)
 			}
+			if r.URL.Path == "/api/v1/auth/reactivate" && r.Method == http.MethodPost {
+				return f(ctx, w, r, request)
+			}
 
 			cookie, err := r.Cookie("access_token")
 			if err != nil {

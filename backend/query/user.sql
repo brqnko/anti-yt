@@ -193,7 +193,7 @@ SELECT
 FROM
     deleted;
 
--- authorization_public_idに紐づく退会済みユーザーを削除する（再登録用）。
+-- authorization_public_idに紐づく退会済みユーザーを削除する
 -- 退会済みユーザーが存在しない場合はpgx.ErrNoRowsが返される。
 -- name: DeleteLeftUserByAuthorization :one
 DELETE FROM h_user

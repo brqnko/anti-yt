@@ -33,6 +33,18 @@ const postAuthRefresh = (
       );
     }
   /**
+ * リフレッシュトークンを用いて削除したアカウントの復元をする
+ * @summary Reactivate account
+ */
+const postAuthReactivate = (
+
+ ) => {
+      return customInstance<void>(
+      {url: `/api/v1/auth/reactivate`, method: 'POST'
+    },
+      );
+    }
+  /**
  * Google OIDCでログインor登録
  * @summary Google authentication
  */
@@ -121,8 +133,9 @@ const deleteUsersMeSessionsSessionId = (
     },
       );
     }
-  return {postAuthRefresh,getAuthGoogle,getAuthGoogleCallback,getAuthOauthYoutube,getAuthOauthYoutubeCallback,postAuthLogout,getUsersMeSessions,deleteUsersMeSessionsSessionId}};
+  return {postAuthRefresh,postAuthReactivate,getAuthGoogle,getAuthGoogleCallback,getAuthOauthYoutube,getAuthOauthYoutubeCallback,postAuthLogout,getUsersMeSessions,deleteUsersMeSessionsSessionId}};
 export type PostAuthRefreshResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['postAuthRefresh']>>>
+export type PostAuthReactivateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['postAuthReactivate']>>>
 export type GetAuthGoogleResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['getAuthGoogle']>>>
 export type GetAuthGoogleCallbackResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['getAuthGoogleCallback']>>>
 export type GetAuthOauthYoutubeResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['getAuthOauthYoutube']>>>
