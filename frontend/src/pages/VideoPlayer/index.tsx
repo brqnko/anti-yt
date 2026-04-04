@@ -564,7 +564,7 @@ function VideoPlayerContent() {
     } else {
       await el.requestFullscreen?.();
       try {
-        await screen.orientation?.lock?.("landscape");
+        await (screen.orientation as ScreenOrientation & { lock?: (orientation: string) => Promise<void> }).lock?.("landscape");
       } catch {
         // Screen Orientation API not supported or permission denied — ignore
       }
