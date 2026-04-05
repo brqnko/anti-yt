@@ -10,13 +10,6 @@ import (
 	"github.com/mssola/user_agent"
 )
 
-func truncate(s string, maxLen int) string {
-	if len(s) <= maxLen {
-		return s
-	}
-	return s[:maxLen]
-}
-
 type RefreshToken struct {
 	ID                uuid.UUID
 	ActivatedAt       time.Time
@@ -86,13 +79,13 @@ func NewRefreshToken(userAgent, deviceFingerprint, ipAddress, countryCode, cityN
 		ID:                id,
 		ActivatedAt:       now,
 		TokenHash:         "",
-		IpAddress:         truncate(ipAddress, 64),
-		DeviceFingerprint: truncate(deviceFingerprint, 32),
-		UserAgent:         truncate(userAgent, 512),
-		CountryCode:       truncate(countryCode, 2),
-		CityName:          truncate(cityName, 128),
-		BrowserName:       truncate(fmt.Sprintf("%s:%s", browserName, browserVersion), 64),
-		DeviceType:        truncate(ua.OSInfo().FullName, 32),
+		IpAddress:         util.Truncate(ipAddress, 64),
+		DeviceFingerprint: util.Truncate(deviceFingerprint, 32),
+		UserAgent:         util.Truncate(userAgent, 512),
+		CountryCode:       util.Truncate(countryCode, 2),
+		CityName:          util.Truncate(cityName, 128),
+		BrowserName:       util.Truncate(fmt.Sprintf("%s:%s", browserName, browserVersion), 64),
+		DeviceType:        util.Truncate(ua.OSInfo().FullName, 32),
 		ExpiresAt:         expiresAt,
 		AccessTokenJTI:    accessTokenJTI,
 		LastLoggedInAt:    now,

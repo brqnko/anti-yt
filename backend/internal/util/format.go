@@ -9,6 +9,13 @@ func IntToHHmm(minutes int) (string, error) {
 	return fmt.Sprintf("%02d:%02d", minutes/60, minutes%60), nil
 }
 
+func Truncate(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen]
+}
+
 func HHmmToInt(s string) (int, error) {
 	var h, m int
 	if _, err := fmt.Sscanf(s, "%d:%d", &h, &m); err != nil {
