@@ -18,7 +18,7 @@ type Video struct {
 
 type VideoOption func(*Video)
 
-func VideoWithID(id uuid.UUID) VideoOption {
+func WithVideoID(id uuid.UUID) VideoOption {
 	return func(v *Video) {
 		v.ID = id
 	}

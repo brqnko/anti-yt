@@ -68,7 +68,7 @@ type PlaylistDescription string
 func NewPlaylistDescription(s string) (_ PlaylistDescription, err error) {
 	defer util.Wrap(&err, "playlist.NewPlaylistDescription")
 
-	if len([]rune(s)) > 255 {
+	if len([]rune(s)) >= 256 {
 		return "", ErrInvalidPlaylistDescription
 	}
 	return PlaylistDescription(s), nil
@@ -78,8 +78,10 @@ func (p PlaylistDescription) String() string {
 	return string(p)
 }
 
+const normalPlaylistCode PlaylistCode = 0
+
 func (p *Playlist) IsModifiable() bool {
-	return p.PlaylistCode == 0 // normal
+	return p.PlaylistCode == normalPlaylistCode
 }
 
 func (p *Playlist) SetTitle(s *string) (err error) {

@@ -43,15 +43,10 @@ func (r *userRepositoryImpl) FindForUpdate(ctx context.Context, userID uuid.UUID
 		return nil, err
 	}
 
-	var dailyScreenLimit *int
-	if !IsUnlimitedScreenTimeSeconds(row.DailyScreenTimeSeconds) {
-		dailyScreenLimit = &row.DailyScreenTimeSeconds
-	}
-
 	u, err := NewUser(
 		row.DisplayName,
 		row.LanguageCode,
-		dailyScreenLimit,
+		&row.DailyScreenTimeSeconds,
 		WithUserID(row.PublicID),
 		WithUserJoinedAt(row.JoinedAt.UTC()),
 	)
@@ -143,6 +138,7 @@ func (r *userRepositoryImpl) Remove(ctx context.Context, userID uuid.UUID, leave
 	return nil
 }
 
+// トランザクションで使用されるので、QueryServiceに移せない
 func (r *userRepositoryImpl) CountByAuthorization(ctx context.Context, authorizationID uuid.UUID) (_ int32, err error) {
 	defer util.Wrap(&err, "user.(*userRepositoryImpl).CountByAuthorization(authorizationID=%s)", authorizationID)
 

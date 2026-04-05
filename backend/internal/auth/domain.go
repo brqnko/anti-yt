@@ -10,12 +10,7 @@ import (
 	"github.com/mssola/user_agent"
 )
 
-func truncate(s string, maxLen int) string {
-	if len(s) <= maxLen {
-		return s
-	}
-	return s[:maxLen]
-}
+var ErrRefreshTokenHashNotSet = errors.New("refresh token token hash is not set")
 
 type RefreshToken struct {
 	ID                uuid.UUID
@@ -65,7 +60,15 @@ func WithRefreshTokenLastLoggedInAt(lastLoggedInAt time.Time) RefreshTokenOption
 	}
 }
 
-func NewRefreshToken(userAgent, deviceFingerprint, ipAddress, countryCode, cityName string, expiresAt time.Time, opts ...RefreshTokenOption) (_ *RefreshToken, err error) {
+func NewRefreshToken(
+	userAgent,
+	deviceFingerprint,
+	ipAddress,
+	countryCode,
+	cityName string,
+	expiresAt time.Time,
+	opts ...RefreshTokenOption,
+) (_ *RefreshToken, err error) {
 	defer util.Wrap(&err, "auth.NewRefreshToken")
 
 	id, err := uuid.NewV7()
@@ -86,13 +89,13 @@ func NewRefreshToken(userAgent, deviceFingerprint, ipAddress, countryCode, cityN
 		ID:                id,
 		ActivatedAt:       now,
 		TokenHash:         "",
-		IpAddress:         truncate(ipAddress, 64),
-		DeviceFingerprint: truncate(deviceFingerprint, 32),
-		UserAgent:         truncate(userAgent, 512),
-		CountryCode:       truncate(countryCode, 2),
-		CityName:          truncate(cityName, 128),
-		BrowserName:       truncate(fmt.Sprintf("%s:%s", browserName, browserVersion), 64),
-		DeviceType:        truncate(ua.OSInfo().FullName, 32),
+		IpAddress:         util.Truncate(ipAddress, 64),
+		DeviceFingerprint: util.Truncate(deviceFingerprint, 32),
+		UserAgent:         util.Truncate(userAgent, 512),
+		CountryCode:       util.Truncate(countryCode, 2),
+		CityName:          util.Truncate(cityName, 128),
+		BrowserName:       util.Truncate(fmt.Sprintf("%s:%s", browserName, browserVersion), 64),
+		DeviceType:        util.Truncate(ua.OSInfo().FullName, 32),
 		ExpiresAt:         expiresAt,
 		AccessTokenJTI:    accessTokenJTI,
 		LastLoggedInAt:    now,
@@ -102,7 +105,7 @@ func NewRefreshToken(userAgent, deviceFingerprint, ipAddress, countryCode, cityN
 	}
 
 	if rt.TokenHash == "" {
-		return nil, errors.New("refresh token token hash is not set")
+		return nil, ErrRefreshTokenHashNotSet
 	}
 
 	return rt, nil
@@ -129,7 +132,7 @@ func WithAuthorizationID(id uuid.UUID) AuthorizationOption {
 	}
 }
 
-func NewAuthorization(issuer, sub string, options ...AuthorizationOption) (_ *Authorization, err error) {
+func NewAuthorization(issuer, sub string, opts ...AuthorizationOption) (_ *Authorization, err error) {
 	defer util.Wrap(&err, "auth.NewAuthorization")
 
 	id, err := uuid.NewV7()
@@ -144,7 +147,7 @@ func NewAuthorization(issuer, sub string, options ...AuthorizationOption) (_ *Au
 		LastLoggedInAt: time.Now().UTC(),
 	}
 
-	for _, opt := range options {
+	for _, opt := range opts {
 		opt(authorization)
 	}
 
