@@ -10,6 +10,8 @@ import (
 	"github.com/mssola/user_agent"
 )
 
+var ErrRefreshTokenHashNotSet = errors.New("refresh token token hash is not set")
+
 type RefreshToken struct {
 	ID                uuid.UUID
 	ActivatedAt       time.Time
@@ -58,7 +60,15 @@ func WithRefreshTokenLastLoggedInAt(lastLoggedInAt time.Time) RefreshTokenOption
 	}
 }
 
-func NewRefreshToken(userAgent, deviceFingerprint, ipAddress, countryCode, cityName string, expiresAt time.Time, opts ...RefreshTokenOption) (_ *RefreshToken, err error) {
+func NewRefreshToken(
+	userAgent,
+	deviceFingerprint,
+	ipAddress,
+	countryCode,
+	cityName string,
+	expiresAt time.Time,
+	opts ...RefreshTokenOption,
+) (_ *RefreshToken, err error) {
 	defer util.Wrap(&err, "auth.NewRefreshToken")
 
 	id, err := uuid.NewV7()
@@ -95,7 +105,7 @@ func NewRefreshToken(userAgent, deviceFingerprint, ipAddress, countryCode, cityN
 	}
 
 	if rt.TokenHash == "" {
-		return nil, errors.New("refresh token token hash is not set")
+		return nil, ErrRefreshTokenHashNotSet
 	}
 
 	return rt, nil
@@ -122,7 +132,7 @@ func WithAuthorizationID(id uuid.UUID) AuthorizationOption {
 	}
 }
 
-func NewAuthorization(issuer, sub string, options ...AuthorizationOption) (_ *Authorization, err error) {
+func NewAuthorization(issuer, sub string, opts ...AuthorizationOption) (_ *Authorization, err error) {
 	defer util.Wrap(&err, "auth.NewAuthorization")
 
 	id, err := uuid.NewV7()
@@ -137,7 +147,7 @@ func NewAuthorization(issuer, sub string, options ...AuthorizationOption) (_ *Au
 		LastLoggedInAt: time.Now().UTC(),
 	}
 
-	for _, opt := range options {
+	for _, opt := range opts {
 		opt(authorization)
 	}
 

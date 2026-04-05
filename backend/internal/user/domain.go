@@ -73,11 +73,11 @@ func NewDailyScreenTimeLimit(seconds *int) (_ DailyScreenTimeLimit, err error) {
 		return DailyScreenTimeLimit{duration: nil}, nil
 	}
 
-	value := time.Duration(*seconds) * time.Second
-	if value < 0 {
+	if *seconds < 0 {
 		return DailyScreenTimeLimit{}, ErrDailyScreenTimeOutOfRange
 	}
 
+	value := time.Duration(*seconds) * time.Second
 	return DailyScreenTimeLimit{duration: &value}, nil
 }
 
@@ -194,6 +194,10 @@ func NewDailyScreenTimeLimitRangeSet(screenLimits []struct{ Start, End int }, lo
 		utcStart := wrap(r.Start - offsetSec)
 		utcEnd := wrap(r.End - offsetSec)
 
+		if utcStart == utcEnd {
+			continue
+		}
+
 		if utcStart < utcEnd {
 			// 日付を跨がない
 			domainRange, err := NewDailyScreenTimeLimitRange(utcStart, utcEnd)
@@ -244,6 +248,7 @@ func (s *DailyScreenTimeLimitRangeSet) BlockedUntil(now time.Time) *time.Time {
 		return &sentinel
 	}
 
+	now = now.UTC()
 	nowSeconds := now.Hour()*3600 + now.Minute()*60 + now.Second()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 

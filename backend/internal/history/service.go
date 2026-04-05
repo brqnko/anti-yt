@@ -51,13 +51,13 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 	// TODO: publish recent playlist
 	lastHeartbeat, lastVideoLength, lastHeartbeatID, lastUpdatedAt, err := NewHistoryRepository(q).GetLastHeartbeatForUpdate(ctx, userID)
 	if err == nil { // 最後のheartbeatの取得に成功
-		heartbeat, err := lastHeartbeat.Rotate(videoID, positionSeconds, lastVideoLength, lastUpdatedAt)
+		heartbeat, result, err := lastHeartbeat.Rotate(videoID, positionSeconds, lastVideoLength, lastUpdatedAt)
 		if err != nil {
 			return nil, err
 		}
 
 		// 動画を最後まで視聴した場合は既読にして、再生位置を0にリセットする
-		if lastHeartbeat.WatchPositionSeconds.IsFinished(lastVideoLength) {
+		if result == RotateResultFinished {
 			_ = NewHistoryRepository(q).MarkVideoWatched(ctx, userID, lastHeartbeat.VideoID)
 			lastHeartbeat.WatchPositionSeconds = 0
 		}

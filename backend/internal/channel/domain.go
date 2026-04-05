@@ -3,8 +3,8 @@ package channel
 import (
 	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/brqnko/anti-yt/backend/internal/core"
+	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 )
@@ -31,7 +31,7 @@ func NewSubscribedChannel(channelID, subscriberID uuid.UUID, opts ...SubscribedC
 	defer util.Wrap(&err, "channel.NewSubscribedChannel")
 
 	sc := &SubscribedChannel{
-		SubscribedAt: time.Now(),
+		SubscribedAt: time.Now().UTC(),
 		ChannelID:    channelID,
 		SubscriberID: subscriberID,
 	}
@@ -105,7 +105,7 @@ type ValuableDescription string
 func NewValuableDescription(description string) (_ ValuableDescription, err error) {
 	defer util.Wrap(&err, "channel.NewValuableDescription")
 
-	if len(description) >= 256 {
+	if len([]rune(description)) >= 256 {
 		return "", ErrInvalidValuableDescription
 	}
 
@@ -161,7 +161,7 @@ func NewValuableCategoryCode(str string) (_ ValuableCategoryCode, err error) {
 		}
 	}
 
-	return -1, ErrInvalidValuableCategoryCode
+	return 0, ErrInvalidValuableCategoryCode
 }
 
 func (v ValuableCategoryCode) String() string {
