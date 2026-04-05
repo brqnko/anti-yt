@@ -6,17 +6,17 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/brqnko/anti-yt/backend/internal/admin"
+	"github.com/brqnko/anti-yt/backend/internal/channel"
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
 type handler struct {
-	adminService *admin.Service
+	channelService *channel.Service
 }
 
-func newHandler(adminService *admin.Service) *handler {
-	return &handler{adminService: adminService}
+func newHandler(channelService *channel.Service) *handler {
+	return &handler{channelService: channelService}
 }
 
 func (h *handler) createValuableChannel(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +30,7 @@ func (h *handler) createValuableChannel(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	vc, err := h.adminService.CreateNewValuableChannel(r.Context(), body.ExternalChannelID, body.Reason, body.Description)
+	vc, err := h.channelService.CreateNewValuableChannel(r.Context(), body.ExternalChannelID, body.Reason, body.Description)
 	if err != nil {
 		var domainErr *core.DomainError
 		if errors.As(err, &domainErr) {
@@ -66,7 +66,7 @@ func (h *handler) updateValuableChannel(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	vc, err := h.adminService.UpdateValuableChannel(r.Context(), body.ExternalChannelID, body.Reason, body.Description)
+	vc, err := h.channelService.UpdateValuableChannel(r.Context(), body.ExternalChannelID, body.Reason, body.Description)
 	if err != nil {
 		var domainErr *core.DomainError
 		if errors.As(err, &domainErr) {
@@ -100,7 +100,7 @@ func (h *handler) removeValuableChannel(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := h.adminService.RemoveValuableChannel(r.Context(), body.ExternalChannelID); err != nil {
+	if err := h.channelService.RemoveValuableChannel(r.Context(), body.ExternalChannelID); err != nil {
 		var domainErr *core.DomainError
 		if errors.As(err, &domainErr) {
 			writeErrorJSON(w, http.StatusBadRequest, domainErr.Code(), domainErr.Error())

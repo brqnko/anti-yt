@@ -53,17 +53,13 @@ func ScreenTimeMiddleware(db *pgxpool.Pool) func(v1.StrictHandlerFunc, string) v
 			}
 
 			// 日次視聴制限はユーザーのローカル日付で計算
-			watchStats, err := history.NewHistoryQueryService(db).FindTotalWatchSeconds(ctx, userID, loc)
+			remainingSeconds, err := history.NewHistoryQueryService(db).FindTotalWatchSeconds(ctx, userID, loc)
 			if err != nil {
 				util.LoggerFromContext(ctx).ErrorContext(ctx, "internal server error", slog.Any("error", err))
 				return writeErrorJSON(w, http.StatusInternalServerError, "internal server error", "internal server error")
 			}
 
-			if watchStats.DailyLimitSeconds >= 24*60*60 {
-				return f(ctx, w, r, request)
-			}
-
-			if watchStats.TodayWatchTotal >= watchStats.DailyLimitSeconds {
+			if remainingSeconds <= 0 {
 				localNow := now.In(loc)
 				tomorrow := time.Date(localNow.Year(), localNow.Month(), localNow.Day()+1, 0, 0, 0, 0, loc)
 				return writeForbiddenJSON(w, "screen_time_limit_exceeded", tomorrow.Format(time.RFC3339))
