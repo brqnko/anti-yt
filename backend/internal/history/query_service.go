@@ -2,6 +2,7 @@ package history
 
 import (
 	"context"
+	"math"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
@@ -29,15 +30,11 @@ type GetStatisticsWeeklyView struct {
 	WatchSum   int64
 }
 
-type GetTotalWatchSecondsView struct {
-	DailyLimitSeconds int
-	TodayWatchTotal   int
-}
-
 type HistoryQueryService interface {
 	FindHistory(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetHistoryView, error)
 	FindStatisticsByWeek(ctx context.Context, userID uuid.UUID, startDate time.Time) (*string, []GetStatisticsWeeklyView, error)
-	FindTotalWatchSeconds(ctx context.Context, userID uuid.UUID, loc *time.Location) (GetTotalWatchSecondsView, error)
+	// FindTotalWatchSeconds は今日の残り視聴可能秒数を返す。無制限の場合は math.MaxInt を返す。
+	FindTotalWatchSeconds(ctx context.Context, userID uuid.UUID, loc *time.Location) (int, error)
 }
 
 type historyQueryServiceImpl struct {
@@ -113,7 +110,7 @@ func (h *historyQueryServiceImpl) FindStatisticsByWeek(ctx context.Context, user
 	return aiSummary, views, nil
 }
 
-func (h *historyQueryServiceImpl) FindTotalWatchSeconds(ctx context.Context, userID uuid.UUID, loc *time.Location) (_ GetTotalWatchSecondsView, err error) {
+func (h *historyQueryServiceImpl) FindTotalWatchSeconds(ctx context.Context, userID uuid.UUID, loc *time.Location) (_ int, err error) {
 	defer util.Wrap(&err, "history.(*historyQueryServiceImpl).FindTotalWatchSeconds(userID=%s)", userID)
 
 	now := time.Now().In(loc)
@@ -124,12 +121,18 @@ func (h *historyQueryServiceImpl) FindTotalWatchSeconds(ctx context.Context, use
 		TodayStart: todayStart,
 	})
 	if err != nil {
-		return GetTotalWatchSecondsView{}, err
+		return 0, err
 	}
-	return GetTotalWatchSecondsView{
-		DailyLimitSeconds: row.DailyLimitSeconds,
-		TodayWatchTotal:   row.TodayWatchTotal,
-	}, nil
+
+	if row.DailyLimitSeconds >= 24*60*60 {
+		return math.MaxInt, nil
+	}
+
+	remaining := row.DailyLimitSeconds - row.TodayWatchTotal
+	if remaining < 0 {
+		remaining = 0
+	}
+	return remaining, nil
 }
 
 var _ HistoryQueryService = (*historyQueryServiceImpl)(nil)
