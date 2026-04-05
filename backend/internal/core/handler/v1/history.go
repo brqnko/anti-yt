@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
 func (h *APIHandler) GetHistory(ctx context.Context, request GetHistoryRequestObject) (GetHistoryResponseObject, error) {
@@ -15,33 +16,33 @@ func (h *APIHandler) GetHistory(ctx context.Context, request GetHistoryRequestOb
 		return nil, err
 	}
 
-	views, hasNext, err := h.historyService.GetHistory(ctx, userID, request.Params.Limit, request.Params.Cursor, hutil.TimezoneFromContext(ctx))
+	views, hasNext, err := h.historyService.GetHistory(ctx, userID, request.Params.Limit, cursorToUUID(request.Params.Cursor), hutil.TimezoneFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}
 
 	items := make([]struct {
-		ChannelId                  uuid.UUID `json:"channel_id"`
-		ExternalChannelDisplayName string    `json:"external_channel_display_name"`
-		ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
-		ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
-		ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
-		ExternalVideoTitle         string    `json:"external_video_title"`
-		VideoId                    uuid.UUID `json:"video_id"`
-		WatchId                    uuid.UUID `json:"watch_id"`
-		WatchPositionSeconds       int       `json:"watch_position_seconds"`
-		WatchedAt                  time.Time `json:"watched_at"`
+		ChannelId                  util.Base64UUID `json:"channel_id"`
+		ExternalChannelDisplayName string          `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string          `json:"external_channel_icon_url"`
+		ExternalVideoLengthSeconds int             `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string          `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string          `json:"external_video_title"`
+		VideoId                    util.Base64UUID `json:"video_id"`
+		WatchId                    util.Base64UUID `json:"watch_id"`
+		WatchPositionSeconds       int             `json:"watch_position_seconds"`
+		WatchedAt                  time.Time       `json:"watched_at"`
 	}, len(views))
 
 	for i, v := range views {
-		items[i].WatchId = v.WatchId
-		items[i].VideoId = v.VideoId
+		items[i].WatchId = util.Base64UUID(v.WatchId)
+		items[i].VideoId = util.Base64UUID(v.VideoId)
 		items[i].ExternalVideoTitle = v.ExternalVideoTitle
 		items[i].ExternalVideoThumbnailUrl = v.ExternalVideoThumbnailUrl
 		items[i].ExternalVideoLengthSeconds = v.ExternalVideoLengthSeconds
 		items[i].WatchPositionSeconds = v.WatchPositionSeconds
 		items[i].WatchedAt = v.WatchedAt
-		items[i].ChannelId = v.ChannelId
+		items[i].ChannelId = util.Base64UUID(v.ChannelId)
 		items[i].ExternalChannelDisplayName = v.ExternalChannelDisplayName
 		items[i].ExternalChannelIconUrl = v.ExternalChannelIconUrl
 	}
@@ -59,7 +60,13 @@ func (h *APIHandler) PostVideosVideoIdHeartbeats(ctx context.Context, request Po
 		return nil, err
 	}
 
-	remaining, err := h.historyService.Heartbeat(ctx, userID, request.VideoId, request.Body.CurrentPositionSeconds, request.Body.PlaylistId, hutil.TimezoneFromContext(ctx))
+	var playlistID *uuid.UUID
+	if request.Body.PlaylistId != nil {
+		u := request.Body.PlaylistId.UUID()
+		playlistID = &u
+	}
+
+	remaining, err := h.historyService.Heartbeat(ctx, userID, request.VideoId.UUID(), request.Body.CurrentPositionSeconds, playlistID, hutil.TimezoneFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +82,7 @@ func (h *APIHandler) PostVideosVideoIdWatched(ctx context.Context, request PostV
 		return nil, err
 	}
 
-	if err := h.historyService.MarkVideoWatched(ctx, userID, request.VideoId); err != nil {
+	if err := h.historyService.MarkVideoWatched(ctx, userID, request.VideoId.UUID()); err != nil {
 		return nil, err
 	}
 
@@ -88,7 +95,7 @@ func (h *APIHandler) DeleteVideosVideoIdWatched(ctx context.Context, request Del
 		return nil, err
 	}
 
-	if err := h.historyService.UnmarkVideoWatched(ctx, userID, request.VideoId); err != nil {
+	if err := h.historyService.UnmarkVideoWatched(ctx, userID, request.VideoId.UUID()); err != nil {
 		return nil, err
 	}
 

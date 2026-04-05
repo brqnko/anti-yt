@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
 func (h *APIHandler) GetPlaylistsRecent(ctx context.Context, request GetPlaylistsRecentRequestObject) (GetPlaylistsRecentResponseObject, error) {
@@ -22,15 +23,15 @@ func (h *APIHandler) GetPlaylistsRecent(ctx context.Context, request GetPlaylist
 
 	loc := hutil.TimezoneFromContext(ctx)
 	items := make([]struct {
-		PlaylistId           uuid.UUID `json:"playlist_id"`
-		PlaylistRegisteredAt time.Time `json:"playlist_registered_at"`
-		PlaylistTitle        string    `json:"playlist_title"`
-		PlaylistVideoCount   int       `json:"playlist_video_count"`
-		TopVideoThumbnailUrl *string   `json:"top_video_thumbnail_url,omitempty"`
+		PlaylistId           util.Base64UUID `json:"playlist_id"`
+		PlaylistRegisteredAt time.Time       `json:"playlist_registered_at"`
+		PlaylistTitle        string          `json:"playlist_title"`
+		PlaylistVideoCount   int             `json:"playlist_video_count"`
+		TopVideoThumbnailUrl *string         `json:"top_video_thumbnail_url,omitempty"`
 	}, len(playlists))
 
 	for i, pl := range playlists {
-		items[i].PlaylistId = pl.PlaylistId
+		items[i].PlaylistId = util.Base64UUID(pl.PlaylistId)
 		items[i].PlaylistTitle = pl.PlaylistTitle
 		items[i].PlaylistVideoCount = pl.PlaylistVideoCount
 		items[i].PlaylistRegisteredAt = pl.PlaylistRegisteredAt.In(loc)
@@ -49,7 +50,7 @@ func (h *APIHandler) GetPlaylists(ctx context.Context, request GetPlaylistsReque
 		return nil, err
 	}
 
-	playlists, hasNext, err := h.playlistService.GetPlaylists(ctx, userID, request.Params.Cursor, int32(request.Params.Limit))
+	playlists, hasNext, err := h.playlistService.GetPlaylists(ctx, userID, cursorToUUID(request.Params.Cursor), int32(request.Params.Limit))
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +60,7 @@ func (h *APIHandler) GetPlaylists(ctx context.Context, request GetPlaylistsReque
 		ItemCount: len(playlists),
 		Items: make([]struct {
 			PlaylistDescription  string             `json:"playlist_description"`
-			PlaylistId           uuid.UUID          `json:"playlist_id"`
+			PlaylistId           util.Base64UUID    `json:"playlist_id"`
 			PlaylistRegisteredAt time.Time          `json:"playlist_registered_at"`
 			PlaylistTitle        string             `json:"playlist_title"`
 			PlaylistType         PlaylistType       `json:"playlist_type"`
@@ -72,7 +73,7 @@ func (h *APIHandler) GetPlaylists(ctx context.Context, request GetPlaylistsReque
 
 	loc := hutil.TimezoneFromContext(ctx)
 	for i, pl := range playlists {
-		resp.Items[i].PlaylistId = pl.PlaylistId
+		resp.Items[i].PlaylistId = util.Base64UUID(pl.PlaylistId)
 		resp.Items[i].PlaylistTitle = pl.PlaylistTitle
 		resp.Items[i].PlaylistDescription = pl.PlaylistDescription
 		resp.Items[i].PlaylistType = PlaylistType(pl.PlaylistType)
@@ -106,7 +107,7 @@ func (h *APIHandler) PostPlaylists(ctx context.Context, request PostPlaylistsReq
 	}
 
 	return PostPlaylists201JSONResponse{
-		PlaylistId:           created.ID,
+		PlaylistId:           util.Base64UUID(created.ID),
 		PlaylistType:         PlaylistType(created.PlaylistCode.String()),
 		PlaylistVisibility:   PlaylistVisibility(created.VisibilityCode.String()),
 		PlaylistTitle:        string(created.Title),
@@ -125,7 +126,7 @@ func (h *APIHandler) DeletePlaylistsPlaylistId(ctx context.Context, request Dele
 		return nil, err
 	}
 
-	if err := h.playlistService.DeletePlaylist(ctx, userID, request.PlaylistId); err != nil {
+	if err := h.playlistService.DeletePlaylist(ctx, userID, request.PlaylistId.UUID()); err != nil {
 		return nil, err
 	}
 
@@ -138,13 +139,13 @@ func (h *APIHandler) GetPlaylistsPlaylistId(ctx context.Context, request GetPlay
 		return nil, err
 	}
 
-	pl, err := h.playlistService.GetPlaylistDetail(ctx, userID, request.PlaylistId)
+	pl, err := h.playlistService.GetPlaylistDetail(ctx, userID, request.PlaylistId.UUID())
 	if err != nil {
 		return nil, err
 	}
 
 	return GetPlaylistsPlaylistId200JSONResponse{
-		PlaylistId:           pl.PlaylistId,
+		PlaylistId:           util.Base64UUID(pl.PlaylistId),
 		PlaylistTitle:        pl.PlaylistTitle,
 		PlaylistDescription:  pl.PlaylistDescription,
 		PlaylistType:         PlaylistType(pl.PlaylistType),
@@ -162,7 +163,7 @@ func (h *APIHandler) GetPlaylistsPlaylistIdVideos(ctx context.Context, request G
 		return nil, err
 	}
 
-	videos, hasNext, err := h.playlistService.GetPlaylistItems(ctx, userID, request.PlaylistId, request.Params.Cursor, int32(request.Params.Limit))
+	videos, hasNext, err := h.playlistService.GetPlaylistItems(ctx, userID, request.PlaylistId.UUID(), cursorToUUID(request.Params.Cursor), int32(request.Params.Limit))
 	if err != nil {
 		return nil, err
 	}
@@ -171,22 +172,22 @@ func (h *APIHandler) GetPlaylistsPlaylistIdVideos(ctx context.Context, request G
 		HasNext:   hasNext,
 		ItemCount: len(videos),
 		Items: make([]struct {
-			ChannelId                  uuid.UUID `json:"channel_id"`
-			ExternalChannelDisplayName string    `json:"external_channel_display_name"`
-			ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
-			ExternalVideoCreatedAt     time.Time `json:"external_video_created_at"`
-			ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
-			ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
-			ExternalVideoTitle         string    `json:"external_video_title"`
-			LastWatchSeconds           *int      `json:"last_watch_seconds,omitempty"`
-			VideoId                    uuid.UUID `json:"video_id"`
+			ChannelId                  util.Base64UUID `json:"channel_id"`
+			ExternalChannelDisplayName string          `json:"external_channel_display_name"`
+			ExternalChannelIconUrl     string          `json:"external_channel_icon_url"`
+			ExternalVideoCreatedAt     time.Time       `json:"external_video_created_at"`
+			ExternalVideoLengthSeconds int             `json:"external_video_length_seconds"`
+			ExternalVideoThumbnailUrl  string          `json:"external_video_thumbnail_url"`
+			ExternalVideoTitle         string          `json:"external_video_title"`
+			LastWatchSeconds           *int            `json:"last_watch_seconds,omitempty"`
+			VideoId                    util.Base64UUID `json:"video_id"`
 		}, len(videos)),
 	}
 
 	loc := hutil.TimezoneFromContext(ctx)
 	for i, v := range videos {
-		resp.Items[i].VideoId = v.VideoId
-		resp.Items[i].ChannelId = v.ChannelId
+		resp.Items[i].VideoId = util.Base64UUID(v.VideoId)
+		resp.Items[i].ChannelId = util.Base64UUID(v.ChannelId)
 		resp.Items[i].ExternalVideoThumbnailUrl = v.ExternalVideoThumbnailUrl
 		resp.Items[i].ExternalVideoTitle = v.ExternalVideoTitle
 		resp.Items[i].ExternalVideoCreatedAt = v.ExternalVideoCreatedAt.In(loc)
@@ -205,13 +206,13 @@ func (h *APIHandler) PatchPlaylistsPlaylistId(ctx context.Context, request Patch
 		return nil, err
 	}
 
-	updated, err := h.playlistService.UpdatePlaylist(ctx, userID, request.PlaylistId, request.Body.PlaylistTitle, request.Body.PlaylistDescription)
+	updated, err := h.playlistService.UpdatePlaylist(ctx, userID, request.PlaylistId.UUID(), request.Body.PlaylistTitle, request.Body.PlaylistDescription)
 	if err != nil {
 		return nil, err
 	}
 
 	return PatchPlaylistsPlaylistId200JSONResponse{
-		PlaylistId:          updated.ID,
+		PlaylistId:          util.Base64UUID(updated.ID),
 		PlaylistTitle:       string(updated.Title),
 		PlaylistDescription: string(updated.Description),
 	}, nil
@@ -226,7 +227,7 @@ func (h *APIHandler) PostPlaylistsPlaylistIdCopy(ctx context.Context, request Po
 	created, err := h.playlistService.CopyPlaylist(
 		ctx,
 		userID,
-		request.PlaylistId,
+		request.PlaylistId.UUID(),
 		request.Body.PlaylistTitle,
 		request.Body.PlaylistDescription,
 	)
@@ -236,7 +237,7 @@ func (h *APIHandler) PostPlaylistsPlaylistIdCopy(ctx context.Context, request Po
 
 	loc := hutil.TimezoneFromContext(ctx)
 	return PostPlaylistsPlaylistIdCopy201JSONResponse{
-		PlaylistId:           created.ID,
+		PlaylistId:           util.Base64UUID(created.ID),
 		PlaylistType:         PlaylistType(created.PlaylistCode.String()),
 		PlaylistVisibility:   PlaylistVisibility(created.VisibilityCode.String()),
 		PlaylistTitle:        string(created.Title),
@@ -253,7 +254,7 @@ func (h *APIHandler) DeletePlaylistsPlaylistIdVideos(ctx context.Context, reques
 		return nil, err
 	}
 
-	if err := h.playlistService.RemoveVideoFromPlaylist(ctx, userID, request.PlaylistId, request.Params.VideoId); err != nil {
+	if err := h.playlistService.RemoveVideoFromPlaylist(ctx, userID, request.PlaylistId.UUID(), request.Params.VideoId.UUID()); err != nil {
 		return nil, err
 	}
 
@@ -270,12 +271,12 @@ func (h *APIHandler) PostPlaylistsPlaylistIdVideos(ctx context.Context, request 
 
 	switch {
 	case request.Body.VideoId != nil:
-		videoID = *request.Body.VideoId
-		if err := h.playlistService.InsertVideoIntoPlaylist(ctx, userID, request.PlaylistId, videoID); err != nil {
+		videoID = request.Body.VideoId.UUID()
+		if err := h.playlistService.InsertVideoIntoPlaylist(ctx, userID, request.PlaylistId.UUID(), videoID); err != nil {
 			return nil, err
 		}
 	case request.Body.ExternalVideoText != nil:
-		resolved, err := h.playlistService.FetchAndInsertVideoIntoPlaylist(ctx, userID, request.PlaylistId, *request.Body.ExternalVideoText)
+		resolved, err := h.playlistService.FetchAndInsertVideoIntoPlaylist(ctx, userID, request.PlaylistId.UUID(), *request.Body.ExternalVideoText)
 		if err != nil {
 			return nil, err
 		}
@@ -291,7 +292,7 @@ func (h *APIHandler) PostPlaylistsPlaylistIdVideos(ctx context.Context, request 
 
 	return PostPlaylistsPlaylistIdVideos201JSONResponse{
 		PlaylistId: request.PlaylistId,
-		VideoId:    videoID,
+		VideoId:    util.Base64UUID(videoID),
 		InsertedAt: time.Now().In(hutil.TimezoneFromContext(ctx)),
 	}, nil
 }

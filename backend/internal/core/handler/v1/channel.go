@@ -4,19 +4,18 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
 func (h *APIHandler) GetChannelsChannelId(ctx context.Context, request GetChannelsChannelIdRequestObject) (GetChannelsChannelIdResponseObject, error) {
-	detail, err := h.channelService.GetChannelDetail(ctx, request.ChannelId)
+	detail, err := h.channelService.GetChannelDetail(ctx, request.ChannelId.UUID())
 	if err != nil {
 		return nil, err
 	}
 
 	return GetChannelsChannelId200JSONResponse{
-		ChannelId:                       detail.ChannelID,
+		ChannelId:                       util.Base64UUID(detail.ChannelID),
 		ExternalChannelCustomId:         detail.CustomID,
 		ExternalChannelDisplayName:      detail.DisplayName,
 		ExternalChannelDescription:      detail.Description,
@@ -26,22 +25,22 @@ func (h *APIHandler) GetChannelsChannelId(ctx context.Context, request GetChanne
 }
 
 func (h *APIHandler) GetChannelsChannelIdPlaylists(ctx context.Context, request GetChannelsChannelIdPlaylistsRequestObject) (GetChannelsChannelIdPlaylistsResponseObject, error) {
-	playlists, hasNext, err := h.playlistService.GetChannelPlaylists(ctx, request.ChannelId, request.Params.Cursor, int32(request.Params.Limit))
+	playlists, hasNext, err := h.playlistService.GetChannelPlaylists(ctx, request.ChannelId.UUID(), cursorToUUID(request.Params.Cursor), int32(request.Params.Limit))
 	if err != nil {
 		return nil, err
 	}
 
 	items := make([]struct {
-		PlaylistId           uuid.UUID `json:"playlist_id"`
-		PlaylistRegisteredAt time.Time `json:"playlist_registered_at"`
-		PlaylistTitle        string    `json:"playlist_title"`
-		PlaylistVideoCount   int       `json:"playlist_video_count"`
-		TopVideoThumbnailUrl *string   `json:"top_video_thumbnail_url,omitempty"`
+		PlaylistId           util.Base64UUID `json:"playlist_id"`
+		PlaylistRegisteredAt time.Time       `json:"playlist_registered_at"`
+		PlaylistTitle        string          `json:"playlist_title"`
+		PlaylistVideoCount   int             `json:"playlist_video_count"`
+		TopVideoThumbnailUrl *string         `json:"top_video_thumbnail_url,omitempty"`
 	}, len(playlists))
 
 	loc := hutil.TimezoneFromContext(ctx)
 	for i, pl := range playlists {
-		items[i].PlaylistId = pl.PlaylistId
+		items[i].PlaylistId = util.Base64UUID(pl.PlaylistId)
 		items[i].PlaylistTitle = pl.PlaylistTitle
 		items[i].PlaylistVideoCount = pl.PlaylistVideoCount
 		items[i].PlaylistRegisteredAt = pl.PlaylistRegisteredAt.In(loc)
@@ -66,24 +65,24 @@ func (h *APIHandler) GetChannelsChannelIdVideos(ctx context.Context, request Get
 		order = string(*request.Params.Order)
 	}
 
-	videos, hasNext, err := h.channelService.GetChannelUploads(ctx, userID, request.ChannelId, request.Params.Cursor, int32(request.Params.Limit), order)
+	videos, hasNext, err := h.channelService.GetChannelUploads(ctx, userID, request.ChannelId.UUID(), cursorToUUID(request.Params.Cursor), int32(request.Params.Limit), order)
 	if err != nil {
 		return nil, err
 	}
 
 	items := make([]struct {
-		ExternalVideoCreatedAt     time.Time `json:"external_video_created_at"`
-		ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
-		ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
-		ExternalVideoTitle         string    `json:"external_video_title"`
-		IsWatched                  bool      `json:"is_watched"`
-		LastWatchSeconds           *int      `json:"last_watch_seconds,omitempty"`
-		VideoId                    uuid.UUID `json:"video_id"`
+		ExternalVideoCreatedAt     time.Time       `json:"external_video_created_at"`
+		ExternalVideoLengthSeconds int             `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string          `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string          `json:"external_video_title"`
+		IsWatched                  bool            `json:"is_watched"`
+		LastWatchSeconds           *int            `json:"last_watch_seconds,omitempty"`
+		VideoId                    util.Base64UUID `json:"video_id"`
 	}, len(videos))
 
 	loc := hutil.TimezoneFromContext(ctx)
 	for i, v := range videos {
-		items[i].VideoId = v.VideoId
+		items[i].VideoId = util.Base64UUID(v.VideoId)
 		items[i].ExternalVideoThumbnailUrl = v.ExternalVideoThumbnailUrl
 		items[i].ExternalVideoTitle = v.ExternalVideoTitle
 		items[i].ExternalVideoCreatedAt = v.ExternalVideoCreatedAt.In(loc)
@@ -106,16 +105,16 @@ func (h *APIHandler) GetFeedChannels(ctx context.Context, request GetFeedChannel
 	}
 
 	items := make([]struct {
-		CategoryCode               int       `json:"category_code"`
-		ChannelId                  uuid.UUID `json:"channel_id"`
-		ExternalChannelCusomUrl    string    `json:"external_channel_cusom_url"`
-		ExternalChannelDisplayName string    `json:"external_channel_display_name"`
-		ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
-		ValuableDescription        string    `json:"valuable_description"`
+		CategoryCode               int             `json:"category_code"`
+		ChannelId                  util.Base64UUID `json:"channel_id"`
+		ExternalChannelCusomUrl    string          `json:"external_channel_cusom_url"`
+		ExternalChannelDisplayName string          `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string          `json:"external_channel_icon_url"`
+		ValuableDescription        string          `json:"valuable_description"`
 	}, len(channels))
 
 	for i, ch := range channels {
-		items[i].ChannelId = ch.ChannelId
+		items[i].ChannelId = util.Base64UUID(ch.ChannelId)
 		items[i].ExternalChannelCusomUrl = ch.ExternalChannelCustomUrl
 		items[i].ExternalChannelDisplayName = ch.ExternalChannelDisplayName
 		items[i].ExternalChannelIconUrl = ch.ExternalChannelIconUrl
@@ -135,22 +134,22 @@ func (h *APIHandler) GetChannelsSubscribed(ctx context.Context, request GetChann
 		return nil, err
 	}
 
-	channels, hasNext, err := h.channelService.GetSubscriptions(ctx, userID, int32(request.Params.Limit), request.Params.Cursor)
+	channels, hasNext, err := h.channelService.GetSubscriptions(ctx, userID, int32(request.Params.Limit), cursorToUUID(request.Params.Cursor))
 	if err != nil {
 		return nil, err
 	}
 
 	items := make([]struct {
-		ChannelCustomId            string    `json:"channel_custom_id"`
-		ChannelId                  uuid.UUID `json:"channel_id"`
-		ChannelSubscribersCount    int       `json:"channel_subscribers_count"`
-		ExternalChannelDisplayName string    `json:"external_channel_display_name"`
-		ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
-		ExternalChannelId          string    `json:"external_channel_id"`
+		ChannelCustomId            string          `json:"channel_custom_id"`
+		ChannelId                  util.Base64UUID `json:"channel_id"`
+		ChannelSubscribersCount    int             `json:"channel_subscribers_count"`
+		ExternalChannelDisplayName string          `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string          `json:"external_channel_icon_url"`
+		ExternalChannelId          string          `json:"external_channel_id"`
 	}, len(channels))
 
 	for i, ch := range channels {
-		items[i].ChannelId = ch.ChannelId
+		items[i].ChannelId = util.Base64UUID(ch.ChannelId)
 		items[i].ExternalChannelId = ch.ExternalChannelId
 		items[i].ExternalChannelDisplayName = ch.ExternalChannelDisplayName
 		items[i].ChannelCustomId = ch.ChannelCustomId
@@ -178,26 +177,26 @@ func (h *APIHandler) PostChannelsSubscribe(ctx context.Context, request PostChan
 
 	return PostChannelsSubscribe201JSONResponse{
 		Body: struct {
-			ChannelCreatedAt           time.Time `json:"channel_created_at"`
-			ChannelCustomId            string    `json:"channel_custom_id"`
-			ChannelDescription         string    `json:"channel_description"`
-			ChannelId                  uuid.UUID `json:"channel_id"`
-			ChannelSubscribersCount    int       `json:"channel_subscribers_count"`
-			ExternalChannelDisplayName string    `json:"external_channel_display_name"`
-			ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
-			ExternalChannelId          string    `json:"external_channel_id"`
+			ChannelCreatedAt           time.Time       `json:"channel_created_at"`
+			ChannelCustomId            string          `json:"channel_custom_id"`
+			ChannelDescription         string          `json:"channel_description"`
+			ChannelId                  util.Base64UUID `json:"channel_id"`
+			ChannelSubscribersCount    int             `json:"channel_subscribers_count"`
+			ExternalChannelDisplayName string          `json:"external_channel_display_name"`
+			ExternalChannelIconUrl     string          `json:"external_channel_icon_url"`
+			ExternalChannelId          string          `json:"external_channel_id"`
 		}{
 			ChannelCreatedAt:           subscribed.Channel.CreatedAt.In(hutil.TimezoneFromContext(ctx)),
 			ChannelCustomId:            subscribed.Channel.CustomID,
 			ChannelDescription:         subscribed.Channel.Description,
-			ChannelId:                  subscribed.ID,
+			ChannelId:                  util.Base64UUID(subscribed.ID),
 			ChannelSubscribersCount:    int(subscribed.Channel.SubscribersCount),
 			ExternalChannelDisplayName: subscribed.Channel.DisplayName,
 			ExternalChannelIconUrl:     subscribed.Channel.IconURL,
 			ExternalChannelId:          string(subscribed.Channel.ID),
 		},
 		Headers: PostChannelsSubscribe201ResponseHeaders{
-			Location: "/api/v1/channels/" + subscribed.ID.String() + "/subscribe",
+			Location: "/api/v1/channels/" + util.Base64UUID(subscribed.ID).String() + "/subscribe",
 		},
 	}, nil
 }
@@ -208,7 +207,7 @@ func (h *APIHandler) DeleteChannelsChannelIdSubscribe(ctx context.Context, reque
 		return nil, err
 	}
 
-	if err := h.channelService.UnsubscribeChannel(ctx, userID, request.ChannelId); err != nil {
+	if err := h.channelService.UnsubscribeChannel(ctx, userID, request.ChannelId.UUID()); err != nil {
 		return nil, err
 	}
 

@@ -96,7 +96,7 @@ func (h *APIHandler) GetUsersMeStatus(ctx context.Context, request GetUsersMeSta
 	return GetUsersMeStatus200JSONResponse{
 		DailyScreenSeconds: user.DailyScreenSeconds,
 		DisplayName:        user.DisplayName,
-		Id:                 user.UserID,
+		Id:                 util.Base64UUID(user.UserID),
 		JoinedAt:           user.JoinedAt.In(loc),
 		LanguageCode:       user.LanguageCode,
 		ScreenTime:         screenTime,
@@ -125,7 +125,7 @@ func (h *APIHandler) PatchUsersMeStatus(ctx context.Context, request PatchUsersM
 	return PatchUsersMeStatus200JSONResponse{
 		DailyScreenSeconds: u.ScreenTimeLimit.ToIntPtr(),
 		DisplayName:        u.DisplayName.String(),
-		Id:                 u.ID,
+		Id:                 util.Base64UUID(u.ID),
 		JoinedAt:           u.JoinedAt.In(hutil.TimezoneFromContext(ctx)),
 		LanguageCode:       u.LanguageCode.String(),
 	}, nil
@@ -168,7 +168,7 @@ func (h *APIHandler) PostUsersMe(ctx context.Context, request PostUsersMeRequest
 	return PostUsersMe201JSONResponse{
 		DailyScreenSeconds: u.ScreenTimeLimit.ToIntPtr(),
 		DisplayName:        u.DisplayName.String(),
-		Id:                 u.ID,
+		Id:                 util.Base64UUID(u.ID),
 		JoinedAt:           u.JoinedAt.In(hutil.TimezoneFromContext(ctx)),
 		LanguageCode:       u.LanguageCode.String(),
 	}, nil

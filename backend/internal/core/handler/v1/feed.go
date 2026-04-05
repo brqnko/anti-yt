@@ -4,10 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
 func (h *APIHandler) GetSearch(ctx context.Context, request GetSearchRequestObject) (GetSearchResponseObject, error) {
@@ -32,25 +31,25 @@ func (h *APIHandler) GetSearch(ctx context.Context, request GetSearchRequestObje
 		Cursor:    nextCursor,
 		ItemCount: len(items),
 		Items: make([]struct {
-			ChannelId                  uuid.UUID `json:"channel_id"`
-			ExternalChannelDisplayName string    `json:"external_channel_display_name"`
-			ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
-			ExternalChannelId          string    `json:"external_channel_id"`
-			ExternalVideoCreatedAt     time.Time `json:"external_video_created_at"`
-			ExternalVideoDescription   string    `json:"external_video_description"`
-			ExternalVideoId            string    `json:"external_video_id"`
-			ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
-			ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
-			ExternalVideoTitle         string    `json:"external_video_title"`
-			LastWatchSeconds           *int      `json:"last_watch_seconds,omitempty"`
-			VideoId                    uuid.UUID `json:"video_id"`
+			ChannelId                  util.Base64UUID `json:"channel_id"`
+			ExternalChannelDisplayName string          `json:"external_channel_display_name"`
+			ExternalChannelIconUrl     string          `json:"external_channel_icon_url"`
+			ExternalChannelId          string          `json:"external_channel_id"`
+			ExternalVideoCreatedAt     time.Time       `json:"external_video_created_at"`
+			ExternalVideoDescription   string          `json:"external_video_description"`
+			ExternalVideoId            string          `json:"external_video_id"`
+			ExternalVideoLengthSeconds int             `json:"external_video_length_seconds"`
+			ExternalVideoThumbnailUrl  string          `json:"external_video_thumbnail_url"`
+			ExternalVideoTitle         string          `json:"external_video_title"`
+			LastWatchSeconds           *int            `json:"last_watch_seconds,omitempty"`
+			VideoId                    util.Base64UUID `json:"video_id"`
 		}, len(items)),
 	}
 
 	loc := hutil.TimezoneFromContext(ctx)
 	for i, item := range items {
-		resp.Items[i].VideoId = item.VideoID
-		resp.Items[i].ChannelId = item.ChannelID
+		resp.Items[i].VideoId = util.Base64UUID(item.VideoID)
+		resp.Items[i].ChannelId = util.Base64UUID(item.ChannelID)
 		resp.Items[i].ExternalVideoId = item.ExternalVideoID
 		resp.Items[i].ExternalChannelId = item.ExternalChannelID
 		resp.Items[i].ExternalVideoTitle = item.ExternalVideoTitle
@@ -71,27 +70,27 @@ func (h *APIHandler) GetFeed(ctx context.Context, request GetFeedRequestObject) 
 		return nil, err
 	}
 
-	videos, hasNext, err := h.feedService.GetFeed(ctx, userID, request.Params.Cursor, int32(request.Params.Limit))
+	videos, hasNext, err := h.feedService.GetFeed(ctx, userID, cursorToUUID(request.Params.Cursor), int32(request.Params.Limit))
 	if err != nil {
 		return nil, err
 	}
 
 	items := make([]struct {
-		ChannelId                  uuid.UUID `json:"channel_id"`
-		ExternalChannelDisplayName string    `json:"external_channel_display_name"`
-		ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
-		ExternalVideoCreatedAt     time.Time `json:"external_video_created_at"`
-		ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
-		ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
-		ExternalVideoTitle         string    `json:"external_video_title"`
-		LastWatchSeconds           *int      `json:"last_watch_seconds,omitempty"`
-		VideoId                    uuid.UUID `json:"video_id"`
+		ChannelId                  util.Base64UUID `json:"channel_id"`
+		ExternalChannelDisplayName string          `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string          `json:"external_channel_icon_url"`
+		ExternalVideoCreatedAt     time.Time       `json:"external_video_created_at"`
+		ExternalVideoLengthSeconds int             `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string          `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string          `json:"external_video_title"`
+		LastWatchSeconds           *int            `json:"last_watch_seconds,omitempty"`
+		VideoId                    util.Base64UUID `json:"video_id"`
 	}, len(videos))
 
 	loc := hutil.TimezoneFromContext(ctx)
 	for i, v := range videos {
-		items[i].VideoId = v.VideoId
-		items[i].ChannelId = v.ChannelId
+		items[i].VideoId = util.Base64UUID(v.VideoId)
+		items[i].ChannelId = util.Base64UUID(v.ChannelId)
 		items[i].ExternalChannelIconUrl = v.ExternalChannelIconUrl
 		items[i].ExternalChannelDisplayName = v.ExternalChannelDisplayName
 		items[i].ExternalVideoThumbnailUrl = v.ExternalVideoThumbnailUrl
