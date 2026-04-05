@@ -22,7 +22,7 @@ var (
 type BatchStatusCode int
 
 func NewBatchStatusCode(str string) (_ BatchStatusCode, err error) {
-	defer util.Wrap(&err, "NewBatchStatusCode")
+	defer util.Wrap(&err, "job.NewBatchStatusCode")
 
 	for _, c := range batchStatusCodeMap {
 		if str == c.str {

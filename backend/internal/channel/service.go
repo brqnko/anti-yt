@@ -30,7 +30,6 @@ type Service struct {
 var (
 	ErrInvalidSubscriptionLimit = core.NewDomainError("channel.invalid_subscription_limit", "invalid subscription limit: out of range (should be [1..50])")
 	ErrInvalidGetUploadLimit    = core.NewDomainError("channel.invalid_get_upload_limit", "invalid get upload limit: out of range (should be [1..50])")
-	ErrInvalidChannelID         = core.NewDomainError("channel.invalid_channel_id", "invalid channel id")
 )
 
 func NewService(
@@ -48,7 +47,7 @@ func NewService(
 }
 
 func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channelText string) (_ *Channel, err error) {
-	defer util.Wrap(&err, "Service.SubscribeChannel")
+	defer util.Wrap(&err, "channel.(*Service).SubscribeChannel")
 
 	// ユーザーはURLやハンドルやチャンネルIDで入力してくる
 	channelIDOrHandle, err := youtube_d.ExtractChannelIDOrHandle(channelText)
@@ -74,10 +73,10 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 	// すでに保存されているかを確認する
 	// 保存されてない場合はfetchしてそれを使う
 	foundChannel, err := NewChannelRepository(q).FindByIdOrHandle(ctx, channelIDOrHandle)
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) { // ただのDBエラー
+	if err != nil && !errors.Is(err, core.ErrNotFound) { // ただのDBエラー
 		return nil, err
 	}
-	if errors.Is(err, pgx.ErrNoRows) { // 保存されてない場合
+	if errors.Is(err, core.ErrNotFound) { // 保存されてない場合
 		// YouTubeからチャンネル情報を取得
 		channelDetail, err := s.ytService.FetchChannelDetailByIDOrHandle(ctx, channelIDOrHandle)
 		fetchedAt := time.Now().UTC()
@@ -117,12 +116,12 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 		for _, vd := range videoDetails {
 			v, err := video.NewVideo(channel.ID, fetchedAt, vd)
 			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to newVideo", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(subscribe channel)", slog.Any("error", err))
 				continue
 			}
 
 			if _, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v); err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(subscribe channel)", slog.Any("error", err))
 			}
 		}
 
@@ -146,7 +145,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 }
 
 func (s *Service) UnsubscribeChannel(ctx context.Context, userID, channelID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "Service.UnsubscribeChannel")
+	defer util.Wrap(&err, "channel.(*Service).UnsubscribeChannel")
 
 	_, err = NewChannelRepository(sqlc.New(s.db)).RemoveSubscription(ctx, userID, channelID)
 	if err != nil {
@@ -157,7 +156,7 @@ func (s *Service) UnsubscribeChannel(ctx context.Context, userID, channelID uuid
 }
 
 func (s *Service) GetSubscriptions(ctx context.Context, userID uuid.UUID, limit int32, cursor *uuid.UUID) (_ []GetSubscriptionsView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetSubscriptions")
+	defer util.Wrap(&err, "channel.(*Service).GetSubscriptions")
 
 	if limit < 1 || 50 < limit { // openapiもあるが一応チェック
 		return nil, false, ErrInvalidSubscriptionLimit
@@ -175,7 +174,7 @@ func (s *Service) GetSubscriptions(ctx context.Context, userID uuid.UUID, limit 
 }
 
 func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32, order string) (_ []GetChannelUploadsView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetChannelUploads")
+	defer util.Wrap(&err, "channel.(*Service).GetChannelUploads")
 
 	if limit < 1 || 50 < limit {
 		return nil, false, ErrInvalidGetUploadLimit
@@ -214,12 +213,12 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 		for _, videoDetail := range videoDetailMap {
 			v, err := video.NewVideo(lockedChannel.ID, fetchedAt, videoDetail)
 			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(get channel uploads)", slog.Any("error", err))
 				continue
 			}
 
 			if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save new video", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(get channel uploads)", slog.Any("error", err))
 				continue
 			}
 		}
@@ -246,7 +245,7 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 }
 
 func (s *Service) GetChannelDetail(ctx context.Context, channelID uuid.UUID) (_ GetChannelDetailView, err error) {
-	defer util.Wrap(&err, "Service.GetChannelDetail")
+	defer util.Wrap(&err, "channel.(*Service).GetChannelDetail")
 
 	detail, err := s.channelQS.GetChannelDetail(ctx, channelID)
 	if err != nil {
@@ -257,7 +256,7 @@ func (s *Service) GetChannelDetail(ctx context.Context, channelID uuid.UUID) (_ 
 }
 
 func (s *Service) GetChannelFeeds(ctx context.Context) (_ []GetValuableChannelView, err error) {
-	defer util.Wrap(&err, "Service.GetChannelFeeds")
+	defer util.Wrap(&err, "channel.(*Service).GetChannelFeeds")
 
 	channels, err := s.valuableChannelQS.GetValuableChannels(ctx)
 	if err != nil {

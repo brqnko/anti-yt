@@ -31,14 +31,14 @@ func NewService(db *pgxpool.Pool, ytService youtube_d.Service) *Service {
 }
 
 func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, description, visibilityStr, playlistTypeStr string, basePlaylistUrl *string) (_ *Playlist, err error) {
-	defer util.Wrap(&err, "Service.CreatePlaylist(userID=%s)", userID)
+	defer util.Wrap(&err, "playlist.(*Service).CreatePlaylist(userID=%s)", userID)
 
 	playlist, err := NewPlaylist(
+		userID,
 		title,
 		description,
 		visibilityStr,
 		playlistTypeStr,
-		WithPlaylistUserID(userID),
 	)
 	if err != nil {
 		return nil, err
@@ -110,12 +110,12 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 		for _, channelDetail := range channelDetails {
 			ch, err := channel.NewChannel(fetchedAt, fetchedAt, channelDetail)
 			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new channel(createPlaylist)", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new channel(create playlist)", slog.Any("error", err))
 				continue
 			}
 
 			if _, err := channel.NewChannelRepository(sqlc.New(s.db)).Save(ctx, ch); err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save channel(createPlaylist)", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save channel(create playlist)", slog.Any("error", err))
 				continue
 			}
 			savedChannels[channelDetail.ID] = ch.ID
@@ -127,18 +127,18 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 		for _, videoDetail := range videoDetails {
 			channelUUID, ok := savedChannels[videoDetail.ChannelID]
 			if !ok {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "channel not found in savedChannels(createPlaylist)", slog.String("channelID", string(videoDetail.ChannelID)))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "channel not found in saved channels(create playlist)", slog.String("channelID", string(videoDetail.ChannelID)))
 				continue
 			}
 			v, err := video.NewVideo(channelUUID, fetchedAt, videoDetail)
 			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to newVideo(createPlaylist)", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(create playlist)", slog.Any("error", err))
 				continue
 			}
 
 			savedVideoID, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v)
 			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to saveVideo(createPlaylist)", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(create playlist)", slog.Any("error", err))
 				continue
 			}
 			videoIDToint64[v.Video.ID] = savedVideoID
@@ -147,7 +147,7 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 		for _, vid := range videoIDs {
 			savedVideoID, ok := videoIDToint64[vid]
 			if !ok {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "video not found in savedVideos(createPlaylist)", slog.String("videoID", string(vid)))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "video not found in saved videos(create playlist)", slog.String("videoID", string(vid)))
 				continue
 			}
 			allVideoIDs = append(allVideoIDs, savedVideoID)
@@ -179,14 +179,14 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 }
 
 func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid.UUID, title, description, visibilityStr, playlistTypeStr, accessToken, playlistID string) (_ *Playlist, err error) {
-	defer util.Wrap(&err, "Service.CreatePlaylistWithAccessToken(userID=%s)", userID)
+	defer util.Wrap(&err, "playlist.(*Service).CreatePlaylistWithAccessToken(userID=%s)", userID)
 
 	playlist, err := NewPlaylist(
+		userID,
 		title,
 		description,
 		visibilityStr,
 		playlistTypeStr,
-		WithPlaylistUserID(userID),
 	)
 	if err != nil {
 		return nil, err
@@ -213,13 +213,13 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 	for {
 		videoIDs, pageToken, err := s.ytService.FetchPlaylistVideoIDsWithOAuth(ctx, accessToken, playlistID, nextPageToken)
 		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch playlist video ids(createPlaylistWithAccessToken)", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch playlist video ids(create playlist with access token)", slog.Any("error", err))
 			break
 		}
 
 		videoDetails, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
 		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch video detail(createPlaylistWithAccessToken)", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch video detail(create playlist with access token)", slog.Any("error", err))
 			break
 		}
 
@@ -229,7 +229,7 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 		}
 		channelDetails, err := s.ytService.FetchChannelDetail(ctx, channelIDs)
 		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch channel detail(createPlaylistWithAccessToken)", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch channel detail(create playlist with access token)", slog.Any("error", err))
 			break
 		}
 
@@ -239,11 +239,11 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 		for _, channelDetail := range channelDetails {
 			ch, err := channel.NewChannel(fetchedAt, fetchedAt, channelDetail)
 			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new channel(createPlaylistWithAccessToken)", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new channel(create playlist with access token)", slog.Any("error", err))
 				continue
 			}
 			if _, err := channel.NewChannelRepository(sqlc.New(s.db)).Save(ctx, ch); err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save channel(createPlaylistWithAccessToken)", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save channel(create playlist with access token)", slog.Any("error", err))
 				continue
 			}
 			savedChannels[channelDetail.ID] = ch.ID
@@ -253,17 +253,17 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 		for _, videoDetail := range videoDetails {
 			channelUUID, ok := savedChannels[videoDetail.ChannelID]
 			if !ok {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "channel not found in savedChannels(createPlaylistWithAccessToken)", slog.String("channelID", string(videoDetail.ChannelID)))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "channel not found in saved channels(create playlist with access token)", slog.String("channelID", string(videoDetail.ChannelID)))
 				continue
 			}
 			v, err := video.NewVideo(channelUUID, fetchedAt, videoDetail)
 			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to newVideo(createPlaylistWithAccessToken)", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(create playlist with access token)", slog.Any("error", err))
 				continue
 			}
 			savedVideoID, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v)
 			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to saveVideo(createPlaylistWithAccessToken)", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(create playlist with access token)", slog.Any("error", err))
 				continue
 			}
 			videoIDToInt64[v.Video.ID] = savedVideoID
@@ -272,7 +272,7 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 		for _, vid := range videoIDs {
 			savedVideoID, ok := videoIDToInt64[vid]
 			if !ok {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "video not found in savedVideos(createPlaylistWithAccessToken)", slog.String("videoID", string(vid)))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "video not found in saved videos(create playlist with access token)", slog.String("videoID", string(vid)))
 				continue
 			}
 			allVideoIDs = append(allVideoIDs, savedVideoID)
@@ -304,7 +304,7 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 }
 
 func (s *Service) GetPlaylists(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetPlaylistsView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetPlaylists")
+	defer util.Wrap(&err, "playlist.(*Service).GetPlaylists")
 
 	playlists, err := s.playlistQS.FindPlaylists(ctx, userID, cursor, limit+1)
 	if err != nil {
@@ -318,7 +318,7 @@ func (s *Service) GetPlaylists(ctx context.Context, userID uuid.UUID, cursor *uu
 }
 
 func (s *Service) GetChannelPlaylists(ctx context.Context, channelID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetChannelPlaylistsView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetChannelPlaylists")
+	defer util.Wrap(&err, "playlist.(*Service).GetChannelPlaylists")
 
 	playlists, err := s.playlistQS.FindChannelPlaylists(ctx, channelID, cursor, limit+1)
 	if err != nil {
@@ -332,13 +332,13 @@ func (s *Service) GetChannelPlaylists(ctx context.Context, channelID uuid.UUID, 
 }
 
 func (s *Service) GetRecentPlaylists(ctx context.Context, userID uuid.UUID) (_ []GetChannelPlaylistsView, err error) {
-	defer util.Wrap(&err, "Service.GetRecentPlaylists")
+	defer util.Wrap(&err, "playlist.(*Service).GetRecentPlaylists")
 
 	return s.playlistQS.FindRecentPlaylists(ctx, userID)
 }
 
 func (s *Service) GetPlaylistDetail(ctx context.Context, userID, playlistID uuid.UUID) (_ GetPlaylistDetailView, err error) {
-	defer util.Wrap(&err, "Service.GetPlaylistDetail")
+	defer util.Wrap(&err, "playlist.(*Service).GetPlaylistDetail")
 
 	view, err := s.playlistQS.Find(ctx, userID, playlistID)
 	if err != nil {
@@ -348,13 +348,36 @@ func (s *Service) GetPlaylistDetail(ctx context.Context, userID, playlistID uuid
 }
 
 func (s *Service) DeletePlaylist(ctx context.Context, userID, playlistID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "Service.DeletePlaylist")
+	defer util.Wrap(&err, "playlist.(*Service).DeletePlaylist")
 
-	return NewPlaylistRepository(sqlc.New(s.db)).Remove(ctx, userID, playlistID)
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback", slog.Any("error", err))
+		}
+	}()
+
+	q := sqlc.New(tx)
+	playlist, err := NewPlaylistRepository(q).FindForUpdate(ctx, userID, playlistID)
+	if err != nil {
+		return err
+	}
+	if !playlist.IsModifiable() {
+		return ErrPlaylistNotModifiable
+	}
+
+	if err := NewPlaylistRepository(q).Remove(ctx, userID, playlistID); err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 func (s *Service) GetPlaylistItems(ctx context.Context, userID, playlistID uuid.UUID, videoCursor *uuid.UUID, limit int32) (_ []GetPlaylistItemView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetPlaylistItems")
+	defer util.Wrap(&err, "playlist.(*Service).GetPlaylistItems")
 
 	items, err := s.playlistQS.FindPlaylistItems(ctx, userID, playlistID, videoCursor, limit+1)
 	if err != nil {
@@ -368,7 +391,7 @@ func (s *Service) GetPlaylistItems(ctx context.Context, userID, playlistID uuid.
 }
 
 func (s *Service) UpdatePlaylist(ctx context.Context, userID, playlistID uuid.UUID, newPlaylistTitle *string, newPlaylistDescription *string) (_ *Playlist, err error) {
-	defer util.Wrap(&err, "Service.UpdatePlaylist")
+	defer util.Wrap(&err, "playlist.(*Service).UpdatePlaylist")
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -384,6 +407,9 @@ func (s *Service) UpdatePlaylist(ctx context.Context, userID, playlistID uuid.UU
 	playlist, err := NewPlaylistRepository(q).FindForUpdate(ctx, userID, playlistID)
 	if err != nil {
 		return nil, err
+	}
+	if !playlist.IsModifiable() {
+		return nil, ErrPlaylistNotModifiable
 	}
 
 	if err := playlist.SetTitle(newPlaylistTitle); err != nil {
@@ -405,7 +431,7 @@ func (s *Service) UpdatePlaylist(ctx context.Context, userID, playlistID uuid.UU
 }
 
 func (s *Service) InsertVideoIntoPlaylist(ctx context.Context, userID, playlistID, videoID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "Service.InsertVideoIntoPlaylist")
+	defer util.Wrap(&err, "playlist.(*Service).InsertVideoIntoPlaylist")
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -421,6 +447,9 @@ func (s *Service) InsertVideoIntoPlaylist(ctx context.Context, userID, playlistI
 	playlist, err := NewPlaylistRepository(q).FindForUpdate(ctx, userID, playlistID)
 	if err != nil {
 		return err
+	}
+	if !playlist.IsModifiable() {
+		return ErrPlaylistNotModifiable
 	}
 
 	if err := NewPlaylistRepository(q).InsertVideo(ctx, userID, playlistID, videoID); err != nil {
@@ -440,7 +469,7 @@ func (s *Service) InsertVideoIntoPlaylist(ctx context.Context, userID, playlistI
 }
 
 func (s *Service) FetchAndInsertVideoIntoPlaylist(ctx context.Context, userID, playlistID uuid.UUID, externalVideoText string) (_ uuid.UUID, err error) {
-	defer util.Wrap(&err, "Service.FetchAndInsertVideoIntoPlaylist")
+	defer util.Wrap(&err, "playlist.(*Service).FetchAndInsertVideoIntoPlaylist")
 
 	// YouTube動画IDを抽出
 	ytVideoID, err := youtube_d.ExtractVideoID(externalVideoText)
@@ -476,7 +505,7 @@ func (s *Service) FetchAndInsertVideoIntoPlaylist(ctx context.Context, userID, p
 	fetchedAt := time.Now().UTC()
 	q := sqlc.New(s.db)
 
-	// チャンネルをupsert
+	// チャンネルを挿入
 	ch, err := channel.NewChannel(fetchedAt, fetchedAt, cd)
 	if err != nil {
 		return uuid.Nil, err
@@ -503,14 +532,14 @@ func (s *Service) FetchAndInsertVideoIntoPlaylist(ctx context.Context, userID, p
 }
 
 func (s *Service) CopyPlaylist(ctx context.Context, userID uuid.UUID, sourcePlaylistID uuid.UUID, title, description string) (_ *Playlist, err error) {
-	defer util.Wrap(&err, "Service.CopyPlaylist(userID=%s, sourcePlaylistID=%s)", userID, sourcePlaylistID)
+	defer util.Wrap(&err, "playlist.(*Service).CopyPlaylist(userID=%s, sourcePlaylistID=%s)", userID, sourcePlaylistID)
 
 	playlist, err := NewPlaylist(
+		userID,
 		title,
 		description,
 		"private",
 		"normal",
-		WithPlaylistUserID(userID),
 	)
 	if err != nil {
 		return nil, err
@@ -555,7 +584,7 @@ func (s *Service) CopyPlaylist(ctx context.Context, userID uuid.UUID, sourcePlay
 }
 
 func (s *Service) RemoveVideoFromPlaylist(ctx context.Context, userID, playlistID, videoID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "Service.RemoveVideoFromPlaylist")
+	defer util.Wrap(&err, "playlist.(*Service).RemoveVideoFromPlaylist")
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -572,11 +601,92 @@ func (s *Service) RemoveVideoFromPlaylist(ctx context.Context, userID, playlistI
 	if err != nil {
 		return err
 	}
+	if !playlist.IsModifiable() {
+		return ErrPlaylistNotModifiable
+	}
 
 	if err := NewPlaylistRepository(q).RemoveVideo(ctx, userID, playlistID, videoID); err != nil {
 		return err
 	}
 
+	if err := playlist.DecrementVideoCount(); err != nil {
+		return err
+	}
+
+	if _, err := NewPlaylistRepository(q).Save(ctx, playlist); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) MarkAsWatchLater(ctx context.Context, userID, videoID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "playlist.(*Service).MarkAsWatchLater")
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback", slog.Any("error", err))
+		}
+	}()
+	q := sqlc.New(tx)
+
+	// watch laterのプレイリストをロッキングリード
+	playlist, err := NewPlaylistRepository(q).FindWatchLaterForUpdate(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	// 動画をinsert
+	if err := NewPlaylistRepository(q).InsertWatchLater(ctx, userID, playlist.ID, videoID); err != nil {
+		return err
+	}
+
+	// 動画をインクリメントして保存
+	playlist.IncrementVideoCount()
+
+	if _, err := NewPlaylistRepository(q).Save(ctx, playlist); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) UnmarkAsWatchLater(ctx context.Context, userID, videoID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "playlist.(*Service).UnmarkAsWatchLater")
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback", slog.Any("error", err))
+		}
+	}()
+	q := sqlc.New(tx)
+
+	// watch laterのプレイリストをロッキングリード
+	playlist, err := NewPlaylistRepository(q).FindWatchLaterForUpdate(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	// 動画をremove
+	if err := NewPlaylistRepository(q).RemoveVideo(ctx, userID, playlist.ID, videoID); err != nil {
+		return err
+	}
+
+	// 動画をデクリメントて保存
 	if err := playlist.DecrementVideoCount(); err != nil {
 		return err
 	}

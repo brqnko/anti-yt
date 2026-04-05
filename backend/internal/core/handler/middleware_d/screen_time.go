@@ -27,10 +27,6 @@ var screenTimeIgnoreOperations = map[string]struct{}{
 }
 
 func ScreenTimeMiddleware(db *pgxpool.Pool) func(v1.StrictHandlerFunc, string) v1.StrictHandlerFunc {
-	q := sqlc.New(db)
-	userRepo := user.NewUserRepository(q)
-	historyQS := history.NewHistoryQueryService(db)
-
 	return func(f v1.StrictHandlerFunc, operationID string) v1.StrictHandlerFunc {
 		// プロフィール設定などは制限の対象外
 		if _, ok := screenTimeIgnoreOperations[operationID]; ok {
@@ -47,7 +43,7 @@ func ScreenTimeMiddleware(db *pgxpool.Pool) func(v1.StrictHandlerFunc, string) v
 			now := time.Now()
 
 			// 許可時間帯はUTCで保存されているのでUTCで比較
-			rangeSet, err := userRepo.FindScreenTimeRanges(ctx, userID)
+			rangeSet, err := user.NewUserRepository(sqlc.New(db)).FindScreenTimeRanges(ctx, userID)
 			if err != nil {
 				util.LoggerFromContext(ctx).ErrorContext(ctx, "internal server error", slog.Any("error", err))
 				return writeErrorJSON(w, http.StatusInternalServerError, "internal server error", "internal server error")
@@ -57,7 +53,7 @@ func ScreenTimeMiddleware(db *pgxpool.Pool) func(v1.StrictHandlerFunc, string) v
 			}
 
 			// 日次視聴制限はユーザーのローカル日付で計算
-			watchStats, err := historyQS.FindTotalWatchSeconds(ctx, userID, loc)
+			watchStats, err := history.NewHistoryQueryService(db).FindTotalWatchSeconds(ctx, userID, loc)
 			if err != nil {
 				util.LoggerFromContext(ctx).ErrorContext(ctx, "internal server error", slog.Any("error", err))
 				return writeErrorJSON(w, http.StatusInternalServerError, "internal server error", "internal server error")

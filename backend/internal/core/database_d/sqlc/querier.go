@@ -19,12 +19,14 @@ type Querier interface {
 	BulkInsertScreenTimeRanges(ctx context.Context, arg []BulkInsertScreenTimeRangesParams) (int64, error)
 	// NOTE: SaveChannelの前にこれをする. CTEでやろうと思ったけど、トランザクション...
 	ClearStaleChannelCustomID(ctx context.Context, arg ClearStaleChannelCustomIDParams) error
-	CloseStaleWatchSessions(ctx context.Context, userPublicID uuid.UUID) error
 	CopyPlaylistVideos(ctx context.Context, arg CopyPlaylistVideosParams) (int, error)
 	// m_user_authorizationの件数を取得する（日次レポート用）
 	CountAuthorizations(ctx context.Context) (int64, error)
 	// m_user_authorization_idに紐づくh_userとm_userの数を数える
 	CountUsersByAuthorization(ctx context.Context, publicID uuid.UUID) (int32, error)
+	// authorization_public_idに紐づく退会済みユーザーを削除する
+	// 退会済みユーザーが存在しない場合はpgx.ErrNoRowsが返される。
+	DeleteLeftUserByAuthorization(ctx context.Context, userAuthorizationPublicID uuid.UUID) (int64, error)
 	DeletePlaylist(ctx context.Context, arg DeletePlaylistParams) (uuid.UUID, error)
 	DeletePlaylistVideo(ctx context.Context, arg DeletePlaylistVideoParams) (int64, error)
 	// m_user.m_user_idから、そのユーザーのスクリーン時間の範囲制限を削除する
@@ -41,6 +43,7 @@ type Querier interface {
 	// m_user.public_idから、そのユーザーが今日視聴していた合計時間(seconds)と設定している制限時間を返す。
 	// その日に一本も動画を視聴していない場合は0を返します。
 	GetDailyWatchSummary(ctx context.Context, arg GetDailyWatchSummaryParams) (GetDailyWatchSummaryRow, error)
+	GetLastHeartbeatForUpdate(ctx context.Context, userPublicID uuid.UUID) (GetLastHeartbeatForUpdateRow, error)
 	GetLatestMonthlyVideoWatchSummary(ctx context.Context, userID uuid.UUID) (GetLatestMonthlyVideoWatchSummaryRow, error)
 	GetPlaylistForUpdate(ctx context.Context, arg GetPlaylistForUpdateParams) (GetPlaylistForUpdateRow, error)
 	GetPlaylistWithThumbnail(ctx context.Context, arg GetPlaylistWithThumbnailParams) (GetPlaylistWithThumbnailRow, error)
@@ -55,6 +58,9 @@ type Querier interface {
 	GetValuableChannelForUpdate(ctx context.Context, channelPublicID uuid.UUID) (GetValuableChannelForUpdateRow, error)
 	GetVideoDetail(ctx context.Context, arg GetVideoDetailParams) (GetVideoDetailRow, error)
 	GetVideoWatchTitlesByUser(ctx context.Context, lowerID uuid.UUID) ([]GetVideoWatchTitlesByUserRow, error)
+	GetWatchLaterForUpdate(ctx context.Context, userID uuid.UUID) (GetWatchLaterForUpdateRow, error)
+	GetWatchLaterPlaylist(ctx context.Context, userID uuid.UUID) (GetWatchLaterPlaylistRow, error)
+	InsertHeartbeat(ctx context.Context, arg InsertHeartbeatParams) error
 	InsertPlaylistVideo(ctx context.Context, arg InsertPlaylistVideoParams) error
 	// リフレッシュトークンをテーブルに保存する。
 	// m_refresh_token_idが返される。
@@ -62,10 +68,14 @@ type Querier interface {
 	InsertSubscription(ctx context.Context, arg InsertSubscriptionParams) (int64, error)
 	// ユーザーを作成する。
 	InsertUser(ctx context.Context, arg InsertUserParams) (int64, error)
+	InsertWatchLater(ctx context.Context, arg InsertWatchLaterParams) error
 	ListChannelPlaylists(ctx context.Context, arg ListChannelPlaylistsParams) ([]ListChannelPlaylistsRow, error)
 	ListChannelVideos(ctx context.Context, arg ListChannelVideosParams) ([]ListChannelVideosRow, error)
 	ListChannelVideosOlder(ctx context.Context, arg ListChannelVideosOlderParams) ([]ListChannelVideosOlderRow, error)
+	ListChannelsBulkFetchedAfter(ctx context.Context, bulkFetchedAfter time.Time) ([]ListChannelsBulkFetchedAfterRow, error)
 	ListDailyWatchStatsByRange(ctx context.Context, arg ListDailyWatchStatsByRangeParams) ([]ListDailyWatchStatsByRangeRow, error)
+	// 退会済みユーザーの一覧を取得する。
+	ListLeftUsers(ctx context.Context) ([]ListLeftUsersRow, error)
 	ListPlaylistVideos(ctx context.Context, arg ListPlaylistVideosParams) ([]ListPlaylistVideosRow, error)
 	ListRecentPlaylists(ctx context.Context, userID uuid.UUID) ([]ListRecentPlaylistsRow, error)
 	// userテーブルのpublic_idから、そのリフレッシュトークンの一覧を返します。
@@ -82,8 +92,13 @@ type Querier interface {
 	MarkVideoWatched(ctx context.Context, arg MarkVideoWatchedParams) error
 	// expires_atが過ぎたjtiのブラックリストを削除します。
 	PurgeExpiredJTIBlacklist(ctx context.Context, expiresAt time.Time) error
+	// 退会済みユーザーとその関連データを全て削除する。
+	// m_refresh_tokenはm_user_authorizationのCASCADE DELETEで自動削除される。
+	PurgeLeftUser(ctx context.Context, arg PurgeLeftUserParams) error
 	// m_user.recent_playlist_idsを更新する。先頭に追加し、重複を除去し、最大5件に制限する。
 	PushRecentPlaylistId(ctx context.Context, arg PushRecentPlaylistIdParams) error
+	// セッションレベルのアドバイザリロックを解除
+	ReleaseAdvisoryLock(ctx context.Context, dollar_1 int64) (bool, error)
 	// m_refresh_tokenのtoken_hashから、そのレコードを削除します。
 	// 削除されたレコードに紐づくjtiをブラックリストに保存します。
 	// 削除されたレコードのpublic_idが返されます。
@@ -107,7 +122,7 @@ type Querier interface {
 	// トランザクションレベルのロック（ノンブロッキング）
 	TryAcquireAdvisoryXactLock(ctx context.Context, dollar_1 int64) (bool, error)
 	UnmarkVideoWatched(ctx context.Context, arg UnmarkVideoWatchedParams) error
-	UpdatePlaylist(ctx context.Context, arg UpdatePlaylistParams) (uuid.UUID, error)
+	UpdateHeartbeat(ctx context.Context, arg UpdateHeartbeatParams) error
 	// ユーザーを更新する。
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
 	UpsertChannel(ctx context.Context, arg UpsertChannelParams) (UpsertChannelRow, error)
@@ -116,7 +131,6 @@ type Querier interface {
 	UpsertRatelimit(ctx context.Context, arg UpsertRatelimitParams) (UpsertRatelimitRow, error)
 	UpsertValuableChannel(ctx context.Context, arg UpsertValuableChannelParams) (int64, error)
 	UpsertVideo(ctx context.Context, arg UpsertVideoParams) (UpsertVideoRow, error)
-	UpsertWatchHeartbeat(ctx context.Context, arg UpsertWatchHeartbeatParams) error
 }
 
 var _ Querier = (*Queries)(nil)

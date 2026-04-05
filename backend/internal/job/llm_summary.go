@@ -16,7 +16,6 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core/llm"
 	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
 	"github.com/brqnko/anti-yt/backend/internal/util"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/genai"
@@ -44,18 +43,27 @@ var summarySchema = &genai.Schema{
 }
 
 var summaryPromptTemplates = map[string]string{
-	"ja": `あなたはYouTubeの視聴履歴を分析するAIアシスタントです。
-ユーザーが視聴した動画タイトルの一覧から、視聴傾向を簡潔にまとめてください。
+	"ja": `あなたはユーザーの友達のように話すYouTube視聴履歴アナリストです。
+ユーザーが視聴した動画タイトルの一覧から、視聴傾向をカジュアルにまとめてください。
 
-titleは50文字以内の短い要約タイトル、descriptionは500文字以内の視聴傾向や興味関心の詳細な説明です。
+# ルール
+- タメ口で、親しい友達に話しかけるような口調で書いてください
+- 「〜じゃん」「〜だね」「〜してたよね」のような表現を使ってください
+- 笑いやツッコミを適度に入れてOKです
+- titleは50文字以内の短い要約タイトルで、友達っぽいコメント風にしてください
+- descriptionは500文字以内で、視聴傾向や興味関心をカジュアルに説明してください
 
 視聴した動画タイトル:
 %s`,
 
-	"en": `You are an AI assistant that analyzes YouTube viewing history.
-Given a list of video titles a user watched, provide a brief summary of their viewing habits.
+	"en": `You are a YouTube viewing history analyst who talks like the user's close friend.
+Given a list of video titles a user watched, casually summarize their viewing habits.
 
-title should be a short summary title (max 50 characters), description should be a detailed description of the viewing patterns and interests (max 500 characters).
+# Rules
+- Write in a casual, friendly tone as if you're talking to a close friend
+- Use informal expressions, light humor, and playful commentary
+- title should be a short, friend-like comment (max 50 characters)
+- description should be a casual, fun description of viewing patterns and interests (max 500 characters)
 
 Video titles watched:
 %s`,
@@ -63,7 +71,7 @@ Video titles watched:
 
 // UTC時刻のYMDで[]byteを構築します
 func createTodaysBits() (_ []byte, err error) {
-	defer util.Wrap(&err, "createTodaysBits")
+	defer util.Wrap(&err, "job.createTodaysBits")
 
 	y, m, d := time.Now().UTC().Date()
 	buf := new(bytes.Buffer)
@@ -80,42 +88,9 @@ func createTodaysBits() (_ []byte, err error) {
 	return buf.Bytes(), nil
 }
 
-// uuidv7をtime.Timeから実装する。右のbitは0で埋め尽くす
-func timeToUUID(t time.Time) uuid.UUID {
-	var u uuid.UUID
-
-	ms := uint64(t.UnixMilli())
-
-	u[0] = byte(ms >> 40)
-	u[1] = byte(ms >> 32)
-	u[2] = byte(ms >> 24)
-	u[3] = byte(ms >> 16)
-	u[4] = byte(ms >> 8)
-	u[5] = byte(ms)
-
-	u[6] = 0x70
-
-	u[8] = 0x80
-
-	return u
-}
-
-func buildSummaryPrompt(titles, languageCode string) []llm.Prompt {
-	tmpl, ok := summaryPromptTemplates[languageCode]
-	if !ok {
-		tmpl = summaryPromptTemplates["en"]
-	}
-
-	return []llm.Prompt{
-		{
-			Role:    "user",
-			Message: fmt.Sprintf(tmpl, titles),
-		},
-	}
-}
 
 func (j *llmSummaryJob) run(ctx context.Context) (err error) {
-	defer util.Wrap(&err, "llmSummaryJob.run")
+	defer util.Wrap(&err, "job.(*llmSummaryJob).run")
 
 	tx, err := j.db.Begin(ctx)
 	if err != nil {
@@ -123,7 +98,7 @@ func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback in llmSummaryJob.run", slog.Any("error", err))
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback(llm summary job)", slog.Any("error", err))
 		}
 	}()
 	q := sqlc.New(tx)
@@ -141,7 +116,7 @@ func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 	y, m, d := startedAt.Date()
 	rows, err := q.GetVideoWatchTitlesByUser(
 		ctx,
-		timeToUUID(time.Date(y, m, d, 0, 0, 0, 0, time.UTC).AddDate(0, 0, -7)),
+		util.UUIDv7MinForTime(time.Date(y, m, d, 0, 0, 0, 0, time.UTC).AddDate(0, 0, -7)),
 	)
 	if err != nil {
 		return err
@@ -155,7 +130,16 @@ func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 			continue
 		}
 
-		prompts := buildSummaryPrompt(titles, row.LanguageCode)
+		tmpl, ok := summaryPromptTemplates[row.LanguageCode]
+		if !ok {
+			tmpl = summaryPromptTemplates["en"]
+		}
+		prompts := []llm.Prompt{
+			{
+				Role:    "user",
+				Message: fmt.Sprintf(tmpl, titles),
+			},
+		}
 		resp, err := j.llmService.Completion(ctx, prompts, llm.WithJSONSchema(summarySchema))
 		if err != nil {
 			util.LoggerFromContext(ctx).ErrorContext(ctx, "llm completion failed in summary job", slog.Int64("user_id", row.UserID), slog.Any("error", err))

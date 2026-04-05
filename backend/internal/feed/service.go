@@ -34,7 +34,7 @@ func NewService(db *pgxpool.Pool, ytService youtube_d.Service, rssFetchDuration 
 }
 
 func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetFeed")
+	defer util.Wrap(&err, "feed.(*Service).GetFeed")
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -72,12 +72,12 @@ func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UU
 		for _, vd := range videoDetailMap {
 			v, err := video.NewVideo(ch.ID, fetchedAt, vd)
 			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to newVideo", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(get feed)", slog.Any("error", err))
 				continue
 			}
 
 			if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(get feed)", slog.Any("error", err))
 				continue
 			}
 		}
@@ -118,7 +118,7 @@ type SearchVideoView struct {
 }
 
 func (s *Service) Search(ctx context.Context, query string, limit int, cursor *string, opts youtube_d.SearchOptions) (_ []SearchVideoView, _ bool, _ *string, err error) {
-	defer util.Wrap(&err, "Service.Search")
+	defer util.Wrap(&err, "feed.(*Service).Search")
 
 	pageToken := ""
 	if cursor != nil {
@@ -161,11 +161,11 @@ func (s *Service) Search(ctx context.Context, query string, limit int, cursor *s
 	for _, cd := range channelDetails {
 		ch, err := channel.NewChannel(fetchedAt, fetchedAt, cd)
 		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to NewChannel(search)", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new channel(search)", slog.Any("error", err))
 			continue
 		}
 		if _, err := channel.NewChannelRepository(q).Save(ctx, ch); err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to saveChannel(search)", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save channel(search)", slog.Any("error", err))
 			continue
 		}
 		savedChannels[cd.ID] = ch.ID
@@ -189,11 +189,11 @@ func (s *Service) Search(ctx context.Context, query string, limit int, cursor *s
 
 		v, err := video.NewVideo(channelUUID, fetchedAt, vd)
 		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to NewVideo(search)", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(search)", slog.Any("error", err))
 			continue
 		}
 		if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to saveVideo(search)", slog.Any("error", err))
+			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(search)", slog.Any("error", err))
 			continue
 		}
 

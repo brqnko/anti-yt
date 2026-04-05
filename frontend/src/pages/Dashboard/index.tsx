@@ -13,6 +13,7 @@ import { getPlaylist } from "../../api/generated/playlist";
 import { PAGE_SIZES } from "../../constants";
 import type { GetFeed200ItemsItem, GetPlaylistsRecent200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
+import { AddPlaylistDialog } from "../../components/AddPlaylistDialog";
 
 function DashboardContent() {
   const { t } = useTranslation();
@@ -24,6 +25,7 @@ function DashboardContent() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasNext, setHasNext] = useState(false);
   const [subscribedChannelIds, setSubscribedChannelIds] = useState<Set<string>>(new Set());
+  const [showAddPlaylist, setShowAddPlaylist] = useState(false);
   const cursorRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
@@ -93,51 +95,62 @@ function DashboardContent() {
     <DashboardLayout>
       <div class="p-6">
         {recentPlaylists.length > 0 && (
-          <div class="mb-8">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-bold">
-                {t("dashboard.recentPlaylists")}
-              </h3>
-              <a
-                href="/playlists"
-                class="text-sm font-medium text-primary hover:text-primary/80 transition-colors no-underline"
-              >
-                {t("dashboard.showAllPlaylists")}
-              </a>
-            </div>
-            <div class="flex gap-6 overflow-x-auto pb-2">
-              {recentPlaylists.map((pl) => (
-                <a
-                  key={pl.playlist_id}
-                  href={`/playlists/${pl.playlist_id}`}
-                  class="group flex-shrink-0 w-72 bg-card-light dark:bg-card-dark rounded-xl border border-transparent hover:border-primary/20 transition-all duration-300 overflow-hidden no-underline"
-                >
-                  <div class="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
-                    {pl.top_video_thumbnail_url ? (
-                      <img
-                        src={pl.top_video_thumbnail_url}
-                        alt={pl.playlist_title}
-                        loading="lazy"
-                        class="absolute inset-0 w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div class="absolute inset-0 flex items-center justify-center">
-                        <Icon name="playlist_play" class="text-4xl text-text-muted-light dark:text-text-muted-dark" />
-                      </div>
-                    )}
-                  </div>
-                  <div class="p-3">
-                    <h4 class="text-sm font-bold text-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-                      {pl.playlist_title}
-                    </h4>
-                    <span class="text-xs text-text-muted-light dark:text-text-muted-dark mt-1 block">
-                      {t("playlists.videoCount", { count: pl.playlist_video_count })}
-                    </span>
-                  </div>
-                </a>
-              ))}
-            </div>
+        <div class="mb-8">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold">
+              {t("dashboard.recentPlaylists")}
+            </h3>
+            <a
+              href="/playlists"
+              class="text-sm font-medium text-primary hover:text-primary/80 transition-colors no-underline"
+            >
+              {t("dashboard.showAllPlaylists")}
+            </a>
           </div>
+          <div class="flex gap-6 overflow-x-auto pb-2">
+            {recentPlaylists.map((pl) => (
+              <a
+                key={pl.playlist_id}
+                href={`/playlists/${pl.playlist_id}`}
+                class="group flex-shrink-0 w-72 bg-card-light dark:bg-card-dark rounded-xl border border-transparent hover:border-primary/20 transition-all duration-300 overflow-hidden no-underline"
+              >
+                <div class="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+                  {pl.top_video_thumbnail_url ? (
+                    <img
+                      src={pl.top_video_thumbnail_url}
+                      alt={pl.playlist_title}
+                      loading="lazy"
+                      class="absolute inset-0 w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div class="absolute inset-0 flex items-center justify-center">
+                      <Icon name="playlist_play" class="text-4xl text-text-muted-light dark:text-text-muted-dark" />
+                    </div>
+                  )}
+                </div>
+                <div class="p-3">
+                  <h4 class="text-sm font-bold text-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                    {pl.playlist_title}
+                  </h4>
+                  <span class="text-xs text-text-muted-light dark:text-text-muted-dark mt-1 block">
+                    {t("playlists.videoCount", { count: pl.playlist_video_count })}
+                  </span>
+                </div>
+              </a>
+            ))}
+            {/* Create new playlist card */}
+            <button
+              type="button"
+              class="group flex-shrink-0 w-72 rounded-xl border border-dashed border-border-light dark:border-border-dark hover:border-primary hover:bg-primary/5 transition-all duration-300 overflow-hidden bg-transparent cursor-pointer flex flex-col items-center justify-center gap-3"
+              onClick={() => setShowAddPlaylist(true)}
+            >
+              <Icon name="add" class="text-4xl text-text-muted-light dark:text-text-muted-dark group-hover:text-primary transition-all" />
+              <span class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark group-hover:text-primary transition-colors">
+                {t("dashboard.addPlaylist")}
+              </span>
+            </button>
+          </div>
+        </div>
         )}
         {isLoadingFeed ? (
           <LoadingSpinner />
@@ -187,6 +200,14 @@ function DashboardContent() {
           </div>
         )}
       </div>
+      <AddPlaylistDialog
+        open={showAddPlaylist}
+        onClose={() => setShowAddPlaylist(false)}
+        onAdded={async () => {
+          const res = await getPlaylist().getPlaylistsRecent();
+          setRecentPlaylists(res.items);
+        }}
+      />
     </DashboardLayout>
   );
 }

@@ -4,3 +4,4 @@ nginx/server.crt
 nginx/server.key
 .env
 secrets/
+.claude/

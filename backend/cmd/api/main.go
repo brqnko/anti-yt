@@ -144,6 +144,8 @@ func run(ctx context.Context) int {
 		slog.Error("failed to clean up jti blacklist", slog.Any("error", err))
 	}
 
+	job.NewPurgeLeftUserJob(db).Run()
+
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 	oidcService, err := oidc.NewGoogleOIDCService(initCtx, cfg.oidcGoogleClientID, cfg.oidcGoogleClientSecret, fmt.Sprintf("%s/v1/auth/google/callback", cfg.serverURL))
@@ -183,6 +185,28 @@ func run(ctx context.Context) int {
 		slog.Error("failed to setup llm summary job", slog.Any("error", err))
 		return 1
 	}
+	if err := scheduler.AddFunc("0 0 * * *", job.NewPurgeLeftUserJob(db)); err != nil {
+		slog.Error("failed to setup purge left user job", slog.Any("error", err))
+		return 1
+	}
+	if err := scheduler.AddFunc("0 * * * *", job.NewPurgeJTIBlacklistJob(db)); err != nil {
+		slog.Error("failed to setup purge jti blacklist job", slog.Any("error", err))
+		return 1
+	}
+	// YouTubeクオータをリセット前に消費するジョブ
+	// PDT(夏): midnight PT = 07:00 UTC → 06:50 UTC
+	// PST(冬): midnight PT = 08:00 UTC → 07:50 UTC
+	// Go側でリセットまで15分以内かを判定し、該当しない方はスキップする
+	exhaustQuotaJob := job.NewExhaustQuotaJob(db, ytService, discord_d.NewDiscordClient(cfg.discordWebhookURL))
+	if err := scheduler.AddFunc("50 6 * * *", exhaustQuotaJob); err != nil {
+		slog.Error("failed to setup exhaust quota job (PDT)", slog.Any("error", err))
+		return 1
+	}
+	if err := scheduler.AddFunc("50 7 * * *", exhaustQuotaJob); err != nil {
+		slog.Error("failed to setup exhaust quota job (PST)", slog.Any("error", err))
+		return 1
+	}
+
 	if cfg.discordWebhookURL != "" {
 		if err := scheduler.AddFunc("0 0 * * *", job.NewAuthorizationReportJob(db, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
 			slog.Error("failed to setup authorization report job", slog.Any("error", err))
@@ -229,7 +253,7 @@ func run(ctx context.Context) int {
 
 	<-ctx.Done()
 
-	slog.Info("gracefull shutdown")
+	slog.Info("graceful shutdown")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

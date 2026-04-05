@@ -89,7 +89,6 @@ function AnalyticsContent() {
   }, [dailyBars, dailyLimitHours]);
 
   const [activeBar, setActiveBar] = useState<number | null>(null);
-  const [barsReady, setBarsReady] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
 
   const dismissTooltip = useCallback((e: MouseEvent) => {
@@ -103,28 +102,6 @@ function AnalyticsContent() {
     return () => document.removeEventListener("click", dismissTooltip);
   }, [dismissTooltip]);
 
-  useEffect(() => {
-    if (!isLoading) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setBarsReady(true));
-      });
-    }
-  }, [isLoading, items]);
-
-  // Goal progress: limit as 100%, less watch = higher score
-  // e.g. limit=1h, watched=30m → 200%, limit=1h, watched=1h → 100%, limit=1h, watched=2h → 50%
-  const goalProgress = useMemo(() => {
-    if (dailyLimitSeconds == null || dailyLimitSeconds === 0) return null;
-    const days = getLastNDays(7);
-    const scores = days.map((date) => {
-      const dayStr = toDateStr(date);
-      const item = items.find((it) => isoToDateStr(it.target_day) === dayStr);
-      const watched = item?.video_watch_seconds ?? 0;
-      if (watched === 0) return 100;
-      return Math.round((dailyLimitSeconds / watched) * 100);
-    });
-    return Math.round(scores.reduce((a, b) => a + b, 0) / 7);
-  }, [items, dailyLimitSeconds]);
 
   if (isLoading) {
     return (
@@ -190,13 +167,13 @@ function AnalyticsContent() {
               </p>
             </div>
 
-            {/* Weekly Average Goal Progress */}
+            {/* Total Videos Watched */}
             <div class="flex flex-col gap-3 rounded-xl p-6 border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark">
               <p class="text-text-muted-light dark:text-text-muted-dark text-sm font-medium uppercase tracking-wider">
-                {t("analytics.weeklyAverageGoal")}
+                {t("analytics.totalVideos")}
               </p>
               <p class="text-3xl font-bold text-charcoal dark:text-white">
-                {goalProgress != null ? `${goalProgress}%` : "—"}
+                {totalVideos}{t("analytics.totalVideosUnit")}
               </p>
             </div>
           </div>
@@ -223,7 +200,7 @@ function AnalyticsContent() {
                 )}
 
                 {dailyBars.map((bar, i) => {
-                  const pct = barsReady && maxHours > 0 ? Math.min((bar.hours / maxHours) * 100, 100) : 0;
+                  const pct = maxHours > 0 ? Math.min((bar.hours / maxHours) * 100, 100) : 0;
                   const isActive = activeBar === i;
                   const toggle = () => setActiveBar(isActive ? null : i);
                   return (
@@ -249,8 +226,6 @@ function AnalyticsContent() {
                         }`}
                         style={{
                           height: `${Math.max(pct, 3)}%`,
-                          opacity: barsReady ? 1 : 0,
-                          transition: "height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease",
                         }}
                       >
                         <div

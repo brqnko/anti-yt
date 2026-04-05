@@ -53,6 +53,7 @@ export function DashboardHeader({
 
   const handleSearch = (e: Event) => {
     e.preventDefault();
+    (document.activeElement as HTMLElement | null)?.blur();
     const q = searchInput.trim();
     if (q) {
       route(buildSearchURL(q, currentFilters));
@@ -89,15 +90,26 @@ export function DashboardHeader({
         onSubmit={handleSearch}
         role="search"
       >
+        <button type="submit" class="hidden" tabIndex={-1} aria-hidden="true" />
         <div class="flex flex-1 min-w-0 items-center rounded-full border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark overflow-hidden focus-within:border-primary transition-colors">
           <input
             type="text"
             value={searchInput}
             onInput={(e) => setSearchInput((e.target as HTMLInputElement).value)}
             placeholder={t("search.inputPlaceholder")}
-            class="flex-1 bg-transparent px-4 py-2 text-sm text-charcoal dark:text-white outline-none placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark"
+            class="flex-1 bg-transparent px-4 py-2 text-base sm:text-sm text-charcoal dark:text-white outline-none placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark"
             aria-label={t("search.inputPlaceholder")}
           />
+          {searchInput && (
+            <button
+              type="button"
+              class="shrink-0 p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer text-text-muted-light dark:text-text-muted-dark"
+              onClick={() => setSearchInput("")}
+              aria-label={t("search.clear")}
+            >
+              <Icon name="close" class="text-xl" />
+            </button>
+          )}
           <button
             type="button"
             class="relative shrink-0 p-1.5 mr-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer text-charcoal dark:text-white"
