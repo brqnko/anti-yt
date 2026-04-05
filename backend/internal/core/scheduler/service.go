@@ -23,7 +23,7 @@ type serviceImpl struct {
 }
 
 func (s *serviceImpl) AddFunc(spec string, task Job) (err error) {
-	defer util.Wrap(&err, "serviceImpl.AddFunc: %s", spec)
+	defer util.Wrap(&err, "scheduler.(*serviceImpl).AddFunc: %s", spec)
 
 	_, err = s.c.AddFunc(spec, task.Run)
 

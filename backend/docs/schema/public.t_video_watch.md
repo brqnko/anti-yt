@@ -39,6 +39,7 @@
 | uk_1_t_video_watch | CREATE UNIQUE INDEX uk_1_t_video_watch ON public.t_video_watch USING btree (public_id) |
 | idx_2_t_video_watch | CREATE INDEX idx_2_t_video_watch ON public.t_video_watch USING btree (m_user_id, watch_start_at) |
 | idx_3_t_video_watch | CREATE INDEX idx_3_t_video_watch ON public.t_video_watch USING btree (m_user_id, m_video_id, watch_start_at) |
+| idx_4_t_video_watch | CREATE INDEX idx_4_t_video_watch ON public.t_video_watch USING btree (m_user_id, public_id DESC) |
 
 ## Relations
 

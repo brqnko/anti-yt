@@ -20,11 +20,13 @@
 | public_id | uuid |  | false |  |  |  |
 | rss_fetched_at | timestamp with time zone |  | false |  |  |  |
 | external_uploads_playlist_id | varchar(64) |  | false |  |  |  |
+| bulk_fetched_at | timestamp with time zone |  | false |  |  |  |
 
 ## Constraints
 
 | Name | Type | Definition |
 | ---- | ---- | ---------- |
+| m_channel_bulk_fetched_at_not_null | n | NOT NULL bulk_fetched_at |
 | m_channel_created_at_not_null | n | NOT NULL created_at |
 | m_channel_external_created_at_not_null | n | NOT NULL external_created_at |
 | m_channel_external_custom_id_not_null | n | NOT NULL external_custom_id |
@@ -50,6 +52,7 @@
 | uk_2_m_channel | CREATE UNIQUE INDEX uk_2_m_channel ON public.m_channel USING btree (external_id) |
 | uk_3_m_channel | CREATE UNIQUE INDEX uk_3_m_channel ON public.m_channel USING btree (external_custom_id) |
 | idx_1_m_channel | CREATE INDEX idx_1_m_channel ON public.m_channel USING btree (rss_fetched_at) |
+| idx_2_m_channel | CREATE INDEX idx_2_m_channel ON public.m_channel USING btree (bulk_fetched_at) |
 
 ## Relations
 

@@ -8,6 +8,7 @@ import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getVideo } from "../../api/generated/video";
 import { getHistory } from "../../api/generated/history";
 import { getPlaylist } from "../../api/generated/playlist";
+import { Dialog } from "../../components/Dialog";
 import { formatDuration, formatSubscriberCount, formatTimeAgo } from "../../utils/format";
 import { buildWatchUrl } from "../../utils/url";
 import { getApiErrorCode } from "../../utils/api-error";
@@ -25,21 +26,6 @@ import { Icon } from "../../components/Icon";
 
 const PLAYER_CONTAINER_ID = "yt-player";
 
-function useEscapeKey(open: boolean, onClose: () => void) {
-  useEffect(() => {
-    if (!open) return;
-    document.body.style.overflow = "hidden";
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open, onClose]);
-}
-
 function AddVideoDialog({
   open,
   playlistId,
@@ -55,8 +41,6 @@ function AddVideoDialog({
   const [text, setText] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEscapeKey(open, onClose);
 
   useEffect(() => {
     if (open) {
@@ -84,19 +68,8 @@ function AddVideoDialog({
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("playlistDetail.addVideo")}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-md p-6 flex flex-col gap-4">
+    <Dialog open={open} onClose={onClose} ariaLabel={t("playlistDetail.addVideo")} panelClass="flex flex-col gap-4">
         <h2 class="text-xl font-bold text-charcoal dark:text-white">
           {t("playlistDetail.addVideo")}
         </h2>
@@ -142,8 +115,7 @@ function AddVideoDialog({
             {isAdding ? t("playlistDetail.addVideoAdding") : t("playlistDetail.addVideoButton")}
           </button>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }
 
@@ -163,8 +135,6 @@ function EditPlaylistDialog({
   const [description, setDescription] = useState(playlist.playlist_description);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEscapeKey(open, onClose);
 
   useEffect(() => {
     if (open) {
@@ -196,19 +166,8 @@ function EditPlaylistDialog({
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("playlistDetail.editDialog.title")}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark w-full max-w-md p-6 flex flex-col gap-4">
+    <Dialog open={open} onClose={onClose} ariaLabel={t("playlistDetail.editDialog.title")} panelClass="flex flex-col gap-4">
         <h2 class="text-xl font-bold text-charcoal dark:text-white">
           {t("playlistDetail.editDialog.title")}
         </h2>
@@ -259,8 +218,7 @@ function EditPlaylistDialog({
               : t("playlistDetail.editDialog.save")}
           </button>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }
 
@@ -282,7 +240,6 @@ function VideoPlayerContent() {
         })()
       : null,
   );
-  const [noteText, setNoteText] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(false);
@@ -324,17 +281,13 @@ function VideoPlayerContent() {
   const [showEditPlaylist, setShowEditPlaylist] = useState(false);
   const [markingWatched, setMarkingWatched] = useState(false);
   const [markedWatched, setMarkedWatched] = useState(false);
-
-  useEffect(() => {
-    if (!showPlaylistDialog) return;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
-  }, [showPlaylistDialog]);
+  const [markingWatchLater, setMarkingWatchLater] = useState(false);
+  const [markedWatchLater, setMarkedWatchLater] = useState(false);
 
   // Refs for values used in keyboard handler / cleanup to avoid stale closures
   const durationRef = useRef(0);
   const volumeRef = useRef(100);
-  const tickRemainingRef = useRef<(() => void) | null>(null);
+  const heartbeatTickRef = useRef<(() => void) | null>(null);
 
   // Refs for auto-play next video in playlist
   const playlistVideosRef = useRef(playlistVideos);
@@ -359,11 +312,13 @@ function VideoPlayerContent() {
     setIsLoading(true);
     setError(false);
     setMarkedWatched(false);
+    setMarkedWatchLater(false);
     getVideo()
       .getVideosVideoId(videoId)
       .then((res) => {
         setVideo(res);
         setMarkedWatched(res.is_watched);
+        setMarkedWatchLater(res.is_in_watch_later);
       })
       .catch(() => setError(true))
       .finally(() => setIsLoading(false));
@@ -504,7 +459,6 @@ function VideoPlayerContent() {
 
   const {
     isReady,
-    loadError,
     playerState,
     currentTime,
     currentTimeRef,
@@ -522,7 +476,7 @@ function VideoPlayerContent() {
     videoId: video?.external_video_id ?? "",
     containerId: PLAYER_CONTAINER_ID,
     onStateChange: handlePlayerStateChange,
-    onSyncTick: () => tickRemainingRef.current?.(),
+    onSyncTick: () => heartbeatTickRef.current?.(),
   });
 
   // Seek to start time from ?t= query param once player is ready
@@ -568,14 +522,14 @@ function VideoPlayerContent() {
   volumeRef.current = volume;
   isSeekingRef.current = isSeeking;
 
-  const { remainingSeconds, tickRemaining } = useHeartbeat({
+  const { remainingSeconds, tick: heartbeatTick } = useHeartbeat({
     videoId: video?.video_id ?? null,
     playlistId,
     playerState,
     currentTimeRef,
     togglePlay,
   });
-  tickRemainingRef.current = tickRemaining;
+  heartbeatTickRef.current = heartbeatTick;
 
   // Check if description overflows (ResizeObserver for font-load safety)
   useEffect(() => {
@@ -593,7 +547,6 @@ function VideoPlayerContent() {
     const handler = () => {
       const fs = !!document.fullscreenElement;
       setIsFullscreen(fs);
-      // Unlock orientation when exiting fullscreen
       if (!fs) {
         screen.orientation?.unlock?.();
       }
@@ -609,9 +562,8 @@ function VideoPlayerContent() {
       await document.exitFullscreen();
     } else {
       await el.requestFullscreen?.();
-      // Lock to landscape on mobile when entering fullscreen
       try {
-        await screen.orientation?.lock?.("landscape");
+        await (screen.orientation as ScreenOrientation & { lock?: (orientation: string) => Promise<void> }).lock?.("landscape");
       } catch {
         // Screen Orientation API not supported or permission denied — ignore
       }
@@ -768,13 +720,13 @@ function VideoPlayerContent() {
   return (
     <DashboardLayout>
       <div class="flex-1 overflow-y-auto">
-        <div class="max-w-[1536px] mx-auto px-6 py-8 flex flex-col xl:flex-row xl:items-start gap-8">
+        <div class="max-w-[1536px] mx-auto px-0 sm:px-6 py-0 sm:py-8 pb-8 flex flex-col xl:flex-row xl:items-start gap-8">
           {/* Main content */}
           <div class="flex-1 min-w-0">
             {/* YouTube Player */}
             <div
               ref={playerWrapperRef}
-              class="w-full bg-black rounded-xl overflow-hidden ring-1 ring-white/10 relative aspect-video group/player"
+              class="w-full bg-black overflow-hidden ring-1 ring-white/10 relative aspect-video group/player"
             >
               {/* YouTube iframe gets injected here */}
               <div id={PLAYER_CONTAINER_ID} class="absolute inset-0 w-full h-full" />
@@ -802,30 +754,8 @@ function VideoPlayerContent() {
                 </div>
               )}
 
-              {/* Buffering spinner */}
-              {isReady && playerState === PlayerState.BUFFERING && (
-                <div class="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-                  <Icon name="progress_activity" class="text-5xl animate-spin text-white" />
-                </div>
-              )}
 
-              {/* Loading overlay before player is ready */}
-              {!isReady && (
-                <div class="absolute inset-0 z-20">
-                  <img
-                    src={video.external_video_thumbnail_url}
-                    alt=""
-                    class="absolute inset-0 w-full h-full object-cover"
-                  />
-                  <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
-                    {loadError ? (
-                      <Icon name="error" class="text-5xl text-white" />
-                    ) : (
-                      <Icon name="progress_activity" class="text-5xl animate-spin text-white" />
-                    )}
-                  </div>
-                </div>
-              )}
+
 
               {/* Player controls overlay */}
               <div
@@ -913,11 +843,11 @@ function VideoPlayerContent() {
             </div>
 
             {/* Video info */}
-            <div class="mt-8">
+            <div class="mt-8 px-4 sm:px-0">
               <h1 class="text-xl font-bold leading-tight tracking-tight">
                 {video.external_video_title}
               </h1>
-              <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 mt-4 pb-6 border-b border-border-light dark:border-border-dark">
+              <div class="mt-4 pb-6 border-b border-border-light dark:border-border-dark">
                 <div class="flex items-center gap-4">
                     <a
                       href={`/channels/${video.channel_id}`}
@@ -950,60 +880,96 @@ function VideoPlayerContent() {
                       </p>
                     </div>
                   </div>
-                <div class="flex items-center gap-2 flex-shrink-0 self-end">
+              </div>
+              <div class="flex items-center gap-6 mt-3 pb-3 border-b border-border-light dark:border-border-dark">
                   <button
-                    class={`flex items-center gap-2 h-10 px-4 rounded-lg border font-semibold text-sm transition-colors ${
-                      markedWatched
-                        ? "bg-primary/10 border-primary/50 text-primary cursor-default"
-                        : markingWatched
-                          ? "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark text-text-muted-light dark:text-text-muted-dark cursor-not-allowed opacity-50"
-                          : "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white cursor-pointer"
+                    class={`flex flex-col items-center gap-0.5 bg-transparent border-none transition-colors ${
+                      markingWatchLater
+                        ? "text-text-muted-light dark:text-text-muted-dark cursor-not-allowed opacity-50"
+                        : markedWatchLater
+                          ? "text-primary cursor-pointer hover:text-primary/80"
+                          : "text-charcoal dark:text-white cursor-pointer hover:text-primary"
                     }`}
-                    disabled={markingWatched || markedWatched}
+                    disabled={markingWatchLater}
                     onClick={async () => {
-                      if (markingWatched || markedWatched || !videoId) return;
+                      if (markingWatchLater || !videoId) return;
+                      setMarkingWatchLater(true);
+                      try {
+                        if (markedWatchLater) {
+                          await getPlaylist().deleteVideosVideoIdWatchLater(videoId);
+                          setMarkedWatchLater(false);
+                        } else {
+                          await getPlaylist().postVideosVideoIdWatchLater(videoId);
+                          setMarkedWatchLater(true);
+                        }
+                      } finally {
+                        setMarkingWatchLater(false);
+                      }
+                    }}
+                  >
+                    <Icon name="schedule" class="text-lg" />
+                    <span class="text-[10px] font-semibold">{t("videoPlayer.watchLater")}</span>
+                  </button>
+                  <button
+                    class={`flex flex-col items-center gap-0.5 bg-transparent border-none transition-colors ${
+                      markingWatched
+                        ? "text-text-muted-light dark:text-text-muted-dark cursor-not-allowed opacity-50"
+                        : markedWatched
+                          ? "text-primary cursor-pointer hover:text-primary/80"
+                          : "text-charcoal dark:text-white cursor-pointer hover:text-primary"
+                    }`}
+                    disabled={markingWatched}
+                    onClick={async () => {
+                      if (markingWatched || !videoId) return;
                       setMarkingWatched(true);
                       try {
-                        await getHistory().postVideosVideoIdWatched(videoId);
-                        setMarkedWatched(true);
+                        if (markedWatched) {
+                          await getHistory().deleteVideosVideoIdWatched(videoId);
+                          setMarkedWatched(false);
+                        } else {
+                          await getHistory().postVideosVideoIdWatched(videoId);
+                          setMarkedWatched(true);
+                        }
                       } finally {
                         setMarkingWatched(false);
                       }
                     }}
                   >
-                    {t("videoCard.markWatchedButton")}
+                    <Icon name="check_circle" class="text-lg" />
+                    <span class="text-[10px] font-semibold">{t("videoCard.markWatchedButton")}</span>
                   </button>
                   <button
-                    class={`flex items-center gap-2 h-10 px-4 rounded-lg border font-semibold text-sm transition-colors cursor-pointer ${
+                    class={`flex flex-col items-center gap-0.5 bg-transparent border-none transition-colors cursor-pointer ${
                       isLooping
-                        ? "bg-primary/10 border-primary/50 text-primary"
-                        : "bg-card-light dark:bg-card-dark border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white"
+                        ? "text-primary hover:text-primary/80"
+                        : "text-charcoal dark:text-white hover:text-primary"
                     }`}
                     onClick={toggleLoop}
                   >
-                    {t("videoPlayer.loop")}
+                    <Icon name="repeat" class="text-lg" />
+                    <span class="text-[10px] font-semibold">{t("videoPlayer.loop")}</span>
                   </button>
                   <button
-                    class="flex items-center gap-2 h-10 px-4 rounded-lg bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark hover:border-primary/30 text-charcoal dark:text-white font-semibold text-sm transition-colors cursor-pointer"
+                    class="flex flex-col items-center gap-0.5 bg-transparent border-none text-charcoal dark:text-white hover:text-primary transition-colors cursor-pointer"
                     onClick={openPlaylistDialog}
                   >
-                    {t("videoPlayer.addToPlaylist")}
+                    <Icon name="playlist_add" class="text-lg" />
+                    <span class="text-[10px] font-semibold">{t("videoPlayer.playlist")}</span>
                   </button>
                 </div>
-              </div>
 
               {/* Description */}
               {video.external_video_description && (
                 <div class="mt-6">
                   <div class="bg-border-light/50 dark:bg-[#332e27]/30 p-6 rounded-xl">
                     <p class="text-base text-charcoal dark:text-white mb-3">
-                      <span class="font-bold">{new Date(video.external_video_created_at).toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" }).replace(/-/g, "/")}</span>{t("videoPlayer.postedSuffix")}
+                      {new Date(video.external_video_created_at).toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" }).replaceAll("-", "/")}
                     </p>
                     <div
                       ref={descRef}
                       class={`text-charcoal dark:text-white/80 leading-relaxed whitespace-pre-line overflow-hidden ${isDescExpanded ? "" : "max-h-[4.875rem]"}`}
                     >
-                        <Linkify text={video.external_video_description} />
+                        <Linkify text={video.external_video_description} onTimestamp={seekTo} />
                     </div>
                     {(descOverflows || isDescExpanded) && (
                       <button
@@ -1022,64 +988,7 @@ function VideoPlayerContent() {
           </div>
 
           {/* Sidebar */}
-          <aside class="w-full xl:w-[420px] shrink-0 flex flex-col gap-8">
-            {/* Quick Notes */}
-            <div
-              class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden"
-              style={{ height: playerHeight ? `${playerHeight}px` : undefined, minHeight: '400px', flex: 'none' }}
-            >
-              <div class="p-4 border-b border-border-light dark:border-border-dark flex items-center justify-between">
-                <h2 class="font-bold text-lg tracking-tight flex items-center gap-2">
-                  <Icon name="edit_note" class="text-primary" />
-                  {t("videoPlayer.quickNotes")}
-                </h2>
-              </div>
-              <div class="px-4 py-2 flex items-center gap-1 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark/50">
-                <button
-                  class="p-1.5 rounded transition-colors bg-transparent border-none text-charcoal/30 dark:text-white/30 cursor-not-allowed"
-                  title="Bold"
-                  disabled
-                >
-                  <Icon name="format_bold" class="text-xl" />
-                </button>
-                <button
-                  class="p-1.5 rounded transition-colors bg-transparent border-none text-charcoal/30 dark:text-white/30 cursor-not-allowed"
-                  title="Italic"
-                  disabled
-                >
-                  <Icon name="format_italic" class="text-xl" />
-                </button>
-                <button
-                  class="p-1.5 rounded transition-colors bg-transparent border-none text-charcoal/30 dark:text-white/30 cursor-not-allowed"
-                  title="Bullet List"
-                  disabled
-                >
-                  <Icon name="format_list_bulleted" class="text-xl" />
-                </button>
-                <div class="w-px h-6 bg-border-light dark:bg-border-dark mx-1" />
-                <button
-                  class="p-1.5 rounded transition-colors bg-transparent border-none text-charcoal/30 dark:text-white/30 cursor-not-allowed"
-                  title="Timestamp"
-                  disabled
-                >
-                  <Icon name="schedule" class="text-xl" />
-                </button>
-              </div>
-              <div class="relative flex-1 flex flex-col min-h-0">
-                <textarea
-                  class="w-full flex-1 min-h-0 p-4 bg-transparent border-none focus:ring-0 focus:outline-none text-sm leading-relaxed resize-none text-charcoal dark:text-white"
-                  placeholder={t("videoPlayer.notesPlaceholder")}
-                  value={noteText}
-                  onInput={(e) => setNoteText((e.target as HTMLTextAreaElement).value)}
-                />
-              </div>
-              <div class="p-4 bg-background-light dark:bg-background-dark/50 border-t border-border-light dark:border-border-dark flex items-center justify-end">
-                <button class="bg-primary text-white px-5 py-2 rounded-xl font-bold text-sm tracking-wide hover:opacity-90 transition-opacity border-none cursor-pointer">
-                  {t("videoPlayer.saveNote")}
-                </button>
-              </div>
-            </div>
-
+          <aside class="w-full xl:w-[420px] shrink-0 flex flex-col gap-8 px-4 sm:px-0">
             {/* Playlist sidebar */}
             {playlistId && playlistLoading && (
               <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark p-8">
@@ -1211,24 +1120,13 @@ function VideoPlayerContent() {
         </div>
       </div>
       {/* Add to Playlist Dialog */}
-      {showPlaylistDialog && (
-        <div
-          class="fixed inset-0 z-50 flex items-center justify-center p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t("videoPlayer.addToPlaylist")}
-        >
-          <div
-            class="absolute inset-0 bg-black/60"
-            onClick={() => setShowPlaylistDialog(false)}
-          />
-          <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl ring-1 ring-black/10 dark:ring-white/10 border border-gray-100 dark:border-neutral-800 p-6 max-w-md w-full max-h-[80vh] flex flex-col">
-            <button
-              class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
-              onClick={() => setShowPlaylistDialog(false)}
-            >
-              <Icon name="close" />
-            </button>
+      <Dialog
+        open={showPlaylistDialog}
+        onClose={() => setShowPlaylistDialog(false)}
+        ariaLabel={t("videoPlayer.addToPlaylist")}
+        showCloseButton
+        panelClass="max-h-[80vh] flex flex-col p-6"
+      >
             <h2 class="text-xl font-bold text-charcoal dark:text-white mb-4">
               {t("videoPlayer.addToPlaylist")}
             </h2>
@@ -1280,9 +1178,7 @@ function VideoPlayerContent() {
                 })
               )}
             </div>
-          </div>
-        </div>
-      )}
+      </Dialog>
 
       {playlistId && (
         <AddVideoDialog

@@ -25,8 +25,8 @@ function ScreenTimeSettingsContent() {
     getUsersMeStatus()
       .then((user) => {
         setTimeRanges(
-          (user.screen_time ?? []).map((slot) => ({
-            id: slot.id,
+          (user.screen_time ?? []).map((slot, i) => ({
+            id: String(i),
             startMinutes: parseTimeToMinutes(slot.start_time),
             endMinutes: parseTimeToMinutes(slot.end_time),
           })),

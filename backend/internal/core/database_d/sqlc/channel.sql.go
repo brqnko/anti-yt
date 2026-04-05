@@ -85,7 +85,8 @@ SELECT
     m_channel.external_created_at,
     m_channel.external_uploads_playlist_id,
     m_channel.fetched_at,
-    m_channel.rss_fetched_at
+    m_channel.rss_fetched_at,
+    m_channel.bulk_fetched_at
 FROM
     m_channel
 WHERE
@@ -113,6 +114,7 @@ type FindChannelByExternalIDRow struct {
 	ExternalUploadsPlaylistID string
 	FetchedAt                 time.Time
 	RssFetchedAt              time.Time
+	BulkFetchedAt             time.Time
 }
 
 func (q *Queries) FindChannelByExternalID(ctx context.Context, arg FindChannelByExternalIDParams) (FindChannelByExternalIDRow, error) {
@@ -131,6 +133,7 @@ func (q *Queries) FindChannelByExternalID(ctx context.Context, arg FindChannelBy
 		&i.ExternalUploadsPlaylistID,
 		&i.FetchedAt,
 		&i.RssFetchedAt,
+		&i.BulkFetchedAt,
 	)
 	return i, err
 }
@@ -186,7 +189,8 @@ SELECT
     m_channel.external_created_at,
     m_channel.rss_fetched_at,
     m_channel.fetched_at,
-    m_channel.external_uploads_playlist_id
+    m_channel.external_uploads_playlist_id,
+    m_channel.bulk_fetched_at
 FROM
     m_channel
 WHERE
@@ -208,6 +212,7 @@ type GetChannelForUpdateRow struct {
 	RssFetchedAt              time.Time
 	FetchedAt                 time.Time
 	ExternalUploadsPlaylistID string
+	BulkFetchedAt             time.Time
 }
 
 func (q *Queries) GetChannelForUpdate(ctx context.Context, channelID uuid.UUID) (GetChannelForUpdateRow, error) {
@@ -225,6 +230,7 @@ func (q *Queries) GetChannelForUpdate(ctx context.Context, channelID uuid.UUID) 
 		&i.RssFetchedAt,
 		&i.FetchedAt,
 		&i.ExternalUploadsPlaylistID,
+		&i.BulkFetchedAt,
 	)
 	return i, err
 }
@@ -271,6 +277,74 @@ func (q *Queries) InsertSubscription(ctx context.Context, arg InsertSubscription
 	return m_user_subscribing_channel_id, err
 }
 
+const listChannelsBulkFetchedAfter = `-- name: ListChannelsBulkFetchedAfter :many
+SELECT
+    c.public_id,
+    c.external_id,
+    c.external_display_name,
+    c.external_description,
+    c.external_custom_id,
+    c.external_icon_url,
+    c.external_subscribers_count,
+    c.external_created_at,
+    c.external_uploads_playlist_id,
+    c.rss_fetched_at,
+    c.fetched_at,
+    c.bulk_fetched_at
+FROM
+    m_channel c
+WHERE
+    c.bulk_fetched_at > $1
+`
+
+type ListChannelsBulkFetchedAfterRow struct {
+	PublicID                  uuid.UUID
+	ExternalID                string
+	ExternalDisplayName       string
+	ExternalDescription       string
+	ExternalCustomID          string
+	ExternalIconUrl           string
+	ExternalSubscribersCount  int64
+	ExternalCreatedAt         time.Time
+	ExternalUploadsPlaylistID string
+	RssFetchedAt              time.Time
+	FetchedAt                 time.Time
+	BulkFetchedAt             time.Time
+}
+
+func (q *Queries) ListChannelsBulkFetchedAfter(ctx context.Context, bulkFetchedAfter time.Time) ([]ListChannelsBulkFetchedAfterRow, error) {
+	rows, err := q.db.Query(ctx, listChannelsBulkFetchedAfter, bulkFetchedAfter)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListChannelsBulkFetchedAfterRow
+	for rows.Next() {
+		var i ListChannelsBulkFetchedAfterRow
+		if err := rows.Scan(
+			&i.PublicID,
+			&i.ExternalID,
+			&i.ExternalDisplayName,
+			&i.ExternalDescription,
+			&i.ExternalCustomID,
+			&i.ExternalIconUrl,
+			&i.ExternalSubscribersCount,
+			&i.ExternalCreatedAt,
+			&i.ExternalUploadsPlaylistID,
+			&i.RssFetchedAt,
+			&i.FetchedAt,
+			&i.BulkFetchedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listStaleRSSChannelsForUpdate = `-- name: ListStaleRSSChannelsForUpdate :many
 SELECT
     c.public_id,
@@ -283,7 +357,8 @@ SELECT
     c.external_created_at,
     c.external_uploads_playlist_id,
     c.rss_fetched_at,
-    c.fetched_at
+    c.fetched_at,
+    c.bulk_fetched_at
 FROM
     m_channel c
     INNER JOIN m_user_subscribing_channel sub ON c.m_channel_id = sub.m_channel_id
@@ -324,6 +399,7 @@ type ListStaleRSSChannelsForUpdateRow struct {
 	ExternalUploadsPlaylistID string
 	RssFetchedAt              time.Time
 	FetchedAt                 time.Time
+	BulkFetchedAt             time.Time
 }
 
 func (q *Queries) ListStaleRSSChannelsForUpdate(ctx context.Context, arg ListStaleRSSChannelsForUpdateParams) ([]ListStaleRSSChannelsForUpdateRow, error) {
@@ -347,6 +423,7 @@ func (q *Queries) ListStaleRSSChannelsForUpdate(ctx context.Context, arg ListSta
 			&i.ExternalUploadsPlaylistID,
 			&i.RssFetchedAt,
 			&i.FetchedAt,
+			&i.BulkFetchedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -445,10 +522,11 @@ INSERT INTO
         external_uploads_playlist_id,
         public_id,
         rss_fetched_at,
-        fetched_at
+        fetched_at,
+        bulk_fetched_at
     )
 VALUES
-    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 ON CONFLICT (external_id) DO UPDATE SET
     external_display_name = EXCLUDED.external_display_name,
     external_custom_id = EXCLUDED.external_custom_id,
@@ -459,7 +537,8 @@ ON CONFLICT (external_id) DO UPDATE SET
     external_uploads_playlist_id = EXCLUDED.external_uploads_playlist_id,
     updated_at = CURRENT_TIMESTAMP,
     rss_fetched_at = EXCLUDED.rss_fetched_at,
-    fetched_at = EXCLUDED.fetched_at
+    fetched_at = EXCLUDED.fetched_at,
+    bulk_fetched_at = EXCLUDED.bulk_fetched_at
 RETURNING
     m_channel.m_channel_id,
     m_channel.public_id
@@ -477,6 +556,7 @@ type UpsertChannelParams struct {
 	PublicID                  uuid.UUID
 	RssFetchedAt              time.Time
 	FetchedAt                 time.Time
+	BulkFetchedAt             time.Time
 }
 
 type UpsertChannelRow struct {
@@ -497,6 +577,7 @@ func (q *Queries) UpsertChannel(ctx context.Context, arg UpsertChannelParams) (U
 		arg.PublicID,
 		arg.RssFetchedAt,
 		arg.FetchedAt,
+		arg.BulkFetchedAt,
 	)
 	var i UpsertChannelRow
 	err := row.Scan(&i.MChannelID, &i.PublicID)

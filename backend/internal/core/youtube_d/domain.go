@@ -19,7 +19,7 @@ var (
 type ChannelID string
 
 func NewChannelID(id string) (_ ChannelID, err error) {
-	defer util.Wrap(&err, "NewChannelID")
+	defer util.Wrap(&err, "youtube_d.NewChannelID")
 
 	id = strings.TrimSpace(id)
 	if id == "" {
@@ -38,7 +38,7 @@ func (c ChannelID) String() string {
 type ChannelUploadsPlaylistID string
 
 func NewChannelUploadsPlaylistID(id string) (_ ChannelUploadsPlaylistID, err error) {
-	defer util.Wrap(&err, "NewChannelUploadsPlaylistID")
+	defer util.Wrap(&err, "youtube_d.NewChannelUploadsPlaylistID")
 
 	id = strings.TrimSpace(id)
 	if id == "" {
@@ -63,7 +63,7 @@ type Channel struct {
 }
 
 func NewChannel(id, displayName, customID, description, iconURL string, subscribersCount uint64, uploadsPlaylistID string, createdAt time.Time) (_ Channel, err error) {
-	defer util.Wrap(&err, "NewChannel")
+	defer util.Wrap(&err, "youtube_d.NewChannel")
 
 	channelID, err := NewChannelID(id)
 	if err != nil {
@@ -102,7 +102,7 @@ type WatchHistory struct {
 type VideoID string
 
 func NewVideoID(id string) (_ VideoID, err error) {
-	defer util.Wrap(&err, "NewVideoID")
+	defer util.Wrap(&err, "youtube_d.NewVideoID")
 
 	id = strings.TrimSpace(id)
 	if id == "" {
@@ -126,7 +126,7 @@ type Video struct {
 }
 
 func NewVideo(id, channelID, title, description, thumbnailURL string, lengthSeconds int, createdAt time.Time) (_ Video, err error) {
-	defer util.Wrap(&err, "NewVideo")
+	defer util.Wrap(&err, "youtube_d.NewVideo")
 
 	videoID, err := NewVideoID(id)
 	if err != nil {

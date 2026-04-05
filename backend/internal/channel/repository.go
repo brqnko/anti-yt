@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -17,6 +18,7 @@ type ChannelRepository interface {
 	FindForUpdate(ctx context.Context, id uuid.UUID) (*Channel, error)
 	FindByIdOrHandle(ctx context.Context, idOrHandle string) (*Channel, error)
 	FindToFetchRSSForUpdate(ctx context.Context, userID uuid.UUID, rssFetchDuration time.Duration, limit int32) ([]*Channel, error)
+	FindBulkFetchedAfter(ctx context.Context, after time.Time) ([]*Channel, error)
 	SaveSubscription(ctx context.Context, subscribedChannel *SubscribedChannel) (int64, error)
 	RemoveSubscription(ctx context.Context, userID, channelID uuid.UUID) (int64, error)
 }
@@ -32,7 +34,7 @@ type channelRepositoryImpl struct {
 }
 
 func (c *channelRepositoryImpl) Save(ctx context.Context, channel *Channel) (_ int64, err error) {
-	defer util.Wrap(&err, "channelRepository.Save")
+	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).Save")
 
 	if err := c.q.ClearStaleChannelCustomID(ctx, sqlc.ClearStaleChannelCustomIDParams{
 		ExternalCustomID: channel.Channel.CustomID,
@@ -53,6 +55,7 @@ func (c *channelRepositoryImpl) Save(ctx context.Context, channel *Channel) (_ i
 		PublicID:                  channel.ID,
 		RssFetchedAt:              channel.RSSFetchedAt,
 		FetchedAt:                 channel.FetchedAt,
+		BulkFetchedAt:             channel.BulkFetchedAt,
 	})
 	if err != nil {
 		return 0, err
@@ -64,12 +67,12 @@ func (c *channelRepositoryImpl) Save(ctx context.Context, channel *Channel) (_ i
 }
 
 func (c *channelRepositoryImpl) FindForUpdate(ctx context.Context, id uuid.UUID) (_ *Channel, err error) {
-	defer util.Wrap(&err, "channelRepository.FindForUpdate(id=%s)", id)
+	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).FindForUpdate(id=%s)", id)
 
 	row, err := c.q.GetChannelForUpdate(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, err
+			return nil, core.ErrNotFound
 		}
 		return nil, err
 	}
@@ -88,7 +91,13 @@ func (c *channelRepositoryImpl) FindForUpdate(ctx context.Context, id uuid.UUID)
 		return nil, err
 	}
 
-	ch, err := NewChannel(row.FetchedAt, row.RssFetchedAt, channelDetail, WithChannelID(row.PublicID))
+	ch, err := NewChannel(
+		row.FetchedAt,
+		row.RssFetchedAt,
+		channelDetail,
+		WithChannelID(row.PublicID),
+		WithBulkFetchedAt(row.BulkFetchedAt),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +106,7 @@ func (c *channelRepositoryImpl) FindForUpdate(ctx context.Context, id uuid.UUID)
 }
 
 func (c *channelRepositoryImpl) FindByIdOrHandle(ctx context.Context, idOrHandle string) (_ *Channel, err error) {
-	defer util.Wrap(&err, "channelRepository.FindByIdOrHandle")
+	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).FindByIdOrHandle")
 
 	row, err := c.q.FindChannelByExternalID(ctx, sqlc.FindChannelByExternalIDParams{
 		ExternalID:       idOrHandle,
@@ -105,7 +114,7 @@ func (c *channelRepositoryImpl) FindByIdOrHandle(ctx context.Context, idOrHandle
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, err
+			return nil, core.ErrNotFound
 		}
 		return nil, err
 	}
@@ -124,7 +133,7 @@ func (c *channelRepositoryImpl) FindByIdOrHandle(ctx context.Context, idOrHandle
 		return nil, err
 	}
 
-	ch, err := NewChannel(row.FetchedAt, row.RssFetchedAt, ytCh, WithChannelID(row.PublicID))
+	ch, err := NewChannel(row.FetchedAt, row.RssFetchedAt, ytCh, WithChannelID(row.PublicID), WithBulkFetchedAt(row.BulkFetchedAt))
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +142,7 @@ func (c *channelRepositoryImpl) FindByIdOrHandle(ctx context.Context, idOrHandle
 }
 
 func (c *channelRepositoryImpl) FindToFetchRSSForUpdate(ctx context.Context, userID uuid.UUID, rssFetchDuration time.Duration, limit int32) (_ []*Channel, err error) {
-	defer util.Wrap(&err, "channelRepository.FindToFetchRSSForUpdate(userID=%s)", userID)
+	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).FindToFetchRSSForUpdate(userID=%s)", userID)
 
 	rows, err := c.q.ListStaleRSSChannelsForUpdate(ctx, sqlc.ListStaleRSSChannelsForUpdateParams{
 		UserID:     userID,
@@ -160,7 +169,54 @@ func (c *channelRepositoryImpl) FindToFetchRSSForUpdate(ctx context.Context, use
 			return nil, err
 		}
 
-		channel, err := NewChannel(row.FetchedAt, row.RssFetchedAt, channelDetail, WithChannelID(row.PublicID))
+		channel, err := NewChannel(
+			row.FetchedAt,
+			row.RssFetchedAt,
+			channelDetail,
+			WithChannelID(row.PublicID),
+			WithBulkFetchedAt(row.BulkFetchedAt),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		channels[i] = channel
+	}
+
+	return channels, nil
+}
+
+func (c *channelRepositoryImpl) FindBulkFetchedAfter(ctx context.Context, after time.Time) (_ []*Channel, err error) {
+	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).FindBulkFetchedAfter")
+
+	rows, err := c.q.ListChannelsBulkFetchedAfter(ctx, after)
+	if err != nil {
+		return nil, err
+	}
+
+	channels := make([]*Channel, len(rows))
+	for i, row := range rows {
+		channelDetail, err := youtube_d.NewChannel(
+			row.ExternalID,
+			row.ExternalDisplayName,
+			row.ExternalCustomID,
+			row.ExternalDescription,
+			row.ExternalIconUrl,
+			uint64(row.ExternalSubscribersCount),
+			row.ExternalUploadsPlaylistID,
+			row.ExternalCreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		channel, err := NewChannel(
+			row.FetchedAt,
+			row.RssFetchedAt,
+			channelDetail,
+			WithChannelID(row.PublicID),
+			WithBulkFetchedAt(row.BulkFetchedAt),
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -172,7 +228,7 @@ func (c *channelRepositoryImpl) FindToFetchRSSForUpdate(ctx context.Context, use
 }
 
 func (s *channelRepositoryImpl) SaveSubscription(ctx context.Context, subscribedChannel *SubscribedChannel) (_ int64, err error) {
-	defer util.Wrap(&err, "channelRepository.SaveSubscription")
+	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).SaveSubscription")
 
 	id, err := s.q.InsertSubscription(ctx, sqlc.InsertSubscriptionParams{
 		UserPublicID: subscribedChannel.SubscriberID,
@@ -187,7 +243,7 @@ func (s *channelRepositoryImpl) SaveSubscription(ctx context.Context, subscribed
 }
 
 func (s *channelRepositoryImpl) RemoveSubscription(ctx context.Context, userID, channelID uuid.UUID) (rowAffected int64, err error) {
-	defer util.Wrap(&err, "channelRepository.RemoveSubscription(userID=%s, channelID=%s)", userID, channelID)
+	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).RemoveSubscription(userID=%s, channelID=%s)", userID, channelID)
 
 	row, err := s.q.DeleteSubscription(ctx, sqlc.DeleteSubscriptionParams{
 		UserPublicID: userID,
@@ -217,7 +273,7 @@ func NewValuableChannelRepository(q sqlc.Querier) ValuableChannelRepository {
 }
 
 func (v *valuableChannelRepositoryImpl) Save(ctx context.Context, vc *ValuableChannel) (_ int64, err error) {
-	defer util.Wrap(&err, "valuableChannelRepository.Save(channelID=%s)", vc.ChannelID)
+	defer util.Wrap(&err, "channel.(*valuableChannelRepositoryImpl).Save(channelID=%s)", vc.ChannelID)
 
 	id, err := v.q.UpsertValuableChannel(ctx, sqlc.UpsertValuableChannelParams{
 		ChannelPublicID:     vc.ChannelID,
@@ -231,7 +287,7 @@ func (v *valuableChannelRepositoryImpl) Save(ctx context.Context, vc *ValuableCh
 }
 
 func (v *valuableChannelRepositoryImpl) Remove(ctx context.Context, channelID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "valuableChannelRepository.Remove(channelID=%s)", channelID)
+	defer util.Wrap(&err, "channel.(*valuableChannelRepositoryImpl).Remove(channelID=%s)", channelID)
 
 	if err := v.q.DeleteValuableChannel(ctx, channelID); err != nil {
 		return err
@@ -240,7 +296,7 @@ func (v *valuableChannelRepositoryImpl) Remove(ctx context.Context, channelID uu
 }
 
 func (v *valuableChannelRepositoryImpl) FindForUpdate(ctx context.Context, channelID uuid.UUID) (_ *ValuableChannel, err error) {
-	defer util.Wrap(&err, "valuableChannelRepository.FindForUpdate(channelID=%s)", channelID)
+	defer util.Wrap(&err, "channel.(*valuableChannelRepositoryImpl).FindForUpdate(channelID=%s)", channelID)
 
 	row, err := v.q.GetValuableChannelForUpdate(ctx, channelID)
 	if err != nil {

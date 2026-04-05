@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
@@ -13,6 +14,7 @@ import (
 
 type AuthorizationRepository interface {
 	Save(ctx context.Context, authorization *Authorization) (int64, error)
+	DeleteLeftByAuthorization(ctx context.Context, authorizationID uuid.UUID) (int64, error)
 }
 
 func NewAuthorizationRepository(q sqlc.Querier) AuthorizationRepository {
@@ -26,7 +28,7 @@ type authorizationRepositoryImpl struct {
 }
 
 func (a *authorizationRepositoryImpl) Save(ctx context.Context, authorization *Authorization) (_ int64, err error) {
-	defer util.Wrap(&err, "authorizationRepository.Save")
+	defer util.Wrap(&err, "auth.(*authorizationRepositoryImpl).Save")
 
 	saveAuthorization, err := a.q.SaveAuthorization(ctx, sqlc.SaveAuthorizationParams{
 		Issuer:         authorization.Issuer,
@@ -39,6 +41,19 @@ func (a *authorizationRepositoryImpl) Save(ctx context.Context, authorization *A
 	}
 
 	return saveAuthorization.MUserAuthorizationID, nil
+}
+
+func (a *authorizationRepositoryImpl) DeleteLeftByAuthorization(ctx context.Context, authorizationID uuid.UUID) (_ int64, err error) {
+	defer util.Wrap(&err, "auth.(*authorizationRepositoryImpl).DeleteLeftByAuthorization(authorizationID=%s)", authorizationID)
+
+	hUserID, err := a.q.DeleteLeftUserByAuthorization(ctx, authorizationID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, core.ErrNotFound
+		}
+		return 0, err
+	}
+	return hUserID, nil
 }
 
 var _ AuthorizationRepository = (*authorizationRepositoryImpl)(nil)
@@ -61,7 +76,7 @@ func NewRefreshTokenRepository(q sqlc.Querier) RefreshTokenRepository {
 }
 
 func (r *refreshTokenRepositoryImpl) Save(ctx context.Context, authorizationID int64, refreshToken *RefreshToken) (_ int64, err error) {
-	defer util.Wrap(&err, "refreshTokenRepository.Save(authorizationID=%d)", authorizationID)
+	defer util.Wrap(&err, "auth.(*refreshTokenRepositoryImpl).Save(authorizationID=%d)", authorizationID)
 
 	refreshTokenID, err := r.q.InsertRefreshToken(ctx, sqlc.InsertRefreshTokenParams{
 		MUserAuthorizationID: authorizationID,
@@ -88,20 +103,23 @@ func (r *refreshTokenRepositoryImpl) Save(ctx context.Context, authorizationID i
 }
 
 func (r *refreshTokenRepositoryImpl) RevokeByTokenHash(ctx context.Context, userID uuid.UUID, tokenHash string, jtiExpiresAt time.Time) (err error) {
-	defer util.Wrap(&err, "refreshTokenRepository.RevokeByTokenHash(userID=%s)", userID)
+	defer util.Wrap(&err, "auth.(*refreshTokenRepositoryImpl).RevokeByTokenHash(userID=%s)", userID)
 
 	if _, err := r.q.RevokeRefreshTokenByHash(ctx, sqlc.RevokeRefreshTokenByHashParams{
 		UserPublicID: userID,
 		TokenHash:    tokenHash,
 		ExpiresAt:    jtiExpiresAt,
 	}); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return core.ErrNotFound
+		}
 		return err
 	}
 	return nil
 }
 
 func (r *refreshTokenRepositoryImpl) RevokeByID(ctx context.Context, userID, sessionID uuid.UUID, jtiExpiresAt time.Time) (_ uuid.UUID, err error) {
-	defer util.Wrap(&err, "refreshTokenRepository.RevokeByID(userID=%s, sessionID=%s)", userID, sessionID)
+	defer util.Wrap(&err, "auth.(*refreshTokenRepositoryImpl).RevokeByID(userID=%s, sessionID=%s)", userID, sessionID)
 
 	removedPublicID, err := r.q.RevokeRefreshTokenByID(ctx, sqlc.RevokeRefreshTokenByIDParams{
 		RefreshTokenPublicID: sessionID,
@@ -110,15 +128,16 @@ func (r *refreshTokenRepositoryImpl) RevokeByID(ctx context.Context, userID, ses
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return uuid.Nil, err
+			return uuid.Nil, core.ErrNotFound
 		}
 		return uuid.Nil, err
 	}
+
 	return removedPublicID, nil
 }
 
 func (r *refreshTokenRepositoryImpl) RotateRefreshToken(ctx context.Context, newRefreshToken *RefreshToken, tokenHashForCheck string, updatedAtForCheck time.Time) (_ uuid.UUID, err error) {
-	defer util.Wrap(&err, "refreshTokenRepository.RotateRefreshToken")
+	defer util.Wrap(&err, "auth.(*refreshTokenRepositoryImpl).RotateRefreshToken")
 
 	var userID uuid.UUID
 	userID, err = r.q.RotateRefreshToken(ctx, sqlc.RotateRefreshTokenParams{
@@ -138,6 +157,9 @@ func (r *refreshTokenRepositoryImpl) RotateRefreshToken(ctx context.Context, new
 	})
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return uuid.Nil, core.ErrNotFound
+		}
 		return uuid.Nil, err
 	}
 	return userID, nil

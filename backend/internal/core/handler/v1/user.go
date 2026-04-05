@@ -59,8 +59,8 @@ func (h *APIHandler) GetUsersMeStatus(ctx context.Context, request GetUsersMeSta
 			continue
 		}
 		localRanges = append(localRanges, secRange{
-			start: ((startSec + offsetSec) % daySec + daySec) % daySec,
-			end:   ((endSec + offsetSec) % daySec + daySec) % daySec,
+			start: ((startSec+offsetSec)%daySec + daySec) % daySec,
+			end:   ((endSec+offsetSec)%daySec + daySec) % daySec,
 		})
 	}
 
@@ -141,7 +141,15 @@ func (h *APIHandler) PostUsersMe(ctx context.Context, request PostUsersMeRequest
 		return nil, hutil.ErrUserIDNotFoundInContext
 	}
 
-	u, newAccessToken, accessTokenExpiresAt, err := h.userService.CreateNewUser(ctx, accessToken, request.Body.DailyScreenSeconds, screenTimeDto, request.Body.DisplayName, request.Body.LanguageCode, hutil.TimezoneFromContext(ctx))
+	u, newAccessToken, accessTokenExpiresAt, err := h.userService.CreateNewUser(
+		ctx,
+		accessToken,
+		request.Body.DailyScreenSeconds,
+		screenTimeDto,
+		request.Body.DisplayName,
+		request.Body.LanguageCode,
+		hutil.TimezoneFromContext(ctx),
+	)
 	if err != nil {
 		return nil, err
 	}

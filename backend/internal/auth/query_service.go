@@ -11,7 +11,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type AuthorizationQueryService interface{}
+type AuthorizationQueryService interface {
+	CountAuthorizations(ctx context.Context) (int64, error)
+}
 
 type authorizationQueryServiceImpl struct {
 	q sqlc.Querier
@@ -21,6 +23,12 @@ func NewAuthorizationQueryService(db *pgxpool.Pool) AuthorizationQueryService {
 	return &authorizationQueryServiceImpl{
 		q: sqlc.New(db),
 	}
+}
+
+func (a *authorizationQueryServiceImpl) CountAuthorizations(ctx context.Context) (_ int64, err error) {
+	defer util.Wrap(&err, "auth.(*authorizationQueryServiceImpl).CountAuthorizations")
+
+	return a.q.CountAuthorizations(ctx)
 }
 
 var _ AuthorizationQueryService = (*authorizationQueryServiceImpl)(nil)
@@ -52,7 +60,7 @@ func NewRefreshTokenQueryService(db *pgxpool.Pool) RefreshTokenQueryService {
 }
 
 func (r *refreshTokenQueryServiceImpl) GetSessions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetSessionsView, err error) {
-	defer util.Wrap(&err, "refreshTokenQueryService.GetSessions(userID=%s)", userID)
+	defer util.Wrap(&err, "auth.(*refreshTokenQueryServiceImpl).GetSessions(userID=%s)", userID)
 
 	rows, err := r.q.ListRefreshTokens(ctx, sqlc.ListRefreshTokensParams{
 		UserID:     userID,

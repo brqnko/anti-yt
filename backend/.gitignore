@@ -5,3 +5,4 @@
 .idea
 *.pem
 /main
+docs/schema/schema.json

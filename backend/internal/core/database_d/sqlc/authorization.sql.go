@@ -71,9 +71,11 @@ UPDATE
 SET
     issuer = EXCLUDED.issuer,
     last_logged_in_at = EXCLUDED.last_logged_in_at,
+    public_id = EXCLUDED.public_id,
     updated_at = current_timestamp
 RETURNING
     m_user_authorization_id,
+    public_id,
     (xmax = 0) AS is_created
 `
 
@@ -86,6 +88,7 @@ type SaveAuthorizationParams struct {
 
 type SaveAuthorizationRow struct {
 	MUserAuthorizationID int64
+	PublicID             uuid.UUID
 	IsCreated            bool
 }
 
@@ -101,6 +104,6 @@ func (q *Queries) SaveAuthorization(ctx context.Context, arg SaveAuthorizationPa
 		arg.PublicID,
 	)
 	var i SaveAuthorizationRow
-	err := row.Scan(&i.MUserAuthorizationID, &i.IsCreated)
+	err := row.Scan(&i.MUserAuthorizationID, &i.PublicID, &i.IsCreated)
 	return i, err
 }

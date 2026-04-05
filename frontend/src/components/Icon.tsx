@@ -11,6 +11,7 @@ import Computer from "~icons/material-symbols/computer-outline";
 import ContentPaste from "~icons/material-symbols/content-paste";
 import DarkMode from "~icons/material-symbols/dark-mode-outline";
 import Delete from "~icons/material-symbols/delete-outline";
+import DesktopWindows from "~icons/material-symbols/desktop-windows-outline";
 import Devices from "~icons/material-symbols/devices-outline";
 import Edit from "~icons/material-symbols/edit-outline";
 import EditNote from "~icons/material-symbols/edit-note-outline";
@@ -37,11 +38,16 @@ import MusicNote from "~icons/material-symbols/music-note";
 import Pause from "~icons/material-symbols/pause-outline";
 import Person from "~icons/material-symbols/person-outline";
 import PlayArrow from "~icons/material-symbols/play-arrow-outline";
+import PlaylistAdd from "~icons/material-symbols/playlist-add";
 import PlaylistPlay from "~icons/material-symbols/playlist-play";
 import PlaylistRemove from "~icons/material-symbols/playlist-remove";
 import ProgressActivity from "~icons/material-symbols/progress-activity";
 import Recommend from "~icons/material-symbols/recommend-outline";
+import Smartphone from "~icons/material-symbols/smartphone";
+import TabletMac from "~icons/material-symbols/tablet-mac-outline";
 import Refresh from "~icons/material-symbols/refresh";
+import Repeat from "~icons/material-symbols/repeat";
+import BookmarkAdd from "~icons/material-symbols/bookmark-add-outline";
 import Schedule from "~icons/material-symbols/schedule-outline";
 import School from "~icons/material-symbols/school-outline";
 import Search from "~icons/material-symbols/search";
@@ -71,6 +77,7 @@ const iconMap: Record<string, string> = {
   content_paste: ContentPaste,
   dark_mode: DarkMode,
   delete: Delete,
+  desktop_windows: DesktopWindows,
   devices: Devices,
   edit: Edit,
   edit_note: EditNote,
@@ -98,16 +105,21 @@ const iconMap: Record<string, string> = {
   pause: Pause,
   person: Person,
   play_arrow: PlayArrow,
+  playlist_add: PlaylistAdd,
   playlist_play: PlaylistPlay,
   playlist_remove: PlaylistRemove,
   progress_activity: ProgressActivity,
   recommend: Recommend,
   refresh: Refresh,
+  repeat: Repeat,
+  bookmark_add: BookmarkAdd,
   schedule: Schedule,
   school: School,
   search: Search,
+  smartphone: Smartphone,
   search_off: SearchOff,
   subscriptions: Subscriptions,
+  tablet_mac: TabletMac,
   timer: Timer,
   translate: Translate,
   tune: Tune,

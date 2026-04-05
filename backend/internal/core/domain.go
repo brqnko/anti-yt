@@ -1,5 +1,10 @@
 package core
 
+var (
+	ErrNotFound       = NewDomainError("not_found", "resource not found")
+	ErrJTIBlacklisted = NewDomainError("jti_blacklisted", "jti blacklisted")
+)
+
 type DomainError struct {
 	code string
 	msg  string
@@ -15,4 +20,12 @@ func (e *DomainError) Code() string {
 
 func (e *DomainError) Error() string {
 	return e.msg
+}
+
+func (e *DomainError) Is(target error) bool {
+	t, ok := target.(*DomainError)
+	if !ok {
+		return false
+	}
+	return e.code == t.code
 }

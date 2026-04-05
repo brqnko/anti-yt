@@ -37,7 +37,7 @@ func NewFeedQueryService(db *pgxpool.Pool) FeedQueryService {
 }
 
 func (f *feedQueryServiceImpl) GetVideoFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, err error) {
-	defer util.Wrap(&err, "feedQueryService.GetVideoFeed(userID=%s)", userID)
+	defer util.Wrap(&err, "feed.(*feedQueryServiceImpl).GetVideoFeed(userID=%s)", userID)
 
 	rows, err := f.q.ListSubscriptionFeed(ctx, sqlc.ListSubscriptionFeedParams{
 		UserID:     userID,

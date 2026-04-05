@@ -15,7 +15,10 @@
     "subscribeDesc": "フィードに表示を許可する",
     "markWatched": "視聴済みにする",
     "markWatchedDesc": "フィードから非表示にします",
-    "markWatchedButton": "視聴済み"
+    "markWatchedButton": "視聴済み",
+    "unmarkWatched": "未視聴にする",
+    "unmarkWatchedDesc": "フィードに再表示します",
+    "unmarkWatchedButton": "未視聴にする"
   },
   "legal": {
     "navTerms": "利用規約",
@@ -84,44 +87,17 @@
       }
     }
   },
-  "register": {
-    "pageTitle": "登録",
-    "step": "ステップ {{current}} / {{total}}",
-    "continue": "続ける",
-    "submit": "登録する",
-    "agreementPrefix": "登録することで、",
-    "termsLink": "利用規約",
-    "agreementAnd": "および",
-    "privacyLink": "プライバシーポリシー",
-    "agreementSuffix": "に同意したものとみなされます。",
+  "reactivation": {
+    "title": "おかえりなさい",
+    "description": "以前削除されたアカウントが見つかりました。アカウントを復元して、もう一度始めましょう。",
+    "reactivate": "アカウントを復元",
     "error": {
-      "title": "登録に失敗しました",
-      "description": "登録中にエラーが発生しました。内容を修正して再度お試しください。",
-      "close": "OK"
-    },
-    "profileDetails": {
-      "title": "プロフィール情報",
-      "subtitle": "まずは基本情報を設定しましょう。",
-      "displayName": "表示名",
-      "displayNamePlaceholder": "例: ねこすきー",
-      "contentLanguage": "コンテンツの言語"
-    },
-    "restrictions": {
-      "title": "初期制限",
-      "subtitle": "時間を取り戻すための厳格な制限を設定しましょう。後から変更できます。",
-      "dailyWatchLimit": "1日の視聴時間制限",
-      "dailyWatchLimitDesc": "24時間あたりの許可される視聴時間",
-      "unlimited": "無制限",
-      "limited": "制限あり",
-      "hours": "時間",
-      "minutes": "分",
-      "scheduledAccess": "アクセス時間帯",
-      "scheduledAccessDesc": "視聴が許可される時間帯",
-      "addTimeRange": "時間帯を追加",
-      "removeRange": "時間帯を削除",
-      "back": "戻る",
-      "zeroTimeError": "1日の視聴時間制限は0分より大きくしてください。",
-      "overlapError": "時間帯が重複しています。"
+      "title": "復元に失敗しました"
+    }
+  },
+  "register": {
+    "error": {
+      "title": "登録に失敗しました"
     }
   },
   "dashboard": {
@@ -285,7 +261,6 @@
     "backToDashboard": "ダッシュボード",
     "subscribers": "登録者",
     "whitelistChannel": "チャンネルを許可",
-    "whitelistDesc": "フィードに表示を許可する",
     "latestUploads": "最新のアップロード",
     "orderNewer": "新しい順",
     "orderOlder": "古い順",
@@ -298,12 +273,11 @@
   "videoPlayer": {
     "pageTitle": "動画プレーヤー",
     "notFound": "動画が見つかりません",
-    "quickNotes": "クイックノート",
-    "notesPlaceholder": "ここにメモを入力...自動的にタイムスタンプが付きます。",
-    "saveNote": "ノートを保存",
-    "curatedPlaylist": "キュレーションプレイリスト",
+"curatedPlaylist": "キュレーションプレイリスト",
     "viewPlaylist": "プレイリストを見る",
     "addToPlaylist": "保存",
+    "playlist": "再生リスト",
+    "watchLater": "後で見る",
     "loop": "ループ",
     "noPlaylists": "プレイリストがありません。",
     "remaining": "今日の残り",
@@ -322,7 +296,8 @@
     "title": "アナリティクス",
     "timeWasted": "視聴時間",
     "dailyAverage": "1日の平均",
-    "weeklyAverageGoal": "週間平均 目標達成度",
+    "totalVideos": "視聴した動画",
+    "totalVideosUnit": "本",
     "weeklyUsageTrends": "今週の利用状況",
     "dailyLimit": "1日の制限 ({{hours}}時間)",
     "tooltipVideos": "{{count}}本の動画",
@@ -424,7 +399,15 @@
     "noChannels": "チャンネルが登録されていません",
     "loadError": "チャンネルの読み込みに失敗しました",
     "retry": "再試行",
-    "loadMore": "もっと見る"
+    "loadMore": "もっと見る",
+    "unsubscribeError": "登録解除に失敗しました",
+    "unsubscribeDialog": {
+      "title": "チャンネル登録を解除",
+      "description": "「{{name}}」の登録を解除しますか？フィードに表示されなくなります。",
+      "cancel": "キャンセル",
+      "remove": "登録解除",
+      "removing": "解除中..."
+    }
   },
   "explore": {
     "pageTitle": "チャンネルを探す",
