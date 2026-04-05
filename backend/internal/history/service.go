@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"math"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/playlist"
-	"github.com/brqnko/anti-yt/backend/internal/user"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -89,24 +89,17 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 		}
 	}
 
-	now := time.Now().In(loc)
-	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
-	watchStats, err := q.GetDailyWatchSummary(ctx, sqlc.GetDailyWatchSummaryParams{
-		PublicID:   userID,
-		TodayStart: todayStart,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
-	if user.IsUnlimitedScreenTimeSeconds(watchStats.DailyLimitSeconds) {
+	remaining, err := s.historyQS.FindTotalWatchSeconds(ctx, userID, loc)
+	if err != nil {
+		return nil, err
+	}
+	if remaining == math.MaxInt {
 		return nil, nil
 	}
-	remaining := max(0, watchStats.DailyLimitSeconds-watchStats.TodayWatchTotal)
 	return &remaining, nil
 }
 
