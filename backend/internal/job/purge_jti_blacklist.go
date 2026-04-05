@@ -2,17 +2,20 @@ package job
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/core/discord_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type purgeJTIBlacklistJob struct {
-	db *pgxpool.Pool
+	db             *pgxpool.Pool
+	discordService discord_d.Service
 }
 
 func (j *purgeJTIBlacklistJob) run(ctx context.Context) (err error) {
@@ -27,9 +30,12 @@ func (j *purgeJTIBlacklistJob) Run() {
 
 	if err := j.run(ctx); err != nil {
 		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to run purge jti blacklist job", slog.Any("error", err))
+		if wErr := j.discordService.SendWebhookMessage(ctx, fmt.Sprintf("[Error] purge jti blacklist job: %v", err)); wErr != nil {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to send discord webhook", slog.Any("error", wErr))
+		}
 	}
 }
 
-func NewPurgeJTIBlacklistJob(db *pgxpool.Pool) scheduler.Job {
-	return &purgeJTIBlacklistJob{db: db}
+func NewPurgeJTIBlacklistJob(db *pgxpool.Pool, discordService discord_d.Service) scheduler.Job {
+	return &purgeJTIBlacklistJob{db: db, discordService: discordService}
 }

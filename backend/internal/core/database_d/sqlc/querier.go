@@ -72,7 +72,7 @@ type Querier interface {
 	ListChannelPlaylists(ctx context.Context, arg ListChannelPlaylistsParams) ([]ListChannelPlaylistsRow, error)
 	ListChannelVideos(ctx context.Context, arg ListChannelVideosParams) ([]ListChannelVideosRow, error)
 	ListChannelVideosOlder(ctx context.Context, arg ListChannelVideosOlderParams) ([]ListChannelVideosOlderRow, error)
-	ListChannelsBulkFetchedAfter(ctx context.Context, bulkFetchedAfter time.Time) ([]ListChannelsBulkFetchedAfterRow, error)
+	ListChannelsBulkFetchedBefore(ctx context.Context, bulkFetchedBefore time.Time) ([]ListChannelsBulkFetchedBeforeRow, error)
 	ListDailyWatchStatsByRange(ctx context.Context, arg ListDailyWatchStatsByRangeParams) ([]ListDailyWatchStatsByRangeRow, error)
 	// 退会済みユーザーの一覧を取得する。
 	ListLeftUsers(ctx context.Context) ([]ListLeftUsersRow, error)
@@ -119,6 +119,8 @@ type Querier interface {
 	// 重複した場合でも特にエラーは発生せず、既存のレコードが返される。
 	// 返り値は、m_user_authorization_idとpublic_id、そして新規作成されたかどうかを示すis_createdフラグ。
 	SaveAuthorization(ctx context.Context, arg SaveAuthorizationParams) (SaveAuthorizationRow, error)
+	// セッションレベルのロック（ノンブロッキング）
+	TryAcquireAdvisoryLock(ctx context.Context, dollar_1 int64) (bool, error)
 	// トランザクションレベルのロック（ノンブロッキング）
 	TryAcquireAdvisoryXactLock(ctx context.Context, dollar_1 int64) (bool, error)
 	UnmarkVideoWatched(ctx context.Context, arg UnmarkVideoWatchedParams) error
@@ -129,6 +131,7 @@ type Querier interface {
 	UpsertMonthlyVideoWatchSummary(ctx context.Context, arg UpsertMonthlyVideoWatchSummaryParams) error
 	UpsertPlaylist(ctx context.Context, arg UpsertPlaylistParams) (int64, error)
 	UpsertRatelimit(ctx context.Context, arg UpsertRatelimitParams) (UpsertRatelimitRow, error)
+	UpsertSystemPlaylist(ctx context.Context, arg UpsertSystemPlaylistParams) (int64, error)
 	UpsertValuableChannel(ctx context.Context, arg UpsertValuableChannelParams) (int64, error)
 	UpsertVideo(ctx context.Context, arg UpsertVideoParams) (UpsertVideoRow, error)
 }

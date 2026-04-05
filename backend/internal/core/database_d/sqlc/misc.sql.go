@@ -21,6 +21,18 @@ func (q *Queries) ReleaseAdvisoryLock(ctx context.Context, dollar_1 int64) (bool
 	return released, err
 }
 
+const tryAcquireAdvisoryLock = `-- name: TryAcquireAdvisoryLock :one
+SELECT pg_try_advisory_lock($1::bigint) AS acquired
+`
+
+// セッションレベルのロック（ノンブロッキング）
+func (q *Queries) TryAcquireAdvisoryLock(ctx context.Context, dollar_1 int64) (bool, error) {
+	row := q.db.QueryRow(ctx, tryAcquireAdvisoryLock, dollar_1)
+	var acquired bool
+	err := row.Scan(&acquired)
+	return acquired, err
+}
+
 const tryAcquireAdvisoryXactLock = `-- name: TryAcquireAdvisoryXactLock :one
 SELECT pg_try_advisory_xact_lock($1::bigint) AS acquired
 `

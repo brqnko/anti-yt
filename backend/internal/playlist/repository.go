@@ -14,6 +14,7 @@ import (
 
 type PlaylistRepository interface {
 	Save(ctx context.Context, playlist *Playlist) (int64, error)
+	SaveSystem(ctx context.Context, playlist *Playlist) (int64, error)
 	Remove(ctx context.Context, userID, playlistID uuid.UUID) error
 	FindForUpdate(ctx context.Context, userID, playlistID uuid.UUID) (*Playlist, error)
 	InsertVideo(ctx context.Context, userID, playlistID, videoID uuid.UUID) error
@@ -40,6 +41,26 @@ func (r *playlistRepositoryImpl) Save(ctx context.Context, playlist *Playlist) (
 
 	id, err := r.q.UpsertPlaylist(ctx, sqlc.UpsertPlaylistParams{
 		UserPublicID:        playlist.UserID,
+		ChannelPublicID:     playlist.ChannelID,
+		PlaylistTitle:       string(playlist.Title),
+		PlaylistDescription: string(playlist.Description),
+		VisibilityCode:      int(playlist.VisibilityCode),
+		PlaylistCode:        int(playlist.PlaylistCode),
+		VideoCount:          playlist.VideoCount,
+		PublicID:            playlist.ID,
+		RegisteredAt:        playlist.RegisteredAt,
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func (r *playlistRepositoryImpl) SaveSystem(ctx context.Context, playlist *Playlist) (_ int64, err error) {
+	defer util.Wrap(&err, "playlist.(*playlistRepositoryImpl).SaveSystem(playlistID=%s)", playlist.ID)
+
+	id, err := r.q.UpsertSystemPlaylist(ctx, sqlc.UpsertSystemPlaylistParams{
 		ChannelPublicID:     playlist.ChannelID,
 		PlaylistTitle:       string(playlist.Title),
 		PlaylistDescription: string(playlist.Description),
