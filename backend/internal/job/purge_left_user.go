@@ -2,17 +2,20 @@ package job
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/core/discord_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type purgeLeftUserJob struct {
-	db *pgxpool.Pool
+	db             *pgxpool.Pool
+	discordService discord_d.Service
 }
 
 func (j *purgeLeftUserJob) run(ctx context.Context) (err error) {
@@ -45,9 +48,12 @@ func (j *purgeLeftUserJob) Run() {
 
 	if err := j.run(ctx); err != nil {
 		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to run purge left user job", slog.Any("error", err))
+		if wErr := j.discordService.SendWebhookMessage(ctx, fmt.Sprintf("[Error] purge left user job: %v", err)); wErr != nil {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to send discord webhook", slog.Any("error", wErr))
+		}
 	}
 }
 
-func NewPurgeLeftUserJob(db *pgxpool.Pool) scheduler.Job {
-	return &purgeLeftUserJob{db: db}
+func NewPurgeLeftUserJob(db *pgxpool.Pool, discordService discord_d.Service) scheduler.Job {
+	return &purgeLeftUserJob{db: db, discordService: discordService}
 }

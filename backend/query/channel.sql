@@ -222,7 +222,7 @@ LIMIT
     @query_limit
 FOR UPDATE;
 
--- name: ListChannelsBulkFetchedAfter :many
+-- name: ListChannelsBulkFetchedBefore :many
 SELECT
     c.public_id,
     c.external_id,
@@ -239,4 +239,4 @@ SELECT
 FROM
     m_channel c
 WHERE
-    c.bulk_fetched_at > @bulk_fetched_after;
+    c.bulk_fetched_at < @bulk_fetched_before;
