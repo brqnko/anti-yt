@@ -986,6 +986,7 @@ func TestService_ReactivateAccount(t *testing.T) {
 				VerifyRegisterTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, error) {
 					return authPublicID, jti, nil
 				},
+				TokenDurationFunc: func() time.Duration { return 15 * time.Minute },
 			},
 			7*24*time.Hour,
 		)
