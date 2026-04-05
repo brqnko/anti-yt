@@ -17,8 +17,8 @@ output-options:
     string:
       formats:
         uuid:
-          type: uuid.UUID
-          import: github.com/google/uuid
+          type: util.Base64UUID
+          import: github.com/brqnko/anti-yt/backend/internal/util
         date-time:
           type: time.Time
           import: time

@@ -988,7 +988,7 @@ function VideoPlayerContent() {
           </div>
 
           {/* Sidebar */}
-          <aside class="w-full xl:w-[420px] shrink-0 flex flex-col gap-8 px-4 sm:px-0">
+          {playlistId && <aside class="w-full xl:w-[420px] shrink-0 flex flex-col gap-8 px-4 sm:px-0">
             {/* Playlist sidebar */}
             {playlistId && playlistLoading && (
               <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark p-8">
@@ -1116,7 +1116,7 @@ function VideoPlayerContent() {
               </div>
             )}
 
-          </aside>
+          </aside>}
         </div>
       </div>
       {/* Add to Playlist Dialog */}

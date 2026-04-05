@@ -55,6 +55,13 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 		if err != nil {
 			return nil, err
 		}
+
+		// 動画を最後まで視聴した場合は既読にして、再生位置を0にリセットする
+		if lastHeartbeat.WatchPositionSeconds.IsFinished(lastVideoLength) {
+			_ = NewHistoryRepository(q).MarkVideoWatched(ctx, userID, lastHeartbeat.VideoID)
+			lastHeartbeat.WatchPositionSeconds = 0
+		}
+
 		if err := NewHistoryRepository(q).UpdateHeartbeat(ctx, lastHeartbeatID, lastHeartbeat); err != nil {
 			return nil, err
 		}
@@ -63,11 +70,6 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 			if err := NewHistoryRepository(q).CreateHeartbeat(ctx, heartbeat); err != nil {
 				return nil, err
 			}
-		}
-
-		if lastHeartbeat.WatchPositionSeconds.IsFinished(lastVideoLength) {
-			// すでにmark as watchedしてあるかもしれない
-			_ = NewHistoryRepository(q).MarkVideoWatched(ctx, userID, lastHeartbeat.VideoID)
 		}
 	} else if errors.Is(err, core.ErrNotFound) { // 初めてのHeartbeatの場合
 		// 普通にheartbeatを作成して挿入する

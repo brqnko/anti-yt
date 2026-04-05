@@ -18,9 +18,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 	"github.com/oapi-codegen/runtime"
 	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
 )
@@ -164,7 +164,7 @@ type User struct {
 	DisplayName string `json:"display_name"`
 
 	// Id ユーザーID
-	Id uuid.UUID `json:"id"`
+	Id util.Base64UUID `json:"id"`
 
 	// JoinedAt アカウント作成日
 	JoinedAt time.Time `json:"joined_at"`
@@ -402,7 +402,7 @@ type GetChannelsSubscribedParams struct {
 	Limit int `form:"limit" json:"limit"`
 
 	// Cursor 最後に取得したchannel_id(ページネーション)
-	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *util.Base64UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -442,7 +442,7 @@ type GetChannelsChannelIdPlaylistsParams struct {
 	Limit int `form:"limit" json:"limit"`
 
 	// Cursor ページネーション
-	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *util.Base64UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -479,8 +479,8 @@ type DeleteChannelsChannelIdSubscribeParams struct {
 // GetChannelsChannelIdVideosParams defines parameters for GetChannelsChannelIdVideos.
 type GetChannelsChannelIdVideosParams struct {
 	// Limit 取得する最大の数
-	Limit  int        `form:"limit" json:"limit"`
-	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit  int              `form:"limit" json:"limit"`
+	Cursor *util.Base64UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
 
 	// Order 並び順（newer: 新しい順, older: 古い順）
 	Order *GetChannelsChannelIdVideosParamsOrder `form:"order,omitempty" json:"order,omitempty"`
@@ -509,7 +509,7 @@ type GetFeedParams struct {
 	Limit int `form:"limit" json:"limit"`
 
 	// Cursor 最後に取得した動画ID(ページネーション)
-	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *util.Base64UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -549,7 +549,7 @@ type GetHistoryParams struct {
 	Limit int `form:"limit" json:"limit"`
 
 	// Cursor 最後に取得した視聴履歴のwatch_id(ページネーション)
-	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *util.Base64UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -572,7 +572,7 @@ type GetPlaylistsParams struct {
 	Limit int `form:"limit" json:"limit"`
 
 	// Cursor ページネーション
-	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *util.Base64UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -719,7 +719,7 @@ type PostPlaylistsPlaylistIdCopyParams struct {
 
 // DeletePlaylistsPlaylistIdVideosParams defines parameters for DeletePlaylistsPlaylistIdVideos.
 type DeletePlaylistsPlaylistIdVideosParams struct {
-	VideoId uuid.UUID `form:"video_id" json:"video_id"`
+	VideoId util.Base64UUID `form:"video_id" json:"video_id"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -742,7 +742,7 @@ type GetPlaylistsPlaylistIdVideosParams struct {
 	Limit int `form:"limit" json:"limit"`
 
 	// Cursor 最後に取得した動画ID(ページネーション)
-	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Cursor *util.Base64UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -762,8 +762,8 @@ type GetPlaylistsPlaylistIdVideosParams struct {
 // PostPlaylistsPlaylistIdVideosJSONBody defines parameters for PostPlaylistsPlaylistIdVideos.
 type PostPlaylistsPlaylistIdVideosJSONBody struct {
 	// ExternalVideoText YouTube動画のURL、または動画ID
-	ExternalVideoText *string    `json:"external_video_text,omitempty"`
-	VideoId           *uuid.UUID `json:"video_id,omitempty"`
+	ExternalVideoText *string          `json:"external_video_text,omitempty"`
+	VideoId           *util.Base64UUID `json:"video_id,omitempty"`
 }
 
 // PostPlaylistsPlaylistIdVideosParams defines parameters for PostPlaylistsPlaylistIdVideos.
@@ -947,8 +947,8 @@ type PatchUsersMeStatusParams struct {
 // GetUsersMeSessionsParams defines parameters for GetUsersMeSessions.
 type GetUsersMeSessionsParams struct {
 	// Limit 取得する最大の数
-	Limit  int        `form:"limit" json:"limit"`
-	Cursor *uuid.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit  int              `form:"limit" json:"limit"`
+	Cursor *util.Base64UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
 
 	// XRealIP クライアントの実際のIPアドレス（プロキシ経由の場合）
 	XRealIP HeaderXRealIP `json:"X-Real-IP"`
@@ -1005,7 +1005,7 @@ type PostVideosVideoIdHeartbeatsJSONBody struct {
 	CurrentPositionSeconds int `json:"current_position_seconds"`
 
 	// PlaylistId プレイリスト経由で視聴している場合のプレイリストID
-	PlaylistId *uuid.UUID `json:"playlist_id,omitempty"`
+	PlaylistId *util.Base64UUID `json:"playlist_id,omitempty"`
 }
 
 // PostVideosVideoIdHeartbeatsParams defines parameters for PostVideosVideoIdHeartbeats.
@@ -1165,16 +1165,16 @@ type ServerInterface interface {
 	GetChannelsSubscribed(w http.ResponseWriter, r *http.Request, params GetChannelsSubscribedParams)
 	// Get channel detail
 	// (GET /api/v1/channels/{channel_id})
-	GetChannelsChannelId(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params GetChannelsChannelIdParams)
+	GetChannelsChannelId(w http.ResponseWriter, r *http.Request, channelId util.Base64UUID, params GetChannelsChannelIdParams)
 	// Get channel playlists
 	// (GET /api/v1/channels/{channel_id}/playlists)
-	GetChannelsChannelIdPlaylists(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params GetChannelsChannelIdPlaylistsParams)
+	GetChannelsChannelIdPlaylists(w http.ResponseWriter, r *http.Request, channelId util.Base64UUID, params GetChannelsChannelIdPlaylistsParams)
 	// Unsubscribe channel
 	// (DELETE /api/v1/channels/{channel_id}/subscribe)
-	DeleteChannelsChannelIdSubscribe(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params DeleteChannelsChannelIdSubscribeParams)
+	DeleteChannelsChannelIdSubscribe(w http.ResponseWriter, r *http.Request, channelId util.Base64UUID, params DeleteChannelsChannelIdSubscribeParams)
 	// Get latest channel uploads
 	// (GET /api/v1/channels/{channel_id}/videos)
-	GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params GetChannelsChannelIdVideosParams)
+	GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request, channelId util.Base64UUID, params GetChannelsChannelIdVideosParams)
 	// Get latest videos
 	// (GET /api/v1/feed)
 	GetFeed(w http.ResponseWriter, r *http.Request, params GetFeedParams)
@@ -1195,25 +1195,25 @@ type ServerInterface interface {
 	GetPlaylistsRecent(w http.ResponseWriter, r *http.Request, params GetPlaylistsRecentParams)
 	// Delete playlist
 	// (DELETE /api/v1/playlists/{playlist_id})
-	DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params DeletePlaylistsPlaylistIdParams)
+	DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params DeletePlaylistsPlaylistIdParams)
 	// Get playlist info
 	// (GET /api/v1/playlists/{playlist_id})
-	GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params GetPlaylistsPlaylistIdParams)
+	GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params GetPlaylistsPlaylistIdParams)
 	// Patch playlist
 	// (PATCH /api/v1/playlists/{playlist_id})
-	PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params PatchPlaylistsPlaylistIdParams)
+	PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params PatchPlaylistsPlaylistIdParams)
 	// Copy playlist
 	// (POST /api/v1/playlists/{playlist_id}/copy)
-	PostPlaylistsPlaylistIdCopy(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params PostPlaylistsPlaylistIdCopyParams)
+	PostPlaylistsPlaylistIdCopy(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params PostPlaylistsPlaylistIdCopyParams)
 	// Remove a video from playlist
 	// (DELETE /api/v1/playlists/{playlist_id}/videos)
-	DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params DeletePlaylistsPlaylistIdVideosParams)
+	DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params DeletePlaylistsPlaylistIdVideosParams)
 	// Get playlist videos
 	// (GET /api/v1/playlists/{playlist_id}/videos)
-	GetPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params GetPlaylistsPlaylistIdVideosParams)
+	GetPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params GetPlaylistsPlaylistIdVideosParams)
 	// Insert a new video into playlist
 	// (POST /api/v1/playlists/{playlist_id}/videos)
-	PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params PostPlaylistsPlaylistIdVideosParams)
+	PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params PostPlaylistsPlaylistIdVideosParams)
 	// Get search result
 	// (GET /api/v1/search)
 	GetSearch(w http.ResponseWriter, r *http.Request, params GetSearchParams)
@@ -1237,25 +1237,25 @@ type ServerInterface interface {
 	GetUsersMeSessions(w http.ResponseWriter, r *http.Request, params GetUsersMeSessionsParams)
 	// Delete session
 	// (DELETE /api/v1/users/me/sessions/{session_id})
-	DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId uuid.UUID, params DeleteUsersMeSessionsSessionIdParams)
+	DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId util.Base64UUID, params DeleteUsersMeSessionsSessionIdParams)
 	// Get video detail
 	// (GET /api/v1/videos/{video_id})
-	GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params GetVideosVideoIdParams)
+	GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params GetVideosVideoIdParams)
 	// Heartbeats
 	// (POST /api/v1/videos/{video_id}/heartbeats)
-	PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdHeartbeatsParams)
+	PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params PostVideosVideoIdHeartbeatsParams)
 	// Remove video from watch later
 	// (DELETE /api/v1/videos/{video_id}/watch-later)
-	DeleteVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params DeleteVideosVideoIdWatchLaterParams)
+	DeleteVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params DeleteVideosVideoIdWatchLaterParams)
 	// Add video to watch later
 	// (POST /api/v1/videos/{video_id}/watch-later)
-	PostVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdWatchLaterParams)
+	PostVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params PostVideosVideoIdWatchLaterParams)
 	// Unmark video as watched
 	// (DELETE /api/v1/videos/{video_id}/watched)
-	DeleteVideosVideoIdWatched(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params DeleteVideosVideoIdWatchedParams)
+	DeleteVideosVideoIdWatched(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params DeleteVideosVideoIdWatchedParams)
 	// Mark video as watched
 	// (POST /api/v1/videos/{video_id}/watched)
-	PostVideosVideoIdWatched(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdWatchedParams)
+	PostVideosVideoIdWatched(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params PostVideosVideoIdWatchedParams)
 	// Health check
 	// (GET /health)
 	GetHealth(w http.ResponseWriter, r *http.Request, params GetHealthParams)
@@ -1321,25 +1321,25 @@ func (_ Unimplemented) GetChannelsSubscribed(w http.ResponseWriter, r *http.Requ
 
 // Get channel detail
 // (GET /api/v1/channels/{channel_id})
-func (_ Unimplemented) GetChannelsChannelId(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params GetChannelsChannelIdParams) {
+func (_ Unimplemented) GetChannelsChannelId(w http.ResponseWriter, r *http.Request, channelId util.Base64UUID, params GetChannelsChannelIdParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Get channel playlists
 // (GET /api/v1/channels/{channel_id}/playlists)
-func (_ Unimplemented) GetChannelsChannelIdPlaylists(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params GetChannelsChannelIdPlaylistsParams) {
+func (_ Unimplemented) GetChannelsChannelIdPlaylists(w http.ResponseWriter, r *http.Request, channelId util.Base64UUID, params GetChannelsChannelIdPlaylistsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Unsubscribe channel
 // (DELETE /api/v1/channels/{channel_id}/subscribe)
-func (_ Unimplemented) DeleteChannelsChannelIdSubscribe(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params DeleteChannelsChannelIdSubscribeParams) {
+func (_ Unimplemented) DeleteChannelsChannelIdSubscribe(w http.ResponseWriter, r *http.Request, channelId util.Base64UUID, params DeleteChannelsChannelIdSubscribeParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Get latest channel uploads
 // (GET /api/v1/channels/{channel_id}/videos)
-func (_ Unimplemented) GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params GetChannelsChannelIdVideosParams) {
+func (_ Unimplemented) GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request, channelId util.Base64UUID, params GetChannelsChannelIdVideosParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1381,43 +1381,43 @@ func (_ Unimplemented) GetPlaylistsRecent(w http.ResponseWriter, r *http.Request
 
 // Delete playlist
 // (DELETE /api/v1/playlists/{playlist_id})
-func (_ Unimplemented) DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params DeletePlaylistsPlaylistIdParams) {
+func (_ Unimplemented) DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params DeletePlaylistsPlaylistIdParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Get playlist info
 // (GET /api/v1/playlists/{playlist_id})
-func (_ Unimplemented) GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params GetPlaylistsPlaylistIdParams) {
+func (_ Unimplemented) GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params GetPlaylistsPlaylistIdParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Patch playlist
 // (PATCH /api/v1/playlists/{playlist_id})
-func (_ Unimplemented) PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params PatchPlaylistsPlaylistIdParams) {
+func (_ Unimplemented) PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params PatchPlaylistsPlaylistIdParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Copy playlist
 // (POST /api/v1/playlists/{playlist_id}/copy)
-func (_ Unimplemented) PostPlaylistsPlaylistIdCopy(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params PostPlaylistsPlaylistIdCopyParams) {
+func (_ Unimplemented) PostPlaylistsPlaylistIdCopy(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params PostPlaylistsPlaylistIdCopyParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Remove a video from playlist
 // (DELETE /api/v1/playlists/{playlist_id}/videos)
-func (_ Unimplemented) DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params DeletePlaylistsPlaylistIdVideosParams) {
+func (_ Unimplemented) DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params DeletePlaylistsPlaylistIdVideosParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Get playlist videos
 // (GET /api/v1/playlists/{playlist_id}/videos)
-func (_ Unimplemented) GetPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params GetPlaylistsPlaylistIdVideosParams) {
+func (_ Unimplemented) GetPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params GetPlaylistsPlaylistIdVideosParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Insert a new video into playlist
 // (POST /api/v1/playlists/{playlist_id}/videos)
-func (_ Unimplemented) PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params PostPlaylistsPlaylistIdVideosParams) {
+func (_ Unimplemented) PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params PostPlaylistsPlaylistIdVideosParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1465,43 +1465,43 @@ func (_ Unimplemented) GetUsersMeSessions(w http.ResponseWriter, r *http.Request
 
 // Delete session
 // (DELETE /api/v1/users/me/sessions/{session_id})
-func (_ Unimplemented) DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId uuid.UUID, params DeleteUsersMeSessionsSessionIdParams) {
+func (_ Unimplemented) DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId util.Base64UUID, params DeleteUsersMeSessionsSessionIdParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Get video detail
 // (GET /api/v1/videos/{video_id})
-func (_ Unimplemented) GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params GetVideosVideoIdParams) {
+func (_ Unimplemented) GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params GetVideosVideoIdParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Heartbeats
 // (POST /api/v1/videos/{video_id}/heartbeats)
-func (_ Unimplemented) PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdHeartbeatsParams) {
+func (_ Unimplemented) PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params PostVideosVideoIdHeartbeatsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Remove video from watch later
 // (DELETE /api/v1/videos/{video_id}/watch-later)
-func (_ Unimplemented) DeleteVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params DeleteVideosVideoIdWatchLaterParams) {
+func (_ Unimplemented) DeleteVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params DeleteVideosVideoIdWatchLaterParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Add video to watch later
 // (POST /api/v1/videos/{video_id}/watch-later)
-func (_ Unimplemented) PostVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdWatchLaterParams) {
+func (_ Unimplemented) PostVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params PostVideosVideoIdWatchLaterParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Unmark video as watched
 // (DELETE /api/v1/videos/{video_id}/watched)
-func (_ Unimplemented) DeleteVideosVideoIdWatched(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params DeleteVideosVideoIdWatchedParams) {
+func (_ Unimplemented) DeleteVideosVideoIdWatched(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params DeleteVideosVideoIdWatchedParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Mark video as watched
 // (POST /api/v1/videos/{video_id}/watched)
-func (_ Unimplemented) PostVideosVideoIdWatched(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdWatchedParams) {
+func (_ Unimplemented) PostVideosVideoIdWatched(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params PostVideosVideoIdWatchedParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -3020,7 +3020,7 @@ func (siw *ServerInterfaceWrapper) GetChannelsChannelId(w http.ResponseWriter, r
 	var err error
 
 	// ------------- Path parameter "channel_id" -------------
-	var channelId uuid.UUID
+	var channelId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "channel_id", chi.URLParam(r, "channel_id"), &channelId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -3194,7 +3194,7 @@ func (siw *ServerInterfaceWrapper) GetChannelsChannelIdPlaylists(w http.Response
 	var err error
 
 	// ------------- Path parameter "channel_id" -------------
-	var channelId uuid.UUID
+	var channelId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "channel_id", chi.URLParam(r, "channel_id"), &channelId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -3391,7 +3391,7 @@ func (siw *ServerInterfaceWrapper) DeleteChannelsChannelIdSubscribe(w http.Respo
 	var err error
 
 	// ------------- Path parameter "channel_id" -------------
-	var channelId uuid.UUID
+	var channelId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "channel_id", chi.URLParam(r, "channel_id"), &channelId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -3565,7 +3565,7 @@ func (siw *ServerInterfaceWrapper) GetChannelsChannelIdVideos(w http.ResponseWri
 	var err error
 
 	// ------------- Path parameter "channel_id" -------------
-	var channelId uuid.UUID
+	var channelId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "channel_id", chi.URLParam(r, "channel_id"), &channelId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -4829,7 +4829,7 @@ func (siw *ServerInterfaceWrapper) DeletePlaylistsPlaylistId(w http.ResponseWrit
 	var err error
 
 	// ------------- Path parameter "playlist_id" -------------
-	var playlistId uuid.UUID
+	var playlistId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -5003,7 +5003,7 @@ func (siw *ServerInterfaceWrapper) GetPlaylistsPlaylistId(w http.ResponseWriter,
 	var err error
 
 	// ------------- Path parameter "playlist_id" -------------
-	var playlistId uuid.UUID
+	var playlistId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -5177,7 +5177,7 @@ func (siw *ServerInterfaceWrapper) PatchPlaylistsPlaylistId(w http.ResponseWrite
 	var err error
 
 	// ------------- Path parameter "playlist_id" -------------
-	var playlistId uuid.UUID
+	var playlistId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -5351,7 +5351,7 @@ func (siw *ServerInterfaceWrapper) PostPlaylistsPlaylistIdCopy(w http.ResponseWr
 	var err error
 
 	// ------------- Path parameter "playlist_id" -------------
-	var playlistId uuid.UUID
+	var playlistId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -5525,7 +5525,7 @@ func (siw *ServerInterfaceWrapper) DeletePlaylistsPlaylistIdVideos(w http.Respon
 	var err error
 
 	// ------------- Path parameter "playlist_id" -------------
-	var playlistId uuid.UUID
+	var playlistId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -5714,7 +5714,7 @@ func (siw *ServerInterfaceWrapper) GetPlaylistsPlaylistIdVideos(w http.ResponseW
 	var err error
 
 	// ------------- Path parameter "playlist_id" -------------
-	var playlistId uuid.UUID
+	var playlistId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -5911,7 +5911,7 @@ func (siw *ServerInterfaceWrapper) PostPlaylistsPlaylistIdVideos(w http.Response
 	var err error
 
 	// ------------- Path parameter "playlist_id" -------------
-	var playlistId uuid.UUID
+	var playlistId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -7364,7 +7364,7 @@ func (siw *ServerInterfaceWrapper) DeleteUsersMeSessionsSessionId(w http.Respons
 	var err error
 
 	// ------------- Path parameter "session_id" -------------
-	var sessionId uuid.UUID
+	var sessionId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "session_id", chi.URLParam(r, "session_id"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -7538,7 +7538,7 @@ func (siw *ServerInterfaceWrapper) GetVideosVideoId(w http.ResponseWriter, r *ht
 	var err error
 
 	// ------------- Path parameter "video_id" -------------
-	var videoId uuid.UUID
+	var videoId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "video_id", chi.URLParam(r, "video_id"), &videoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -7712,7 +7712,7 @@ func (siw *ServerInterfaceWrapper) PostVideosVideoIdHeartbeats(w http.ResponseWr
 	var err error
 
 	// ------------- Path parameter "video_id" -------------
-	var videoId uuid.UUID
+	var videoId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "video_id", chi.URLParam(r, "video_id"), &videoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -7886,7 +7886,7 @@ func (siw *ServerInterfaceWrapper) DeleteVideosVideoIdWatchLater(w http.Response
 	var err error
 
 	// ------------- Path parameter "video_id" -------------
-	var videoId uuid.UUID
+	var videoId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "video_id", chi.URLParam(r, "video_id"), &videoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -8060,7 +8060,7 @@ func (siw *ServerInterfaceWrapper) PostVideosVideoIdWatchLater(w http.ResponseWr
 	var err error
 
 	// ------------- Path parameter "video_id" -------------
-	var videoId uuid.UUID
+	var videoId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "video_id", chi.URLParam(r, "video_id"), &videoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -8234,7 +8234,7 @@ func (siw *ServerInterfaceWrapper) DeleteVideosVideoIdWatched(w http.ResponseWri
 	var err error
 
 	// ------------- Path parameter "video_id" -------------
-	var videoId uuid.UUID
+	var videoId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "video_id", chi.URLParam(r, "video_id"), &videoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -8408,7 +8408,7 @@ func (siw *ServerInterfaceWrapper) PostVideosVideoIdWatched(w http.ResponseWrite
 	var err error
 
 	// ------------- Path parameter "video_id" -------------
-	var videoId uuid.UUID
+	var videoId util.Base64UUID
 
 	err = runtime.BindStyledParameterWithOptions("simple", "video_id", chi.URLParam(r, "video_id"), &videoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
@@ -9605,7 +9605,7 @@ type PostChannelsSubscribe201JSONResponse struct {
 		ChannelDescription string `json:"channel_description"`
 
 		// ChannelId 登録したチャンネルID(内部)
-		ChannelId uuid.UUID `json:"channel_id"`
+		ChannelId util.Base64UUID `json:"channel_id"`
 
 		// ChannelSubscribersCount チャンネルの登録者数
 		ChannelSubscribersCount int `json:"channel_subscribers_count"`
@@ -9714,7 +9714,7 @@ type GetChannelsSubscribed200JSONResponse struct {
 		ChannelCustomId string `json:"channel_custom_id"`
 
 		// ChannelId 登録したチャンネルID(内部)
-		ChannelId uuid.UUID `json:"channel_id"`
+		ChannelId util.Base64UUID `json:"channel_id"`
 
 		// ChannelSubscribersCount チャンネルの登録者数
 		ChannelSubscribersCount int `json:"channel_subscribers_count"`
@@ -9803,7 +9803,7 @@ func (response GetChannelsSubscribed500JSONResponse) VisitGetChannelsSubscribedR
 }
 
 type GetChannelsChannelIdRequestObject struct {
-	ChannelId uuid.UUID `json:"channel_id"`
+	ChannelId util.Base64UUID `json:"channel_id"`
 	Params    GetChannelsChannelIdParams
 }
 
@@ -9812,12 +9812,12 @@ type GetChannelsChannelIdResponseObject interface {
 }
 
 type GetChannelsChannelId200JSONResponse struct {
-	ChannelId                       uuid.UUID `json:"channel_id"`
-	ExternalChannelCustomId         string    `json:"external_channel_custom_id"`
-	ExternalChannelDescription      string    `json:"external_channel_description"`
-	ExternalChannelDisplayName      string    `json:"external_channel_display_name"`
-	ExternalChannelIconUrl          string    `json:"external_channel_icon_url"`
-	ExternalChannelSubscribersCount int       `json:"external_channel_subscribers_count"`
+	ChannelId                       util.Base64UUID `json:"channel_id"`
+	ExternalChannelCustomId         string          `json:"external_channel_custom_id"`
+	ExternalChannelDescription      string          `json:"external_channel_description"`
+	ExternalChannelDisplayName      string          `json:"external_channel_display_name"`
+	ExternalChannelIconUrl          string          `json:"external_channel_icon_url"`
+	ExternalChannelSubscribersCount int             `json:"external_channel_subscribers_count"`
 }
 
 func (response GetChannelsChannelId200JSONResponse) VisitGetChannelsChannelIdResponse(w http.ResponseWriter) error {
@@ -9884,7 +9884,7 @@ func (response GetChannelsChannelId500JSONResponse) VisitGetChannelsChannelIdRes
 }
 
 type GetChannelsChannelIdPlaylistsRequestObject struct {
-	ChannelId uuid.UUID `json:"channel_id"`
+	ChannelId util.Base64UUID `json:"channel_id"`
 	Params    GetChannelsChannelIdPlaylistsParams
 }
 
@@ -9896,11 +9896,11 @@ type GetChannelsChannelIdPlaylists200JSONResponse struct {
 	HasNext   bool `json:"has_next"`
 	ItemCount int  `json:"item_count"`
 	Items     []struct {
-		PlaylistId           uuid.UUID `json:"playlist_id"`
-		PlaylistRegisteredAt time.Time `json:"playlist_registered_at"`
-		PlaylistTitle        string    `json:"playlist_title"`
-		PlaylistVideoCount   int       `json:"playlist_video_count"`
-		TopVideoThumbnailUrl *string   `json:"top_video_thumbnail_url,omitempty"`
+		PlaylistId           util.Base64UUID `json:"playlist_id"`
+		PlaylistRegisteredAt time.Time       `json:"playlist_registered_at"`
+		PlaylistTitle        string          `json:"playlist_title"`
+		PlaylistVideoCount   int             `json:"playlist_video_count"`
+		TopVideoThumbnailUrl *string         `json:"top_video_thumbnail_url,omitempty"`
 	} `json:"items"`
 }
 
@@ -9968,7 +9968,7 @@ func (response GetChannelsChannelIdPlaylists500JSONResponse) VisitGetChannelsCha
 }
 
 type DeleteChannelsChannelIdSubscribeRequestObject struct {
-	ChannelId uuid.UUID `json:"channel_id"`
+	ChannelId util.Base64UUID `json:"channel_id"`
 	Params    DeleteChannelsChannelIdSubscribeParams
 }
 
@@ -10050,7 +10050,7 @@ func (response DeleteChannelsChannelIdSubscribe500JSONResponse) VisitDeleteChann
 }
 
 type GetChannelsChannelIdVideosRequestObject struct {
-	ChannelId uuid.UUID `json:"channel_id"`
+	ChannelId util.Base64UUID `json:"channel_id"`
 	Params    GetChannelsChannelIdVideosParams
 }
 
@@ -10062,13 +10062,13 @@ type GetChannelsChannelIdVideos200JSONResponse struct {
 	HasNext   bool `json:"has_next"`
 	ItemCount int  `json:"item_count"`
 	Items     []struct {
-		ExternalVideoCreatedAt     time.Time `json:"external_video_created_at"`
-		ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
-		ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
-		ExternalVideoTitle         string    `json:"external_video_title"`
-		IsWatched                  bool      `json:"is_watched"`
-		LastWatchSeconds           *int      `json:"last_watch_seconds,omitempty"`
-		VideoId                    uuid.UUID `json:"video_id"`
+		ExternalVideoCreatedAt     time.Time       `json:"external_video_created_at"`
+		ExternalVideoLengthSeconds int             `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string          `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string          `json:"external_video_title"`
+		IsWatched                  bool            `json:"is_watched"`
+		LastWatchSeconds           *int            `json:"last_watch_seconds,omitempty"`
+		VideoId                    util.Base64UUID `json:"video_id"`
 	} `json:"items"`
 }
 
@@ -10156,15 +10156,15 @@ type GetFeed200JSONResponse struct {
 	HasNext   bool `json:"has_next"`
 	ItemCount int  `json:"item_count"`
 	Items     []struct {
-		ChannelId                  uuid.UUID `json:"channel_id"`
-		ExternalChannelDisplayName string    `json:"external_channel_display_name"`
-		ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
-		ExternalVideoCreatedAt     time.Time `json:"external_video_created_at"`
-		ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
-		ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
-		ExternalVideoTitle         string    `json:"external_video_title"`
-		LastWatchSeconds           *int      `json:"last_watch_seconds,omitempty"`
-		VideoId                    uuid.UUID `json:"video_id"`
+		ChannelId                  util.Base64UUID `json:"channel_id"`
+		ExternalChannelDisplayName string          `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string          `json:"external_channel_icon_url"`
+		ExternalVideoCreatedAt     time.Time       `json:"external_video_created_at"`
+		ExternalVideoLengthSeconds int             `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string          `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string          `json:"external_video_title"`
+		LastWatchSeconds           *int            `json:"last_watch_seconds,omitempty"`
+		VideoId                    util.Base64UUID `json:"video_id"`
 	} `json:"items"`
 }
 
@@ -10251,12 +10251,12 @@ type GetFeedChannelsResponseObject interface {
 type GetFeedChannels200JSONResponse struct {
 	ItemCount int `json:"item_count"`
 	Items     []struct {
-		CategoryCode               int       `json:"category_code"`
-		ChannelId                  uuid.UUID `json:"channel_id"`
-		ExternalChannelCusomUrl    string    `json:"external_channel_cusom_url"`
-		ExternalChannelDisplayName string    `json:"external_channel_display_name"`
-		ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
-		ValuableDescription        string    `json:"valuable_description"`
+		CategoryCode               int             `json:"category_code"`
+		ChannelId                  util.Base64UUID `json:"channel_id"`
+		ExternalChannelCusomUrl    string          `json:"external_channel_cusom_url"`
+		ExternalChannelDisplayName string          `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string          `json:"external_channel_icon_url"`
+		ValuableDescription        string          `json:"valuable_description"`
 	} `json:"items"`
 }
 
@@ -10348,7 +10348,7 @@ type GetHistory200JSONResponse struct {
 	ItemCount int `json:"item_count"`
 	Items     []struct {
 		// ChannelId チャンネルの内部ID
-		ChannelId uuid.UUID `json:"channel_id"`
+		ChannelId util.Base64UUID `json:"channel_id"`
 
 		// ExternalChannelDisplayName チャンネルの表示名
 		ExternalChannelDisplayName string `json:"external_channel_display_name"`
@@ -10366,10 +10366,10 @@ type GetHistory200JSONResponse struct {
 		ExternalVideoTitle string `json:"external_video_title"`
 
 		// VideoId 内部ID
-		VideoId uuid.UUID `json:"video_id"`
+		VideoId util.Base64UUID `json:"video_id"`
 
 		// WatchId 視聴履歴の内部ID(ページネーション用)
-		WatchId uuid.UUID `json:"watch_id"`
+		WatchId util.Base64UUID `json:"watch_id"`
 
 		// WatchPositionSeconds 視聴途中の時間
 		WatchPositionSeconds int `json:"watch_position_seconds"`
@@ -10463,10 +10463,10 @@ type GetPlaylists200JSONResponse struct {
 	HasNext   bool `json:"has_next"`
 	ItemCount int  `json:"item_count"`
 	Items     []struct {
-		PlaylistDescription  string    `json:"playlist_description"`
-		PlaylistId           uuid.UUID `json:"playlist_id"`
-		PlaylistRegisteredAt time.Time `json:"playlist_registered_at"`
-		PlaylistTitle        string    `json:"playlist_title"`
+		PlaylistDescription  string          `json:"playlist_description"`
+		PlaylistId           util.Base64UUID `json:"playlist_id"`
+		PlaylistRegisteredAt time.Time       `json:"playlist_registered_at"`
+		PlaylistTitle        string          `json:"playlist_title"`
 
 		// PlaylistType プレイリストのタイプ
 		PlaylistType       PlaylistType `json:"playlist_type"`
@@ -10561,10 +10561,10 @@ type PostPlaylistsResponseObject interface {
 }
 
 type PostPlaylists201JSONResponse struct {
-	PlaylistDescription  string    `json:"playlist_description"`
-	PlaylistId           uuid.UUID `json:"playlist_id"`
-	PlaylistRegisteredAt time.Time `json:"playlist_registered_at"`
-	PlaylistTitle        string    `json:"playlist_title"`
+	PlaylistDescription  string          `json:"playlist_description"`
+	PlaylistId           util.Base64UUID `json:"playlist_id"`
+	PlaylistRegisteredAt time.Time       `json:"playlist_registered_at"`
+	PlaylistTitle        string          `json:"playlist_title"`
 
 	// PlaylistType プレイリストのタイプ
 	PlaylistType       PlaylistType `json:"playlist_type"`
@@ -10658,11 +10658,11 @@ type GetPlaylistsRecentResponseObject interface {
 type GetPlaylistsRecent200JSONResponse struct {
 	ItemCount int `json:"item_count"`
 	Items     []struct {
-		PlaylistId           uuid.UUID `json:"playlist_id"`
-		PlaylistRegisteredAt time.Time `json:"playlist_registered_at"`
-		PlaylistTitle        string    `json:"playlist_title"`
-		PlaylistVideoCount   int       `json:"playlist_video_count"`
-		TopVideoThumbnailUrl *string   `json:"top_video_thumbnail_url,omitempty"`
+		PlaylistId           util.Base64UUID `json:"playlist_id"`
+		PlaylistRegisteredAt time.Time       `json:"playlist_registered_at"`
+		PlaylistTitle        string          `json:"playlist_title"`
+		PlaylistVideoCount   int             `json:"playlist_video_count"`
+		TopVideoThumbnailUrl *string         `json:"top_video_thumbnail_url,omitempty"`
 	} `json:"items"`
 }
 
@@ -10739,7 +10739,7 @@ func (response GetPlaylistsRecent500JSONResponse) VisitGetPlaylistsRecentRespons
 }
 
 type DeletePlaylistsPlaylistIdRequestObject struct {
-	PlaylistId uuid.UUID `json:"playlist_id"`
+	PlaylistId util.Base64UUID `json:"playlist_id"`
 	Params     DeletePlaylistsPlaylistIdParams
 }
 
@@ -10821,7 +10821,7 @@ func (response DeletePlaylistsPlaylistId500JSONResponse) VisitDeletePlaylistsPla
 }
 
 type GetPlaylistsPlaylistIdRequestObject struct {
-	PlaylistId uuid.UUID `json:"playlist_id"`
+	PlaylistId util.Base64UUID `json:"playlist_id"`
 	Params     GetPlaylistsPlaylistIdParams
 }
 
@@ -10830,10 +10830,10 @@ type GetPlaylistsPlaylistIdResponseObject interface {
 }
 
 type GetPlaylistsPlaylistId200JSONResponse struct {
-	PlaylistDescription  string    `json:"playlist_description"`
-	PlaylistId           uuid.UUID `json:"playlist_id"`
-	PlaylistRegisteredAt time.Time `json:"playlist_registered_at"`
-	PlaylistTitle        string    `json:"playlist_title"`
+	PlaylistDescription  string          `json:"playlist_description"`
+	PlaylistId           util.Base64UUID `json:"playlist_id"`
+	PlaylistRegisteredAt time.Time       `json:"playlist_registered_at"`
+	PlaylistTitle        string          `json:"playlist_title"`
 
 	// PlaylistType プレイリストのタイプ
 	PlaylistType       PlaylistType `json:"playlist_type"`
@@ -10918,7 +10918,7 @@ func (response GetPlaylistsPlaylistId500JSONResponse) VisitGetPlaylistsPlaylistI
 }
 
 type PatchPlaylistsPlaylistIdRequestObject struct {
-	PlaylistId uuid.UUID `json:"playlist_id"`
+	PlaylistId util.Base64UUID `json:"playlist_id"`
 	Params     PatchPlaylistsPlaylistIdParams
 	Body       *PatchPlaylistsPlaylistIdJSONRequestBody
 }
@@ -10928,9 +10928,9 @@ type PatchPlaylistsPlaylistIdResponseObject interface {
 }
 
 type PatchPlaylistsPlaylistId200JSONResponse struct {
-	PlaylistDescription string    `json:"playlist_description"`
-	PlaylistId          uuid.UUID `json:"playlist_id"`
-	PlaylistTitle       string    `json:"playlist_title"`
+	PlaylistDescription string          `json:"playlist_description"`
+	PlaylistId          util.Base64UUID `json:"playlist_id"`
+	PlaylistTitle       string          `json:"playlist_title"`
 }
 
 func (response PatchPlaylistsPlaylistId200JSONResponse) VisitPatchPlaylistsPlaylistIdResponse(w http.ResponseWriter) error {
@@ -11006,7 +11006,7 @@ func (response PatchPlaylistsPlaylistId500JSONResponse) VisitPatchPlaylistsPlayl
 }
 
 type PostPlaylistsPlaylistIdCopyRequestObject struct {
-	PlaylistId uuid.UUID `json:"playlist_id"`
+	PlaylistId util.Base64UUID `json:"playlist_id"`
 	Params     PostPlaylistsPlaylistIdCopyParams
 	Body       *PostPlaylistsPlaylistIdCopyJSONRequestBody
 }
@@ -11016,10 +11016,10 @@ type PostPlaylistsPlaylistIdCopyResponseObject interface {
 }
 
 type PostPlaylistsPlaylistIdCopy201JSONResponse struct {
-	PlaylistDescription  string    `json:"playlist_description"`
-	PlaylistId           uuid.UUID `json:"playlist_id"`
-	PlaylistRegisteredAt time.Time `json:"playlist_registered_at"`
-	PlaylistTitle        string    `json:"playlist_title"`
+	PlaylistDescription  string          `json:"playlist_description"`
+	PlaylistId           util.Base64UUID `json:"playlist_id"`
+	PlaylistRegisteredAt time.Time       `json:"playlist_registered_at"`
+	PlaylistTitle        string          `json:"playlist_title"`
 
 	// PlaylistType プレイリストのタイプ
 	PlaylistType       PlaylistType `json:"playlist_type"`
@@ -11103,7 +11103,7 @@ func (response PostPlaylistsPlaylistIdCopy500JSONResponse) VisitPostPlaylistsPla
 }
 
 type DeletePlaylistsPlaylistIdVideosRequestObject struct {
-	PlaylistId uuid.UUID `json:"playlist_id"`
+	PlaylistId util.Base64UUID `json:"playlist_id"`
 	Params     DeletePlaylistsPlaylistIdVideosParams
 }
 
@@ -11185,7 +11185,7 @@ func (response DeletePlaylistsPlaylistIdVideos500JSONResponse) VisitDeletePlayli
 }
 
 type GetPlaylistsPlaylistIdVideosRequestObject struct {
-	PlaylistId uuid.UUID `json:"playlist_id"`
+	PlaylistId util.Base64UUID `json:"playlist_id"`
 	Params     GetPlaylistsPlaylistIdVideosParams
 }
 
@@ -11197,15 +11197,15 @@ type GetPlaylistsPlaylistIdVideos200JSONResponse struct {
 	HasNext   bool `json:"has_next"`
 	ItemCount int  `json:"item_count"`
 	Items     []struct {
-		ChannelId                  uuid.UUID `json:"channel_id"`
-		ExternalChannelDisplayName string    `json:"external_channel_display_name"`
-		ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
-		ExternalVideoCreatedAt     time.Time `json:"external_video_created_at"`
-		ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
-		ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
-		ExternalVideoTitle         string    `json:"external_video_title"`
-		LastWatchSeconds           *int      `json:"last_watch_seconds,omitempty"`
-		VideoId                    uuid.UUID `json:"video_id"`
+		ChannelId                  util.Base64UUID `json:"channel_id"`
+		ExternalChannelDisplayName string          `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string          `json:"external_channel_icon_url"`
+		ExternalVideoCreatedAt     time.Time       `json:"external_video_created_at"`
+		ExternalVideoLengthSeconds int             `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string          `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string          `json:"external_video_title"`
+		LastWatchSeconds           *int            `json:"last_watch_seconds,omitempty"`
+		VideoId                    util.Base64UUID `json:"video_id"`
 	} `json:"items"`
 }
 
@@ -11282,7 +11282,7 @@ func (response GetPlaylistsPlaylistIdVideos500JSONResponse) VisitGetPlaylistsPla
 }
 
 type PostPlaylistsPlaylistIdVideosRequestObject struct {
-	PlaylistId uuid.UUID `json:"playlist_id"`
+	PlaylistId util.Base64UUID `json:"playlist_id"`
 	Params     PostPlaylistsPlaylistIdVideosParams
 	Body       *PostPlaylistsPlaylistIdVideosJSONRequestBody
 }
@@ -11292,9 +11292,9 @@ type PostPlaylistsPlaylistIdVideosResponseObject interface {
 }
 
 type PostPlaylistsPlaylistIdVideos201JSONResponse struct {
-	InsertedAt time.Time `json:"inserted_at"`
-	PlaylistId uuid.UUID `json:"playlist_id"`
-	VideoId    uuid.UUID `json:"video_id"`
+	InsertedAt time.Time       `json:"inserted_at"`
+	PlaylistId util.Base64UUID `json:"playlist_id"`
+	VideoId    util.Base64UUID `json:"video_id"`
 }
 
 func (response PostPlaylistsPlaylistIdVideos201JSONResponse) VisitPostPlaylistsPlaylistIdVideosResponse(w http.ResponseWriter) error {
@@ -11383,18 +11383,18 @@ type GetSearch200JSONResponse struct {
 	HasNext   bool    `json:"has_next"`
 	ItemCount int     `json:"item_count"`
 	Items     []struct {
-		ChannelId                  uuid.UUID `json:"channel_id"`
-		ExternalChannelDisplayName string    `json:"external_channel_display_name"`
-		ExternalChannelIconUrl     string    `json:"external_channel_icon_url"`
-		ExternalChannelId          string    `json:"external_channel_id"`
-		ExternalVideoCreatedAt     time.Time `json:"external_video_created_at"`
-		ExternalVideoDescription   string    `json:"external_video_description"`
-		ExternalVideoId            string    `json:"external_video_id"`
-		ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
-		ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
-		ExternalVideoTitle         string    `json:"external_video_title"`
-		LastWatchSeconds           *int      `json:"last_watch_seconds,omitempty"`
-		VideoId                    uuid.UUID `json:"video_id"`
+		ChannelId                  util.Base64UUID `json:"channel_id"`
+		ExternalChannelDisplayName string          `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string          `json:"external_channel_icon_url"`
+		ExternalChannelId          string          `json:"external_channel_id"`
+		ExternalVideoCreatedAt     time.Time       `json:"external_video_created_at"`
+		ExternalVideoDescription   string          `json:"external_video_description"`
+		ExternalVideoId            string          `json:"external_video_id"`
+		ExternalVideoLengthSeconds int             `json:"external_video_length_seconds"`
+		ExternalVideoThumbnailUrl  string          `json:"external_video_thumbnail_url"`
+		ExternalVideoTitle         string          `json:"external_video_title"`
+		LastWatchSeconds           *int            `json:"last_watch_seconds,omitempty"`
+		VideoId                    util.Base64UUID `json:"video_id"`
 	} `json:"items"`
 }
 
@@ -11927,7 +11927,7 @@ type GetUsersMeSessions200JSONResponse struct {
 		DeviceType string `json:"device_type"`
 
 		// Id ID
-		Id uuid.UUID `json:"id"`
+		Id util.Base64UUID `json:"id"`
 
 		// IpAddress IPアドレス
 		IpAddress string `json:"ip_address"`
@@ -12013,7 +12013,7 @@ func (response GetUsersMeSessions500JSONResponse) VisitGetUsersMeSessionsRespons
 }
 
 type DeleteUsersMeSessionsSessionIdRequestObject struct {
-	SessionId uuid.UUID `json:"session_id"`
+	SessionId util.Base64UUID `json:"session_id"`
 	Params    DeleteUsersMeSessionsSessionIdParams
 }
 
@@ -12095,7 +12095,7 @@ func (response DeleteUsersMeSessionsSessionId500JSONResponse) VisitDeleteUsersMe
 }
 
 type GetVideosVideoIdRequestObject struct {
-	VideoId uuid.UUID `json:"video_id"`
+	VideoId util.Base64UUID `json:"video_id"`
 	Params  GetVideosVideoIdParams
 }
 
@@ -12105,23 +12105,23 @@ type GetVideosVideoIdResponseObject interface {
 
 type GetVideosVideoId200JSONResponse struct {
 	// ChannelCustomId チャンネルのハンドル名
-	ChannelCustomId                 string    `json:"channel_custom_id"`
-	ChannelId                       uuid.UUID `json:"channel_id"`
-	ExternalChannelDisplayName      string    `json:"external_channel_display_name"`
-	ExternalChannelIconUrl          string    `json:"external_channel_icon_url"`
-	ExternalChannelSubscribersCount int       `json:"external_channel_subscribers_count"`
-	ExternalVideoCreatedAt          time.Time `json:"external_video_created_at"`
-	ExternalVideoDescription        string    `json:"external_video_description"`
-	ExternalVideoId                 string    `json:"external_video_id"`
-	ExternalVideoThumbnailUrl       string    `json:"external_video_thumbnail_url"`
-	ExternalVideoTitle              string    `json:"external_video_title"`
+	ChannelCustomId                 string          `json:"channel_custom_id"`
+	ChannelId                       util.Base64UUID `json:"channel_id"`
+	ExternalChannelDisplayName      string          `json:"external_channel_display_name"`
+	ExternalChannelIconUrl          string          `json:"external_channel_icon_url"`
+	ExternalChannelSubscribersCount int             `json:"external_channel_subscribers_count"`
+	ExternalVideoCreatedAt          time.Time       `json:"external_video_created_at"`
+	ExternalVideoDescription        string          `json:"external_video_description"`
+	ExternalVideoId                 string          `json:"external_video_id"`
+	ExternalVideoThumbnailUrl       string          `json:"external_video_thumbnail_url"`
+	ExternalVideoTitle              string          `json:"external_video_title"`
 
 	// IsInWatchLater あとで見るプレイリストに入っているかどうか
 	IsInWatchLater bool `json:"is_in_watch_later"`
 
 	// IsWatched ユーザーが視聴済みかどうか
-	IsWatched bool      `json:"is_watched"`
-	VideoId   uuid.UUID `json:"video_id"`
+	IsWatched bool            `json:"is_watched"`
+	VideoId   util.Base64UUID `json:"video_id"`
 }
 
 func (response GetVideosVideoId200JSONResponse) VisitGetVideosVideoIdResponse(w http.ResponseWriter) error {
@@ -12197,7 +12197,7 @@ func (response GetVideosVideoId500JSONResponse) VisitGetVideosVideoIdResponse(w 
 }
 
 type PostVideosVideoIdHeartbeatsRequestObject struct {
-	VideoId uuid.UUID `json:"video_id"`
+	VideoId util.Base64UUID `json:"video_id"`
 	Params  PostVideosVideoIdHeartbeatsParams
 	Body    *PostVideosVideoIdHeartbeatsJSONRequestBody
 }
@@ -12284,7 +12284,7 @@ func (response PostVideosVideoIdHeartbeats500JSONResponse) VisitPostVideosVideoI
 }
 
 type DeleteVideosVideoIdWatchLaterRequestObject struct {
-	VideoId uuid.UUID `json:"video_id"`
+	VideoId util.Base64UUID `json:"video_id"`
 	Params  DeleteVideosVideoIdWatchLaterParams
 }
 
@@ -12357,7 +12357,7 @@ func (response DeleteVideosVideoIdWatchLater500JSONResponse) VisitDeleteVideosVi
 }
 
 type PostVideosVideoIdWatchLaterRequestObject struct {
-	VideoId uuid.UUID `json:"video_id"`
+	VideoId util.Base64UUID `json:"video_id"`
 	Params  PostVideosVideoIdWatchLaterParams
 }
 
@@ -12430,7 +12430,7 @@ func (response PostVideosVideoIdWatchLater500JSONResponse) VisitPostVideosVideoI
 }
 
 type DeleteVideosVideoIdWatchedRequestObject struct {
-	VideoId uuid.UUID `json:"video_id"`
+	VideoId util.Base64UUID `json:"video_id"`
 	Params  DeleteVideosVideoIdWatchedParams
 }
 
@@ -12503,7 +12503,7 @@ func (response DeleteVideosVideoIdWatched500JSONResponse) VisitDeleteVideosVideo
 }
 
 type PostVideosVideoIdWatchedRequestObject struct {
-	VideoId uuid.UUID `json:"video_id"`
+	VideoId util.Base64UUID `json:"video_id"`
 	Params  PostVideosVideoIdWatchedParams
 }
 
@@ -13039,7 +13039,7 @@ func (sh *strictHandler) GetChannelsSubscribed(w http.ResponseWriter, r *http.Re
 }
 
 // GetChannelsChannelId operation middleware
-func (sh *strictHandler) GetChannelsChannelId(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params GetChannelsChannelIdParams) {
+func (sh *strictHandler) GetChannelsChannelId(w http.ResponseWriter, r *http.Request, channelId util.Base64UUID, params GetChannelsChannelIdParams) {
 	var request GetChannelsChannelIdRequestObject
 
 	request.ChannelId = channelId
@@ -13066,7 +13066,7 @@ func (sh *strictHandler) GetChannelsChannelId(w http.ResponseWriter, r *http.Req
 }
 
 // GetChannelsChannelIdPlaylists operation middleware
-func (sh *strictHandler) GetChannelsChannelIdPlaylists(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params GetChannelsChannelIdPlaylistsParams) {
+func (sh *strictHandler) GetChannelsChannelIdPlaylists(w http.ResponseWriter, r *http.Request, channelId util.Base64UUID, params GetChannelsChannelIdPlaylistsParams) {
 	var request GetChannelsChannelIdPlaylistsRequestObject
 
 	request.ChannelId = channelId
@@ -13093,7 +13093,7 @@ func (sh *strictHandler) GetChannelsChannelIdPlaylists(w http.ResponseWriter, r 
 }
 
 // DeleteChannelsChannelIdSubscribe operation middleware
-func (sh *strictHandler) DeleteChannelsChannelIdSubscribe(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params DeleteChannelsChannelIdSubscribeParams) {
+func (sh *strictHandler) DeleteChannelsChannelIdSubscribe(w http.ResponseWriter, r *http.Request, channelId util.Base64UUID, params DeleteChannelsChannelIdSubscribeParams) {
 	var request DeleteChannelsChannelIdSubscribeRequestObject
 
 	request.ChannelId = channelId
@@ -13120,7 +13120,7 @@ func (sh *strictHandler) DeleteChannelsChannelIdSubscribe(w http.ResponseWriter,
 }
 
 // GetChannelsChannelIdVideos operation middleware
-func (sh *strictHandler) GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request, channelId uuid.UUID, params GetChannelsChannelIdVideosParams) {
+func (sh *strictHandler) GetChannelsChannelIdVideos(w http.ResponseWriter, r *http.Request, channelId util.Base64UUID, params GetChannelsChannelIdVideosParams) {
 	var request GetChannelsChannelIdVideosRequestObject
 
 	request.ChannelId = channelId
@@ -13313,7 +13313,7 @@ func (sh *strictHandler) GetPlaylistsRecent(w http.ResponseWriter, r *http.Reque
 }
 
 // DeletePlaylistsPlaylistId operation middleware
-func (sh *strictHandler) DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params DeletePlaylistsPlaylistIdParams) {
+func (sh *strictHandler) DeletePlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params DeletePlaylistsPlaylistIdParams) {
 	var request DeletePlaylistsPlaylistIdRequestObject
 
 	request.PlaylistId = playlistId
@@ -13340,7 +13340,7 @@ func (sh *strictHandler) DeletePlaylistsPlaylistId(w http.ResponseWriter, r *htt
 }
 
 // GetPlaylistsPlaylistId operation middleware
-func (sh *strictHandler) GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params GetPlaylistsPlaylistIdParams) {
+func (sh *strictHandler) GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params GetPlaylistsPlaylistIdParams) {
 	var request GetPlaylistsPlaylistIdRequestObject
 
 	request.PlaylistId = playlistId
@@ -13367,7 +13367,7 @@ func (sh *strictHandler) GetPlaylistsPlaylistId(w http.ResponseWriter, r *http.R
 }
 
 // PatchPlaylistsPlaylistId operation middleware
-func (sh *strictHandler) PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params PatchPlaylistsPlaylistIdParams) {
+func (sh *strictHandler) PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params PatchPlaylistsPlaylistIdParams) {
 	var request PatchPlaylistsPlaylistIdRequestObject
 
 	request.PlaylistId = playlistId
@@ -13404,7 +13404,7 @@ func (sh *strictHandler) PatchPlaylistsPlaylistId(w http.ResponseWriter, r *http
 }
 
 // PostPlaylistsPlaylistIdCopy operation middleware
-func (sh *strictHandler) PostPlaylistsPlaylistIdCopy(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params PostPlaylistsPlaylistIdCopyParams) {
+func (sh *strictHandler) PostPlaylistsPlaylistIdCopy(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params PostPlaylistsPlaylistIdCopyParams) {
 	var request PostPlaylistsPlaylistIdCopyRequestObject
 
 	request.PlaylistId = playlistId
@@ -13441,7 +13441,7 @@ func (sh *strictHandler) PostPlaylistsPlaylistIdCopy(w http.ResponseWriter, r *h
 }
 
 // DeletePlaylistsPlaylistIdVideos operation middleware
-func (sh *strictHandler) DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params DeletePlaylistsPlaylistIdVideosParams) {
+func (sh *strictHandler) DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params DeletePlaylistsPlaylistIdVideosParams) {
 	var request DeletePlaylistsPlaylistIdVideosRequestObject
 
 	request.PlaylistId = playlistId
@@ -13468,7 +13468,7 @@ func (sh *strictHandler) DeletePlaylistsPlaylistIdVideos(w http.ResponseWriter, 
 }
 
 // GetPlaylistsPlaylistIdVideos operation middleware
-func (sh *strictHandler) GetPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params GetPlaylistsPlaylistIdVideosParams) {
+func (sh *strictHandler) GetPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params GetPlaylistsPlaylistIdVideosParams) {
 	var request GetPlaylistsPlaylistIdVideosRequestObject
 
 	request.PlaylistId = playlistId
@@ -13495,7 +13495,7 @@ func (sh *strictHandler) GetPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *
 }
 
 // PostPlaylistsPlaylistIdVideos operation middleware
-func (sh *strictHandler) PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId uuid.UUID, params PostPlaylistsPlaylistIdVideosParams) {
+func (sh *strictHandler) PostPlaylistsPlaylistIdVideos(w http.ResponseWriter, r *http.Request, playlistId util.Base64UUID, params PostPlaylistsPlaylistIdVideosParams) {
 	var request PostPlaylistsPlaylistIdVideosRequestObject
 
 	request.PlaylistId = playlistId
@@ -13731,7 +13731,7 @@ func (sh *strictHandler) GetUsersMeSessions(w http.ResponseWriter, r *http.Reque
 }
 
 // DeleteUsersMeSessionsSessionId operation middleware
-func (sh *strictHandler) DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId uuid.UUID, params DeleteUsersMeSessionsSessionIdParams) {
+func (sh *strictHandler) DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId util.Base64UUID, params DeleteUsersMeSessionsSessionIdParams) {
 	var request DeleteUsersMeSessionsSessionIdRequestObject
 
 	request.SessionId = sessionId
@@ -13758,7 +13758,7 @@ func (sh *strictHandler) DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r
 }
 
 // GetVideosVideoId operation middleware
-func (sh *strictHandler) GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params GetVideosVideoIdParams) {
+func (sh *strictHandler) GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params GetVideosVideoIdParams) {
 	var request GetVideosVideoIdRequestObject
 
 	request.VideoId = videoId
@@ -13785,7 +13785,7 @@ func (sh *strictHandler) GetVideosVideoId(w http.ResponseWriter, r *http.Request
 }
 
 // PostVideosVideoIdHeartbeats operation middleware
-func (sh *strictHandler) PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdHeartbeatsParams) {
+func (sh *strictHandler) PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params PostVideosVideoIdHeartbeatsParams) {
 	var request PostVideosVideoIdHeartbeatsRequestObject
 
 	request.VideoId = videoId
@@ -13819,7 +13819,7 @@ func (sh *strictHandler) PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *h
 }
 
 // DeleteVideosVideoIdWatchLater operation middleware
-func (sh *strictHandler) DeleteVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params DeleteVideosVideoIdWatchLaterParams) {
+func (sh *strictHandler) DeleteVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params DeleteVideosVideoIdWatchLaterParams) {
 	var request DeleteVideosVideoIdWatchLaterRequestObject
 
 	request.VideoId = videoId
@@ -13846,7 +13846,7 @@ func (sh *strictHandler) DeleteVideosVideoIdWatchLater(w http.ResponseWriter, r 
 }
 
 // PostVideosVideoIdWatchLater operation middleware
-func (sh *strictHandler) PostVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdWatchLaterParams) {
+func (sh *strictHandler) PostVideosVideoIdWatchLater(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params PostVideosVideoIdWatchLaterParams) {
 	var request PostVideosVideoIdWatchLaterRequestObject
 
 	request.VideoId = videoId
@@ -13873,7 +13873,7 @@ func (sh *strictHandler) PostVideosVideoIdWatchLater(w http.ResponseWriter, r *h
 }
 
 // DeleteVideosVideoIdWatched operation middleware
-func (sh *strictHandler) DeleteVideosVideoIdWatched(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params DeleteVideosVideoIdWatchedParams) {
+func (sh *strictHandler) DeleteVideosVideoIdWatched(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params DeleteVideosVideoIdWatchedParams) {
 	var request DeleteVideosVideoIdWatchedRequestObject
 
 	request.VideoId = videoId
@@ -13900,7 +13900,7 @@ func (sh *strictHandler) DeleteVideosVideoIdWatched(w http.ResponseWriter, r *ht
 }
 
 // PostVideosVideoIdWatched operation middleware
-func (sh *strictHandler) PostVideosVideoIdWatched(w http.ResponseWriter, r *http.Request, videoId uuid.UUID, params PostVideosVideoIdWatchedParams) {
+func (sh *strictHandler) PostVideosVideoIdWatched(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params PostVideosVideoIdWatchedParams) {
 	var request PostVideosVideoIdWatchedRequestObject
 
 	request.VideoId = videoId
