@@ -10,6 +10,7 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
+	"github.com/brqnko/anti-yt/backend/internal/playlist"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -37,8 +38,16 @@ func NewService(db *pgxpool.Pool, jwtService jwt_d.Service, serverURL string) *S
 	}
 }
 
-func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailyScreenLimit *int, screenLimits []struct{ Start, End int }, displayName string, languageCode string, loc *time.Location) (_ *User, _ string, _ time.Time, err error) {
-	defer util.Wrap(&err, "Service.CreateNewUser")
+func (s *Service) CreateNewUser(
+	ctx context.Context,
+	accessToken string,
+	dailyScreenLimit *int,
+	screenLimits []struct{ Start, End int },
+	displayName string,
+	languageCode string,
+	loc *time.Location,
+) (_ *User, _ string, _ time.Time, err error) {
+	defer util.Wrap(&err, "user.(*Service).CreateNewUser")
 
 	authorizationID, jti, err := s.jwtService.VerifyRegisterToken(accessToken)
 	if err != nil {
@@ -65,6 +74,11 @@ func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailySc
 	}()
 	q := sqlc.New(tx)
 
+	// jti blacklist検証
+	if _, err := q.FindBlacklistedJTI(ctx, jti); err == nil {
+		return nil, "", time.Time{}, core.ErrJTIBlacklisted
+	}
+
 	// 勧告ロック
 	if err := database_d.TryAdLock(ctx, q, authorizationID[:]); err != nil {
 		return nil, "", time.Time{}, err
@@ -90,11 +104,30 @@ func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailySc
 		return nil, "", time.Time{}, err
 	}
 
+	// watch laterのプレイリストを作成する
+	watchLaterPlaylist, err := playlist.NewPlaylist(
+		user.ID,
+		"watch later",
+		"",
+		"private",
+		"watch_later",
+	)
+	if err != nil {
+		return nil, "", time.Time{}, err
+	}
+	if _, err := playlist.NewPlaylistRepository(q).Save(ctx, watchLaterPlaylist); err != nil {
+		return nil, "", time.Time{}, err
+	}
+
 	if err := tx.Commit(ctx); err != nil {
 		return nil, "", time.Time{}, err
 	}
 
-	// ユーザー作成成功後、UserAccessTokenを発行する（RegisterTokenからの切り替え）
+	// ユーザー作成成功後、UserAccessTokenを発行する
+	jti, err = uuid.NewV7()
+	if err != nil {
+		return nil, "", time.Time{}, err
+	}
 	newAccessToken, accessTokenExpiresAt, err := s.jwtService.SignUserAccessToken(user.ID, jti, s.serverURL)
 	if err != nil {
 		return nil, "", time.Time{}, err
@@ -104,7 +137,7 @@ func (s *Service) CreateNewUser(ctx context.Context, accessToken string, dailySc
 }
 
 func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName, newLanguageCode *string, newDailyScreenLimit *int, newScreenLimits *[]struct{ Start, End int }, loc *time.Location) (_ *User, err error) {
-	defer util.Wrap(&err, "Service.EditUser(userID=%s)", userID)
+	defer util.Wrap(&err, "user.(*Service).EditUser(userID=%s)", userID)
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -159,7 +192,7 @@ func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName
 }
 
 func (s *Service) GetUserStatus(ctx context.Context, userID uuid.UUID) (_ UserStatusView, err error) {
-	defer util.Wrap(&err, "Service.GetUserStatus")
+	defer util.Wrap(&err, "user.(*Service).GetUserStatus")
 
 	view, err := s.userQS.Find(ctx, userID)
 	if err != nil {
@@ -169,7 +202,7 @@ func (s *Service) GetUserStatus(ctx context.Context, userID uuid.UUID) (_ UserSt
 }
 
 func (s *Service) RemoveUser(ctx context.Context, userID uuid.UUID) (err error) {
-	defer util.Wrap(&err, "Service.RemoveUser")
+	defer util.Wrap(&err, "user.(*Service).RemoveUser")
 
 	if err := NewUserRepository(sqlc.New(s.db)).Remove(ctx, userID, LeaveReasonCode(0)); err != nil {
 		return err

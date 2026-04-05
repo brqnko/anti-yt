@@ -1,15 +1,23 @@
-FROM alpine:3.23
+FROM debian:bookworm-slim
 
 ARG TARGETARCH
 
-RUN apk add --no-cache \
-    go \
-    nodejs npm \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git openssh-client \
     nginx \
-    sudo curl wget bash unzip jq
+    sudo curl wget bash unzip jq ca-certificates gnupg \
+    && curl -fsSL https://deb.nodesource.com/setup_25.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
+RUN wget -O /tmp/go.tar.gz \
+        https://go.dev/dl/go1.26.1.linux-${TARGETARCH}.tar.gz \
+    && tar -C /usr/local -xzf /tmp/go.tar.gz \
+    && rm /tmp/go.tar.gz
+
+ENV GOROOT=/usr/local/go
 ENV GOPATH=/root/go
-ENV PATH="/usr/local/go/bin:${PATH}"
+ENV PATH="${GOROOT}/bin:${PATH}"
 ENV PATH="${GOPATH}/bin:${PATH}"
 
 RUN wget -O /tmp/tbls.tar.gz \

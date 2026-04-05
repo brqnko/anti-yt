@@ -71,7 +71,14 @@ SELECT
             t_video_watch.watch_start_at DESC
         LIMIT
             1
-    ), 0)::int AS last_watch_seconds
+    ), 0)::int AS last_watch_seconds,
+    EXISTS (
+        SELECT 1 FROM t_video_watched
+        WHERE t_video_watched.m_video_id = m_video.m_video_id
+            AND t_video_watched.m_user_id = (
+                SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_id LIMIT 1
+            )
+    )::bool AS is_watched
 FROM
     m_video
     INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
@@ -116,7 +123,14 @@ SELECT
             t_video_watch.watch_start_at DESC
         LIMIT
             1
-    ), 0)::int AS last_watch_seconds
+    ), 0)::int AS last_watch_seconds,
+    EXISTS (
+        SELECT 1 FROM t_video_watched
+        WHERE t_video_watched.m_video_id = m_video.m_video_id
+            AND t_video_watched.m_user_id = (
+                SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_id LIMIT 1
+            )
+    )::bool AS is_watched
 FROM
     m_video
     INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
@@ -215,7 +229,19 @@ SELECT
             AND t_video_watched.m_user_id = (
                 SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_id LIMIT 1
             )
-    )::bool AS is_watched
+    )::bool AS is_watched,
+    EXISTS (
+        SELECT 1 FROM m_playlist_video pv
+        WHERE pv.m_playlist_id = (
+                SELECT p.m_playlist_id FROM m_playlist p
+                WHERE p.m_user_id = (
+                        SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_id LIMIT 1
+                    )
+                    AND p.playlist_code = 2
+                LIMIT 1
+            )
+            AND pv.m_video_id = video.m_video_id
+    )::bool AS is_in_watch_later
 FROM
     m_video video
     INNER JOIN m_channel channel ON video.m_channel_id = channel.m_channel_id

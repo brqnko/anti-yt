@@ -40,6 +40,7 @@ type MChannel struct {
 	PublicID                  uuid.UUID
 	RssFetchedAt              time.Time
 	ExternalUploadsPlaylistID string
+	BulkFetchedAt             time.Time
 }
 
 type MPlaylist struct {

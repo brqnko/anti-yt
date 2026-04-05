@@ -9,6 +9,7 @@ import { formatTime, parseTimeToMinutes } from "../../utils/format";
 import type { TimeRange } from "../../types/time-range";
 import type { GetChannelsSubscribed200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
+import { Dialog } from "../../components/Dialog";
 
 function RemoveChannelDialog({
   open,
@@ -32,15 +33,6 @@ function RemoveChannelDialog({
     }
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
-
   if (!open || !channel) return null;
 
   const handleConfirm = async () => {
@@ -58,15 +50,7 @@ function RemoveChannelDialog({
   };
 
   return (
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl ring-1 ring-black/10 dark:ring-white/10 border border-gray-100 dark:border-neutral-800 p-8 max-w-sm w-full">
-        <button
-          class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
-          onClick={onClose}
-        >
-          <Icon name="close" />
-        </button>
+    <Dialog open={open} onClose={onClose} ariaLabel={t("restrictions.removeChannelDialog.title")} maxWidth="max-w-sm" showCloseButton>
         <div class="flex items-center gap-3 mb-4">
           <h2 class="text-lg font-bold text-charcoal dark:text-white">
             {t("restrictions.removeChannelDialog.title")}
@@ -107,8 +91,7 @@ function RemoveChannelDialog({
               : t("restrictions.removeChannelDialog.remove")}
           </button>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }
 
@@ -127,8 +110,8 @@ export function RestrictionsTab() {
     const { getUsersMeStatus } = getUser();
     getUsersMeStatus().then((user) => {
       setTimeRanges(
-        (user.screen_time ?? []).map((slot) => ({
-          id: slot.id,
+        (user.screen_time ?? []).map((slot, i) => ({
+          id: String(i),
           startMinutes: parseTimeToMinutes(slot.start_time),
           endMinutes: parseTimeToMinutes(slot.end_time),
         })),

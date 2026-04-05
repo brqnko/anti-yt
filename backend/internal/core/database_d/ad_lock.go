@@ -13,7 +13,7 @@ import (
 func TryAdLock(ctx context.Context, q sqlc.Querier, key []byte) (err error) {
 	hash := sha256.Sum256(key)
 	lockKey := int64(binary.BigEndian.Uint64(hash[:8]))
-	defer util.Wrap(&err, "TryAdLock(key=%d)", lockKey)
+	defer util.Wrap(&err, "database_d.TryAdLock(key=%d)", lockKey)
 
 	acquired, err := q.TryAcquireAdvisoryXactLock(ctx, lockKey)
 	if err != nil {
@@ -21,6 +21,22 @@ func TryAdLock(ctx context.Context, q sqlc.Querier, key []byte) (err error) {
 	}
 	if !acquired {
 		return errors.New("lock not acquired")
+	}
+
+	return nil
+}
+
+func ReleaseAdLock(ctx context.Context, q sqlc.Querier, key []byte) (err error) {
+	hash := sha256.Sum256(key)
+	lockKey := int64(binary.BigEndian.Uint64(hash[:8]))
+	defer util.Wrap(&err, "database_d.ReleaseAdLock(key=%d)", lockKey)
+
+	released, err := q.ReleaseAdvisoryLock(ctx, lockKey)
+	if err != nil {
+		return err
+	}
+	if !released {
+		return errors.New("lock not released")
 	}
 
 	return nil

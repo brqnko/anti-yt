@@ -13,6 +13,7 @@ var (
 	requestTokensRequiredPathPrefixes = []string{
 		"/api/v1/auth/logout",
 		"/api/v1/auth/refresh",
+		"/api/v1/auth/reactivate",
 	}
 )
 

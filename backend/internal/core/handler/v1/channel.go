@@ -76,6 +76,7 @@ func (h *APIHandler) GetChannelsChannelIdVideos(ctx context.Context, request Get
 		ExternalVideoLengthSeconds int       `json:"external_video_length_seconds"`
 		ExternalVideoThumbnailUrl  string    `json:"external_video_thumbnail_url"`
 		ExternalVideoTitle         string    `json:"external_video_title"`
+		IsWatched                  bool      `json:"is_watched"`
 		LastWatchSeconds           *int      `json:"last_watch_seconds,omitempty"`
 		VideoId                    uuid.UUID `json:"video_id"`
 	}, len(videos))
@@ -87,6 +88,7 @@ func (h *APIHandler) GetChannelsChannelIdVideos(ctx context.Context, request Get
 		items[i].ExternalVideoTitle = v.ExternalVideoTitle
 		items[i].ExternalVideoCreatedAt = v.ExternalVideoCreatedAt.In(loc)
 		items[i].ExternalVideoLengthSeconds = v.ExternalVideoLengthSeconds
+		items[i].IsWatched = v.IsWatched
 		items[i].LastWatchSeconds = v.LastWatchSeconds
 	}
 

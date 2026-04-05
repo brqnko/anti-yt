@@ -12,6 +12,7 @@ import "./i18n";
 
 const Home = lazy(() => import("./pages/Home/index.jsx"));
 const Register = lazy(() => import("./pages/Register/index.jsx"));
+const Reactivation = lazy(() => import("./pages/Reactivation/index.jsx"));
 const Terms = lazy(() => import("./pages/Terms/index.jsx"));
 const Privacy = lazy(() => import("./pages/Privacy/index.jsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard/index.jsx"));
@@ -48,6 +49,7 @@ function AppContent() {
       <Route path="/profile" component={Profile} />
       <Route path="/screen-time-settings" component={ScreenTimeSettings} />
       <Route path="/register" component={Register} />
+      <Route path="/reactivation" component={Reactivation} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       <Route default component={NotFound} />

@@ -2,14 +2,16 @@ import { useState, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { mutate } from "swr";
 import { getPlaylist } from "../api/generated/playlist";
+import type { PostPlaylists201 } from "../api/generated/antiYtApi.schemas";
 import { CACHE_KEYS } from "../api/cache-keys";
 import { getApiErrorCode } from "../utils/api-error";
+import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
 
 interface AddPlaylistDialogProps {
   open: boolean;
   onClose: () => void;
-  onAdded: () => void;
+  onAdded: (playlist: PostPlaylists201) => void;
 }
 
 export function AddPlaylistDialog({
@@ -34,24 +36,6 @@ export function AddPlaylistDialog({
     }
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    document.body.style.overflow = "hidden";
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (e.key === "a" && (e.metaKey || e.ctrlKey)) {
-        const target = e.target as HTMLElement;
-        const isEditable = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
-        if (!isEditable) e.preventDefault();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open, onClose]);
-
   if (!open) return null;
 
   const handleSubmit = async () => {
@@ -60,7 +44,7 @@ export function AddPlaylistDialog({
     setIsSubmitting(true);
     setError(null);
     try {
-      await getPlaylist().postPlaylists({
+      const res = await getPlaylist().postPlaylists({
         playlist_title: trimmedTitle,
         playlist_description: description.trim(),
         playlist_type: "normal",
@@ -68,7 +52,7 @@ export function AddPlaylistDialog({
         ...(importUrl.trim() ? { base_playlist_url: importUrl.trim() } : {}),
       });
       await mutate(CACHE_KEYS.dashboardPlaylists);
-      onAdded();
+      onAdded(res);
       onClose();
     } catch (err) {
       const code = getApiErrorCode(err);
@@ -79,24 +63,7 @@ export function AddPlaylistDialog({
   };
 
   return (
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("dashboard.addPlaylistDialog.title")}
-    >
-      <div
-        class="absolute inset-0 bg-black/60"
-        onClick={onClose}
-      />
-      <div class="relative bg-white dark:bg-[#2a2721] rounded-2xl ring-1 ring-black/10 dark:ring-white/10 border border-gray-100 dark:border-neutral-800 p-8 max-w-md w-full">
-        <button
-          class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
-          onClick={onClose}
-          aria-label={t("dashboard.addPlaylistDialog.cancel")}
-        >
-          <Icon name="close" />
-        </button>
+    <Dialog open={open} onClose={onClose} ariaLabel={t("dashboard.addPlaylistDialog.title")} showCloseButton closeButtonLabel={t("dashboard.addPlaylistDialog.cancel")}>
         <h2 class="text-2xl font-bold text-charcoal dark:text-white mb-5">
           {t("dashboard.addPlaylistDialog.title")}
         </h2>
@@ -185,7 +152,6 @@ export function AddPlaylistDialog({
               : t("dashboard.addPlaylistDialog.add")}
           </button>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }

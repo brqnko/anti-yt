@@ -34,7 +34,7 @@ var leaveReasonCodeMap = []struct {
 }
 
 func NewLeaveReasonCode(s string) (_ LeaveReasonCode, err error) {
-	defer util.Wrap(&err, "NewLeaveReasonCode")
+	defer util.Wrap(&err, "user.NewLeaveReasonCode")
 
 	for _, c := range leaveReasonCodeMap {
 		if s == c.str {
@@ -67,9 +67,9 @@ type DailyScreenTimeLimit struct {
 }
 
 func NewDailyScreenTimeLimit(seconds *int) (_ DailyScreenTimeLimit, err error) {
-	defer util.Wrap(&err, "NewDailyScreenTimeLimit")
+	defer util.Wrap(&err, "user.NewDailyScreenTimeLimit")
 
-	if seconds == nil || *seconds >= int((24 * time.Hour).Seconds()) {
+	if seconds == nil || *seconds >= int((24*time.Hour).Seconds()) {
 		return DailyScreenTimeLimit{duration: nil}, nil
 	}
 
@@ -103,7 +103,7 @@ func (d DailyScreenTimeLimit) ToIntPtr() *int {
 type DisplayName string
 
 func NewDisplayName(s string) (_ DisplayName, err error) {
-	defer util.Wrap(&err, "NewDisplayName")
+	defer util.Wrap(&err, "user.NewDisplayName")
 
 	str := strings.TrimSpace(s)
 
@@ -133,7 +133,7 @@ var languageCodeMap = []struct {
 }
 
 func NewLanguageCode(value string) (_ LanguageCode, err error) {
-	defer util.Wrap(&err, "NewLanguageCode")
+	defer util.Wrap(&err, "user.NewLanguageCode")
 
 	for _, c := range languageCodeMap {
 		if value == c.str {
@@ -149,13 +149,12 @@ func (l LanguageCode) String() string {
 }
 
 type DailyScreenTimeLimitRange struct {
-	ID               uuid.UUID
 	StartTimeSeconds int
 	EndTimeSeconds   int
 }
 
 func NewDailyScreenTimeLimitRange(startTimeSeconds, endTimeSeconds int) (_ DailyScreenTimeLimitRange, err error) {
-	defer util.Wrap(&err, "NewDailyScreenTimeLimitRange")
+	defer util.Wrap(&err, "user.NewDailyScreenTimeLimitRange")
 
 	if startTimeSeconds >= endTimeSeconds {
 		return DailyScreenTimeLimitRange{}, ErrDailyScreenTimeLimitRangeOrder
@@ -168,13 +167,7 @@ func NewDailyScreenTimeLimitRange(startTimeSeconds, endTimeSeconds int) (_ Daily
 		return DailyScreenTimeLimitRange{}, ErrDailyScreenTimeLimitOutOfRange
 	}
 
-	id, err := uuid.NewV7()
-	if err != nil {
-		return DailyScreenTimeLimitRange{}, err
-	}
-
 	return DailyScreenTimeLimitRange{
-		ID:               id,
 		StartTimeSeconds: startTimeSeconds,
 		EndTimeSeconds:   endTimeSeconds,
 	}, nil
@@ -185,7 +178,7 @@ type DailyScreenTimeLimitRangeSet struct {
 }
 
 func NewDailyScreenTimeLimitRangeSet(screenLimits []struct{ Start, End int }, loc *time.Location) (_ *DailyScreenTimeLimitRangeSet, err error) {
-	defer util.Wrap(&err, "NewDailyScreenTimeLimitRangeSet")
+	defer util.Wrap(&err, "user.NewDailyScreenTimeLimitRangeSet")
 
 	// ローカル時刻の秒数をUTC秒数に変換する。
 	// 基準日はタイムゾーンオフセットの計算にのみ使うため任意の日付でよい。
@@ -312,7 +305,7 @@ func WithUserJoinedAt(joinedAt time.Time) UserOption {
 }
 
 func (u *User) SetDisplayName(displayName *string) (err error) {
-	defer util.Wrap(&err, "User.SetDisplayName")
+	defer util.Wrap(&err, "user.(*User).SetDisplayName")
 
 	if displayName == nil {
 		return nil
@@ -326,7 +319,7 @@ func (u *User) SetDisplayName(displayName *string) (err error) {
 }
 
 func (u *User) SetLanguageCode(languageCode *string) (err error) {
-	defer util.Wrap(&err, "User.SetLanguageCode")
+	defer util.Wrap(&err, "user.(*User).SetLanguageCode")
 
 	if languageCode == nil {
 		return nil
@@ -340,7 +333,7 @@ func (u *User) SetLanguageCode(languageCode *string) (err error) {
 }
 
 func (u *User) SetScreenTimeLimit(dailyScreenLimit *int) (err error) {
-	defer util.Wrap(&err, "User.SetScreenTimeLimit")
+	defer util.Wrap(&err, "user.(*User).SetScreenTimeLimit")
 
 	if dailyScreenLimit == nil {
 		return nil
@@ -354,7 +347,7 @@ func (u *User) SetScreenTimeLimit(dailyScreenLimit *int) (err error) {
 }
 
 func NewUser(displayName string, languageCode string, dailyScreenLimit *int, opts ...UserOption) (_ *User, err error) {
-	defer util.Wrap(&err, "NewUser")
+	defer util.Wrap(&err, "user.NewUser")
 
 	dn, err := NewDisplayName(displayName)
 	if err != nil {

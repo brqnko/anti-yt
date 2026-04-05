@@ -28,7 +28,7 @@ func WithSubscribedChannelSubscribedAt(subscribedAt time.Time) SubscribedChannel
 }
 
 func NewSubscribedChannel(channelID, subscriberID uuid.UUID, opts ...SubscribedChannelOption) (_ *SubscribedChannel, err error) {
-	defer util.Wrap(&err, "NewSubscribedChannel")
+	defer util.Wrap(&err, "channel.NewSubscribedChannel")
 
 	sc := &SubscribedChannel{
 		SubscribedAt: time.Now(),
@@ -44,10 +44,11 @@ func NewSubscribedChannel(channelID, subscriberID uuid.UUID, opts ...SubscribedC
 }
 
 type Channel struct {
-	ID           uuid.UUID
-	FetchedAt    time.Time
-	RSSFetchedAt time.Time
-	Channel      youtube_d.Channel
+	ID            uuid.UUID
+	FetchedAt     time.Time
+	RSSFetchedAt  time.Time
+	BulkFetchedAt time.Time
+	Channel       youtube_d.Channel
 }
 
 type ChannelOption func(*Channel)
@@ -58,8 +59,14 @@ func WithChannelID(id uuid.UUID) ChannelOption {
 	}
 }
 
+func WithBulkFetchedAt(bulkFetchedAt time.Time) ChannelOption {
+	return func(c *Channel) {
+		c.BulkFetchedAt = bulkFetchedAt
+	}
+}
+
 func NewChannel(fetchedAt, rssFetchedAt time.Time, channel youtube_d.Channel, opts ...ChannelOption) (_ *Channel, err error) {
-	defer util.Wrap(&err, "NewChannel")
+	defer util.Wrap(&err, "channel.NewChannel")
 
 	id, err := uuid.NewV7()
 	if err != nil {
@@ -67,10 +74,11 @@ func NewChannel(fetchedAt, rssFetchedAt time.Time, channel youtube_d.Channel, op
 	}
 
 	c := &Channel{
-		ID:           id,
-		FetchedAt:    fetchedAt,
-		RSSFetchedAt: rssFetchedAt,
-		Channel:      channel,
+		ID:            id,
+		FetchedAt:     fetchedAt,
+		RSSFetchedAt:  rssFetchedAt,
+		BulkFetchedAt: time.Now().UTC().AddDate(-1, 0, 0),
+		Channel:       channel,
 	}
 
 	for _, opt := range opts {
@@ -88,10 +96,14 @@ func (c *Channel) MarkAsRSSFetched() {
 	c.RSSFetchedAt = time.Now().UTC()
 }
 
+func (c *Channel) MarkAsBulkFetched() {
+	c.BulkFetchedAt = time.Now().UTC()
+}
+
 type ValuableDescription string
 
 func NewValuableDescription(description string) (_ ValuableDescription, err error) {
-	defer util.Wrap(&err, "NewValuableDescription")
+	defer util.Wrap(&err, "channel.NewValuableDescription")
 
 	if len(description) >= 256 {
 		return "", ErrInvalidValuableDescription
@@ -141,7 +153,7 @@ var (
 )
 
 func NewValuableCategoryCode(str string) (_ ValuableCategoryCode, err error) {
-	defer util.Wrap(&err, "NewValuableCategoryCode")
+	defer util.Wrap(&err, "channel.NewValuableCategoryCode")
 
 	for _, c := range valuableCategoryCodeMap {
 		if str == c.str {
@@ -170,7 +182,7 @@ type ValuableChannel struct {
 
 // これEntityでいいのかな...?
 func NewValuableChannel(channelID uuid.UUID, reasonCode, valuableDescription string) (_ *ValuableChannel, err error) {
-	defer util.Wrap(&err, "NewValuableChannel")
+	defer util.Wrap(&err, "channel.NewValuableChannel")
 
 	rc, err := NewValuableCategoryCode(reasonCode)
 	if err != nil {
@@ -193,7 +205,7 @@ func (vc *ValuableChannel) SetReasonCode(reasonCode *string) (err error) {
 	if reasonCode == nil {
 		return nil
 	}
-	defer util.Wrap(&err, "ValuableChannel.SetReasonCode")
+	defer util.Wrap(&err, "channel.(*ValuableChannel).SetReasonCode")
 
 	rc, err := NewValuableCategoryCode(*reasonCode)
 	if err != nil {
@@ -207,7 +219,7 @@ func (vc *ValuableChannel) SetDescription(description *string) (err error) {
 	if description == nil {
 		return nil
 	}
-	defer util.Wrap(&err, "ValuableChannel.SetDescription")
+	defer util.Wrap(&err, "channel.(*ValuableChannel).SetDescription")
 
 	d, err := NewValuableDescription(*description)
 	if err != nil {

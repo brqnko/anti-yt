@@ -8,6 +8,7 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/channel"
 	"github.com/brqnko/anti-yt/backend/internal/core"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
@@ -21,10 +22,10 @@ import (
 )
 
 var (
-	ErrInvalidCSRFOrState      = core.NewDomainError("auth.invalid_csrf_or_state", "invalid csrf or state")
-	ErrInvalidCSRF             = core.NewDomainError("auth.invalid_csrf", "invalid csrf: csrf != state")
-	ErrIDTokenNotFound         = oidc.ErrIDTokenNotFound
-	ErrNoImportOptionSelected  = core.NewDomainError("auth.no_import_option_selected", "at least one import option must be selected")
+	ErrInvalidCSRFOrState     = core.NewDomainError("auth.invalid_csrf_or_state", "invalid csrf or state")
+	ErrInvalidCSRF            = core.NewDomainError("auth.invalid_csrf", "invalid csrf: csrf != state")
+	ErrIDTokenNotFound        = oidc.ErrIDTokenNotFound
+	ErrNoImportOptionSelected = core.NewDomainError("auth.no_import_option_selected", "at least one import option must be selected")
 )
 
 type Service struct {
@@ -71,7 +72,7 @@ func NewService(
 }
 
 func (s *Service) CreateAuthCode(ctx context.Context, platform string) (_, _ string, err error) {
-	defer util.Wrap(&err, "Service.CreateAuthCode")
+	defer util.Wrap(&err, "auth.(*Service).CreateAuthCode")
 
 	if platform == "" {
 		platform = "web"
@@ -85,8 +86,17 @@ func (s *Service) CreateAuthCode(ctx context.Context, platform string) (_, _ str
 	return s.oidcService.AuthCodeURL(stateToken), stateToken, nil
 }
 
-func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipAddress, countryCode, deviceFingerprint, userAgent string) (_, _, _, _ string, _ string, _, _ time.Time, err error) {
-	defer util.Wrap(&err, "Service.GoogleOIDCCallback")
+func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipAddress, countryCode, deviceFingerprint, userAgent string) (
+	_, // access token
+	_, // refresh token
+	_, // csrf token
+	_, // redirect path
+	_ string, // platform
+	_, // access token expires at
+	_ time.Time, // refresh token expires at
+	err error,
+) {
+	defer util.Wrap(&err, "auth.(*Service).GoogleOIDCCallback")
 
 	if csrf == "" || state == "" {
 		return "", "", "", "", "", time.Time{}, time.Time{}, ErrInvalidCSRFOrState
@@ -175,7 +185,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 
 		return at, refreshTokenRawStr, csrfGenerated, "dashboard", platform, atExp, refreshToken.ExpiresAt, nil
 	} else if err == nil && isDeactivated { // 退会済みだが、レコードが残っている場合
-		at, atExp, err := s.jwtService.SignRegisterToken(authorization.ID, refreshToken.AccessTokenJTI, s.serverURL)
+		accessToken, atExp, err := s.jwtService.SignRegisterToken(authorization.ID, refreshToken.AccessTokenJTI, s.serverURL)
 		if err != nil {
 			return "", "", "", "", "", time.Time{}, time.Time{}, err
 		}
@@ -184,9 +194,9 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 			return "", "", "", "", "", time.Time{}, time.Time{}, err
 		}
 
-		return at, refreshTokenRawStr, csrfGenerated, "reactivation", platform, atExp, refreshToken.ExpiresAt, nil
-	} else if errors.Is(err, pgx.ErrNoRows) { // 存在しない場合
-		at, atExp, err := s.jwtService.SignRegisterToken(authorization.ID, refreshToken.AccessTokenJTI, s.serverURL)
+		return accessToken, refreshTokenRawStr, csrfGenerated, "reactivation", platform, atExp, refreshToken.ExpiresAt, nil
+	} else if errors.Is(err, core.ErrNotFound) { // 存在しない場合
+		accessToken, atExp, err := s.jwtService.SignRegisterToken(authorization.ID, refreshToken.AccessTokenJTI, s.serverURL)
 		if err != nil {
 			return "", "", "", "", "", time.Time{}, time.Time{}, err
 		}
@@ -195,14 +205,14 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 			return "", "", "", "", "", time.Time{}, time.Time{}, err
 		}
 
-		return at, refreshTokenRawStr, csrfGenerated, "register", platform, atExp, refreshToken.ExpiresAt, nil
+		return accessToken, refreshTokenRawStr, csrfGenerated, "register", platform, atExp, refreshToken.ExpiresAt, nil
 	} else { // ただのDBエラー
 		return "", "", "", "", "", time.Time{}, time.Time{}, err
 	}
 }
 
 func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) (err error) {
-	defer util.Wrap(&err, "Service.Logout")
+	defer util.Wrap(&err, "auth.(*Service).Logout")
 
 	q := sqlc.New(s.db)
 	userID, _, _, _ := s.jwtService.VerifyUserAccessToken(accessToken)
@@ -212,7 +222,7 @@ func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) 
 }
 
 func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, countryCode, deviceFingerprint, userAgent string) (_, _ string, _, _ time.Time, err error) {
-	defer util.Wrap(&err, "Service.RefreshToken")
+	defer util.Wrap(&err, "auth.(*Service).RefreshToken")
 
 	tokenHash := util.Sha256Hex(refreshToken)
 
@@ -262,7 +272,7 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 }
 
 func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetSessionsView, _ bool, err error) {
-	defer util.Wrap(&err, "Service.GetSessions")
+	defer util.Wrap(&err, "auth.(*Service).GetSessions")
 
 	view, err := s.refreshTokenQS.GetSessions(ctx, userID, cursor, limit+1)
 	if err != nil {
@@ -275,7 +285,7 @@ func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID, cursor *uui
 }
 
 func (s *Service) RemoveSession(ctx context.Context, userID, sessionID uuid.UUID) (_ uuid.UUID, err error) {
-	defer util.Wrap(&err, "Service.RemoveSession")
+	defer util.Wrap(&err, "auth.(*Service).RemoveSession")
 
 	q := sqlc.New(s.db)
 	removedPublicID, err := NewRefreshTokenRepository(q).RevokeByID(ctx, userID, sessionID, time.Now().UTC().Add(s.jwtService.TokenDuration()))
@@ -287,7 +297,7 @@ func (s *Service) RemoveSession(ctx context.Context, userID, sessionID uuid.UUID
 }
 
 func (s *Service) CreateYouTubeAuthCode(_ context.Context, userID uuid.UUID, importSubscriptions, importLikes bool) (_ string, err error) {
-	defer util.Wrap(&err, "Service.CreateYouTubeAuthCode")
+	defer util.Wrap(&err, "auth.(*Service).CreateYouTubeAuthCode")
 
 	if !importSubscriptions && !importLikes {
 		return "", ErrNoImportOptionSelected
@@ -302,7 +312,7 @@ func (s *Service) CreateYouTubeAuthCode(_ context.Context, userID uuid.UUID, imp
 }
 
 func (s *Service) YouTubeOAuthCallback(ctx context.Context, state, code string) (err error) {
-	defer util.Wrap(&err, "Service.YouTubeOAuthCallback")
+	defer util.Wrap(&err, "auth.(*Service).YouTubeOAuthCallback")
 
 	userID, importSubscriptions, importLikes, err := s.jwtService.VerifyYouTubeImportStateToken(state)
 	if err != nil {
@@ -473,6 +483,48 @@ func (s *Service) YouTubeOAuthCallback(ctx context.Context, state, code string) 
 		if _, err := s.playlistService.CreatePlaylistWithAccessToken(ctx, userID, "高評価した動画", "", "private", "normal", ytAccessToken, "LL"); err != nil {
 			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to import liked playlist(youtube oauth callback)", slog.Any("error", err))
 		}
+	}
+
+	return nil
+}
+
+func (s *Service) ReactivateAccount(ctx context.Context, registerAccessToken string) (err error) {
+	defer util.Wrap(&err, "auth.(*Service).ReactivateAccount")
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback", slog.Any("error", err))
+		}
+	}()
+	q := sqlc.New(tx)
+
+	// register tokenの検証
+	authorizationID, jti, err := s.jwtService.VerifyRegisterToken(registerAccessToken)
+	if err != nil {
+		return err
+	}
+	// jti blacklist検証
+	if _, err := q.FindBlacklistedJTI(ctx, jti); err == nil {
+		return core.ErrJTIBlacklisted
+	}
+
+	// authorizationIDで勧告ロック
+	if err := database_d.TryAdLock(ctx, q, authorizationID[:]); err != nil {
+		return err
+	}
+
+	// アカウント復活
+	if _, err := NewAuthorizationRepository(q).DeleteLeftByAuthorization(ctx, authorizationID); err != nil {
+		return err
+	}
+
+	// コミット
+	if err := tx.Commit(ctx); err != nil {
+		return err
 	}
 
 	return nil

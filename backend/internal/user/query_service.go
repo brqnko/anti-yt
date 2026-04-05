@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
@@ -40,14 +41,14 @@ func NewUserQueryService(db *pgxpool.Pool) UserQueryService {
 }
 
 func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (_ UserStatusView, err error) {
-	defer util.Wrap(&err, "userQueryService.Find(userID=%s)", userID)
+	defer util.Wrap(&err, "user.(*userQueryServiceImpl).Find(userID=%s)", userID)
 
 	rows, err := u.q.GetUserProfile(ctx, userID)
 	if err != nil {
 		return UserStatusView{}, err
 	}
 	if len(rows) == 0 {
-		return UserStatusView{}, pgx.ErrNoRows
+		return UserStatusView{}, core.ErrNotFound
 	}
 
 	first := rows[0]
@@ -88,12 +89,12 @@ func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (_ Us
 }
 
 func (u *userQueryServiceImpl) FindByAuthorizationID(ctx context.Context, authorizationID int64) (_ uuid.UUID, _ bool, err error) {
-	defer util.Wrap(&err, "userQueryService.FindByAuthorizationID(authorizationID=%d)", authorizationID)
+	defer util.Wrap(&err, "user.(*userQueryServiceImpl).FindByAuthorizationID(authorizationID=%d)", authorizationID)
 
 	row, err := u.q.GetUserIDByAuthorization(ctx, authorizationID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return uuid.Nil, false, err
+			return uuid.Nil, false, core.ErrNotFound
 		}
 		return uuid.Nil, false, err
 	}

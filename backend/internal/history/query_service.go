@@ -51,7 +51,7 @@ func NewHistoryQueryService(db *pgxpool.Pool) HistoryQueryService {
 }
 
 func (h *historyQueryServiceImpl) FindHistory(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetHistoryView, err error) {
-	defer util.Wrap(&err, "historyQueryService.FindHistory(userID=%s)", userID)
+	defer util.Wrap(&err, "history.(*historyQueryServiceImpl).FindHistory(userID=%s)", userID)
 
 	rows, err := h.q.ListWatchHistory(ctx, sqlc.ListWatchHistoryParams{
 		UserID:     userID,
@@ -81,7 +81,7 @@ func (h *historyQueryServiceImpl) FindHistory(ctx context.Context, userID uuid.U
 }
 
 func (h *historyQueryServiceImpl) FindStatisticsByWeek(ctx context.Context, userID uuid.UUID, startDate time.Time) (_ *string, _ []GetStatisticsWeeklyView, err error) {
-	defer util.Wrap(&err, "historyQueryService.FindStatisticsByWeek(userID=%s)", userID)
+	defer util.Wrap(&err, "history.(*historyQueryServiceImpl).FindStatisticsByWeek(userID=%s)", userID)
 
 	_, offsetSec := startDate.Zone()
 	rows, err := h.q.ListDailyWatchStatsByRange(ctx, sqlc.ListDailyWatchStatsByRangeParams{
@@ -114,7 +114,7 @@ func (h *historyQueryServiceImpl) FindStatisticsByWeek(ctx context.Context, user
 }
 
 func (h *historyQueryServiceImpl) FindTotalWatchSeconds(ctx context.Context, userID uuid.UUID, loc *time.Location) (_ GetTotalWatchSecondsView, err error) {
-	defer util.Wrap(&err, "historyQueryService.FindTotalWatchSeconds(userID=%s)", userID)
+	defer util.Wrap(&err, "history.(*historyQueryServiceImpl).FindTotalWatchSeconds(userID=%s)", userID)
 
 	now := time.Now().In(loc)
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)

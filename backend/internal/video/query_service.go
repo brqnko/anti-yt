@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
@@ -25,6 +26,7 @@ type GetVideoDetailView struct {
 	ExternalChannelIconUrl          string
 	ExternalChannelSubscribersCount uint64
 	IsWatched                       bool
+	IsInWatchLater                  bool
 }
 
 type VideoQueryService interface {
@@ -42,7 +44,7 @@ func NewVideoQueryService(db *pgxpool.Pool) VideoQueryService {
 }
 
 func (v *videoQueryServiceImpl) Find(ctx context.Context, userID, videoID uuid.UUID) (_ GetVideoDetailView, err error) {
-	defer util.Wrap(&err, "videoQueryService.Find(videoID=%s)", videoID)
+	defer util.Wrap(&err, "video.(*videoQueryServiceImpl).Find(videoID=%s)", videoID)
 
 	row, err := v.q.GetVideoDetail(ctx, sqlc.GetVideoDetailParams{
 		UserID:  userID,
@@ -50,7 +52,7 @@ func (v *videoQueryServiceImpl) Find(ctx context.Context, userID, videoID uuid.U
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return GetVideoDetailView{}, err
+			return GetVideoDetailView{}, core.ErrNotFound
 		}
 		return GetVideoDetailView{}, err
 	}
@@ -68,6 +70,7 @@ func (v *videoQueryServiceImpl) Find(ctx context.Context, userID, videoID uuid.U
 		ExternalChannelIconUrl:          row.ExternalIconUrl,
 		ExternalChannelSubscribersCount: uint64(row.ExternalSubscribersCount),
 		IsWatched:                       row.IsWatched,
+		IsInWatchLater:                  row.IsInWatchLater,
 	}, nil
 }
 
