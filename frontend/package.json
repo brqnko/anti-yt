@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@iconify-json/material-symbols": "^1.2.63",
-    "@preact/preset-vite": "^2.10.3",
+    "@preact/preset-vite": "^2.10.5",
     "@types/youtube": "^0.1.2",
     "eslint": "^9.0.0",
     "eslint-config-preact": "^2.0.0",
