@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^5.1.0",
-    "@tailwindcss/vite": "^4.2.1",
+    "@tailwindcss/vite": "^4.2.2",
     "axios": "^1.14.0",
     "i18next": "^25.8.18",
     "preact": "^10.29.1",
