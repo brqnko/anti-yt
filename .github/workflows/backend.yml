@@ -67,11 +67,19 @@ jobs:
       - name: Generate sqlc
         run: sqlc generate
 
+      - name: Install moq
+        run: |
+          wget -q -O moq.tar.gz https://github.com/matryer/moq/releases/download/v0.7.1/moq_Linux_x86_64.tar.gz
+          tar -xzf moq.tar.gz moq
+          mv moq /usr/local/bin/moq
+          chmod +x /usr/local/bin/moq
+          rm moq.tar.gz
+
       - name: Install oapi-codegen
         run: go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.6.0
 
-      - name: Generate oapi-codegen
-        run: go generate ./internal/core/handler/v1/
+      - name: Generate code
+        run: go generate ./...
 
       - name: Generate tbls docs
         run: tbls doc "postgres://postgres:postgres@localhost:5432/anti_yt_test?sslmode=disable" docs/schema --er-format svg --rm-dist --force
@@ -90,3 +98,16 @@ jobs:
           working-directory: backend
 
       - run: go build -v -o server ./cmd/api
+
+      - name: Setup test secrets
+        run: |
+          sudo mkdir -p /run/secrets
+          echo -n "postgres" | sudo tee /run/secrets/db-password > /dev/null
+
+      - name: Run tests
+        env:
+          DATABASE_HOST: localhost
+          DATABASE_PORT: "5432"
+          DATABASE_USER: postgres
+          DATABASE_SSLMODE: disable
+        run: go test ./...

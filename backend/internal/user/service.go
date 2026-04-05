@@ -1,3 +1,5 @@
+//go:generate moq -out mock_jwt_service_test.go -pkg user_test ../core/jwt_d Service
+
 package user
 
 import (
@@ -116,6 +118,14 @@ func (s *Service) CreateNewUser(
 		return nil, "", time.Time{}, err
 	}
 	if _, err := playlist.NewPlaylistRepository(q).Save(ctx, watchLaterPlaylist); err != nil {
+		return nil, "", time.Time{}, err
+	}
+
+	// 使用済みregisterトークンのJTIをブラックリストに追加
+	if err := q.InsertBlacklistedJTI(ctx, sqlc.InsertBlacklistedJTIParams{
+		Jti:       jti,
+		ExpiresAt: time.Now().UTC().Add(s.jwtService.TokenDuration()),
+	}); err != nil {
 		return nil, "", time.Time{}, err
 	}
 

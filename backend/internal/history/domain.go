@@ -8,10 +8,18 @@ import (
 	"github.com/google/uuid"
 )
 
-var farFuture = time.Date(9999, 12, 32, 0, 0, 0, 0, time.UTC)
+var farFuture = time.Date(9999, 12, 31, 23, 59, 59, 0, time.UTC)
 
 var (
 	ErrWatchPositionSecondsIsMinus = core.NewDomainError("watch_position_seconds_is_minus", "watch position seconds is minus")
+)
+
+type RotateResult int
+
+const (
+	RotateResultContinue RotateResult = iota // 継続視聴中
+	RotateResultFinished                     // 動画を最後まで視聴した
+	RotateResultIgnored                      // 無視（closeされた同じ動画の後続heartbeat）
 )
 
 type WatchPositionSeconds int
@@ -86,20 +94,20 @@ func NewHeartbeat(videoID, userID uuid.UUID, watchPositionSeconds int, opts ...H
 	return h, nil
 }
 
-func (h *Heartbeat) Rotate(videoID uuid.UUID, watchPositionSeconds, lastVideoLength int, lastUpdatedAt time.Time) (_ *Heartbeat, err error) {
+func (h *Heartbeat) Rotate(videoID uuid.UUID, watchPositionSeconds, lastVideoLength int, lastUpdatedAt time.Time) (_ *Heartbeat, _ RotateResult, err error) {
 	defer util.Wrap(&err, "history.(*Heartbeat).Rotate")
 
 	// 既にcloseされたheartbeatが取得された場合(動画終了後の後続heartbeat)
 	if !h.WatchEndAt.After(time.Now().UTC()) {
 		if videoID == h.VideoID {
-			return nil, nil // 同じ動画の後続heartbeatは無視
+			return nil, RotateResultIgnored, nil
 		}
 		// 違う動画の場合は新しいheartbeatを作成(既にcloseされているので再closeは不要)
 		heartbeat, err := NewHeartbeat(videoID, h.UserID, watchPositionSeconds)
 		if err != nil {
-			return nil, err
+			return nil, RotateResultContinue, err
 		}
-		return heartbeat, nil
+		return heartbeat, RotateResultContinue, nil
 	}
 
 	// 違う動画を再生した場合
@@ -107,9 +115,9 @@ func (h *Heartbeat) Rotate(videoID uuid.UUID, watchPositionSeconds, lastVideoLen
 		h.WatchEndAt = time.Now().UTC()
 		heartbeat, err := NewHeartbeat(videoID, h.UserID, watchPositionSeconds)
 		if err != nil {
-			return nil, err
+			return nil, RotateResultContinue, err
 		}
-		return heartbeat, nil
+		return heartbeat, RotateResultContinue, nil
 	}
 
 	// 最後の更新から2分以上経過していた場合はcloseして、新しく視聴を再開したとみなす
@@ -117,24 +125,24 @@ func (h *Heartbeat) Rotate(videoID uuid.UUID, watchPositionSeconds, lastVideoLen
 		h.WatchEndAt = lastUpdatedAt.Add(time.Minute)
 		heartbeat, err := NewHeartbeat(videoID, h.UserID, watchPositionSeconds)
 		if err != nil {
-			return nil, err
+			return nil, RotateResultContinue, err
 		}
-		return heartbeat, nil
+		return heartbeat, RotateResultContinue, nil
 	}
 
 	// 動画を最後まで見終わった場合(30秒のpaddingつき)
 	// YouTube動画でエンディングがあることを考慮した
 	newPos, err := NewWatchPositionSeconds(watchPositionSeconds)
 	if err != nil {
-		return nil, err
+		return nil, RotateResultContinue, err
 	}
 	if newPos.IsFinished(lastVideoLength) {
 		h.WatchEndAt = time.Now().UTC()
 		h.WatchPositionSeconds = newPos
-		return nil, nil
+		return nil, RotateResultFinished, nil
 	}
 
 	// 同じ動画を継続視聴中: positionだけ更新
 	h.WatchPositionSeconds = newPos
-	return nil, nil
+	return nil, RotateResultContinue, nil
 }
