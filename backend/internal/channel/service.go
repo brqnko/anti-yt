@@ -1,5 +1,7 @@
 package channel
 
+//go:generate moq -out mock_youtube_service_test.go -pkg channel_test ../core/youtube_d Service
+
 import (
 	"context"
 	"errors"

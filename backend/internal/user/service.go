@@ -1,3 +1,5 @@
+//go:generate moq -out mock_jwt_service_test.go -pkg user_test ../core/jwt_d Service
+
 package user
 
 import (

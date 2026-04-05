@@ -58,7 +58,10 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 
 		// 動画を最後まで視聴した場合は既読にして、再生位置を0にリセットする
 		if result == RotateResultFinished {
-			_ = NewHistoryRepository(q).MarkVideoWatched(ctx, userID, lastHeartbeat.VideoID)
+			// on conflict do nothingなので、errの場合はDBエラー
+			if err := NewHistoryRepository(q).MarkVideoWatched(ctx, userID, lastHeartbeat.VideoID); err != nil {
+				return nil, err
+			}
 			lastHeartbeat.WatchPositionSeconds = 0
 		}
 
@@ -97,7 +100,8 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 
 	remaining, err := s.historyQS.FindTotalWatchSeconds(ctx, userID, loc)
 	if err != nil {
-		return nil, err
+		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to find total watch seconds", slog.Any("error", err))
+		return nil, nil
 	}
 	if remaining == math.MaxInt {
 		return nil, nil

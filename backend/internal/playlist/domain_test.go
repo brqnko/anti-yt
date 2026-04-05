@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewVisilityCode(t *testing.T) {
+func TestNewVisibilityCode(t *testing.T) {
 	t.Parallel()
 
 	type arg struct {

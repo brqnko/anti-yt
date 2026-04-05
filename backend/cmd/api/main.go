@@ -210,7 +210,7 @@ func run(ctx context.Context) int {
 	}
 
 	r := chi.NewRouter()
-	// NOTE: RateLimit, gzip, loggerはLB(pingora, nginx等)で行う。各リクエストへのレートリミットはHandlerが行う
+	// NOTE: RateLimit, gzip, loggerはLB(pingora, nginx等)で行う。各リクエストへのレートリミットはmiddlewareが行う
 	r.Use(middleware.Recoverer)
 	r.Use(middleware_d.SecureHeaders)
 	if cfg.env != "production" {

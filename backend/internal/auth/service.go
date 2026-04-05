@@ -1,5 +1,9 @@
 package auth
 
+//go:generate moq -out mock_oidc_service_test.go -pkg auth_test ../core/oidc GoogleOIDCService
+//go:generate moq -out mock_jwt_service_test.go -pkg auth_test ../core/jwt_d Service
+//go:generate moq -out mock_youtube_service_test.go -pkg auth_test ../core/youtube_d Service:YouTubeServiceMock
+
 import (
 	"context"
 	"errors"
@@ -215,7 +219,10 @@ func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) 
 	defer util.Wrap(&err, "auth.(*Service).Logout")
 
 	q := sqlc.New(s.db)
-	userID, _, _, _ := s.jwtService.VerifyUserAccessToken(accessToken)
+	userID, _, _, err := s.jwtService.VerifyUserAccessToken(accessToken)
+	if err != nil {
+		return err
+	}
 
 	refreshTokenHash := util.Sha256Hex(refreshToken)
 	return NewRefreshTokenRepository(q).RevokeByTokenHash(ctx, userID, refreshTokenHash, time.Now().UTC().Add(s.refreshTokenDuration))
