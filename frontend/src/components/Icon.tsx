@@ -38,6 +38,7 @@ import MusicNote from "~icons/material-symbols/music-note";
 import Pause from "~icons/material-symbols/pause-outline";
 import Person from "~icons/material-symbols/person-outline";
 import PlayArrow from "~icons/material-symbols/play-arrow-outline";
+import PlaylistAdd from "~icons/material-symbols/playlist-add";
 import PlaylistPlay from "~icons/material-symbols/playlist-play";
 import PlaylistRemove from "~icons/material-symbols/playlist-remove";
 import ProgressActivity from "~icons/material-symbols/progress-activity";
@@ -104,6 +105,7 @@ const iconMap: Record<string, string> = {
   pause: Pause,
   person: Person,
   play_arrow: PlayArrow,
+  playlist_add: PlaylistAdd,
   playlist_play: PlaylistPlay,
   playlist_remove: PlaylistRemove,
   progress_activity: ProgressActivity,

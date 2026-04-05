@@ -14,6 +14,7 @@ import (
 
 type AuthorizationRepository interface {
 	Save(ctx context.Context, authorization *Authorization) (int64, error)
+	DeleteLeftByAuthorization(ctx context.Context, authorizationID uuid.UUID) (int64, error)
 }
 
 func NewAuthorizationRepository(q sqlc.Querier) AuthorizationRepository {
@@ -40,6 +41,19 @@ func (a *authorizationRepositoryImpl) Save(ctx context.Context, authorization *A
 	}
 
 	return saveAuthorization.MUserAuthorizationID, nil
+}
+
+func (a *authorizationRepositoryImpl) DeleteLeftByAuthorization(ctx context.Context, authorizationID uuid.UUID) (_ int64, err error) {
+	defer util.Wrap(&err, "auth.(*authorizationRepositoryImpl).DeleteLeftByAuthorization(authorizationID=%s)", authorizationID)
+
+	hUserID, err := a.q.DeleteLeftUserByAuthorization(ctx, authorizationID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, core.ErrNotFound
+		}
+		return 0, err
+	}
+	return hUserID, nil
 }
 
 var _ AuthorizationRepository = (*authorizationRepositoryImpl)(nil)
@@ -96,6 +110,9 @@ func (r *refreshTokenRepositoryImpl) RevokeByTokenHash(ctx context.Context, user
 		TokenHash:    tokenHash,
 		ExpiresAt:    jtiExpiresAt,
 	}); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return core.ErrNotFound
+		}
 		return err
 	}
 	return nil
@@ -115,6 +132,7 @@ func (r *refreshTokenRepositoryImpl) RevokeByID(ctx context.Context, userID, ses
 		}
 		return uuid.Nil, err
 	}
+
 	return removedPublicID, nil
 }
 
@@ -139,6 +157,9 @@ func (r *refreshTokenRepositoryImpl) RotateRefreshToken(ctx context.Context, new
 	})
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return uuid.Nil, core.ErrNotFound
+		}
 		return uuid.Nil, err
 	}
 	return userID, nil

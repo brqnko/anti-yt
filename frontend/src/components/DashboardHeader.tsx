@@ -90,6 +90,7 @@ export function DashboardHeader({
         onSubmit={handleSearch}
         role="search"
       >
+        <button type="submit" class="hidden" tabIndex={-1} aria-hidden="true" />
         <div class="flex flex-1 min-w-0 items-center rounded-full border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark overflow-hidden focus-within:border-primary transition-colors">
           <input
             type="text"

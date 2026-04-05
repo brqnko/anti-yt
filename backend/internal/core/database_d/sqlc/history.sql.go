@@ -12,23 +12,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const closeStaleWatchSessions = `-- name: CloseStaleWatchSessions :exec
-UPDATE
-    t_video_watch
-SET
-    watch_end_at = t_video_watch.updated_at,
-    updated_at = CURRENT_TIMESTAMP
-WHERE
-    m_user_id = (SELECT m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1)
-    AND watch_end_at > CURRENT_TIMESTAMP
-    AND t_video_watch.updated_at < CURRENT_TIMESTAMP - INTERVAL '2 minutes'
-`
-
-func (q *Queries) CloseStaleWatchSessions(ctx context.Context, userPublicID uuid.UUID) error {
-	_, err := q.db.Exec(ctx, closeStaleWatchSessions, userPublicID)
-	return err
-}
-
 const getDailyWatchSummary = `-- name: GetDailyWatchSummary :one
 SELECT
     (
@@ -124,7 +107,8 @@ WHERE
         LIMIT
             1
     )
-    AND watch_end_at > CURRENT_TIMESTAMP
+    AND watch_end_at > CURRENT_TIMESTAMP - INTERVAL '30 seconds'
+ORDER BY t_video_watch.t_video_watch_id DESC
 LIMIT 1
 FOR UPDATE
 `

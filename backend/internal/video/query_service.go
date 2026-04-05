@@ -26,6 +26,7 @@ type GetVideoDetailView struct {
 	ExternalChannelIconUrl          string
 	ExternalChannelSubscribersCount uint64
 	IsWatched                       bool
+	IsInWatchLater                  bool
 }
 
 type VideoQueryService interface {
@@ -69,6 +70,7 @@ func (v *videoQueryServiceImpl) Find(ctx context.Context, userID, videoID uuid.U
 		ExternalChannelIconUrl:          row.ExternalIconUrl,
 		ExternalChannelSubscribersCount: uint64(row.ExternalSubscribersCount),
 		IsWatched:                       row.IsWatched,
+		IsInWatchLater:                  row.IsInWatchLater,
 	}, nil
 }
 

@@ -87,6 +87,14 @@
       }
     }
   },
+  "reactivation": {
+    "title": "Welcome Back",
+    "description": "We found a previously deleted account associated with your sign-in. Restore your account to get started again.",
+    "reactivate": "Restore Account",
+    "error": {
+      "title": "Restoration Failed"
+    }
+  },
   "register": {
     "error": {
       "title": "Registration Failed"
@@ -265,12 +273,11 @@
   "videoPlayer": {
     "pageTitle": "Video Player",
     "notFound": "Video not found",
-    "quickNotes": "Quick Notes",
-    "notesPlaceholder": "Type your thoughts here... notes are automatically time-stamped.",
-    "saveNote": "Save Note",
-    "curatedPlaylist": "Curated Playlist",
+"curatedPlaylist": "Curated Playlist",
     "viewPlaylist": "View Full Playlist",
     "addToPlaylist": "Save",
+    "playlist": "Playlist",
+    "watchLater": "Watch Later",
     "loop": "Loop",
     "noPlaylists": "No playlists yet.",
     "remaining": "Today's remaining",

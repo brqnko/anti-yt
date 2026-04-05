@@ -9,6 +9,7 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/playlist"
 	"github.com/brqnko/anti-yt/backend/internal/user"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
@@ -47,7 +48,7 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 		return nil, err
 	}
 
-	// TODO: publish redent playlist
+	// TODO: publish recent playlist
 	lastHeartbeat, lastVideoLength, lastHeartbeatID, lastUpdatedAt, err := NewHistoryRepository(q).GetLastHeartbeatForUpdate(ctx, userID)
 	if err == nil { // 最後のheartbeatの取得に成功
 		heartbeat, err := lastHeartbeat.Rotate(videoID, positionSeconds, lastVideoLength, lastUpdatedAt)
@@ -57,8 +58,17 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 		if err := NewHistoryRepository(q).UpdateHeartbeat(ctx, lastHeartbeatID, lastHeartbeat); err != nil {
 			return nil, err
 		}
-		if err := NewHistoryRepository(q).CreateHeartbeat(ctx, heartbeat); err != nil {
-			return nil, err
+
+		if heartbeat != nil {
+			if err := NewHistoryRepository(q).CreateHeartbeat(ctx, heartbeat); err != nil {
+				return nil, err
+			}
+		}
+
+		if lastHeartbeat.WatchPositionSeconds.IsFinished(lastVideoLength) {
+			if err := NewHistoryRepository(q).MarkVideoWatched(ctx, userID, lastHeartbeat.VideoID); err != nil {
+				return nil, err
+			}
 		}
 	} else if errors.Is(err, core.ErrNotFound) { // 初めてのHeartbeatの場合
 		// 普通にheartbeatを作成して挿入する
@@ -71,6 +81,13 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 		}
 	} else { // DBエラー
 		return nil, err
+	}
+
+	// 最近再生したプレイリストに追加
+	if playlistID != nil {
+		if err := playlist.NewPlaylistRepository(q).PushRecentPlaylistID(ctx, userID, *playlistID); err != nil {
+			return nil, err
+		}
 	}
 
 	now := time.Now().In(loc)

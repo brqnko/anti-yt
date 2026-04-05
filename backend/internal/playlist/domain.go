@@ -13,6 +13,7 @@ var (
 	ErrInvalidPlaylistDescription = core.NewDomainError("playlist.invalid_description", "invalid playlist description: must be at most 255 characters")
 	ErrInvalidVisibilityCode      = core.NewDomainError("playlist.invalid_visibility_code", "invalid visibility code")
 	ErrInvalidPlaylistCode        = core.NewDomainError("playlist.invalid_playlist_code", "invalid playlist code")
+	ErrPlaylistNotModifiable      = core.NewDomainError("playlist.not_modifiable", "this playlist cannot be modified")
 )
 
 type VisibilityCode int
@@ -75,6 +76,10 @@ func NewPlaylistDescription(s string) (_ PlaylistDescription, err error) {
 
 func (p PlaylistDescription) String() string {
 	return string(p)
+}
+
+func (p *Playlist) IsModifiable() bool {
+	return p.PlaylistCode == 0 // normal
 }
 
 func (p *Playlist) SetTitle(s *string) (err error) {
@@ -163,7 +168,7 @@ func (p PlaylistCode) String() string {
 
 type Playlist struct {
 	ID             uuid.UUID
-	UserID         *uuid.UUID
+	UserID         uuid.UUID
 	ChannelID      *uuid.UUID
 	Title          PlaylistTitle
 	Description    PlaylistDescription
@@ -193,12 +198,6 @@ func WithPlaylistVideoCount(count int) PlaylistOption {
 	}
 }
 
-func WithPlaylistUserID(userID uuid.UUID) PlaylistOption {
-	return func(p *Playlist) {
-		p.UserID = &userID
-	}
-}
-
 func WithPlaylistChannelID(channelID uuid.UUID) PlaylistOption {
 	return func(p *Playlist) {
 		p.ChannelID = &channelID
@@ -206,6 +205,7 @@ func WithPlaylistChannelID(channelID uuid.UUID) PlaylistOption {
 }
 
 func NewPlaylist(
+	userID uuid.UUID,
 	title string,
 	description string,
 	visibilityStr string,
@@ -241,6 +241,7 @@ func NewPlaylist(
 
 	pl := &Playlist{
 		ID:             id,
+		UserID:         userID,
 		Title:          t,
 		Description:    d,
 		VisibilityCode: v,

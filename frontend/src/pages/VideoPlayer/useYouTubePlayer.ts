@@ -146,7 +146,7 @@ export function useYouTubePlayer({
     }
     // Fire onSyncTick at most once per second (works in both rAF and interval modes).
     const now = performance.now();
-    if (now - lastOnSyncTickAtRef.current >= 1000) {
+    if (now - lastOnSyncTickAtRef.current >= 900) {
       lastOnSyncTickAtRef.current = now;
       onSyncTickRef.current?.();
     }
@@ -243,7 +243,10 @@ export function useYouTubePlayer({
           controls: 0,
           disablekb: 1,
           iv_load_policy: 3,
-          playsinline: 1,
+          playsinline: /iPhone|iPod/i.test(navigator.userAgent) ||
+            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+            ? 0
+            : 1,
           origin: window.location.origin,
         },
         events: {

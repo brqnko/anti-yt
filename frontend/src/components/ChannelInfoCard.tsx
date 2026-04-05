@@ -5,6 +5,7 @@ import { getChannel } from "../api/generated/channel";
 import type { GetChannelsChannelId200 } from "../api/generated/antiYtApi.schemas";
 import { Linkify } from "./Linkify";
 import { Icon } from "./Icon";
+import { Toggle } from "./Toggle";
 
 function ExpandableDescription({ description }: { description: string }) {
   const { t } = useTranslation();
@@ -89,23 +90,7 @@ export function ChannelInfoCard({
               <div class="flex flex-col">
                 <span class="text-sm font-bold">{t("channelDetail.whitelistChannel")}</span>
               </div>
-              <button
-                class="relative inline-flex items-center cursor-pointer bg-transparent border-none p-0"
-                onClick={onToggleSubscription}
-                disabled={isToggling}
-              >
-                <div
-                  class={`w-14 h-7 rounded-full transition-colors duration-200 ${
-                    isSubscribed ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"
-                  } ${isToggling ? "opacity-50" : ""}`}
-                >
-                  <div
-                    class={`absolute top-0.5 left-[4px] bg-white border border-gray-300 rounded-full h-6 w-6 transition-transform duration-200 ${
-                      isSubscribed ? "translate-x-full" : ""
-                    }`}
-                  />
-                </div>
-              </button>
+              <Toggle checked={isSubscribed} disabled={isToggling} onClick={onToggleSubscription} />
             </div>
           </div>
         </div>

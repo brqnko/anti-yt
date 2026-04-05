@@ -129,7 +129,7 @@ WHERE h_user.m_user_authorization_id = (
 RETURNING h_user_id
 `
 
-// authorization_public_idに紐づく退会済みユーザーを削除する（再登録用）。
+// authorization_public_idに紐づく退会済みユーザーを削除する
 // 退会済みユーザーが存在しない場合はpgx.ErrNoRowsが返される。
 func (q *Queries) DeleteLeftUserByAuthorization(ctx context.Context, userAuthorizationPublicID uuid.UUID) (int64, error) {
 	row := q.db.QueryRow(ctx, deleteLeftUserByAuthorization, userAuthorizationPublicID)
@@ -416,37 +416,6 @@ type PurgeLeftUserParams struct {
 // m_refresh_tokenはm_user_authorizationのCASCADE DELETEで自動削除される。
 func (q *Queries) PurgeLeftUser(ctx context.Context, arg PurgeLeftUserParams) error {
 	_, err := q.db.Exec(ctx, purgeLeftUser, arg.AuthorizationID, arg.HUserID, arg.UserPublicID)
-	return err
-}
-
-const pushRecentPlaylistId = `-- name: PushRecentPlaylistId :exec
-UPDATE m_user
-SET recent_playlist_ids = (
-    SELECT COALESCE(array_agg(val), '{}')
-    FROM (
-        SELECT val
-        FROM UNNEST(
-            ARRAY[(SELECT p.m_playlist_id FROM m_playlist p WHERE p.public_id = $1 LIMIT 1)]
-            || m_user.recent_playlist_ids
-        ) WITH ORDINALITY AS t(val, ord)
-        WHERE val IS NOT NULL
-        GROUP BY val
-        ORDER BY MIN(ord)
-        LIMIT 5
-    ) sub
-),
-    updated_at = CURRENT_TIMESTAMP
-WHERE m_user.public_id = $2
-`
-
-type PushRecentPlaylistIdParams struct {
-	PlaylistPublicID uuid.UUID
-	UserPublicID     uuid.UUID
-}
-
-// m_user.recent_playlist_idsを更新する。先頭に追加し、重複を除去し、最大5件に制限する。
-func (q *Queries) PushRecentPlaylistId(ctx context.Context, arg PushRecentPlaylistIdParams) error {
-	_, err := q.db.Exec(ctx, pushRecentPlaylistId, arg.PlaylistPublicID, arg.UserPublicID)
 	return err
 }
 

@@ -563,6 +563,8 @@ export type GetVideosVideoId200 = {
   external_channel_subscribers_count: number;
   /** ユーザーが視聴済みかどうか */
   is_watched: boolean;
+  /** あとで見るプレイリストに入っているかどうか */
+  is_in_watch_later: boolean;
 };
 
 export type PostVideosVideoIdHeartbeatsBody = {

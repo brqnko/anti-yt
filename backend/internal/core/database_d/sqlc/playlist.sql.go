@@ -44,7 +44,7 @@ WITH inserted AS (
                         LIMIT
                             1
                     )
-                    OR p.m_channel_id != 0
+                    OR p.visibility_code = 1
                 )
                 AND p.public_id = $3
             LIMIT
@@ -84,6 +84,7 @@ WITH deleted AS (
                 1
         )
         AND playlist.public_id = $2
+        AND playlist.playlist_code = 0
     RETURNING
         playlist.public_id
 )
@@ -288,6 +289,104 @@ func (q *Queries) GetPlaylistWithThumbnail(ctx context.Context, arg GetPlaylistW
 	return i, err
 }
 
+const getWatchLaterForUpdate = `-- name: GetWatchLaterForUpdate :one
+SELECT
+    playlist.public_id,
+    playlist.playlist_title,
+    playlist.playlist_description,
+    playlist.visibility_code,
+    playlist.playlist_code,
+    playlist.video_count,
+    playlist.registered_at
+FROM m_playlist playlist
+WHERE
+    playlist.m_user_id = (SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1)
+    AND playlist.playlist_code = 2
+LIMIT 1
+FOR UPDATE
+`
+
+type GetWatchLaterForUpdateRow struct {
+	PublicID            uuid.UUID
+	PlaylistTitle       string
+	PlaylistDescription string
+	VisibilityCode      int
+	PlaylistCode        int
+	VideoCount          int
+	RegisteredAt        time.Time
+}
+
+func (q *Queries) GetWatchLaterForUpdate(ctx context.Context, userID uuid.UUID) (GetWatchLaterForUpdateRow, error) {
+	row := q.db.QueryRow(ctx, getWatchLaterForUpdate, userID)
+	var i GetWatchLaterForUpdateRow
+	err := row.Scan(
+		&i.PublicID,
+		&i.PlaylistTitle,
+		&i.PlaylistDescription,
+		&i.VisibilityCode,
+		&i.PlaylistCode,
+		&i.VideoCount,
+		&i.RegisteredAt,
+	)
+	return i, err
+}
+
+const getWatchLaterPlaylist = `-- name: GetWatchLaterPlaylist :one
+SELECT
+    playlist.public_id,
+    playlist.playlist_title,
+    playlist.registered_at,
+    playlist.video_count,
+    COALESCE((
+        SELECT
+            video.external_thumbnail_url
+        FROM
+            m_playlist_video playlist_video
+            INNER JOIN m_video video ON playlist_video.m_video_id = video.m_video_id
+        WHERE
+            playlist_video.m_playlist_id = playlist.m_playlist_id
+        LIMIT
+            1
+    ), '')::varchar AS top_thumbnail
+FROM
+    m_playlist playlist
+WHERE
+    playlist.m_user_id = (
+        SELECT
+            u.m_user_id
+        FROM
+            m_user u
+        WHERE
+            u.public_id = $1
+        LIMIT
+            1
+    )
+    AND playlist.playlist_code = 2
+LIMIT
+    1
+`
+
+type GetWatchLaterPlaylistRow struct {
+	PublicID      uuid.UUID
+	PlaylistTitle string
+	RegisteredAt  time.Time
+	VideoCount    int
+	TopThumbnail  string
+}
+
+func (q *Queries) GetWatchLaterPlaylist(ctx context.Context, userID uuid.UUID) (GetWatchLaterPlaylistRow, error) {
+	row := q.db.QueryRow(ctx, getWatchLaterPlaylist, userID)
+	var i GetWatchLaterPlaylistRow
+	err := row.Scan(
+		&i.PublicID,
+		&i.PlaylistTitle,
+		&i.RegisteredAt,
+		&i.VideoCount,
+		&i.TopThumbnail,
+	)
+	return i, err
+}
+
 const insertPlaylistVideo = `-- name: InsertPlaylistVideo :exec
 INSERT INTO
     m_playlist_video (
@@ -366,6 +465,47 @@ type InsertPlaylistVideoParams struct {
 
 func (q *Queries) InsertPlaylistVideo(ctx context.Context, arg InsertPlaylistVideoParams) error {
 	_, err := q.db.Exec(ctx, insertPlaylistVideo, arg.UserID, arg.PlaylistID, arg.VideoID)
+	return err
+}
+
+const insertWatchLater = `-- name: InsertWatchLater :exec
+INSERT INTO
+    m_playlist_video (
+        m_playlist_id,
+        m_video_id,
+        playlist_position
+    )
+SELECT
+    m_playlist.m_playlist_id,
+    (SELECT m_video.m_video_id FROM m_video WHERE m_video.public_id = $1 LIMIT 1),
+    COALESCE(
+            (
+                SELECT
+                    MAX(m_playlist_video.playlist_position) + 1048576 -- NOTE: 2^20
+                FROM
+                    m_playlist_video
+                WHERE
+                    m_playlist_video.m_playlist_id = m_playlist.m_playlist_id
+            ),
+            0
+    )
+FROM m_playlist
+WHERE
+    m_playlist.public_id = $2
+    AND NOT EXISTS(
+        SELECT 1 FROM m_playlist_video
+        WHERE
+            m_playlist_video.m_playlist_id = m_playlist.m_playlist_id
+            AND m_playlist_video.m_video_id = (SELECT m_video.m_video_id FROM m_video WHERE m_video.public_id = $1 LIMIT 1))
+`
+
+type InsertWatchLaterParams struct {
+	VideoID    uuid.UUID
+	PlaylistID uuid.UUID
+}
+
+func (q *Queries) InsertWatchLater(ctx context.Context, arg InsertWatchLaterParams) error {
+	_, err := q.db.Exec(ctx, insertWatchLater, arg.VideoID, arg.PlaylistID)
 	return err
 }
 
@@ -517,7 +657,7 @@ WHERE
                     LIMIT
                         1
                 )
-                OR playlist.m_channel_id != 0
+                OR playlist.visibility_code = 1
             )
             AND playlist.public_id = $2
         LIMIT
@@ -773,46 +913,35 @@ func (q *Queries) ListUserPlaylists(ctx context.Context, arg ListUserPlaylistsPa
 	return items, nil
 }
 
-const updatePlaylist = `-- name: UpdatePlaylist :one
-UPDATE
-    m_playlist playlist
-SET
-    playlist_title = COALESCE($1, playlist.playlist_title),
-    playlist_description = COALESCE($2, playlist.playlist_description),
+const pushRecentPlaylistId = `-- name: PushRecentPlaylistId :exec
+UPDATE m_user
+SET recent_playlist_ids = (
+    SELECT COALESCE(array_agg(val), '{}')
+    FROM (
+             SELECT val
+             FROM UNNEST(
+                          ARRAY[(SELECT p.m_playlist_id FROM m_playlist p WHERE p.public_id = $1 LIMIT 1)]
+            || m_user.recent_playlist_ids
+        ) WITH ORDINALITY AS t(val, ord)
+             WHERE val IS NOT NULL
+             GROUP BY val
+             ORDER BY MIN(ord)
+                 LIMIT 5
+         ) sub
+),
     updated_at = CURRENT_TIMESTAMP
-WHERE
-    playlist.m_user_id = (
-        SELECT
-            u.m_user_id
-        FROM
-            m_user u
-        WHERE
-            u.public_id = $3
-        LIMIT
-            1
-    )
-    AND playlist.public_id = $4
-RETURNING
-    playlist.public_id
+WHERE m_user.public_id = $2
 `
 
-type UpdatePlaylistParams struct {
-	NewPlaylistTitle       *string
-	NewPlaylistDescription *string
-	UserID                 uuid.UUID
-	PlaylistID             uuid.UUID
+type PushRecentPlaylistIdParams struct {
+	PlaylistPublicID uuid.UUID
+	UserPublicID     uuid.UUID
 }
 
-func (q *Queries) UpdatePlaylist(ctx context.Context, arg UpdatePlaylistParams) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, updatePlaylist,
-		arg.NewPlaylistTitle,
-		arg.NewPlaylistDescription,
-		arg.UserID,
-		arg.PlaylistID,
-	)
-	var public_id uuid.UUID
-	err := row.Scan(&public_id)
-	return public_id, err
+// m_user.recent_playlist_idsを更新する。先頭に追加し、重複を除去し、最大5件に制限する。
+func (q *Queries) PushRecentPlaylistId(ctx context.Context, arg PushRecentPlaylistIdParams) error {
+	_, err := q.db.Exec(ctx, pushRecentPlaylistId, arg.PlaylistPublicID, arg.UserPublicID)
+	return err
 }
 
 const upsertPlaylist = `-- name: UpsertPlaylist :one

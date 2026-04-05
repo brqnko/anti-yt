@@ -30,7 +30,6 @@ type Service struct {
 var (
 	ErrInvalidSubscriptionLimit = core.NewDomainError("channel.invalid_subscription_limit", "invalid subscription limit: out of range (should be [1..50])")
 	ErrInvalidGetUploadLimit    = core.NewDomainError("channel.invalid_get_upload_limit", "invalid get upload limit: out of range (should be [1..50])")
-	ErrInvalidChannelID         = core.NewDomainError("channel.invalid_channel_id", "invalid channel id")
 )
 
 func NewService(
@@ -117,12 +116,12 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 		for _, vd := range videoDetails {
 			v, err := video.NewVideo(channel.ID, fetchedAt, vd)
 			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to newVideo", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(subscribe channel)", slog.Any("error", err))
 				continue
 			}
 
 			if _, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v); err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(subscribe channel)", slog.Any("error", err))
 			}
 		}
 
@@ -214,12 +213,12 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 		for _, videoDetail := range videoDetailMap {
 			v, err := video.NewVideo(lockedChannel.ID, fetchedAt, videoDetail)
 			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(get channel uploads)", slog.Any("error", err))
 				continue
 			}
 
 			if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save new video", slog.Any("error", err))
+				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(get channel uploads)", slog.Any("error", err))
 				continue
 			}
 		}

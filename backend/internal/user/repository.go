@@ -20,7 +20,6 @@ type UserRepository interface {
 	SaveScreenTimeRanges(ctx context.Context, mUserID int64, rangeSet *DailyScreenTimeLimitRangeSet) error
 	Remove(ctx context.Context, userID uuid.UUID, leaveReasonCode LeaveReasonCode) error
 	CountByAuthorization(ctx context.Context, authorizationID uuid.UUID) (int32, error)
-	DeleteLeftByAuthorization(ctx context.Context, authorizationID uuid.UUID) (int64, error)
 }
 
 type userRepositoryImpl struct {
@@ -73,10 +72,11 @@ func (r *userRepositoryImpl) FindScreenTimeRanges(ctx context.Context, userID uu
 
 	ranges := make([]DailyScreenTimeLimitRange, len(rows))
 	for i, row := range rows {
-		ranges[i] = DailyScreenTimeLimitRange{
-			StartTimeSeconds: int(row.ScreenTimeRangeStart),
-			EndTimeSeconds:   int(row.ScreenTimeRangeEnd),
+		r, err := NewDailyScreenTimeLimitRange(int(row.ScreenTimeRangeStart), int(row.ScreenTimeRangeEnd))
+		if err != nil {
+			return nil, err
 		}
+		ranges[i] = r
 	}
 	return &DailyScreenTimeLimitRangeSet{Ranges: ranges}, nil
 }
@@ -151,19 +151,6 @@ func (r *userRepositoryImpl) CountByAuthorization(ctx context.Context, authoriza
 		return 0, err
 	}
 	return count, nil
-}
-
-func (r *userRepositoryImpl) DeleteLeftByAuthorization(ctx context.Context, authorizationID uuid.UUID) (_ int64, err error) {
-	defer util.Wrap(&err, "user.(*userRepositoryImpl).DeleteLeftByAuthorization(authorizationID=%s)", authorizationID)
-
-	hUserID, err := r.q.DeleteLeftUserByAuthorization(ctx, authorizationID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, core.ErrNotFound
-		}
-		return 0, err
-	}
-	return hUserID, nil
 }
 
 var _ UserRepository = (*userRepositoryImpl)(nil)

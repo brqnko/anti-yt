@@ -87,6 +87,14 @@
       }
     }
   },
+  "reactivation": {
+    "title": "おかえりなさい",
+    "description": "以前削除されたアカウントが見つかりました。アカウントを復元して、もう一度始めましょう。",
+    "reactivate": "アカウントを復元",
+    "error": {
+      "title": "復元に失敗しました"
+    }
+  },
   "register": {
     "error": {
       "title": "登録に失敗しました"
@@ -265,12 +273,11 @@
   "videoPlayer": {
     "pageTitle": "動画プレーヤー",
     "notFound": "動画が見つかりません",
-    "quickNotes": "クイックノート",
-    "notesPlaceholder": "ここにメモを入力...自動的にタイムスタンプが付きます。",
-    "saveNote": "ノートを保存",
-    "curatedPlaylist": "キュレーションプレイリスト",
+"curatedPlaylist": "キュレーションプレイリスト",
     "viewPlaylist": "プレイリストを見る",
     "addToPlaylist": "保存",
+    "playlist": "再生リスト",
+    "watchLater": "後で見る",
     "loop": "ループ",
     "noPlaylists": "プレイリストがありません。",
     "remaining": "今日の残り",

@@ -17,6 +17,9 @@ jobs:
     defaults:
       run:
         working-directory: frontend
+    permissions:
+      contents: read
+
     steps:
       - uses: actions/checkout@v6
 
@@ -27,6 +30,17 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - run: npm ci
+
+      - name: Generate API client (orval)
+        run: npm run generate
+
+      - name: Check generated code is up to date
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Generated code is out of date. Please run 'npm run generate' locally and commit the changes."
+            git diff --stat
+            exit 1
+          fi
 
       - run: npm run lint
 

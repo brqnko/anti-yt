@@ -24,6 +24,10 @@ func NewWatchPositionSeconds(seconds int) (WatchPositionSeconds, error) {
 	return WatchPositionSeconds(seconds), nil
 }
 
+func (w WatchPositionSeconds) IsFinished(videoLengthSeconds int) bool {
+	return videoLengthSeconds > 0 && int(w)+30 >= videoLengthSeconds
+}
+
 type Heartbeat struct {
 	ID                   uuid.UUID
 	UserID               uuid.UUID
@@ -85,6 +89,19 @@ func NewHeartbeat(videoID, userID uuid.UUID, watchPositionSeconds int, opts ...H
 func (h *Heartbeat) Rotate(videoID uuid.UUID, watchPositionSeconds, lastVideoLength int, lastUpdatedAt time.Time) (_ *Heartbeat, err error) {
 	defer util.Wrap(&err, "history.(*Heartbeat).Rotate")
 
+	// 既にcloseされたheartbeatが取得された場合(動画終了後の後続heartbeat)
+	if !h.WatchEndAt.After(time.Now().UTC()) {
+		if videoID == h.VideoID {
+			return nil, nil // 同じ動画の後続heartbeatは無視
+		}
+		// 違う動画の場合は新しいheartbeatを作成(既にcloseされているので再closeは不要)
+		heartbeat, err := NewHeartbeat(videoID, h.UserID, watchPositionSeconds)
+		if err != nil {
+			return nil, err
+		}
+		return heartbeat, nil
+	}
+
 	// 違う動画を再生した場合
 	if videoID != h.VideoID {
 		h.WatchEndAt = time.Now().UTC()
@@ -107,14 +124,17 @@ func (h *Heartbeat) Rotate(videoID uuid.UUID, watchPositionSeconds, lastVideoLen
 
 	// 動画を最後まで見終わった場合(30秒のpaddingつき)
 	// YouTube動画でエンディングがあることを考慮した
-	if lastVideoLength > 0 && watchPositionSeconds+30 >= lastVideoLength {
+	newPos, err := NewWatchPositionSeconds(watchPositionSeconds)
+	if err != nil {
+		return nil, err
+	}
+	if newPos.IsFinished(lastVideoLength) {
 		h.WatchEndAt = time.Now().UTC()
-		heartbeat, err := NewHeartbeat(videoID, h.UserID, 0)
-		if err != nil {
-			return nil, err
-		}
-		return heartbeat, nil
+		h.WatchPositionSeconds = newPos
+		return nil, nil
 	}
 
+	// 同じ動画を継続視聴中: positionだけ更新
+	h.WatchPositionSeconds = newPos
 	return nil, nil
 }

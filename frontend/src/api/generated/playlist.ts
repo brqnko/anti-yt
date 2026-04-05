@@ -30,6 +30,30 @@ import { customInstance } from '../mutator';
 
   export const getPlaylist = () => {
 /**
+ * 動画を「後で見る」プレイリストに追加する
+ * @summary Add video to watch later
+ */
+const postVideosVideoIdWatchLater = (
+    videoId: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/api/v1/videos/${videoId}/watch-later`, method: 'POST'
+    },
+      );
+    }
+  /**
+ * 動画を「後で見る」プレイリストから削除する
+ * @summary Remove video from watch later
+ */
+const deleteVideosVideoIdWatchLater = (
+    videoId: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/api/v1/videos/${videoId}/watch-later`, method: 'DELETE'
+    },
+      );
+    }
+  /**
  * ユーザーのプレイリスト一覧を取得する
  * @summary Get playlists
  */
@@ -165,7 +189,9 @@ const deletePlaylistsPlaylistIdVideos = (
     },
       );
     }
-  return {getPlaylists,postPlaylists,getPlaylistsRecent,getPlaylistsPlaylistId,patchPlaylistsPlaylistId,deletePlaylistsPlaylistId,postPlaylistsPlaylistIdCopy,getPlaylistsPlaylistIdVideos,postPlaylistsPlaylistIdVideos,deletePlaylistsPlaylistIdVideos}};
+  return {postVideosVideoIdWatchLater,deleteVideosVideoIdWatchLater,getPlaylists,postPlaylists,getPlaylistsRecent,getPlaylistsPlaylistId,patchPlaylistsPlaylistId,deletePlaylistsPlaylistId,postPlaylistsPlaylistIdCopy,getPlaylistsPlaylistIdVideos,postPlaylistsPlaylistIdVideos,deletePlaylistsPlaylistIdVideos}};
+export type PostVideosVideoIdWatchLaterResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['postVideosVideoIdWatchLater']>>>
+export type DeleteVideosVideoIdWatchLaterResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['deleteVideosVideoIdWatchLater']>>>
 export type GetPlaylistsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['getPlaylists']>>>
 export type PostPlaylistsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['postPlaylists']>>>
 export type GetPlaylistsRecentResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getPlaylist>['getPlaylistsRecent']>>>
