@@ -64,6 +64,7 @@ func TestService_CreateNewUser(t *testing.T) {
 				SignUserAccessTokenFunc: func(_, _ uuid.UUID, _ string) (string, time.Time, error) {
 					return "access-token", time.Now().Add(time.Hour), nil
 				},
+				TokenDurationFunc: func() time.Duration { return 15 * time.Minute },
 			},
 			"http://localhost",
 		)
@@ -111,6 +112,7 @@ func TestService_CreateNewUser(t *testing.T) {
 				SignUserAccessTokenFunc: func(_, _ uuid.UUID, _ string) (string, time.Time, error) {
 					return "access-token", time.Now().Add(time.Hour), nil
 				},
+				TokenDurationFunc: func() time.Duration { return 15 * time.Minute },
 			},
 			"http://localhost",
 		)
