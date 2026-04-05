@@ -6,9 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
 func (h *APIHandler) GetAuthGoogle(ctx context.Context, request GetAuthGoogleRequestObject) (GetAuthGoogleResponseObject, error) {
@@ -237,7 +236,7 @@ func (h *APIHandler) GetUsersMeSessions(ctx context.Context, request GetUsersMeS
 		return nil, err
 	}
 
-	sessions, hasNext, err := h.authService.GetSessions(ctx, userID, request.Params.Cursor, int32(request.Params.Limit))
+	sessions, hasNext, err := h.authService.GetSessions(ctx, userID, cursorToUUID(request.Params.Cursor), int32(request.Params.Limit))
 	if err != nil {
 		return nil, err
 	}
@@ -245,15 +244,15 @@ func (h *APIHandler) GetUsersMeSessions(ctx context.Context, request GetUsersMeS
 	resp := GetUsersMeSessions200JSONResponse{
 		ItemCount: len(sessions),
 		Items: make([]struct {
-			BrowserName    string    `json:"browser_name"`
-			CityName       string    `json:"city_name"`
-			CountryCode    string    `json:"country_code"`
-			CreatedAt      time.Time `json:"created_at"`
-			DeviceType     string    `json:"device_type"`
-			Id             uuid.UUID `json:"id"`
-			IpAddress      string    `json:"ip_address"`
-			LastLoggedInAt time.Time `json:"last_logged_in_at"`
-			UserAgent      string    `json:"user_agent"`
+			BrowserName    string          `json:"browser_name"`
+			CityName       string          `json:"city_name"`
+			CountryCode    string          `json:"country_code"`
+			CreatedAt      time.Time       `json:"created_at"`
+			DeviceType     string          `json:"device_type"`
+			Id             util.Base64UUID `json:"id"`
+			IpAddress      string          `json:"ip_address"`
+			LastLoggedInAt time.Time       `json:"last_logged_in_at"`
+			UserAgent      string          `json:"user_agent"`
 		}, len(sessions)),
 		HasNext: hasNext,
 	}
@@ -265,7 +264,7 @@ func (h *APIHandler) GetUsersMeSessions(ctx context.Context, request GetUsersMeS
 		resp.Items[i].CountryCode = session.CountryCode
 		resp.Items[i].CreatedAt = session.ActivatedAt.In(loc)
 		resp.Items[i].DeviceType = session.DeviceType
-		resp.Items[i].Id = session.ID
+		resp.Items[i].Id = util.Base64UUID(session.ID)
 		resp.Items[i].IpAddress = session.IpAddress
 		resp.Items[i].LastLoggedInAt = session.LastLoggedInAt.In(loc)
 		resp.Items[i].UserAgent = session.UserAgent
@@ -280,7 +279,7 @@ func (h *APIHandler) DeleteUsersMeSessionsSessionId(ctx context.Context, request
 		return nil, err
 	}
 
-	if _, err := h.authService.RemoveSession(ctx, userID, request.SessionId); err != nil {
+	if _, err := h.authService.RemoveSession(ctx, userID, request.SessionId.UUID()); err != nil {
 		return nil, err
 	}
 

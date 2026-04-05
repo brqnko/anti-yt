@@ -3,6 +3,8 @@ package v1
 import (
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/brqnko/anti-yt/backend/internal/auth"
 	"github.com/brqnko/anti-yt/backend/internal/channel"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
@@ -13,9 +15,18 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/history"
 	"github.com/brqnko/anti-yt/backend/internal/playlist"
 	"github.com/brqnko/anti-yt/backend/internal/user"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/brqnko/anti-yt/backend/internal/video"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+func cursorToUUID(b *util.Base64UUID) *uuid.UUID {
+	if b == nil {
+		return nil
+	}
+	u := b.UUID()
+	return &u
+}
 
 var _ StrictServerInterface = (*APIHandler)(nil)
 
