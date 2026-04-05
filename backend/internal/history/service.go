@@ -66,9 +66,8 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 		}
 
 		if lastHeartbeat.WatchPositionSeconds.IsFinished(lastVideoLength) {
-			if err := NewHistoryRepository(q).MarkVideoWatched(ctx, userID, lastHeartbeat.VideoID); err != nil {
-				return nil, err
-			}
+			// すでにmark as watchedしてあるかもしれない
+			_ = NewHistoryRepository(q).MarkVideoWatched(ctx, userID, lastHeartbeat.VideoID)
 		}
 	} else if errors.Is(err, core.ErrNotFound) { // 初めてのHeartbeatの場合
 		// 普通にheartbeatを作成して挿入する
