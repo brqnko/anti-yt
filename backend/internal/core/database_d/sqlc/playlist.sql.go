@@ -1027,3 +1027,76 @@ func (q *Queries) UpsertPlaylist(ctx context.Context, arg UpsertPlaylistParams) 
 	err := row.Scan(&m_playlist_id)
 	return m_playlist_id, err
 }
+
+const upsertSystemPlaylist = `-- name: UpsertSystemPlaylist :one
+INSERT INTO
+    m_playlist (
+        m_user_id,
+        m_channel_id,
+        playlist_title,
+        playlist_description,
+        visibility_code,
+        playlist_code,
+        video_count,
+        public_id,
+        registered_at
+    )
+VALUES
+    (
+        0,
+        COALESCE((
+            SELECT
+                ch.m_channel_id
+            FROM
+                m_channel ch
+            WHERE
+                ch.public_id = $1::uuid
+            LIMIT
+                1
+        ), 0),
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8
+    )
+ON CONFLICT (public_id) DO UPDATE SET
+    playlist_title = EXCLUDED.playlist_title,
+    playlist_description = EXCLUDED.playlist_description,
+    visibility_code = EXCLUDED.visibility_code,
+    playlist_code = EXCLUDED.playlist_code,
+    video_count = EXCLUDED.video_count,
+    registered_at = EXCLUDED.registered_at,
+    updated_at = CURRENT_TIMESTAMP
+RETURNING
+    m_playlist.m_playlist_id
+`
+
+type UpsertSystemPlaylistParams struct {
+	ChannelPublicID     *uuid.UUID
+	PlaylistTitle       string
+	PlaylistDescription string
+	VisibilityCode      int
+	PlaylistCode        int
+	VideoCount          int
+	PublicID            uuid.UUID
+	RegisteredAt        time.Time
+}
+
+func (q *Queries) UpsertSystemPlaylist(ctx context.Context, arg UpsertSystemPlaylistParams) (int64, error) {
+	row := q.db.QueryRow(ctx, upsertSystemPlaylist,
+		arg.ChannelPublicID,
+		arg.PlaylistTitle,
+		arg.PlaylistDescription,
+		arg.VisibilityCode,
+		arg.PlaylistCode,
+		arg.VideoCount,
+		arg.PublicID,
+		arg.RegisteredAt,
+	)
+	var m_playlist_id int64
+	err := row.Scan(&m_playlist_id)
+	return m_playlist_id, err
+}

@@ -17,8 +17,8 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
-	"github.com/brqnko/anti-yt/backend/internal/core/discord_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/core/discord_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/admin"
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/middleware_d"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
@@ -46,7 +46,7 @@ type config struct {
 	youtubeDataAPIKey      string
 	adminAPIKey            string
 	geminiAPIKey           string
-	discordWebhookURL     string
+	discordWebhookURL      string
 
 	port int
 
@@ -104,7 +104,7 @@ func run(ctx context.Context) int {
 		youtubeDataAPIKey:      os.Getenv("YOUTUBE_DATA_API_KEY"),
 		adminAPIKey:            os.Getenv("ADMIN_API_KEY"),
 		geminiAPIKey:           os.Getenv("GEMINI_API_KEY"),
-		discordWebhookURL:     os.Getenv("DISCORD_WEBHOOK_URL"),
+		discordWebhookURL:      os.Getenv("DISCORD_WEBHOOK_URL"),
 		port:                   port,
 	}
 	clear(dbPassword)
@@ -144,7 +144,7 @@ func run(ctx context.Context) int {
 		slog.Error("failed to clean up jti blacklist", slog.Any("error", err))
 	}
 
-	job.NewPurgeLeftUserJob(db).Run()
+	job.NewPurgeLeftUserJob(db, discord_d.NewDiscordClient(cfg.discordWebhookURL)).Run()
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
@@ -181,28 +181,23 @@ func run(ctx context.Context) int {
 	reportService := report.NewService(reportOpts...)
 
 	scheduler := scheduler.NewService()
-	if err := scheduler.AddFunc("0 0 * * *", job.NewLLMSummaryJob(db, llmService)); err != nil {
+	if err := scheduler.AddFunc("0 0 * * *", job.NewLLMSummaryJob(db, llmService, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
 		slog.Error("failed to setup llm summary job", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("0 0 * * *", job.NewPurgeLeftUserJob(db)); err != nil {
+	if err := scheduler.AddFunc("0 0 * * *", job.NewPurgeLeftUserJob(db, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
 		slog.Error("failed to setup purge left user job", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("0 * * * *", job.NewPurgeJTIBlacklistJob(db)); err != nil {
+	if err := scheduler.AddFunc("0 * * * *", job.NewPurgeJTIBlacklistJob(db, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
 		slog.Error("failed to setup purge jti blacklist job", slog.Any("error", err))
 		return 1
 	}
-	// YouTubeクオータをリセット前に消費するジョブ
-	// PDT(夏): midnight PT = 07:00 UTC → 06:50 UTC
-	// PST(冬): midnight PT = 08:00 UTC → 07:50 UTC
-	// Go側でリセットまで15分以内かを判定し、該当しない方はスキップする
-	exhaustQuotaJob := job.NewExhaustQuotaJob(db, ytService, discord_d.NewDiscordClient(cfg.discordWebhookURL))
-	if err := scheduler.AddFunc("50 6 * * *", exhaustQuotaJob); err != nil {
+	if err := scheduler.AddFunc("50 6 * * *", job.NewExhaustQuotaJob(db, ytService, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil { // 夏
 		slog.Error("failed to setup exhaust quota job (PDT)", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("50 7 * * *", exhaustQuotaJob); err != nil {
+	if err := scheduler.AddFunc("50 7 * * *", job.NewExhaustQuotaJob(db, ytService, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil { // 冬
 		slog.Error("failed to setup exhaust quota job (PST)", slog.Any("error", err))
 		return 1
 	}

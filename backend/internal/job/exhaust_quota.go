@@ -2,7 +2,6 @@ package job
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -18,7 +17,6 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/brqnko/anti-yt/backend/internal/video"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -32,28 +30,24 @@ type exhaustQuotaJob struct {
 func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 	defer util.Wrap(&err, "job.(*exhaustQuotaJob).run")
 
-	tx, err := j.db.Begin(ctx)
-	if err != nil {
+	q := sqlc.New(j.db)
+
+	// セッションレベルのadvisory lockを取得
+	if err := database_d.TryAdLockSession(ctx, q, []byte("exhaustQuotaJob")); err != nil {
 		return err
 	}
 	defer func() {
-		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to rollback(exhaust quota job)", slog.Any("error", err))
+		if err := database_d.ReleaseAdLock(ctx, q, []byte("exhaustQuotaJob")); err != nil {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to release ad lock(exhaust quota job)", slog.Any("error", err))
 		}
 	}()
-	q := sqlc.New(tx)
 
-	// ad lock
-	if err := database_d.TryAdLock(ctx, q, []byte("exhaustQuotaJob")); err != nil {
-		return err
-	}
-
-	channels, err := channel.NewChannelRepository(q).FindBulkFetchedAfter(ctx, time.Now().UTC().Add(24*30*time.Hour))
+	channels, err := channel.NewChannelRepository(q).FindBulkFetchedBefore(ctx, time.Now().UTC().Add(-24*30*time.Hour))
 	if err != nil {
 		return err
 	}
 	for _, c := range channels {
-		if err := database_d.TryAdLock(ctx, q, c.ID[:]); err != nil {
+		if err := database_d.TryAdLockSession(ctx, q, c.ID[:]); err != nil {
 			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to acquire ad lock for channel", slog.String("channel_id", c.ID.String()), slog.Any("error", err))
 			continue
 		}
@@ -71,17 +65,18 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 				videoDetails, err := j.ytService.FetchVideoDetail(ctx, videoIDs)
 				if err != nil {
 					util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to fetch video detail", slog.Any("error", err))
-				} else {
-					for _, vd := range videoDetails {
-						v, err := video.NewVideo(c.ID, fetchedAt, vd)
-						if err != nil {
-							util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(exhaust quota job)", slog.Any("error", err))
-							continue
-						}
-						if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
-							util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(exhaust quota job)", slog.Any("error", err))
-							continue
-						}
+					continue
+				}
+
+				for _, vd := range videoDetails {
+					v, err := video.NewVideo(c.ID, fetchedAt, vd)
+					if err != nil {
+						util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(exhaust quota job)", slog.Any("error", err))
+						continue
+					}
+					if _, err := video.NewVideoRepository(sqlc.New(j.db)).Save(ctx, v); err != nil {
+						util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(exhaust quota job)", slog.Any("error", err))
+						continue
 					}
 				}
 			}
@@ -93,7 +88,6 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 		}
 
 		// プレイリストを全て取得
-
 		var ytPlaylists []youtube_d.Playlist
 		pageToken = ""
 		for {
@@ -153,11 +147,12 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 				videoDetails, err := j.ytService.FetchVideoDetail(ctx, toRequestVideos)
 				if err != nil {
 					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch video details", slog.Any("error", err))
-				} else {
-					for id, vd := range videoDetails {
-						videoDetailMap[id] = vd
-					}
+					continue
 				}
+				for id, vd := range videoDetails {
+					videoDetailMap[id] = vd
+				}
+
 			}
 
 			// チャンネル詳細を取得(mapに存在しないものだけリクエスト)
@@ -167,27 +162,30 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 				if _, ok := channelDetailMap[vd.ChannelID]; ok {
 					continue
 				}
+
 				toRequestChannels = append(toRequestChannels, vd.ChannelID)
 				if len(toRequestChannels) >= 50 {
 					channelDetails, err := j.ytService.FetchChannelDetail(ctx, toRequestChannels)
+					toRequestChannels = nil
 					if err != nil {
 						util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch channel details", slog.Any("error", err))
-					} else {
-						for id, cd := range channelDetails {
-							channelDetailMap[id] = cd
-						}
+						continue
 					}
-					toRequestChannels = nil
+
+					for id, cd := range channelDetails {
+						channelDetailMap[id] = cd
+					}
 				}
 			}
 			if len(toRequestChannels) > 0 {
 				channelDetails, err := j.ytService.FetchChannelDetail(ctx, toRequestChannels)
 				if err != nil {
 					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch channel details", slog.Any("error", err))
-				} else {
-					for id, cd := range channelDetails {
-						channelDetailMap[id] = cd
-					}
+					continue
+				}
+
+				for id, cd := range channelDetails {
+					channelDetailMap[id] = cd
 				}
 			}
 
@@ -201,7 +199,7 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new channel(exhaust quota job)", slog.Any("error", err))
 					continue
 				}
-				if _, err := channel.NewChannelRepository(q).Save(ctx, ch); err != nil {
+				if _, err := channel.NewChannelRepository(sqlc.New(j.db)).Save(ctx, ch); err != nil {
 					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save channel(exhaust quota job)", slog.Any("error", err))
 					continue
 				}
@@ -220,7 +218,7 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(exhaust quota job)", slog.Any("error", err))
 					continue
 				}
-				savedVideoID, err := video.NewVideoRepository(q).Save(ctx, v)
+				savedVideoID, err := video.NewVideoRepository(sqlc.New(j.db)).Save(ctx, v)
 				if err != nil {
 					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(exhaust quota job)", slog.Any("error", err))
 					continue
@@ -229,10 +227,14 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 			}
 
 			// プレイリストを作成して動画を挿入
+			description := ytPlaylist.Description
+			if len([]rune(description)) > 255 {
+				description = string([]rune(description)[:255])
+			}
 			pl, err := playlist.NewPlaylist(
 				uuid.Nil,
 				ytPlaylist.Title,
-				ytPlaylist.Description,
+				description,
 				"public",
 				"external_auto",
 				playlist.WithPlaylistRegisteredAt(ytPlaylist.CreatedAt),
@@ -243,7 +245,7 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 				continue
 			}
 
-			playlistRow, err := playlist.NewPlaylistRepository(q).Save(ctx, pl)
+			playlistRow, err := playlist.NewPlaylistRepository(sqlc.New(j.db)).SaveSystem(ctx, pl)
 			if err != nil {
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save playlist(exhaust quota job)", slog.Any("error", err))
 				continue
@@ -259,7 +261,7 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 			}
 
 			if len(videoInternalIDs) > 0 {
-				if err := playlist.NewPlaylistRepository(q).BulkInsertVideos(ctx, playlistRow, videoInternalIDs); err != nil {
+				if err := playlist.NewPlaylistRepository(sqlc.New(j.db)).BulkInsertVideos(ctx, playlistRow, videoInternalIDs); err != nil {
 					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to bulk insert videos(exhaust quota job)", slog.Any("error", err))
 					continue
 				}
@@ -270,7 +272,7 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 				continue
 			}
 
-			if _, err := playlist.NewPlaylistRepository(q).Save(ctx, pl); err != nil {
+			if _, err := playlist.NewPlaylistRepository(sqlc.New(j.db)).SaveSystem(ctx, pl); err != nil {
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save playlist with video count(exhaust quota job)", slog.Any("error", err))
 				continue
 			}
@@ -280,15 +282,14 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 		c.MarkAsBulkFetched()
 		c.MarkAsRSSFetched()
 
-		if _, err := channel.NewChannelRepository(q).Save(ctx, c); err != nil {
+		if _, err := channel.NewChannelRepository(sqlc.New(j.db)).Save(ctx, c); err != nil {
 			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to save channel(exhaust quota job)", slog.Any("error", err))
 			continue
 		}
 
-		// release ad lock
+		// チャンネルのad lockを解放
 		if err := database_d.ReleaseAdLock(ctx, q, c.ID[:]); err != nil {
 			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to release ad lock for channel", slog.String("channel_id", c.ID.String()), slog.Any("error", err))
-			continue
 		}
 
 		// discord webhookに送信
@@ -297,23 +298,19 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 		}
 	}
 
-	if err := tx.Commit(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-		return err
-	}
-
 	return nil
 }
 
 func (j *exhaustQuotaJob) Run() {
 	// クオータリセットはPT midnight。cronは夏冬両方で登録されるので、
 	// リセットまで10分以内でなければスキップする。
-	loc, _ := time.LoadLocation("America/Los_Angeles")
-	now := time.Now().In(loc)
-	nextMidnight := time.Date(now.Year(), now.Month(), now.Day()+1, 0, 0, 0, 0, loc)
-	if nextMidnight.Sub(now) > 15*time.Minute {
-		slog.Info("skipping exhaust quota job: not close enough to quota reset")
-		return
-	}
+	// loc, _ := time.LoadLocation("America/Los_Angeles")
+	// now := time.Now().In(loc)
+	// nextMidnight := time.Date(now.Year(), now.Month(), now.Day()+1, 0, 0, 0, 0, loc)
+	// if nextMidnight.Sub(now) > 15*time.Minute {
+	// 	slog.Info("skipping exhaust quota job: not close enough to quota reset")
+	// 	return
+	// }
 
 	j.mx.Lock()
 	defer j.mx.Unlock()
@@ -323,6 +320,9 @@ func (j *exhaustQuotaJob) Run() {
 
 	if err := j.run(ctx); err != nil {
 		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to run exhaust quota job", slog.Any("error", err))
+		if wErr := j.discordService.SendWebhookMessage(ctx, fmt.Sprintf("[Error] exhaust quota job: %v", err)); wErr != nil {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to send discord webhook", slog.Any("error", wErr))
+		}
 	}
 }
 

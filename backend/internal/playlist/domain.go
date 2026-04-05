@@ -53,7 +53,7 @@ type PlaylistTitle string
 func NewPlaylistTitle(s string) (_ PlaylistTitle, err error) {
 	defer util.Wrap(&err, "playlist.NewPlaylistTitle")
 
-	if len(s) == 0 || len(s) > 128 {
+	if len([]rune(s)) == 0 || len([]rune(s)) > 128 {
 		return "", ErrInvalidPlaylistTitle
 	}
 	return PlaylistTitle(s), nil
@@ -68,7 +68,7 @@ type PlaylistDescription string
 func NewPlaylistDescription(s string) (_ PlaylistDescription, err error) {
 	defer util.Wrap(&err, "playlist.NewPlaylistDescription")
 
-	if len(s) > 255 {
+	if len([]rune(s)) > 255 {
 		return "", ErrInvalidPlaylistDescription
 	}
 	return PlaylistDescription(s), nil

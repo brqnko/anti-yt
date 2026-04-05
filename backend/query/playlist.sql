@@ -610,3 +610,48 @@ SET recent_playlist_ids = (
 ),
     updated_at = CURRENT_TIMESTAMP
 WHERE m_user.public_id = @user_public_id;
+
+-- name: UpsertSystemPlaylist :one
+INSERT INTO
+    m_playlist (
+        m_user_id,
+        m_channel_id,
+        playlist_title,
+        playlist_description,
+        visibility_code,
+        playlist_code,
+        video_count,
+        public_id,
+        registered_at
+    )
+VALUES
+    (
+        0,
+        COALESCE((
+            SELECT
+                ch.m_channel_id
+            FROM
+                m_channel ch
+            WHERE
+                ch.public_id = sqlc.narg('channel_public_id')::uuid
+            LIMIT
+                1
+        ), 0),
+        @playlist_title,
+        @playlist_description,
+        @visibility_code,
+        @playlist_code,
+        @video_count,
+        @public_id,
+        @registered_at
+    )
+ON CONFLICT (public_id) DO UPDATE SET
+    playlist_title = EXCLUDED.playlist_title,
+    playlist_description = EXCLUDED.playlist_description,
+    visibility_code = EXCLUDED.visibility_code,
+    playlist_code = EXCLUDED.playlist_code,
+    video_count = EXCLUDED.video_count,
+    registered_at = EXCLUDED.registered_at,
+    updated_at = CURRENT_TIMESTAMP
+RETURNING
+    m_playlist.m_playlist_id;

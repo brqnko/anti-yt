@@ -277,7 +277,7 @@ func (q *Queries) InsertSubscription(ctx context.Context, arg InsertSubscription
 	return m_user_subscribing_channel_id, err
 }
 
-const listChannelsBulkFetchedAfter = `-- name: ListChannelsBulkFetchedAfter :many
+const listChannelsBulkFetchedBefore = `-- name: ListChannelsBulkFetchedBefore :many
 SELECT
     c.public_id,
     c.external_id,
@@ -294,10 +294,10 @@ SELECT
 FROM
     m_channel c
 WHERE
-    c.bulk_fetched_at > $1
+    c.bulk_fetched_at < $1
 `
 
-type ListChannelsBulkFetchedAfterRow struct {
+type ListChannelsBulkFetchedBeforeRow struct {
 	PublicID                  uuid.UUID
 	ExternalID                string
 	ExternalDisplayName       string
@@ -312,15 +312,15 @@ type ListChannelsBulkFetchedAfterRow struct {
 	BulkFetchedAt             time.Time
 }
 
-func (q *Queries) ListChannelsBulkFetchedAfter(ctx context.Context, bulkFetchedAfter time.Time) ([]ListChannelsBulkFetchedAfterRow, error) {
-	rows, err := q.db.Query(ctx, listChannelsBulkFetchedAfter, bulkFetchedAfter)
+func (q *Queries) ListChannelsBulkFetchedBefore(ctx context.Context, bulkFetchedBefore time.Time) ([]ListChannelsBulkFetchedBeforeRow, error) {
+	rows, err := q.db.Query(ctx, listChannelsBulkFetchedBefore, bulkFetchedBefore)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListChannelsBulkFetchedAfterRow
+	var items []ListChannelsBulkFetchedBeforeRow
 	for rows.Next() {
-		var i ListChannelsBulkFetchedAfterRow
+		var i ListChannelsBulkFetchedBeforeRow
 		if err := rows.Scan(
 			&i.PublicID,
 			&i.ExternalID,

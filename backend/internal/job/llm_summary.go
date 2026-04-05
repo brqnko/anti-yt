@@ -13,6 +13,7 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/core/discord_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/llm"
 	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -24,8 +25,9 @@ import (
 type llmSummaryJob struct {
 	db *pgxpool.Pool
 
-	llmService llm.Service
-	mx         *sync.Mutex
+	llmService     llm.Service
+	discordService discord_d.Service
+	mx             *sync.Mutex
 }
 
 type summaryResponse struct {
@@ -50,8 +52,8 @@ var summaryPromptTemplates = map[string]string{
 - タメ口で、親しい友達に話しかけるような口調で書いてください
 - 「〜じゃん」「〜だね」「〜してたよね」のような表現を使ってください
 - 笑いやツッコミを適度に入れてOKです
-- titleは50文字以内の短い要約タイトルで、友達っぽいコメント風にしてください
-- descriptionは500文字以内で、視聴傾向や興味関心をカジュアルに説明してください
+- titleは20文字以内の短い要約タイトルで、友達っぽいコメント風にしてください
+- descriptionは100文字以内で、視聴傾向や興味関心をカジュアルに説明してください
 
 視聴した動画タイトル:
 %s`,
@@ -62,8 +64,8 @@ Given a list of video titles a user watched, casually summarize their viewing ha
 # Rules
 - Write in a casual, friendly tone as if you're talking to a close friend
 - Use informal expressions, light humor, and playful commentary
-- title should be a short, friend-like comment (max 50 characters)
-- description should be a casual, fun description of viewing patterns and interests (max 500 characters)
+- title should be a short, friend-like comment (max 20 characters)
+- description should be a casual, fun description of viewing patterns and interests (max 100 characters)
 
 Video titles watched:
 %s`,
@@ -87,7 +89,6 @@ func createTodaysBits() (_ []byte, err error) {
 
 	return buf.Bytes(), nil
 }
-
 
 func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 	defer util.Wrap(&err, "job.(*llmSummaryJob).run")
@@ -190,13 +191,17 @@ func (j *llmSummaryJob) Run() {
 
 	if err := j.run(ctx); err != nil {
 		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to run llm summary job", slog.Any("error", err))
+		if wErr := j.discordService.SendWebhookMessage(ctx, fmt.Sprintf("[Error] llm summary job: %v", err)); wErr != nil {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to send discord webhook", slog.Any("error", wErr))
+		}
 	}
 }
 
-func NewLLMSummaryJob(db *pgxpool.Pool, llmService llm.Service) scheduler.Job {
+func NewLLMSummaryJob(db *pgxpool.Pool, llmService llm.Service, discordService discord_d.Service) scheduler.Job {
 	return &llmSummaryJob{
-		llmService: llmService,
-		db:         db,
-		mx:         &sync.Mutex{},
+		llmService:     llmService,
+		discordService: discordService,
+		db:             db,
+		mx:             &sync.Mutex{},
 	}
 }

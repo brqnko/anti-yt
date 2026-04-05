@@ -36,6 +36,9 @@ func (j *authorizationReportJob) Run() {
 
 	if err := j.run(ctx); err != nil {
 		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to run authorization report job", slog.Any("error", err))
+		if wErr := j.discord.SendWebhookMessage(ctx, fmt.Sprintf("[Error] authorization report job: %v", err)); wErr != nil {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to send discord webhook", slog.Any("error", wErr))
+		}
 	}
 }
 
