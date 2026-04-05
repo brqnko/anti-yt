@@ -529,6 +529,14 @@ func (s *Service) ReactivateAccount(ctx context.Context, registerAccessToken str
 		return err
 	}
 
+	// 使用済みregisterトークンのJTIをブラックリストに追加
+	if err := q.InsertBlacklistedJTI(ctx, sqlc.InsertBlacklistedJTIParams{
+		Jti:       jti,
+		ExpiresAt: time.Now().UTC().Add(s.jwtService.TokenDuration()),
+	}); err != nil {
+		return err
+	}
+
 	// コミット
 	if err := tx.Commit(ctx); err != nil {
 		return err

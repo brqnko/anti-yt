@@ -121,6 +121,14 @@ func (s *Service) CreateNewUser(
 		return nil, "", time.Time{}, err
 	}
 
+	// 使用済みregisterトークンのJTIをブラックリストに追加
+	if err := q.InsertBlacklistedJTI(ctx, sqlc.InsertBlacklistedJTIParams{
+		Jti:       jti,
+		ExpiresAt: time.Now().UTC().Add(s.jwtService.TokenDuration()),
+	}); err != nil {
+		return nil, "", time.Time{}, err
+	}
+
 	if err := tx.Commit(ctx); err != nil {
 		return nil, "", time.Time{}, err
 	}

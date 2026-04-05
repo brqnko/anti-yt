@@ -7,7 +7,29 @@ package sqlc
 
 import (
 	"context"
+	"time"
+
+	"github.com/google/uuid"
 )
+
+const insertBlacklistedJTI = `-- name: InsertBlacklistedJTI :exec
+INSERT INTO
+    t_jti_blacklist (jti, expires_at)
+VALUES
+    ($1, $2)
+ON CONFLICT DO NOTHING
+`
+
+type InsertBlacklistedJTIParams struct {
+	Jti       uuid.UUID
+	ExpiresAt time.Time
+}
+
+// jtiをブラックリストに追加する。既に存在する場合は何もしない。
+func (q *Queries) InsertBlacklistedJTI(ctx context.Context, arg InsertBlacklistedJTIParams) error {
+	_, err := q.db.Exec(ctx, insertBlacklistedJTI, arg.Jti, arg.ExpiresAt)
+	return err
+}
 
 const releaseAdvisoryLock = `-- name: ReleaseAdvisoryLock :one
 SELECT pg_advisory_unlock($1::bigint) AS released
