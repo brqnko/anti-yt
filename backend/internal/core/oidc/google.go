@@ -9,7 +9,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-var ErrIDTokenNotFound = core.NewDomainError("auth.id_token_not_found", "id token not found")
+var ErrIDTokenNotFound = core.NewDomainError("auth.id_token_not_found", "id token not found", core.StatusBadRequest)
 
 type GoogleOIDCService interface {
 	AuthCodeURL(state string) string

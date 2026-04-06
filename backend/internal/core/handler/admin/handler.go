@@ -26,7 +26,7 @@ func (h *handler) createValuableChannel(w http.ResponseWriter, r *http.Request) 
 		Description       string `json:"description"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		writeErrorJSON(w, http.StatusBadRequest, "Bad Request", "invalid request body")
+		writeErrorJSON(w, http.StatusBadRequest, "bad_request", "invalid request body")
 		return
 	}
 
@@ -38,7 +38,7 @@ func (h *handler) createValuableChannel(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		util.LoggerFromContext(r.Context()).ErrorContext(r.Context(), "failed to create valuable channel", slog.Any("error", err))
-		writeErrorJSON(w, http.StatusInternalServerError, "Internal Server Error", "an unexpected error has occurred")
+		writeErrorJSON(w, http.StatusInternalServerError, "internal_server_error", "an unexpected error has occurred")
 		return
 	}
 
@@ -62,7 +62,7 @@ func (h *handler) updateValuableChannel(w http.ResponseWriter, r *http.Request) 
 		Description       *string `json:"description"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		writeErrorJSON(w, http.StatusBadRequest, "Bad Request", "invalid request body")
+		writeErrorJSON(w, http.StatusBadRequest, "bad_request", "invalid request body")
 		return
 	}
 
@@ -74,7 +74,7 @@ func (h *handler) updateValuableChannel(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		util.LoggerFromContext(r.Context()).ErrorContext(r.Context(), "failed to update valuable channel", slog.Any("error", err))
-		writeErrorJSON(w, http.StatusInternalServerError, "Internal Server Error", "an unexpected error has occurred")
+		writeErrorJSON(w, http.StatusInternalServerError, "internal_server_error", "an unexpected error has occurred")
 		return
 	}
 
@@ -96,7 +96,7 @@ func (h *handler) removeValuableChannel(w http.ResponseWriter, r *http.Request) 
 		ExternalChannelID string `json:"external_channel_id"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		writeErrorJSON(w, http.StatusBadRequest, "Bad Request", "invalid request body")
+		writeErrorJSON(w, http.StatusBadRequest, "bad_request", "invalid request body")
 		return
 	}
 
@@ -107,7 +107,7 @@ func (h *handler) removeValuableChannel(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		util.LoggerFromContext(r.Context()).ErrorContext(r.Context(), "failed to remove valuable channel", slog.Any("error", err))
-		writeErrorJSON(w, http.StatusInternalServerError, "Internal Server Error", "an unexpected error has occurred")
+		writeErrorJSON(w, http.StatusInternalServerError, "internal_server_error", "an unexpected error has occurred")
 		return
 	}
 

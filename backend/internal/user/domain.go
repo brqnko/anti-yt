@@ -11,17 +11,17 @@ import (
 )
 
 var (
-	ErrDailyScreenTimeOutOfRange = core.NewDomainError("user.invalid_daily_screen_time", "daily screen time limit is out of range")
+	ErrDailyScreenTimeOutOfRange = core.NewDomainError("user.invalid_daily_screen_time", "daily screen time limit is out of range", core.StatusBadRequest)
 
-	ErrDisplayNameTooLong  = core.NewDomainError("user.display_name_too_long", "display name is too long")
-	ErrDisplayNameTooShort = core.NewDomainError("user.display_name_too_short", "display name is too short")
+	ErrDisplayNameTooLong  = core.NewDomainError("user.display_name_too_long", "display name is too long", core.StatusBadRequest)
+	ErrDisplayNameTooShort = core.NewDomainError("user.display_name_too_short", "display name is too short", core.StatusBadRequest)
 
-	ErrLanguageCodeNotSupported = core.NewDomainError("user.unsupported_language_code", "language code is not supported")
+	ErrLanguageCodeNotSupported = core.NewDomainError("user.unsupported_language_code", "language code is not supported", core.StatusBadRequest)
 
-	ErrDailyScreenTimeLimitRangeOrder = core.NewDomainError("user.invalid_screen_time_range_order", "screen time range start must be before end")
-	ErrDailyScreenTimeLimitOutOfRange = core.NewDomainError("user.invalid_screen_time_range", "daily screen time limit is out of range")
+	ErrDailyScreenTimeLimitRangeOrder = core.NewDomainError("user.invalid_screen_time_range_order", "screen time range start must be before end", core.StatusBadRequest)
+	ErrDailyScreenTimeLimitOutOfRange = core.NewDomainError("user.invalid_screen_time_range", "daily screen time limit is out of range", core.StatusBadRequest)
 
-	ErrInvalidLeaveReasonCode = core.NewDomainError("user.invalid_leave_reason_code", "invalid leave reason code")
+	ErrInvalidLeaveReasonCode = core.NewDomainError("user.invalid_leave_reason_code", "invalid leave reason code", core.StatusBadRequest)
 )
 
 type LeaveReasonCode int

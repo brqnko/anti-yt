@@ -10,9 +10,9 @@ import (
 
 func ResponseCookieMiddleware(f v1.StrictHandlerFunc, operationID string) v1.StrictHandlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		ctx = hutil.WithResponseCookies(ctx)
-		resp, err := f(ctx, w, r.WithContext(ctx), request)
-		for _, cookie := range hutil.ResponseCookiesFromContext(ctx) {
+		newCtx := hutil.WithResponseCookies(ctx)
+		resp, err := f(newCtx, w, r.WithContext(newCtx), request)
+		for _, cookie := range hutil.ResponseCookiesFromContext(newCtx) {
 			w.Header().Add("Set-Cookie", cookie)
 		}
 		return resp, err

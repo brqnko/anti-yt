@@ -85,6 +85,14 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // jti_blacklisted is raised during register/reactivation flows when a
+    // one-time token has already been consumed. Refreshing the session token
+    // would not help and would mask the original error, so surface it to the
+    // caller directly.
+    if (error.response?.data?.title === "jti_blacklisted") {
+      return Promise.reject(error);
+    }
+
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });

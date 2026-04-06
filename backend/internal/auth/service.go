@@ -26,10 +26,10 @@ import (
 )
 
 var (
-	ErrInvalidCSRFOrState     = core.NewDomainError("auth.invalid_csrf_or_state", "invalid csrf or state")
-	ErrInvalidCSRF            = core.NewDomainError("auth.invalid_csrf", "invalid csrf: csrf != state")
+	ErrInvalidCSRFOrState     = core.NewDomainError("auth.invalid_csrf_or_state", "invalid csrf or state", core.StatusBadRequest)
+	ErrInvalidCSRF            = core.NewDomainError("auth.invalid_csrf", "invalid csrf: csrf != state", core.StatusBadRequest)
 	ErrIDTokenNotFound        = oidc.ErrIDTokenNotFound
-	ErrNoImportOptionSelected = core.NewDomainError("auth.no_import_option_selected", "at least one import option must be selected")
+	ErrNoImportOptionSelected = core.NewDomainError("auth.no_import_option_selected", "at least one import option must be selected", core.StatusBadRequest)
 )
 
 type Service struct {
