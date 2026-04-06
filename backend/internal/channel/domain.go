@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	ErrInvalidValuableDescription = core.NewDomainError("valuable_channel.invalid_valuable_reason", "invalid valuable description")
+	ErrInvalidValuableDescription = core.NewDomainError("valuable_channel.invalid_valuable_reason", "invalid valuable description", core.StatusBadRequest)
 )
 
 type SubscribedChannel struct {
@@ -119,7 +119,7 @@ func (v ValuableDescription) String() string {
 type ValuableCategoryCode int
 
 var (
-	ErrInvalidValuableCategoryCode = core.NewDomainError("valuable_channel.invalid_valuable_category_code", "invalid valuable category code")
+	ErrInvalidValuableCategoryCode = core.NewDomainError("valuable_channel.invalid_valuable_category_code", "invalid valuable category code", core.StatusBadRequest)
 
 	valuableCategoryCodeMap = []struct {
 		code ValuableCategoryCode

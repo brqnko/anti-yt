@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	ErrInvalidAuthorizationIDRegistered = core.NewDomainError("user.already_registered", "invalid authorization id: already registered")
+	ErrInvalidAuthorizationIDRegistered = core.NewDomainError("user.already_registered", "invalid authorization id: already registered", core.StatusBadRequest)
 )
 
 type Service struct {

@@ -477,6 +477,8 @@
     "playlist.invalid_visibility_code": "Invalid visibility setting.",
     "playlist.invalid_playlist_code": "Invalid playlist code.",
     "playlist.invalid_playlist_id": "Invalid playlist ID or unsupported format.",
+    "playlist.not_modifiable": "This playlist cannot be modified.",
+    "jti_blacklisted": "This link has already been used. Please start over.",
     "fallback": "An error occurred. Please try again."
   },
   "home": {

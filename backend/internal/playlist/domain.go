@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	ErrInvalidPlaylistTitle       = core.NewDomainError("playlist.invalid_title", "invalid playlist title: must be between 1 and 128 characters")
-	ErrInvalidPlaylistDescription = core.NewDomainError("playlist.invalid_description", "invalid playlist description: must be at most 255 characters")
-	ErrInvalidVisibilityCode      = core.NewDomainError("playlist.invalid_visibility_code", "invalid visibility code")
-	ErrInvalidPlaylistCode        = core.NewDomainError("playlist.invalid_playlist_code", "invalid playlist code")
-	ErrPlaylistNotModifiable      = core.NewDomainError("playlist.not_modifiable", "this playlist cannot be modified")
+	ErrInvalidPlaylistTitle       = core.NewDomainError("playlist.invalid_title", "invalid playlist title: must be between 1 and 128 characters", core.StatusBadRequest)
+	ErrInvalidPlaylistDescription = core.NewDomainError("playlist.invalid_description", "invalid playlist description: must be at most 255 characters", core.StatusBadRequest)
+	ErrInvalidVisibilityCode      = core.NewDomainError("playlist.invalid_visibility_code", "invalid visibility code", core.StatusBadRequest)
+	ErrInvalidPlaylistCode        = core.NewDomainError("playlist.invalid_playlist_code", "invalid playlist code", core.StatusBadRequest)
+	ErrPlaylistNotModifiable      = core.NewDomainError("playlist.not_modifiable", "this playlist cannot be modified", core.StatusForbidden)
 )
 
 type VisibilityCode int
@@ -110,8 +110,8 @@ func (p *Playlist) SetDescription(s *string) (err error) {
 	return nil
 }
 
-var ErrNegativeVideoCount = core.NewDomainError("playlist.negative_video_count", "video count must not be negative")
-var ErrVideoCountUnderflow = core.NewDomainError("playlist.video_count_underflow", "video count is already 0")
+var ErrNegativeVideoCount = core.NewDomainError("playlist.negative_video_count", "video count must not be negative", core.StatusBadRequest)
+var ErrVideoCountUnderflow = core.NewDomainError("playlist.video_count_underflow", "video count is already 0", core.StatusBadRequest)
 
 func (p *Playlist) SetVideoCount(count int) (err error) {
 	defer util.Wrap(&err, "playlist.(*Playlist).SetVideoCount")

@@ -11,7 +11,7 @@ import (
 var farFuture = time.Date(9999, 12, 31, 23, 59, 59, 0, time.UTC)
 
 var (
-	ErrWatchPositionSecondsIsMinus = core.NewDomainError("watch_position_seconds_is_minus", "watch position seconds is minus")
+	ErrWatchPositionSecondsIsMinus = core.NewDomainError("watch_position_seconds_is_minus", "watch position seconds is minus", core.StatusBadRequest)
 )
 
 type RotateResult int

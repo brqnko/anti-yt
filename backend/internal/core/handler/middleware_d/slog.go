@@ -2,7 +2,6 @@ package middleware_d
 
 import (
 	"context"
-	"encoding/base64"
 	"log/slog"
 	"net/http"
 
@@ -11,6 +10,8 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
+// HTTPリクエスト情報,request_id, user_idの情報をもったslogをcontextに付与する
+// uuid.UUID型の値はhandlerのReplaceAttrで自動的にbase64形式に変換される
 func SlogMiddleware(f v1.StrictHandlerFunc, operationID string) v1.StrictHandlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
 		attrs := []any{
@@ -21,10 +22,10 @@ func SlogMiddleware(f v1.StrictHandlerFunc, operationID string) v1.StrictHandler
 		}
 
 		if requestID, ok := hutil.RequestIDFromContext(ctx); ok {
-			attrs = append(attrs, slog.String("request_id", base64.RawURLEncoding.EncodeToString(requestID[:])))
+			attrs = append(attrs, slog.Any("request_id", requestID))
 		}
 		if userID, err := hutil.UserIDFromContext(ctx); err == nil {
-			attrs = append(attrs, slog.String("user_id", base64.RawURLEncoding.EncodeToString(userID[:])))
+			attrs = append(attrs, slog.Any("user_id", userID))
 		}
 
 		logger := slog.Default().With(attrs...)

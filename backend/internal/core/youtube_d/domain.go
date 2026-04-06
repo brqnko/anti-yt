@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	ErrChannelIDEmpty              = core.NewDomainError("youtube.channel_id_empty", "channel ID must not be empty")
-	ErrChannelIDInvalidPrefix      = core.NewDomainError("youtube.channel_id_invalid_prefix", "channel ID must start with 'UC'")
-	ErrChannelUploadsPlaylistEmpty = core.NewDomainError("youtube.channel_uploads_playlist_empty", "channel uploads playlist ID must not be empty")
-	ErrVideoIDEmpty                = core.NewDomainError("youtube.video_id_empty", "video ID must not be empty")
-	ErrVideoTooShort               = core.NewDomainError("youtube.video_too_short", "video must be longer than 60 seconds")
+	ErrChannelIDEmpty              = core.NewDomainError("youtube.channel_id_empty", "channel ID must not be empty", core.StatusBadRequest)
+	ErrChannelIDInvalidPrefix      = core.NewDomainError("youtube.channel_id_invalid_prefix", "channel ID must start with 'UC'", core.StatusBadRequest)
+	ErrChannelUploadsPlaylistEmpty = core.NewDomainError("youtube.channel_uploads_playlist_empty", "channel uploads playlist ID must not be empty", core.StatusBadRequest)
+	ErrVideoIDEmpty                = core.NewDomainError("youtube.video_id_empty", "video ID must not be empty", core.StatusBadRequest)
+	ErrVideoTooShort               = core.NewDomainError("youtube.video_too_short", "video must be longer than 60 seconds", core.StatusBadRequest)
 )
 
 type ChannelID string
