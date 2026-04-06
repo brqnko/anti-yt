@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ed25519"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -31,6 +32,7 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/job"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/google/uuid"
 )
 
 func main() {
@@ -112,7 +114,15 @@ func run(ctx context.Context) int {
 
 	var handler slog.Handler
 	if cfg.env == "production" {
-		handler = slog.NewJSONHandler(os.Stdout, nil)
+		// uuid.UUID型の属性値をbase64(RawURL)に変換して出力する
+		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+				if id, ok := a.Value.Any().(uuid.UUID); ok {
+					return slog.String(a.Key, base64.RawURLEncoding.EncodeToString(id[:]))
+				}
+				return a
+			},
+		})
 	} else {
 		handler = slog.NewTextHandler(os.Stdout, nil)
 	}
@@ -176,7 +186,7 @@ func run(ctx context.Context) int {
 
 	var reportOpts []report.Option
 	if cfg.discordWebhookURL != "" {
-		reportOpts = append(reportOpts, report.WithDiscordWebhook(cfg.discordWebhookURL))
+		reportOpts = append(reportOpts, report.WithDiscord(discord_d.NewDiscordClient(cfg.discordWebhookURL)))
 	}
 	reportService := report.NewService(reportOpts...)
 
@@ -211,6 +221,7 @@ func run(ctx context.Context) int {
 
 	r := chi.NewRouter()
 	// NOTE: RateLimit, gzip, loggerはLB(pingora, nginx等)で行う。各リクエストへのレートリミットはmiddlewareが行う
+	// r.Useは上に書いた順から実行される
 	r.Use(middleware.Recoverer)
 	r.Use(middleware_d.SecureHeaders)
 	if cfg.env != "production" {
@@ -220,17 +231,64 @@ func run(ctx context.Context) int {
 	admin.HandleAdminEndpoints(r, db, ytService, cfg.adminAPIKey)
 	v1.HandlerFromMux(v1.NewStrictHandler(
 		v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour, ytService, 1*time.Hour, scheduler),
+		// StrictMiddlewareは下に書いた順から実行される
 		[]v1.StrictMiddlewareFunc{
-			middleware_d.DomainErrorMiddleware(reportService),
 			middleware_d.ResponseCookieMiddleware,
-			middleware_d.ScreenTimeMiddleware(db),
+			middleware_d.ScreenTimeMiddleware(db, map[string]struct{}{
+				"GetAuthGoogle":         {},
+				"GetAuthGoogleCallback": {},
+				"PostAuthLogout":        {},
+				"PostAuthRefresh":       {},
+				"PostUsersMe":           {},
+				"GetUsersMeStatus":      {},
+				"PatchUsersMeStatus":    {},
+				"GetHealth":             {},
+			}),
+			// WrapErrorMiddlewareはScreenTimeMiddlewareが返すDomainErrorを
+			// 捕捉する必要があるため、ScreenTimeより外側(=下)に置く。
+			// またSlogMiddlewareがctxに入れるloggerを使うため、Slogより内側(=上)に置く。
+			middleware_d.WrapErrorMiddleware(reportService),
+			middleware_d.CsrfMiddleware(map[string]struct{}{
+				"GetAuthGoogle":         {},
+				"GetAuthGoogleCallback": {},
+			}),
+			middleware_d.AuthTokensMiddleware(map[string]struct{}{
+				"PostAuthLogout":     {},
+				"PostAuthRefresh":    {},
+				"PostAuthReactivate": {},
+				"PostUsersMe":        {},
+			}),
+			middleware_d.UserRatelimitMiddleware(db, 2000, map[string]int{
+				"PostChannelsSubscribe":         3,
+				"GetChannelsChannelIdVideos":    2,
+				"GetChannelsChannelId":          1,
+				"GetFeedChannels":               3,
+				"GetFeed":                       2,
+				"GetSearch":                     100,
+				"PostPlaylists":                 100,
+				"PostPlaylistsPlaylistIdVideos": 100,
+				"GetAuthOauthYoutubeCallback":   500,
+			}),
+			middleware_d.TimezoneMiddleware(map[string]struct{}{
+				"GetAuthGoogle":               {},
+				"GetAuthGoogleCallback":       {},
+				"PostAuthLogout":              {},
+				"PostAuthRefresh":             {},
+				"GetHealth":                   {},
+				"GetAuthOauthYoutube":         {},
+				"GetAuthOauthYoutubeCallback": {},
+			}),
+			// slogはuser_id(AccessTokenMiddlewareで付与), request_idをcontextに必要としているためここに配置
 			middleware_d.SlogMiddleware,
-			middleware_d.AccessTokenMiddleware(jwtService, db),
-			middleware_d.CsrfMiddleware,
-			middleware_d.AuthTokensMiddleware,
+			middleware_d.AccessTokenMiddleware(jwtService, db, map[string]struct{}{
+				"GetAuthGoogle":               {},
+				"GetAuthGoogleCallback":       {},
+				"PostAuthRefresh":             {},
+				"GetAuthOauthYoutubeCallback": {},
+				"PostUsersMe":                 {},
+				"PostAuthReactivate":          {},
+			}),
 			middleware_d.RequestIDMiddleware,
-			middleware_d.UserRatelimitMiddleware(r, db),
-			middleware_d.TimezoneMiddleware,
 		}), r)
 
 	srv := &http.Server{

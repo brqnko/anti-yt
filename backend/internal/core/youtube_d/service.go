@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
@@ -20,9 +21,9 @@ import (
 var iso8601DurationRe = regexp.MustCompile(`PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?`)
 
 var (
-	ErrInvalidChannelID = core.NewDomainError("youtube.invalid_channel_id", "invalid channel id")
+	ErrInvalidChannelID = core.NewDomainError("youtube.invalid_channel_id", "invalid channel id", core.StatusBadRequest)
 
-	ErrVideoIDsTooMuch = core.NewDomainError("youtube.video_ids_too_much", "video ids are too much")
+	ErrVideoIDsTooMuch = core.NewDomainError("youtube.video_ids_too_much", "video ids are too much", core.StatusBadRequest)
 )
 
 type Service interface {
@@ -54,6 +55,7 @@ type serviceImpl struct {
 	ytClient    *youtube.Service
 	oauthConfig *oauth2.Config
 
+	mu              sync.Mutex
 	lastCheckedDay  time.Time
 	consumedQuota   int
 	dailyQuotaLimit int
@@ -439,6 +441,9 @@ var (
 )
 
 func (s *serviceImpl) tryConsumeQuota(quota int) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if s.lastCheckedDay.Before(quotaDate()) {
 		s.consumedQuota = 0
 		s.lastCheckedDay = quotaDate()

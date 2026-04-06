@@ -485,6 +485,8 @@
     "playlist.invalid_visibility_code": "無効な公開設定です。",
     "playlist.invalid_playlist_code": "無効なプレイリストコードです。",
     "playlist.invalid_playlist_id": "無効なプレイリストIDです。",
+    "playlist.not_modifiable": "このプレイリストは編集できません。",
+    "jti_blacklisted": "このリンクは既に使用されています。最初からやり直してください。",
     "fallback": "エラーが発生しました。再度お試しください。"
   },
   "home": {

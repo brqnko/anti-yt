@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	ErrInvalidBatchStatusCode = core.NewDomainError("job.invalid_batch_status_code", "invalid batch status code")
+	ErrInvalidBatchStatusCode = core.NewDomainError("job.invalid_batch_status_code", "invalid batch status code", core.StatusBadRequest)
 
 	batchStatusCodeMap = []struct {
 		code BatchStatusCode

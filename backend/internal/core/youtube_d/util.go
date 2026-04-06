@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	ErrInvalidChannelHandle = core.NewDomainError("channel.invalid_channel_handle", "invalid channel handle")
-	ErrInvalidYouTubeURL    = core.NewDomainError("channel.invalid_youtube_url", "invalid youtube url or unsupported format")
-	ErrInvalidPlaylistID    = core.NewDomainError("playlist.invalid_playlist_id", "invalid playlist id or unsupported format")
-	ErrInvalidVideoID       = core.NewDomainError("video.invalid_video_id", "invalid video id or unsupported format")
+	ErrInvalidChannelHandle = core.NewDomainError("channel.invalid_channel_handle", "invalid channel handle", core.StatusBadRequest)
+	ErrInvalidYouTubeURL    = core.NewDomainError("channel.invalid_youtube_url", "invalid youtube url or unsupported format", core.StatusBadRequest)
+	ErrInvalidPlaylistID    = core.NewDomainError("playlist.invalid_playlist_id", "invalid playlist id or unsupported format", core.StatusBadRequest)
+	ErrInvalidVideoID       = core.NewDomainError("video.invalid_video_id", "invalid video id or unsupported format", core.StatusBadRequest)
 )
 
 func ExtractChannelIDOrHandle(channelText string) (string, error) {
