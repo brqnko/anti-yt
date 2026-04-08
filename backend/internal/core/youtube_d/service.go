@@ -171,21 +171,21 @@ func (s *serviceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channe
 		return Channel{}, err
 	}
 	if len(res.Items) == 0 {
-		return Channel{}, errors.New("len(res.Items) == 0(fetchChannelDetail)")
+		return Channel{}, errors.New("res.Items is empty")
 	}
 	found := res.Items[0]
 
 	if found.Snippet == nil {
-		return Channel{}, errors.New("found.Snippet == nil(fetchChannelDetail)")
+		return Channel{}, errors.New("found.Snippet is nil")
 	}
 
 	createdAt, err := time.Parse(time.RFC3339, found.Snippet.PublishedAt)
 	if err != nil {
-		return Channel{}, errors.New("failed to parse createdAt(fetchChannelDetail)")
+		return Channel{}, err
 	}
 
 	if found.Snippet.Thumbnails == nil {
-		return Channel{}, errors.New("found.Snippet.Thumbnails == nil(fetchChannelDetail)")
+		return Channel{}, errors.New("found.Snippet.Thumbnails is nil")
 	}
 	iconURL := ""
 	if found.Snippet.Thumbnails.Medium != nil {
@@ -193,14 +193,14 @@ func (s *serviceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channe
 	} else if found.Snippet.Thumbnails.Default != nil {
 		iconURL = found.Snippet.Thumbnails.Default.Url
 	} else {
-		return Channel{}, errors.New("no valid iconURL found(fetchChannelDetail)")
+		return Channel{}, errors.New("no valid iconURL found")
 	}
 
 	if found.Statistics == nil {
-		return Channel{}, errors.New("found.Statistics == nil(fetchChannelDetail)")
+		return Channel{}, errors.New("found.Statistics is nil")
 	}
 	if found.ContentDetails == nil || found.ContentDetails.RelatedPlaylists == nil {
-		return Channel{}, errors.New("found.ContentDetails or found.ContentDetails.ReleatedPlaylists == nil(fetchVideoDetail)")
+		return Channel{}, errors.New("found.ContentDetails or found.ContentDetails.RelatedPlaylists is nil")
 	}
 
 	channel, err := NewChannel(

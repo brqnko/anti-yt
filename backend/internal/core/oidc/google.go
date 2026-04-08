@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 )
@@ -21,9 +22,11 @@ type googleOIDCService struct {
 	verifier     *oidc.IDTokenVerifier
 }
 
-func NewGoogleOIDCService(ctx context.Context, clientID, clientSecret, redirectURL string) (GoogleOIDCService, error) {
+func NewGoogleOIDCService(ctx context.Context, clientID, clientSecret, redirectURL string) (_ GoogleOIDCService, err error) {
+	defer util.Wrap(&err, "oidc.NewGoogleOIDCService")
+
 	if clientSecret == "" {
-		return nil, errors.New("oidc: google client secret is empty")
+		return nil, errors.New("google client secret is empty")
 	}
 
 	provider, err := oidc.NewProvider(ctx, "https://accounts.google.com")
@@ -53,7 +56,9 @@ func (s *googleOIDCService) AuthCodeURL(state string) string {
 	return s.oauth2Config.AuthCodeURL(state)
 }
 
-func (s *googleOIDCService) ExchangeAndVerify(ctx context.Context, code string) (string, error) {
+func (s *googleOIDCService) ExchangeAndVerify(ctx context.Context, code string) (_ string, err error) {
+	defer util.Wrap(&err, "oidc.(*googleOIDCService).ExchangeAndVerify")
+
 	oauth2Token, err := s.oauth2Config.Exchange(ctx, code)
 	if err != nil {
 		return "", err

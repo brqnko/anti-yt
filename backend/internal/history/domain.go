@@ -120,26 +120,29 @@ func (h *Heartbeat) Rotate(videoID uuid.UUID, watchPositionSeconds, lastVideoLen
 		return heartbeat, RotateResultContinue, nil
 	}
 
-	// 最後の更新から2分以上経過していた場合はcloseして、新しく視聴を再開したとみなす
-	if time.Now().UTC().Sub(lastUpdatedAt).Abs().Minutes() > 2 {
+	newPos, err := NewWatchPositionSeconds(watchPositionSeconds)
+	if err != nil {
+		return nil, RotateResultContinue, err
+	}
+
+	// 動画を最後まで見終わった場合(30秒のpaddingつき)
+	// YouTube動画でエンディングがあることを考慮した
+	// 時間切れによるsplit判定よりも先にチェックして、視聴完了heartbeatが
+	// 別レコードとして切り出されるのを防ぐ
+	if newPos.IsFinished(lastVideoLength) {
+		h.WatchEndAt = time.Now().UTC()
+		h.WatchPositionSeconds = newPos
+		return nil, RotateResultFinished, nil
+	}
+
+	// 最後の更新から5分以上経過していた場合はcloseして、新しく視聴を再開したとみなす
+	if time.Now().UTC().Sub(lastUpdatedAt).Abs().Minutes() > 5 {
 		h.WatchEndAt = lastUpdatedAt.Add(time.Minute)
 		heartbeat, err := NewHeartbeat(videoID, h.UserID, watchPositionSeconds)
 		if err != nil {
 			return nil, RotateResultContinue, err
 		}
 		return heartbeat, RotateResultContinue, nil
-	}
-
-	// 動画を最後まで見終わった場合(30秒のpaddingつき)
-	// YouTube動画でエンディングがあることを考慮した
-	newPos, err := NewWatchPositionSeconds(watchPositionSeconds)
-	if err != nil {
-		return nil, RotateResultContinue, err
-	}
-	if newPos.IsFinished(lastVideoLength) {
-		h.WatchEndAt = time.Now().UTC()
-		h.WatchPositionSeconds = newPos
-		return nil, RotateResultFinished, nil
 	}
 
 	// 同じ動画を継続視聴中: positionだけ更新
