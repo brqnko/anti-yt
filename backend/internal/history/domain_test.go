@@ -208,9 +208,13 @@ func TestHeartbeat_Rotate(t *testing.T) {
 			arg:  arg{heartbeat: active, videoID: otherVideoID, watchPositionSeconds: 30, lastVideoLength: 200, lastUpdatedAt: time.Now().UTC()},
 			want: want{newHeartbeat: true, originalClosed: true, result: history.RotateResultContinue},
 		},
-		"active + same video + last updated over 2 min": {
-			arg:  arg{heartbeat: active, videoID: videoID, watchPositionSeconds: 30, lastVideoLength: 200, lastUpdatedAt: time.Now().UTC().Add(-3 * time.Minute)},
+		"active + same video + last updated over 5 min": {
+			arg:  arg{heartbeat: active, videoID: videoID, watchPositionSeconds: 30, lastVideoLength: 200, lastUpdatedAt: time.Now().UTC().Add(-6 * time.Minute)},
 			want: want{newHeartbeat: true, originalClosed: true, result: history.RotateResultContinue},
+		},
+		"active + same video + last updated 3 min ago (within threshold)": {
+			arg:  arg{heartbeat: active, videoID: videoID, watchPositionSeconds: 30, lastVideoLength: 200, lastUpdatedAt: time.Now().UTC().Add(-3 * time.Minute)},
+			want: want{newHeartbeat: false, originalClosed: false, watchPosition: 30, result: history.RotateResultContinue},
 		},
 		"active + same video + finished": {
 			arg:  arg{heartbeat: active, videoID: videoID, watchPositionSeconds: 180, lastVideoLength: 200, lastUpdatedAt: time.Now().UTC()},
