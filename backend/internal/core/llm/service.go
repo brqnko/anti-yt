@@ -2,8 +2,9 @@ package llm
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"google.golang.org/genai"
 )
 
@@ -35,6 +36,8 @@ type geminiImpl struct {
 }
 
 func (g *geminiImpl) Completion(ctx context.Context, prompts []Prompt, opts ...Option) (_ string, err error) {
+	defer util.Wrap(&err, "llm.(*geminiImpl).Completion")
+
 	contents := make([]*genai.Content, len(prompts))
 	for i, p := range prompts {
 		contents[i] = &genai.Content{
@@ -53,12 +56,12 @@ func (g *geminiImpl) Completion(ctx context.Context, prompts []Prompt, opts ...O
 
 	resp, err := g.client.Models.GenerateContent(ctx, g.modelID, contents, config)
 	if err != nil {
-		return "", fmt.Errorf("gemini completion: %w", err)
+		return "", err
 	}
 
 	text := resp.Text()
 	if text == "" {
-		return "", fmt.Errorf("gemini completion: empty response")
+		return "", errors.New("empty response")
 	}
 
 	return text, nil
@@ -68,13 +71,15 @@ func (g *geminiImpl) ModelID() string {
 	return g.modelID
 }
 
-func NewGemini(ctx context.Context, apiKey, modelID string) (Service, error) {
+func NewGemini(ctx context.Context, apiKey, modelID string) (_ Service, err error) {
+	defer util.Wrap(&err, "llm.NewGemini")
+
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
 		APIKey:  apiKey,
 		Backend: genai.BackendGeminiAPI,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("creating gemini client: %w", err)
+		return nil, err
 	}
 
 	return &geminiImpl{
