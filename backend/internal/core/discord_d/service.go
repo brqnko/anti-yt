@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
 type Service interface {
@@ -24,25 +26,27 @@ type webhookPayload struct {
 }
 
 func (w *discordClient) SendWebhookMessage(ctx context.Context, message string) (err error) {
+	defer util.Wrap(&err, "discord_d.(*discordClient).SendWebhookMessage")
+
 	payload, err := json.Marshal(webhookPayload{Content: message})
 	if err != nil {
-		return fmt.Errorf("discord SendWebhookMessage: marshal: %w", err)
+		return err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, w.webhookURL, bytes.NewReader(payload))
 	if err != nil {
-		return fmt.Errorf("discord SendWebhookMessage: new request: %w", err)
+		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := w.httpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("discord SendWebhookMessage: do request: %w", err)
+		return err
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("discord SendWebhookMessage: unexpected status %d", resp.StatusCode)
+		return fmt.Errorf("unexpected status %d", resp.StatusCode)
 	}
 
 	return nil

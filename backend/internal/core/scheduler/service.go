@@ -27,7 +27,7 @@ func (s *serviceImpl) AddFunc(spec string, task Job) (err error) {
 
 	_, err = s.c.AddFunc(spec, task.Run)
 
-	return nil
+	return err
 }
 
 func (s *serviceImpl) Stop() {

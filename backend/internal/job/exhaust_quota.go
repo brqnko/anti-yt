@@ -46,6 +46,7 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
+channelLoop:
 	for _, c := range channels {
 		if err := database_d.TryAdLockSession(ctx, q, c.ID[:]); err != nil {
 			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to acquire ad lock for channel", slog.String("channel_id", c.ID.String()), slog.Any("error", err))
@@ -58,7 +59,11 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 		for {
 			videoIDs, nextPageToken, err := j.ytService.FetchPlaylistVideoIDs(ctx, string(c.Channel.UploadsPlaylistID), pageToken)
 			if err != nil {
-				return err
+				util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to fetch uploads playlist video IDs(exhaust quota job)", slog.String("channel_id", c.ID.String()), slog.String("uploads_playlist_id", string(c.Channel.UploadsPlaylistID)), slog.Any("error", err))
+				if relErr := database_d.ReleaseAdLock(ctx, q, c.ID[:]); relErr != nil {
+					util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to release ad lock for channel", slog.String("channel_id", c.ID.String()), slog.Any("error", relErr))
+				}
+				continue channelLoop
 			}
 
 			if len(videoIDs) > 0 {
@@ -90,10 +95,13 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 		// プレイリストを全て取得
 		var ytPlaylists []youtube_d.Playlist
 		pageToken = ""
+		fetchPlaylistsFailed := false
 		for {
 			playlists, nextPageToken, err := j.ytService.FetchChannelPlaylists(ctx, c.Channel.ID, pageToken)
 			if err != nil {
-				return err
+				util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to fetch channel playlists(exhaust quota job)", slog.String("channel_id", c.ID.String()), slog.String("yt_channel_id", string(c.Channel.ID)), slog.Any("error", err))
+				fetchPlaylistsFailed = true
+				break
 			}
 			ytPlaylists = append(ytPlaylists, playlists...)
 
@@ -101,6 +109,13 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 				break
 			}
 			pageToken = nextPageToken
+		}
+
+		if fetchPlaylistsFailed {
+			if relErr := database_d.ReleaseAdLock(ctx, q, c.ID[:]); relErr != nil {
+				util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to release ad lock for channel", slog.String("channel_id", c.ID.String()), slog.Any("error", relErr))
+			}
+			continue channelLoop
 		}
 
 		for _, ytPlaylist := range ytPlaylists {
@@ -303,14 +318,18 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 
 func (j *exhaustQuotaJob) Run() {
 	// クオータリセットはPT midnight。cronは夏冬両方で登録されるので、
-	// リセットまで10分以内でなければスキップする。
-	// loc, _ := time.LoadLocation("America/Los_Angeles")
-	// now := time.Now().In(loc)
-	// nextMidnight := time.Date(now.Year(), now.Month(), now.Day()+1, 0, 0, 0, 0, loc)
-	// if nextMidnight.Sub(now) > 15*time.Minute {
-	// 	slog.Info("skipping exhaust quota job: not close enough to quota reset")
-	// 	return
-	// }
+	// リセットまで15分以内でなければスキップする。
+	loc, err := time.LoadLocation("America/Los_Angeles")
+	if err != nil {
+		slog.Error("failed to load location for exhaust quota job", slog.Any("error", err))
+		return
+	}
+	now := time.Now().In(loc)
+	nextMidnight := time.Date(now.Year(), now.Month(), now.Day()+1, 0, 0, 0, 0, loc)
+	if nextMidnight.Sub(now) > 15*time.Minute {
+		slog.Info("skipping exhaust quota job: not close enough to quota reset")
+		return
+	}
 
 	j.mx.Lock()
 	defer j.mx.Unlock()
