@@ -56,18 +56,19 @@ func NewAPIHandler(
 	rssFetchDuration time.Duration,
 	scheduler scheduler.Service,
 	jtiBlacklistRepo database_d.JtiBlacklistRepository,
+	feedRepo database_d.FeedRepository,
 ) *APIHandler {
 
 	return &APIHandler{
 		db: db,
 
-		channelService:  channel.NewService(db, ytService, rssFetchDuration),
+		channelService:  channel.NewService(db, ytService, feedRepo, rssFetchDuration),
 		videoService:    video.NewService(db),
-		playlistService: playlist.NewService(db, ytService),
-		authService:     auth.NewService(db, oidcService, ytService, channel.NewService(db, ytService, rssFetchDuration), playlist.NewService(db, ytService), serverURL, jwtService, refreshTokenDuration, jtiBlacklistRepo),
+		playlistService: playlist.NewService(db, ytService, feedRepo),
+		authService:     auth.NewService(db, oidcService, ytService, channel.NewService(db, ytService, feedRepo, rssFetchDuration), playlist.NewService(db, ytService, feedRepo), serverURL, jwtService, refreshTokenDuration, jtiBlacklistRepo),
 		userService:     user.NewService(db, jwtService, serverURL, jtiBlacklistRepo),
-		historyService:  history.NewService(db),
-		feedService:     feed.NewService(db, ytService, rssFetchDuration),
+		historyService:  history.NewService(db, feedRepo),
+		feedService:     feed.NewService(db, ytService, feedRepo, rssFetchDuration),
 
 		serverURL:   serverURL,
 		frontendURL: frontendURL,

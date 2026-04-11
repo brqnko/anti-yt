@@ -509,6 +509,45 @@ func (q *Queries) ListSubscribedChannels(ctx context.Context, arg ListSubscribed
 	return items, nil
 }
 
+const listSubscribersByChannelPublicID = `-- name: ListSubscribersByChannelPublicID :many
+SELECT
+    m_user.public_id
+FROM
+    m_user_subscribing_channel
+    INNER JOIN m_user ON m_user.m_user_id = m_user_subscribing_channel.m_user_id
+WHERE
+    m_user_subscribing_channel.m_channel_id = (
+        SELECT
+            m_channel.m_channel_id
+        FROM
+            m_channel
+        WHERE
+            m_channel.public_id = $1
+        LIMIT
+            1
+    )
+`
+
+func (q *Queries) ListSubscribersByChannelPublicID(ctx context.Context, channelPublicID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, listSubscribersByChannelPublicID, channelPublicID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var public_id uuid.UUID
+		if err := rows.Scan(&public_id); err != nil {
+			return nil, err
+		}
+		items = append(items, public_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const upsertChannel = `-- name: UpsertChannel :one
 INSERT INTO
     m_channel (

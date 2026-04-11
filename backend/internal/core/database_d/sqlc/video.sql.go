@@ -98,6 +98,55 @@ func (q *Queries) GetVideoDetail(ctx context.Context, arg GetVideoDetailParams) 
 	return i, err
 }
 
+const listChannelVideoIDs = `-- name: ListChannelVideoIDs :many
+SELECT
+    m_video.public_id
+FROM
+    m_video
+    INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
+WHERE
+    m_channel.public_id = $1
+    AND NOT EXISTS (
+        SELECT 1 FROM t_video_watched
+        WHERE t_video_watched.m_video_id = m_video.m_video_id
+            AND t_video_watched.m_user_id = (
+                SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $2 LIMIT 1
+            )
+    )
+ORDER BY
+    m_video.public_id DESC
+LIMIT
+    $3
+`
+
+type ListChannelVideoIDsParams struct {
+	ChannelID  uuid.UUID
+	UserID     uuid.UUID
+	QueryLimit int32
+}
+
+// 指定ユーザーが未視聴の、チャンネルの動画IDを最新順で取得する。
+// feedへの挿入・削除で利用する。視聴済み動画は feed 側で既に削除されている前提。
+func (q *Queries) ListChannelVideoIDs(ctx context.Context, arg ListChannelVideoIDsParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, listChannelVideoIDs, arg.ChannelID, arg.UserID, arg.QueryLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var public_id uuid.UUID
+		if err := rows.Scan(&public_id); err != nil {
+			return nil, err
+		}
+		items = append(items, public_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listChannelVideos = `-- name: ListChannelVideos :many
 SELECT
     m_video.public_id,
@@ -306,6 +355,61 @@ func (q *Queries) ListChannelVideosOlder(ctx context.Context, arg ListChannelVid
 
 const listSubscriptionFeed = `-- name: ListSubscriptionFeed :many
 SELECT
+    m_video.public_id AS video_id
+FROM
+    m_video
+    INNER JOIN m_user_subscribing_channel ON m_video.m_channel_id = m_user_subscribing_channel.m_channel_id
+WHERE
+    m_user_subscribing_channel.m_user_id = (
+        SELECT
+            m_user.m_user_id
+        FROM
+            m_user
+        WHERE
+            m_user.public_id = $1
+        LIMIT
+            1
+    )
+    AND NOT EXISTS (
+        SELECT 1 FROM t_video_watched
+        WHERE t_video_watched.m_user_id = m_user_subscribing_channel.m_user_id
+            AND t_video_watched.m_video_id = m_video.m_video_id
+    )
+ORDER BY
+    m_video.public_id DESC
+LIMIT
+    $2
+`
+
+type ListSubscriptionFeedParams struct {
+	UserID     uuid.UUID
+	QueryLimit int32
+}
+
+// ユーザーが登録しているチャンネルがだしている未視聴動画IDを最新順(public_id)で取得する。
+// Redis feedの補充で利用する。hydrateは ListVideoFeedByIDs で別途行う。
+func (q *Queries) ListSubscriptionFeed(ctx context.Context, arg ListSubscriptionFeedParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, listSubscriptionFeed, arg.UserID, arg.QueryLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var video_id uuid.UUID
+		if err := rows.Scan(&video_id); err != nil {
+			return nil, err
+		}
+		items = append(items, video_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listVideoFeedByIDs = `-- name: ListVideoFeedByIDs :many
+SELECT
     m_video.public_id AS video_id,
     m_video.external_thumbnail_url AS external_video_thumbnail_url,
     m_video.external_title AS external_title,
@@ -340,41 +444,19 @@ SELECT
     m_channel.external_display_name AS external_displayname
 FROM
     m_video
-    INNER JOIN m_user_subscribing_channel ON m_video.m_channel_id = m_user_subscribing_channel.m_channel_id
     INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
 WHERE
-    m_user_subscribing_channel.m_user_id = (
-        SELECT
-            m_user.m_user_id
-        FROM
-            m_user
-        WHERE
-            m_user.public_id = $1
-        LIMIT
-            1
-    )
-    AND NOT EXISTS (
-        SELECT 1 FROM t_video_watched
-        WHERE t_video_watched.m_user_id = m_user_subscribing_channel.m_user_id
-            AND t_video_watched.m_video_id = m_video.m_video_id
-    )
-    AND (
-        $2::uuid IS NULL
-        OR m_video.public_id < $2::uuid
-    )
+    m_video.public_id = ANY($2::uuid[])
 ORDER BY
-    m_video.public_id DESC
-LIMIT
-    $3
+    array_position($2::uuid[], m_video.public_id)
 `
 
-type ListSubscriptionFeedParams struct {
-	UserID     uuid.UUID
-	Cursor     *uuid.UUID
-	QueryLimit int32
+type ListVideoFeedByIDsParams struct {
+	UserID   uuid.UUID
+	VideoIds []uuid.UUID
 }
 
-type ListSubscriptionFeedRow struct {
+type ListVideoFeedByIDsRow struct {
 	VideoID                   uuid.UUID
 	ExternalVideoThumbnailUrl string
 	ExternalTitle             string
@@ -386,16 +468,17 @@ type ListSubscriptionFeedRow struct {
 	ExternalDisplayname       string
 }
 
-// ユーザーが登録しているチャンネルがだしている動画を最新順(public_id)で取得する。
-func (q *Queries) ListSubscriptionFeed(ctx context.Context, arg ListSubscriptionFeedParams) ([]ListSubscriptionFeedRow, error) {
-	rows, err := q.db.Query(ctx, listSubscriptionFeed, arg.UserID, arg.Cursor, arg.QueryLimit)
+// 指定されたvideo_idsのフィード用データを、入力順序を保持して取得する。
+// Redisフィードのハイドレーション用。視聴済みフィルタはRedis側で管理されているためここでは行わない。
+func (q *Queries) ListVideoFeedByIDs(ctx context.Context, arg ListVideoFeedByIDsParams) ([]ListVideoFeedByIDsRow, error) {
+	rows, err := q.db.Query(ctx, listVideoFeedByIDs, arg.UserID, arg.VideoIds)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListSubscriptionFeedRow
+	var items []ListVideoFeedByIDsRow
 	for rows.Next() {
-		var i ListSubscriptionFeedRow
+		var i ListVideoFeedByIDsRow
 		if err := rows.Scan(
 			&i.VideoID,
 			&i.ExternalVideoThumbnailUrl,

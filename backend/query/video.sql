@@ -145,8 +145,31 @@ ORDER BY
 LIMIT
     @query_limit;
 
--- ユーザーが登録しているチャンネルがだしている動画を最新順(public_id)で取得する。
--- name: ListSubscriptionFeed :many
+-- 指定ユーザーが未視聴の、チャンネルの動画IDを最新順で取得する。
+-- feedへの挿入・削除で利用する。視聴済み動画は feed 側で既に削除されている前提。
+-- name: ListChannelVideoIDs :many
+SELECT
+    m_video.public_id
+FROM
+    m_video
+    INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
+WHERE
+    m_channel.public_id = @channel_id
+    AND NOT EXISTS (
+        SELECT 1 FROM t_video_watched
+        WHERE t_video_watched.m_video_id = m_video.m_video_id
+            AND t_video_watched.m_user_id = (
+                SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_id LIMIT 1
+            )
+    )
+ORDER BY
+    m_video.public_id DESC
+LIMIT
+    @query_limit;
+
+-- 指定されたvideo_idsのフィード用データを、入力順序を保持して取得する。
+-- Redisフィードのハイドレーション用。視聴済みフィルタはRedis側で管理されているためここでは行わない。
+-- name: ListVideoFeedByIDs :many
 SELECT
     m_video.public_id AS video_id,
     m_video.external_thumbnail_url AS external_video_thumbnail_url,
@@ -182,8 +205,20 @@ SELECT
     m_channel.external_display_name AS external_displayname
 FROM
     m_video
-    INNER JOIN m_user_subscribing_channel ON m_video.m_channel_id = m_user_subscribing_channel.m_channel_id
     INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
+WHERE
+    m_video.public_id = ANY(@video_ids::uuid[])
+ORDER BY
+    array_position(@video_ids::uuid[], m_video.public_id);
+
+-- ユーザーが登録しているチャンネルがだしている未視聴動画IDを最新順(public_id)で取得する。
+-- Redis feedの補充で利用する。hydrateは ListVideoFeedByIDs で別途行う。
+-- name: ListSubscriptionFeed :many
+SELECT
+    m_video.public_id AS video_id
+FROM
+    m_video
+    INNER JOIN m_user_subscribing_channel ON m_video.m_channel_id = m_user_subscribing_channel.m_channel_id
 WHERE
     m_user_subscribing_channel.m_user_id = (
         SELECT
@@ -199,10 +234,6 @@ WHERE
         SELECT 1 FROM t_video_watched
         WHERE t_video_watched.m_user_id = m_user_subscribing_channel.m_user_id
             AND t_video_watched.m_video_id = m_video.m_video_id
-    )
-    AND (
-        sqlc.narg('cursor')::uuid IS NULL
-        OR m_video.public_id < sqlc.narg('cursor')::uuid
     )
 ORDER BY
     m_video.public_id DESC
