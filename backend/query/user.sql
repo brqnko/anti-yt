@@ -209,6 +209,10 @@ RETURNING h_user_id;
 -- name: ListLeftUsers :many
 SELECT h_user_id, m_user_authorization_id, public_id FROM h_user;
 
+-- アクティブな全ユーザーのpublic_idを取得する。Redis feedのseed/refill用途。
+-- name: ListAllActiveUserIDs :many
+SELECT m_user.public_id FROM m_user;
+
 -- 退会済みユーザーとその関連データを全て削除する。
 -- m_refresh_tokenはm_user_authorizationのCASCADE DELETEで自動削除される。
 -- name: PurgeLeftUser :exec

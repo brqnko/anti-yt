@@ -38,7 +38,7 @@ func (j *refillFeedJob) run(ctx context.Context) (err error) {
 		}
 	}()
 
-	userIDs, err := j.feedRepo.ListUserIDsWithFeedCountLessThan(ctx, 100)
+	userIDs, err := j.feedQS.ListAllActiveUserIDs(ctx)
 	if err != nil {
 		return err
 	}
