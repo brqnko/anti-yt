@@ -23,6 +23,7 @@ type GetVideoFeedView struct {
 }
 
 type FeedQueryService interface {
+	ListAllActiveUserIDs(ctx context.Context) ([]uuid.UUID, error)
 	ListSubscriptionVideoIDs(ctx context.Context, userID uuid.UUID, limit int32) ([]uuid.UUID, error)
 	HydrateVideoFeed(ctx context.Context, userID uuid.UUID, videoIDs []uuid.UUID) ([]GetVideoFeedView, error)
 }
@@ -35,6 +36,16 @@ func NewFeedQueryService(db *pgxpool.Pool) FeedQueryService {
 	return &feedQueryServiceImpl{
 		q: sqlc.New(db),
 	}
+}
+
+func (f *feedQueryServiceImpl) ListAllActiveUserIDs(ctx context.Context) (_ []uuid.UUID, err error) {
+	defer util.Wrap(&err, "feed.(*feedQueryServiceImpl).ListAllActiveUserIDs")
+
+	rows, err := f.q.ListAllActiveUserIDs(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return rows, nil
 }
 
 func (f *feedQueryServiceImpl) ListSubscriptionVideoIDs(ctx context.Context, userID uuid.UUID, limit int32) (_ []uuid.UUID, err error) {

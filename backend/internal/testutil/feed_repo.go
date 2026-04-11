@@ -136,18 +136,6 @@ func (f *FakeFeedRepository) Get(_ context.Context, userID uuid.UUID, cursor *uu
 	return out, nil
 }
 
-func (f *FakeFeedRepository) ListUserIDsWithFeedCountLessThan(_ context.Context, count int64) ([]uuid.UUID, error) {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	var out []uuid.UUID
-	for uid, m := range f.feeds {
-		if int64(len(m)) < count {
-			out = append(out, uid)
-		}
-	}
-	return out, nil
-}
-
 // Count はテスト用にユーザーの feed サイズを返す。
 func (f *FakeFeedRepository) Count(userID uuid.UUID) int {
 	f.mu.Lock()
