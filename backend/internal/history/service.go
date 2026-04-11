@@ -18,14 +18,16 @@ import (
 )
 
 type Service struct {
-	db *pgxpool.Pool
+	db       *pgxpool.Pool
+	feedRepo database_d.FeedRepository
 
 	historyQS HistoryQueryService
 }
 
-func NewService(db *pgxpool.Pool) *Service {
+func NewService(db *pgxpool.Pool, feedRepo database_d.FeedRepository) *Service {
 	return &Service{
 		db:        db,
+		feedRepo:  feedRepo,
 		historyQS: NewHistoryQueryService(db),
 	}
 }
@@ -49,6 +51,7 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 	}
 
 	// TODO: publish recent playlist
+	var finishedVideoID *uuid.UUID
 	lastHeartbeat, lastVideoLength, lastHeartbeatID, lastUpdatedAt, err := NewHistoryRepository(q).GetLastHeartbeatForUpdate(ctx, userID)
 	if err == nil { // 最後のheartbeatの取得に成功
 		heartbeat, result, err := lastHeartbeat.Rotate(videoID, positionSeconds, lastVideoLength, lastUpdatedAt)
@@ -62,6 +65,8 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 			if err := NewHistoryRepository(q).MarkVideoWatched(ctx, userID, lastHeartbeat.VideoID); err != nil {
 				return nil, err
 			}
+			finished := lastHeartbeat.VideoID
+			finishedVideoID = &finished
 			lastHeartbeat.WatchPositionSeconds = 0
 		}
 
@@ -98,6 +103,12 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 		return nil, err
 	}
 
+	if finishedVideoID != nil {
+		if err := s.feedRepo.Delete(ctx, userID, *finishedVideoID); err != nil {
+			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to delete finished video from feed", slog.Any("error", err))
+		}
+	}
+
 	remaining, err := s.historyQS.FindTotalWatchSeconds(ctx, userID, loc)
 	if err != nil {
 		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to find total watch seconds", slog.Any("error", err))
@@ -112,13 +123,25 @@ func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, posi
 func (s *Service) MarkVideoWatched(ctx context.Context, userID, videoID uuid.UUID) (err error) {
 	defer util.Wrap(&err, "history.(*Service).MarkVideoWatched")
 
-	return NewHistoryRepository(sqlc.New(s.db)).MarkVideoWatched(ctx, userID, videoID)
+	if err := NewHistoryRepository(sqlc.New(s.db)).MarkVideoWatched(ctx, userID, videoID); err != nil {
+		return err
+	}
+	if err := s.feedRepo.Delete(ctx, userID, videoID); err != nil {
+		util.LoggerFromContext(ctx).WarnContext(ctx, "failed to delete video from feed", slog.Any("error", err))
+	}
+	return nil
 }
 
 func (s *Service) UnmarkVideoWatched(ctx context.Context, userID, videoID uuid.UUID) (err error) {
 	defer util.Wrap(&err, "history.(*Service).UnmarkVideoWatched")
 
-	return NewHistoryRepository(sqlc.New(s.db)).UnmarkVideoWatched(ctx, userID, videoID)
+	if err := NewHistoryRepository(sqlc.New(s.db)).UnmarkVideoWatched(ctx, userID, videoID); err != nil {
+		return err
+	}
+	if err := s.feedRepo.PushOne(ctx, userID, videoID); err != nil {
+		util.LoggerFromContext(ctx).WarnContext(ctx, "failed to push video to feed", slog.Any("error", err))
+	}
+	return nil
 }
 
 func (s *Service) GetHistory(ctx context.Context, userID uuid.UUID, limit int, cursor *uuid.UUID, loc *time.Location) (_ []GetHistoryView, _ bool, err error) {

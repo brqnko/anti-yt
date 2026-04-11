@@ -142,8 +142,10 @@ func run(ctx context.Context) int {
 	}()
 	jtiBlacklistRepo := database_d.NewJtiBlacklistRepository(redisClient)
 	ratelimitRepo := database_d.NewRatelimitRepository(redisClient, 24*time.Hour)
+	feedRepo := database_d.NewFeedRepository(redisClient, 1000)
 
-	job.NewPurgeLeftUserJob(db, discord_d.NewDiscordClient(cfg.discordWebhookURL)).Run()
+	job.NewPurgeLeftUserJob(db, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL)).Run()
+	job.NewRefillFeedJob(db, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL)).Run()
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
@@ -184,16 +186,20 @@ func run(ctx context.Context) int {
 		slog.Error("failed to setup llm summary job", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("0 0 * * *", job.NewPurgeLeftUserJob(db, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
+	if err := scheduler.AddFunc("0 0 * * *", job.NewPurgeLeftUserJob(db, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
 		slog.Error("failed to setup purge left user job", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("50 6 * * *", job.NewExhaustQuotaJob(db, ytService, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil { // 夏
+	if err := scheduler.AddFunc("50 6 * * *", job.NewExhaustQuotaJob(db, ytService, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil { // 夏
 		slog.Error("failed to setup exhaust quota job (PDT)", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("50 7 * * *", job.NewExhaustQuotaJob(db, ytService, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil { // 冬
+	if err := scheduler.AddFunc("50 7 * * *", job.NewExhaustQuotaJob(db, ytService, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil { // 冬
 		slog.Error("failed to setup exhaust quota job (PST)", slog.Any("error", err))
+		return 1
+	}
+	if err := scheduler.AddFunc("0 * * * *", job.NewRefillFeedJob(db, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
+		slog.Error("failed to setup refill feed job", slog.Any("error", err))
 		return 1
 	}
 
@@ -213,9 +219,9 @@ func run(ctx context.Context) int {
 		r.Use(middleware_d.RandomLag)
 		r.Use(v1.SwaggerMiddleware())
 	}
-	admin.HandleAdminEndpoints(r, db, ytService, cfg.adminAPIKey)
+	admin.HandleAdminEndpoints(r, db, ytService, feedRepo, cfg.adminAPIKey)
 	v1.HandlerFromMux(v1.NewStrictHandler(
-		v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour, ytService, 1*time.Hour, scheduler, jtiBlacklistRepo),
+		v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour, ytService, 1*time.Hour, scheduler, jtiBlacklistRepo, feedRepo),
 		// StrictMiddlewareは下に書いた順から実行される
 		[]v1.StrictMiddlewareFunc{
 			middleware_d.ResponseCookieMiddleware,

@@ -124,6 +124,24 @@ ORDER BY
 LIMIT
     @query_limit;
 
+-- name: ListSubscribersByChannelPublicID :many
+SELECT
+    m_user.public_id
+FROM
+    m_user_subscribing_channel
+    INNER JOIN m_user ON m_user.m_user_id = m_user_subscribing_channel.m_user_id
+WHERE
+    m_user_subscribing_channel.m_channel_id = (
+        SELECT
+            m_channel.m_channel_id
+        FROM
+            m_channel
+        WHERE
+            m_channel.public_id = @channel_public_id
+        LIMIT
+            1
+    );
+
 -- name: DeleteSubscription :one
 DELETE FROM
     m_user_subscribing_channel

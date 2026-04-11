@@ -23,7 +23,8 @@ type GetVideoFeedView struct {
 }
 
 type FeedQueryService interface {
-	GetVideoFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetVideoFeedView, error)
+	ListSubscriptionVideoIDs(ctx context.Context, userID uuid.UUID, limit int32) ([]uuid.UUID, error)
+	HydrateVideoFeed(ctx context.Context, userID uuid.UUID, videoIDs []uuid.UUID) ([]GetVideoFeedView, error)
 }
 
 type feedQueryServiceImpl struct {
@@ -36,13 +37,30 @@ func NewFeedQueryService(db *pgxpool.Pool) FeedQueryService {
 	}
 }
 
-func (f *feedQueryServiceImpl) GetVideoFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, err error) {
-	defer util.Wrap(&err, "feed.(*feedQueryServiceImpl).GetVideoFeed(userID=%s)", userID)
+func (f *feedQueryServiceImpl) ListSubscriptionVideoIDs(ctx context.Context, userID uuid.UUID, limit int32) (_ []uuid.UUID, err error) {
+	defer util.Wrap(&err, "feed.(*feedQueryServiceImpl).ListSubscriptionVideoIDs(userID=%s)", userID)
 
 	rows, err := f.q.ListSubscriptionFeed(ctx, sqlc.ListSubscriptionFeedParams{
 		UserID:     userID,
-		Cursor:     cursor,
 		QueryLimit: limit,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return rows, nil
+}
+
+func (f *feedQueryServiceImpl) HydrateVideoFeed(ctx context.Context, userID uuid.UUID, videoIDs []uuid.UUID) (_ []GetVideoFeedView, err error) {
+	defer util.Wrap(&err, "feed.(*feedQueryServiceImpl).HydrateVideoFeed(userID=%s)", userID)
+
+	if len(videoIDs) == 0 {
+		return []GetVideoFeedView{}, nil
+	}
+
+	rows, err := f.q.ListVideoFeedByIDs(ctx, sqlc.ListVideoFeedByIDsParams{
+		UserID:   userID,
+		VideoIds: videoIDs,
 	})
 	if err != nil {
 		return nil, err

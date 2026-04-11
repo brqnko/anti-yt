@@ -22,6 +22,7 @@ import (
 type Service struct {
 	db        *pgxpool.Pool
 	ytService youtube_d.Service
+	feedRepo  database_d.FeedRepository
 
 	channelQS         ChannelQueryService
 	valuableChannelQS ValuableChannelQueryService
@@ -37,11 +38,13 @@ var (
 func NewService(
 	db *pgxpool.Pool,
 	ytService youtube_d.Service,
+	feedRepo database_d.FeedRepository,
 	rssFetchDuration time.Duration,
 ) *Service {
 	return &Service{
 		db:                db,
 		ytService:         ytService,
+		feedRepo:          feedRepo,
 		rssFetchDuration:  rssFetchDuration,
 		channelQS:         NewChannelQueryService(db),
 		valuableChannelQS: NewValuableChannelQueryService(db),
@@ -114,7 +117,9 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 			return nil, err
 		}
 
-		// 取得した情報をDBに保存する. キャッシュのためトランザクション外で行う
+		// 取得した情報をDBに保存する. キャッシュのためトランザクション外で行う.
+		// 新規チャンネルなので既存購読者はおらず FanOut は不要。
+		// 本ユーザーへの feed 反映は commit 後の PushMany で行う。
 		for _, vd := range videoDetails {
 			v, err := video.NewVideo(channel.ID, fetchedAt, vd)
 			if err != nil {
@@ -124,6 +129,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 
 			if _, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v); err != nil {
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(subscribe channel)", slog.Any("error", err))
+				continue
 			}
 		}
 
@@ -143,6 +149,15 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 		return nil, err
 	}
 
+	videoIDs, err := s.channelQS.ListChannelVideoIDs(ctx, userID, foundChannel.ID, 100)
+	if err != nil {
+		util.LoggerFromContext(ctx).WarnContext(ctx, "failed to list channel video ids(subscribe channel)", slog.Any("error", err))
+	} else if len(videoIDs) > 0 {
+		if err := s.feedRepo.PushMany(ctx, userID, videoIDs); err != nil {
+			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to push feed(subscribe channel)", slog.Any("error", err))
+		}
+	}
+
 	return foundChannel, nil
 }
 
@@ -152,6 +167,15 @@ func (s *Service) UnsubscribeChannel(ctx context.Context, userID, channelID uuid
 	_, err = NewChannelRepository(sqlc.New(s.db)).RemoveSubscription(ctx, userID, channelID)
 	if err != nil {
 		return err
+	}
+
+	videoIDs, err := s.channelQS.ListChannelVideoIDs(ctx, userID, channelID, 100)
+	if err != nil {
+		util.LoggerFromContext(ctx).WarnContext(ctx, "failed to list channel video ids(unsubscribe channel)", slog.Any("error", err))
+	} else if len(videoIDs) > 0 {
+		if err := s.feedRepo.DeleteMany(ctx, userID, videoIDs); err != nil {
+			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to delete from feed(unsubscribe channel)", slog.Any("error", err))
+		}
 	}
 
 	return nil
@@ -222,6 +246,9 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 			if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(get channel uploads)", slog.Any("error", err))
 				continue
+			}
+			if err := video.FanOut(ctx, q, s.feedRepo, v); err != nil {
+				util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(get channel uploads)", slog.Any("error", err))
 			}
 		}
 
@@ -337,8 +364,13 @@ func (s *Service) CreateNewValuableChannel(ctx context.Context, externalChannelI
 				continue
 			}
 
-			if _, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v); err != nil {
+			q := sqlc.New(s.db)
+			if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(create valuable channel)", slog.Any("error", err))
+				continue
+			}
+			if err := video.FanOut(ctx, q, s.feedRepo, v); err != nil {
+				util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(create valuable channel)", slog.Any("error", err))
 			}
 		}
 

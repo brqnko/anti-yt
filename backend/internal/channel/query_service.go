@@ -24,6 +24,7 @@ type ChannelQueryService interface {
 	GetSubscriptions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetSubscriptionsView, error)
 	GetChannelDetail(ctx context.Context, channelID uuid.UUID) (GetChannelDetailView, error)
 	GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32, order string) ([]GetChannelUploadsView, error)
+	ListChannelVideoIDs(ctx context.Context, userID, channelID uuid.UUID, limit int32) ([]uuid.UUID, error)
 }
 
 type channelQueryServiceImpl struct {
@@ -204,6 +205,20 @@ func (c *channelQueryServiceImpl) GetChannelUploads(ctx context.Context, userID,
 		}
 	}
 	return views, nil
+}
+
+func (c *channelQueryServiceImpl) ListChannelVideoIDs(ctx context.Context, userID, channelID uuid.UUID, limit int32) (_ []uuid.UUID, err error) {
+	defer util.Wrap(&err, "channel.(*channelQueryServiceImpl).ListChannelVideoIDs(userID=%s,channelID=%s)", userID, channelID)
+
+	_ = userID
+	rows, err := c.q.ListChannelVideoIDs(ctx, sqlc.ListChannelVideoIDsParams{
+		ChannelID:  channelID,
+		QueryLimit: limit,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return rows, nil
 }
 
 var _ ChannelQueryService = (*channelQueryServiceImpl)(nil)

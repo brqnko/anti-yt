@@ -66,6 +66,9 @@ type Querier interface {
 	InsertUser(ctx context.Context, arg InsertUserParams) (int64, error)
 	InsertWatchLater(ctx context.Context, arg InsertWatchLaterParams) error
 	ListChannelPlaylists(ctx context.Context, arg ListChannelPlaylistsParams) ([]ListChannelPlaylistsRow, error)
+	// 指定ユーザーが未視聴の、チャンネルの動画IDを最新順で取得する。
+	// feedへの挿入・削除で利用する。視聴済み動画は feed 側で既に削除されている前提。
+	ListChannelVideoIDs(ctx context.Context, arg ListChannelVideoIDsParams) ([]uuid.UUID, error)
 	ListChannelVideos(ctx context.Context, arg ListChannelVideosParams) ([]ListChannelVideosRow, error)
 	ListChannelVideosOlder(ctx context.Context, arg ListChannelVideosOlderParams) ([]ListChannelVideosOlderRow, error)
 	ListChannelsBulkFetchedBefore(ctx context.Context, bulkFetchedBefore time.Time) ([]ListChannelsBulkFetchedBeforeRow, error)
@@ -80,10 +83,15 @@ type Querier interface {
 	ListScreenTimeRanges(ctx context.Context, userPublicID uuid.UUID) ([]ListScreenTimeRangesRow, error)
 	ListStaleRSSChannelsForUpdate(ctx context.Context, arg ListStaleRSSChannelsForUpdateParams) ([]ListStaleRSSChannelsForUpdateRow, error)
 	ListSubscribedChannels(ctx context.Context, arg ListSubscribedChannelsParams) ([]ListSubscribedChannelsRow, error)
-	// ユーザーが登録しているチャンネルがだしている動画を最新順(public_id)で取得する。
-	ListSubscriptionFeed(ctx context.Context, arg ListSubscriptionFeedParams) ([]ListSubscriptionFeedRow, error)
+	ListSubscribersByChannelPublicID(ctx context.Context, channelPublicID uuid.UUID) ([]uuid.UUID, error)
+	// ユーザーが登録しているチャンネルがだしている未視聴動画IDを最新順(public_id)で取得する。
+	// Redis feedの補充で利用する。hydrateは ListVideoFeedByIDs で別途行う。
+	ListSubscriptionFeed(ctx context.Context, arg ListSubscriptionFeedParams) ([]uuid.UUID, error)
 	ListUserPlaylists(ctx context.Context, arg ListUserPlaylistsParams) ([]ListUserPlaylistsRow, error)
 	ListValuableChannels(ctx context.Context) ([]ListValuableChannelsRow, error)
+	// 指定されたvideo_idsのフィード用データを、入力順序を保持して取得する。
+	// Redisフィードのハイドレーション用。視聴済みフィルタはRedis側で管理されているためここでは行わない。
+	ListVideoFeedByIDs(ctx context.Context, arg ListVideoFeedByIDsParams) ([]ListVideoFeedByIDsRow, error)
 	ListWatchHistory(ctx context.Context, arg ListWatchHistoryParams) ([]ListWatchHistoryRow, error)
 	MarkVideoWatched(ctx context.Context, arg MarkVideoWatchedParams) error
 	// 退会済みユーザーとその関連データを全て削除する。
