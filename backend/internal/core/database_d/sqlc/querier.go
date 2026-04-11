@@ -85,7 +85,9 @@ type Querier interface {
 	ListScreenTimeRanges(ctx context.Context, userPublicID uuid.UUID) ([]ListScreenTimeRangesRow, error)
 	ListStaleRSSChannelsForUpdate(ctx context.Context, arg ListStaleRSSChannelsForUpdateParams) ([]ListStaleRSSChannelsForUpdateRow, error)
 	ListSubscribedChannels(ctx context.Context, arg ListSubscribedChannelsParams) ([]ListSubscribedChannelsRow, error)
-	ListSubscribersByChannelPublicID(ctx context.Context, channelPublicID uuid.UUID) ([]uuid.UUID, error)
+	// 指定チャンネルを購読しているユーザーのうち、指定動画をまだ視聴していないユーザーだけを返す。
+	// fan-out時に視聴済み動画がfeedに再挿入されるのを防ぐ目的。
+	ListSubscribersByChannelPublicID(ctx context.Context, arg ListSubscribersByChannelPublicIDParams) ([]uuid.UUID, error)
 	// ユーザーが登録しているチャンネルがだしている未視聴動画IDを最新順(public_id)で取得する。
 	// Redis feedの補充で利用する。hydrateは ListVideoFeedByIDs で別途行う。
 	ListSubscriptionFeed(ctx context.Context, arg ListSubscriptionFeedParams) ([]uuid.UUID, error)
