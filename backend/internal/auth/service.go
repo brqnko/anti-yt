@@ -3,6 +3,7 @@ package auth
 //go:generate moq -out mock_oidc_service_test.go -pkg auth_test ../core/oidc GoogleOIDCService
 //go:generate moq -out mock_jwt_service_test.go -pkg auth_test ../core/jwt_d Service
 //go:generate moq -out mock_youtube_service_test.go -pkg auth_test ../core/youtube_d Service:YouTubeServiceMock
+//go:generate moq -out mock_jti_blacklist_repository_test.go -pkg auth_test ../core/database_d JtiBlacklistRepository
 
 import (
 	"context"
@@ -40,7 +41,8 @@ type Service struct {
 	playlistService *playlist.Service
 	ytService       youtube_d.Service
 
-	jwtService jwt_d.Service
+	jwtService       jwt_d.Service
+	jtiBlacklistRepo database_d.JtiBlacklistRepository
 
 	serverURL            string
 	refreshTokenDuration time.Duration
@@ -59,12 +61,14 @@ func NewService(
 	serverURL string,
 	jwtService jwt_d.Service,
 	refreshTokenDuration time.Duration,
+	jtiBlacklistRepo database_d.JtiBlacklistRepository,
 ) *Service {
 	return &Service{
 		db:                   db,
 		oidcService:          oidcService,
 		ytService:            youtubeService,
 		jwtService:           jwtService,
+		jtiBlacklistRepo:     jtiBlacklistRepo,
 		serverURL:            serverURL,
 		refreshTokenDuration: refreshTokenDuration,
 		refreshTokenQS:       NewRefreshTokenQueryService(db),
@@ -219,13 +223,19 @@ func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) 
 	defer util.Wrap(&err, "auth.(*Service).Logout")
 
 	q := sqlc.New(s.db)
-	userID, _, _, err := s.jwtService.VerifyUserAccessToken(accessToken)
+	userID, jti, jtiExpiresAt, err := s.jwtService.VerifyUserAccessToken(accessToken)
 	if err != nil {
 		return err
 	}
 
 	refreshTokenHash := util.Sha256Hex(refreshToken)
-	return NewRefreshTokenRepository(q).RevokeByTokenHash(ctx, userID, refreshTokenHash, time.Now().UTC().Add(s.refreshTokenDuration))
+	if err := NewRefreshTokenRepository(q).RevokeByTokenHash(ctx, userID, refreshTokenHash); err != nil {
+		return err
+	}
+
+	// 削除した refresh token に紐づく access token の jti をブラックリスト入りさせ、
+	// 残りの有効期限が切れるまで再利用を防ぐ
+	return s.jtiBlacklistRepo.InsertJTI(ctx, jti, jtiExpiresAt)
 }
 
 func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, countryCode, deviceFingerprint, userAgent string) (_, _ string, _, _ time.Time, err error) {
@@ -295,8 +305,15 @@ func (s *Service) RemoveSession(ctx context.Context, userID, sessionID uuid.UUID
 	defer util.Wrap(&err, "auth.(*Service).RemoveSession")
 
 	q := sqlc.New(s.db)
-	removedPublicID, err := NewRefreshTokenRepository(q).RevokeByID(ctx, userID, sessionID, time.Now().UTC().Add(s.jwtService.TokenDuration()))
+	removedPublicID, accessTokenJTI, err := NewRefreshTokenRepository(q).RevokeByID(ctx, userID, sessionID)
 	if err != nil {
+		return uuid.Nil, err
+	}
+
+	// 削除されたセッションに紐づく access token の jti をブラックリスト入りさせる。
+	// access token の残り有効期限分だけ TTL を持たせれば十分だが、ここでは sessionID から
+	// 取得できないので jwtService.TokenDuration() を上限としてセットする。
+	if err := s.jtiBlacklistRepo.InsertJTI(ctx, accessTokenJTI, time.Now().UTC().Add(s.jwtService.TokenDuration())); err != nil {
 		return uuid.Nil, err
 	}
 
@@ -515,7 +532,11 @@ func (s *Service) ReactivateAccount(ctx context.Context, registerAccessToken str
 		return err
 	}
 	// jti blacklist検証
-	if _, err := q.FindBlacklistedJTI(ctx, jti); err == nil {
+	blacklisted, err := s.jtiBlacklistRepo.IsJtiExist(ctx, jti)
+	if err != nil {
+		return err
+	}
+	if blacklisted {
 		return core.ErrJTIBlacklisted
 	}
 
@@ -530,10 +551,7 @@ func (s *Service) ReactivateAccount(ctx context.Context, registerAccessToken str
 	}
 
 	// 使用済みregisterトークンのJTIをブラックリストに追加
-	if err := q.InsertBlacklistedJTI(ctx, sqlc.InsertBlacklistedJTIParams{
-		Jti:       jti,
-		ExpiresAt: time.Now().UTC().Add(s.jwtService.TokenDuration()),
-	}); err != nil {
+	if err := s.jtiBlacklistRepo.InsertJTI(ctx, jti, time.Now().UTC().Add(s.jwtService.TokenDuration())); err != nil {
 		return err
 	}
 

@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
-	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/discord_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/admin"
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/middleware_d"
@@ -58,6 +57,8 @@ type config struct {
 	dbPort     int
 	dbUser     string
 	dbSSLMode  string
+
+	redisURL string
 }
 
 func run(ctx context.Context) int {
@@ -107,6 +108,7 @@ func run(ctx context.Context) int {
 		adminAPIKey:            os.Getenv("ADMIN_API_KEY"),
 		geminiAPIKey:           os.Getenv("GEMINI_API_KEY"),
 		discordWebhookURL:      os.Getenv("DISCORD_WEBHOOK_URL"),
+		redisURL:               os.Getenv("REDIS_URL"),
 		port:                   port,
 	}
 	clear(dbPassword)
@@ -150,9 +152,18 @@ func run(ctx context.Context) int {
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	if err := sqlc.New(db).PurgeExpiredJTIBlacklist(initCtx, time.Now().UTC()); err != nil {
-		slog.Error("failed to clean up jti blacklist", slog.Any("error", err))
+	redisClient, err := database_d.ConnectRedis(initCtx, cfg.redisURL)
+	if err != nil {
+		slog.Error("failed to connect redis", slog.Any("error", err))
+		return 1
 	}
+	defer func() {
+		if err := redisClient.Close(); err != nil {
+			slog.Error("failed to close redis", slog.Any("error", err))
+		}
+	}()
+	jtiBlacklistRepo := database_d.NewJtiBlacklistRepository(redisClient)
+	ratelimitRepo := database_d.NewRatelimitRepository(redisClient, 24*time.Hour)
 
 	job.NewPurgeLeftUserJob(db, discord_d.NewDiscordClient(cfg.discordWebhookURL)).Run()
 
@@ -199,10 +210,6 @@ func run(ctx context.Context) int {
 		slog.Error("failed to setup purge left user job", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("0 * * * *", job.NewPurgeJTIBlacklistJob(db, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
-		slog.Error("failed to setup purge jti blacklist job", slog.Any("error", err))
-		return 1
-	}
 	if err := scheduler.AddFunc("50 6 * * *", job.NewExhaustQuotaJob(db, ytService, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil { // 夏
 		slog.Error("failed to setup exhaust quota job (PDT)", slog.Any("error", err))
 		return 1
@@ -230,7 +237,7 @@ func run(ctx context.Context) int {
 	}
 	admin.HandleAdminEndpoints(r, db, ytService, cfg.adminAPIKey)
 	v1.HandlerFromMux(v1.NewStrictHandler(
-		v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour, ytService, 1*time.Hour, scheduler),
+		v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour, ytService, 1*time.Hour, scheduler, jtiBlacklistRepo),
 		// StrictMiddlewareは下に書いた順から実行される
 		[]v1.StrictMiddlewareFunc{
 			middleware_d.ResponseCookieMiddleware,
@@ -258,7 +265,7 @@ func run(ctx context.Context) int {
 				"PostAuthReactivate": {},
 				"PostUsersMe":        {},
 			}),
-			middleware_d.UserRatelimitMiddleware(db, 2000, map[string]int{
+			middleware_d.UserRatelimitMiddleware(ratelimitRepo, 2000, map[string]int{
 				"PostChannelsSubscribe":         3,
 				"GetChannelsChannelIdVideos":    2,
 				"GetChannelsChannelId":          1,
@@ -280,7 +287,7 @@ func run(ctx context.Context) int {
 			}),
 			// slogはuser_id(AccessTokenMiddlewareで付与), request_idをcontextに必要としているためここに配置
 			middleware_d.SlogMiddleware,
-			middleware_d.AccessTokenMiddleware(jwtService, db, map[string]struct{}{
+			middleware_d.AccessTokenMiddleware(jwtService, jtiBlacklistRepo, map[string]struct{}{
 				"GetAuthGoogle":               {},
 				"GetAuthGoogleCallback":       {},
 				"PostAuthRefresh":             {},

@@ -7,6 +7,7 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/auth"
 	"github.com/brqnko/anti-yt/backend/internal/channel"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
 	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
@@ -54,6 +55,7 @@ func NewAPIHandler(
 	ytService youtube_d.Service,
 	rssFetchDuration time.Duration,
 	scheduler scheduler.Service,
+	jtiBlacklistRepo database_d.JtiBlacklistRepository,
 ) *APIHandler {
 
 	return &APIHandler{
@@ -62,8 +64,8 @@ func NewAPIHandler(
 		channelService:  channel.NewService(db, ytService, rssFetchDuration),
 		videoService:    video.NewService(db),
 		playlistService: playlist.NewService(db, ytService),
-		authService:     auth.NewService(db, oidcService, ytService, channel.NewService(db, ytService, rssFetchDuration), playlist.NewService(db, ytService), serverURL, jwtService, refreshTokenDuration),
-		userService:     user.NewService(db, jwtService, serverURL),
+		authService:     auth.NewService(db, oidcService, ytService, channel.NewService(db, ytService, rssFetchDuration), playlist.NewService(db, ytService), serverURL, jwtService, refreshTokenDuration, jtiBlacklistRepo),
+		userService:     user.NewService(db, jwtService, serverURL, jtiBlacklistRepo),
 		historyService:  history.NewService(db),
 		feedService:     feed.NewService(db, ytService, rssFetchDuration),
 

@@ -98,9 +98,9 @@ type Querier interface {
 	// 削除されたレコードのpublic_idが返されます。
 	RevokeRefreshTokenByHash(ctx context.Context, arg RevokeRefreshTokenByHashParams) (uuid.UUID, error)
 	// m_refresh_tokenのpublic_idから、そのレコードを削除します。
-	// 削除されたレコードに紐づくjtiをブラックリストに保存します。
-	// 削除されたレコードのpublic_idが返されます。
-	RevokeRefreshTokenByID(ctx context.Context, arg RevokeRefreshTokenByIDParams) (uuid.UUID, error)
+	// 削除されたレコードのpublic_idと、紐づくaccess_token_jtiが返されます。
+	// jtiは呼び出し側でブラックリストに保存します。
+	RevokeRefreshTokenByID(ctx context.Context, arg RevokeRefreshTokenByIDParams) (RevokeRefreshTokenByIDRow, error)
 	// リフレッシュトークンを更新します。
 	// token_hash = token_hash_for_check
 	// updated_at < updated_at_for_check

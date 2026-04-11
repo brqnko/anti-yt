@@ -202,7 +202,8 @@ WITH deleted AS (
         m_refresh_token.access_token_jti
 )
 SELECT
-    deleted.public_id
+    deleted.public_id,
+    deleted.access_token_jti
 FROM
     deleted
 LIMIT
@@ -214,14 +215,19 @@ type RevokeRefreshTokenByIDParams struct {
 	RefreshTokenPublicID uuid.UUID
 }
 
+type RevokeRefreshTokenByIDRow struct {
+	PublicID       uuid.UUID
+	AccessTokenJti uuid.UUID
+}
+
 // m_refresh_tokenのpublic_idから、そのレコードを削除します。
-// 削除されたレコードに紐づくjtiをブラックリストに保存します。
-// 削除されたレコードのpublic_idが返されます。
-func (q *Queries) RevokeRefreshTokenByID(ctx context.Context, arg RevokeRefreshTokenByIDParams) (uuid.UUID, error) {
+// 削除されたレコードのpublic_idと、紐づくaccess_token_jtiが返されます。
+// jtiは呼び出し側でブラックリストに保存します。
+func (q *Queries) RevokeRefreshTokenByID(ctx context.Context, arg RevokeRefreshTokenByIDParams) (RevokeRefreshTokenByIDRow, error) {
 	row := q.db.QueryRow(ctx, revokeRefreshTokenByID, arg.UserPublicID, arg.RefreshTokenPublicID)
-	var public_id uuid.UUID
-	err := row.Scan(&public_id)
-	return public_id, err
+	var i RevokeRefreshTokenByIDRow
+	err := row.Scan(&i.PublicID, &i.AccessTokenJti)
+	return i, err
 }
 
 const rotateRefreshToken = `-- name: RotateRefreshToken :one
