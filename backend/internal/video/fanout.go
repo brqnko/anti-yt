@@ -11,7 +11,10 @@ import (
 func FanOut(ctx context.Context, q sqlc.Querier, feedRepo database_d.FeedRepository, v *Video) (err error) {
 	defer util.Wrap(&err, "video.FanOut(videoID=%s)", v.ID)
 
-	subscribers, err := q.ListSubscribersByChannelPublicID(ctx, v.ChannelID)
+	subscribers, err := q.ListSubscribersByChannelPublicID(ctx, sqlc.ListSubscribersByChannelPublicIDParams{
+		ChannelPublicID: v.ChannelID,
+		VideoPublicID:   v.ID,
+	})
 	if err != nil {
 		return err
 	}
