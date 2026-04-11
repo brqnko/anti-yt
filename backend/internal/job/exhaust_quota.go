@@ -313,6 +313,10 @@ channelLoop:
 		}
 	}
 
+	if err := j.discordService.SendWebhookMessage(ctx, fmt.Sprintf("exhaust quota jobが完了しました (対象チャンネル数: %d)", len(channels))); err != nil {
+		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to send discord webhook", slog.Any("error", err))
+	}
+
 	return nil
 }
 
