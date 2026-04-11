@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"log/slog"
 
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -12,12 +11,15 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pressly/goose/v3"
+	"github.com/redis/go-redis/v9"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-func RunMigration(ctx context.Context, dbUser, dbPassword, dbHost string, dbPort int, dbName, dbSSLMode string) error {
-	db, err := sql.Open("pgx", fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", dbUser, dbPassword, dbHost, dbPort, dbName, dbSSLMode))
+func RunMigration(ctx context.Context, databaseURL string) (err error) {
+	defer util.Wrap(&err, "database_d.RunMigration")
+
+	db, err := sql.Open("pgx", databaseURL)
 	if err != nil {
 		return err
 	}
@@ -46,8 +48,10 @@ func RunMigration(ctx context.Context, dbUser, dbPassword, dbHost string, dbPort
 	return nil
 }
 
-func ConnectDB(ctx context.Context, dbUser, dbPassword, dbHost string, dbPort int, dbName, dbSSLMode string) (*pgxpool.Pool, error) {
-	db, err := pgxpool.New(ctx, fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", dbUser, dbPassword, dbHost, dbPort, dbName, dbSSLMode))
+func ConnectPostgres(ctx context.Context, databaseURL string) (_ *pgxpool.Pool, err error) {
+	defer util.Wrap(&err, "database_d.ConnectPostgres")
+
+	db, err := pgxpool.New(ctx, databaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -58,4 +62,14 @@ func ConnectDB(ctx context.Context, dbUser, dbPassword, dbHost string, dbPort in
 	}
 
 	return db, nil
+}
+
+func ConnectRedis(ctx context.Context, url string) (_ *redis.Client, err error) {
+	defer util.Wrap(&err, "database_d.ConnectRedis")
+
+	opt, err := redis.ParseURL(url)
+	if err != nil {
+		return nil, err
+	}
+	return redis.NewClient(opt), nil
 }

@@ -26,7 +26,6 @@ services:
       - ./server.key:/etc/nginx/certs/server.key:ro
       - ~/.ssh:/root/.ssh:ro
     secrets:
-      - db-password
       - oidc-google-client-secret
       - jwt-private
       - jwt-public

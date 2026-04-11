@@ -1,4 +1,5 @@
 //go:generate moq -out mock_jwt_service_test.go -pkg user_test ../core/jwt_d Service
+//go:generate moq -out mock_jti_blacklist_repository_test.go -pkg user_test ../core/database_d JtiBlacklistRepository
 
 package user
 
@@ -24,19 +25,21 @@ var (
 )
 
 type Service struct {
-	db         *pgxpool.Pool
-	jwtService jwt_d.Service
-	serverURL  string
+	db               *pgxpool.Pool
+	jwtService       jwt_d.Service
+	jtiBlacklistRepo database_d.JtiBlacklistRepository
+	serverURL        string
 
 	userQS UserQueryService
 }
 
-func NewService(db *pgxpool.Pool, jwtService jwt_d.Service, serverURL string) *Service {
+func NewService(db *pgxpool.Pool, jwtService jwt_d.Service, serverURL string, jtiBlacklistRepo database_d.JtiBlacklistRepository) *Service {
 	return &Service{
-		db:         db,
-		jwtService: jwtService,
-		serverURL:  serverURL,
-		userQS:     NewUserQueryService(db),
+		db:               db,
+		jwtService:       jwtService,
+		jtiBlacklistRepo: jtiBlacklistRepo,
+		serverURL:        serverURL,
+		userQS:           NewUserQueryService(db),
 	}
 }
 
@@ -77,7 +80,11 @@ func (s *Service) CreateNewUser(
 	q := sqlc.New(tx)
 
 	// jti blacklist検証
-	if _, err := q.FindBlacklistedJTI(ctx, jti); err == nil {
+	blacklisted, err := s.jtiBlacklistRepo.IsJtiExist(ctx, jti)
+	if err != nil {
+		return nil, "", time.Time{}, err
+	}
+	if blacklisted {
 		return nil, "", time.Time{}, core.ErrJTIBlacklisted
 	}
 
@@ -122,10 +129,7 @@ func (s *Service) CreateNewUser(
 	}
 
 	// 使用済みregisterトークンのJTIをブラックリストに追加
-	if err := q.InsertBlacklistedJTI(ctx, sqlc.InsertBlacklistedJTIParams{
-		Jti:       jti,
-		ExpiresAt: time.Now().UTC().Add(s.jwtService.TokenDuration()),
-	}); err != nil {
+	if err := s.jtiBlacklistRepo.InsertJTI(ctx, jti, time.Now().UTC().Add(s.jwtService.TokenDuration())); err != nil {
 		return nil, "", time.Time{}, err
 	}
 

@@ -33,10 +33,6 @@ type Querier interface {
 	DeleteScreenTimeRangesByUserID(ctx context.Context, mUserID int64) error
 	DeleteSubscription(ctx context.Context, arg DeleteSubscriptionParams) (int64, error)
 	DeleteValuableChannel(ctx context.Context, channelPublicID uuid.UUID) error
-	// jtiがブラックリストに存在するか確認する。
-	// jtiが存在しない場合はpgx.ErrNoRowsが返される。
-	// jtiが存在する場合は、そのexpires_atが返される。
-	FindBlacklistedJTI(ctx context.Context, jti uuid.UUID) (time.Time, error)
 	FindChannelByExternalID(ctx context.Context, arg FindChannelByExternalIDParams) (FindChannelByExternalIDRow, error)
 	GetChannelByPublicID(ctx context.Context, channelID uuid.UUID) (GetChannelByPublicIDRow, error)
 	GetChannelForUpdate(ctx context.Context, channelID uuid.UUID) (GetChannelForUpdateRow, error)
@@ -60,8 +56,6 @@ type Querier interface {
 	GetVideoWatchTitlesByUser(ctx context.Context, lowerID uuid.UUID) ([]GetVideoWatchTitlesByUserRow, error)
 	GetWatchLaterForUpdate(ctx context.Context, userID uuid.UUID) (GetWatchLaterForUpdateRow, error)
 	GetWatchLaterPlaylist(ctx context.Context, userID uuid.UUID) (GetWatchLaterPlaylistRow, error)
-	// jtiをブラックリストに追加する。既に存在する場合は何もしない。
-	InsertBlacklistedJTI(ctx context.Context, arg InsertBlacklistedJTIParams) error
 	InsertHeartbeat(ctx context.Context, arg InsertHeartbeatParams) error
 	InsertPlaylistVideo(ctx context.Context, arg InsertPlaylistVideoParams) error
 	// リフレッシュトークンをテーブルに保存する。
@@ -92,8 +86,6 @@ type Querier interface {
 	ListValuableChannels(ctx context.Context) ([]ListValuableChannelsRow, error)
 	ListWatchHistory(ctx context.Context, arg ListWatchHistoryParams) ([]ListWatchHistoryRow, error)
 	MarkVideoWatched(ctx context.Context, arg MarkVideoWatchedParams) error
-	// expires_atが過ぎたjtiのブラックリストを削除します。
-	PurgeExpiredJTIBlacklist(ctx context.Context, expiresAt time.Time) error
 	// 退会済みユーザーとその関連データを全て削除する。
 	// m_refresh_tokenはm_user_authorizationのCASCADE DELETEで自動削除される。
 	PurgeLeftUser(ctx context.Context, arg PurgeLeftUserParams) error
@@ -106,9 +98,9 @@ type Querier interface {
 	// 削除されたレコードのpublic_idが返されます。
 	RevokeRefreshTokenByHash(ctx context.Context, arg RevokeRefreshTokenByHashParams) (uuid.UUID, error)
 	// m_refresh_tokenのpublic_idから、そのレコードを削除します。
-	// 削除されたレコードに紐づくjtiをブラックリストに保存します。
-	// 削除されたレコードのpublic_idが返されます。
-	RevokeRefreshTokenByID(ctx context.Context, arg RevokeRefreshTokenByIDParams) (uuid.UUID, error)
+	// 削除されたレコードのpublic_idと、紐づくaccess_token_jtiが返されます。
+	// jtiは呼び出し側でブラックリストに保存します。
+	RevokeRefreshTokenByID(ctx context.Context, arg RevokeRefreshTokenByIDParams) (RevokeRefreshTokenByIDRow, error)
 	// リフレッシュトークンを更新します。
 	// token_hash = token_hash_for_check
 	// updated_at < updated_at_for_check
@@ -132,7 +124,6 @@ type Querier interface {
 	UpsertChannel(ctx context.Context, arg UpsertChannelParams) (UpsertChannelRow, error)
 	UpsertMonthlyVideoWatchSummary(ctx context.Context, arg UpsertMonthlyVideoWatchSummaryParams) error
 	UpsertPlaylist(ctx context.Context, arg UpsertPlaylistParams) (int64, error)
-	UpsertRatelimit(ctx context.Context, arg UpsertRatelimitParams) (UpsertRatelimitRow, error)
 	UpsertSystemPlaylist(ctx context.Context, arg UpsertSystemPlaylistParams) (int64, error)
 	UpsertValuableChannel(ctx context.Context, arg UpsertValuableChannelParams) (int64, error)
 	UpsertVideo(ctx context.Context, arg UpsertVideoParams) (UpsertVideoRow, error)
