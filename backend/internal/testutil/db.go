@@ -2,9 +2,8 @@ package testutil
 
 import (
 	"context"
-	"fmt"
+	"net/url"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/brqnko/anti-yt/backend/migrations"
@@ -18,16 +17,20 @@ import (
 func NewTestPool(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 
-	password, err := os.ReadFile("/run/secrets/db-password")
-	require.NoError(t, err, "failed to read /run/secrets/db-password")
+	dbURL := os.Getenv("DATABASE_URL")
+	require.NotEmpty(t, dbURL, "DATABASE_URL is not set")
 
+	u, err := url.Parse(dbURL)
+	require.NoError(t, err, "failed to parse DATABASE_URL")
+
+	password, _ := u.User.Password()
 	conf := pgtestdb.Config{
 		DriverName: "pgx",
-		User:       os.Getenv("DATABASE_USER"),
-		Password:   strings.TrimSpace(string(password)),
-		Host:       os.Getenv("DATABASE_HOST"),
-		Port:       os.Getenv("DATABASE_PORT"),
-		Options:    "sslmode=" + os.Getenv("DATABASE_SSLMODE"),
+		User:       u.User.Username(),
+		Password:   password,
+		Host:       u.Hostname(),
+		Port:       u.Port(),
+		Options:    u.RawQuery,
 	}
 	migrator := goosemigrator.New(".", goosemigrator.WithFS(migrations.EmbedMigrations))
 	db := pgtestdb.New(t, conf, migrator)
@@ -35,11 +38,9 @@ func NewTestPool(t *testing.T) *pgxpool.Pool {
 	var dbName string
 	require.NoError(t, db.QueryRow("SELECT current_database()").Scan(&dbName))
 
-	pool, err := pgxpool.New(context.Background(), fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		conf.User, conf.Password, conf.Host, conf.Port, dbName,
-		os.Getenv("DATABASE_SSLMODE"),
-	))
+	poolURL := *u
+	poolURL.Path = "/" + dbName
+	pool, err := pgxpool.New(context.Background(), poolURL.String())
 	require.NoError(t, err)
 	t.Cleanup(pool.Close)
 	return pool

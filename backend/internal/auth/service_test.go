@@ -41,6 +41,7 @@ func TestService_CreateAuthCode(t *testing.T) {
 				},
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -71,6 +72,7 @@ func TestService_CreateAuthCode(t *testing.T) {
 				},
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -97,6 +99,7 @@ func TestService_CreateAuthCode(t *testing.T) {
 				},
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -122,6 +125,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 			"http://localhost",
 			&ServiceMock{},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -144,6 +148,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 			"http://localhost",
 			&ServiceMock{},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -170,6 +175,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 				},
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -199,6 +205,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 				VerifyOIDCStateTokenFunc: func(_ string) (string, error) { return "web", nil },
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -228,6 +235,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 				},
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -278,6 +286,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 				},
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -328,6 +337,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 				},
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action & assert
@@ -382,6 +392,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 				},
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -453,6 +464,11 @@ func TestService_Logout(t *testing.T) {
 				},
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{
+				InsertJTIFunc: func(_ context.Context, _ uuid.UUID, _ time.Time) error {
+					return nil
+				},
+			},
 		)
 
 		// action
@@ -497,6 +513,7 @@ func TestService_Logout(t *testing.T) {
 				},
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -571,6 +588,7 @@ func TestService_RefreshToken(t *testing.T) {
 				},
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -598,6 +616,7 @@ func TestService_RefreshToken(t *testing.T) {
 				TokenDurationFunc: func() time.Duration { return 15 * time.Minute },
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -664,6 +683,7 @@ func TestService_GetSessions(t *testing.T) {
 			"http://localhost",
 			&ServiceMock{},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -726,6 +746,7 @@ func TestService_GetSessions(t *testing.T) {
 			"http://localhost",
 			&ServiceMock{},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -768,6 +789,7 @@ func TestService_GetSessions(t *testing.T) {
 			"http://localhost",
 			&ServiceMock{},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -805,6 +827,7 @@ func TestService_RemoveSession(t *testing.T) {
 		})
 		require.NoError(t, err)
 		sessionPublicID := uuid.Must(uuid.NewV7())
+		accessTokenJti := uuid.Must(uuid.NewV7())
 		_, err = q.InsertRefreshToken(ctx, sqlc.InsertRefreshTokenParams{
 			MUserAuthorizationID: authResult.MUserAuthorizationID,
 			TokenHash:            util.Sha256Hex("token"),
@@ -818,12 +841,17 @@ func TestService_RemoveSession(t *testing.T) {
 			BrowserName:          "test",
 			DeviceType:           "test",
 			ExpiresAt:            time.Now().Add(7 * 24 * time.Hour),
-			AccessTokenJti:       uuid.Must(uuid.NewV7()),
+			AccessTokenJti:       accessTokenJti,
 			ActivatedAt:          time.Now(),
 			LastLoggedInAt:       time.Now(),
 		})
 		require.NoError(t, err)
 
+		jtiRepo := &JtiBlacklistRepositoryMock{
+			InsertJTIFunc: func(_ context.Context, _ uuid.UUID, _ time.Time) error {
+				return nil
+			},
+		}
 		svc := auth.NewService(
 			db,
 			&GoogleOIDCServiceMock{},
@@ -835,6 +863,7 @@ func TestService_RemoveSession(t *testing.T) {
 				TokenDurationFunc: func() time.Duration { return 15 * time.Minute },
 			},
 			7*24*time.Hour,
+			jtiRepo,
 		)
 
 		// action
@@ -843,6 +872,10 @@ func TestService_RemoveSession(t *testing.T) {
 		// assert
 		require.NoError(t, err)
 		assert.Equal(t, sessionPublicID, removedID)
+		// 削除した session の access_token_jti が blacklist 入りしていることを確認
+		insertCalls := jtiRepo.InsertJTICalls()
+		require.Len(t, insertCalls, 1)
+		assert.Equal(t, accessTokenJti, insertCalls[0].Jti)
 	})
 
 	t.Run("nonexistent session returns error", func(t *testing.T) {
@@ -878,6 +911,7 @@ func TestService_RemoveSession(t *testing.T) {
 				TokenDurationFunc: func() time.Duration { return 15 * time.Minute },
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -913,6 +947,7 @@ func TestService_CreateYouTubeAuthCode(t *testing.T) {
 				},
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -934,6 +969,7 @@ func TestService_CreateYouTubeAuthCode(t *testing.T) {
 			"http://localhost",
 			&ServiceMock{},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -989,6 +1025,14 @@ func TestService_ReactivateAccount(t *testing.T) {
 				TokenDurationFunc: func() time.Duration { return 15 * time.Minute },
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{
+				IsJtiExistFunc: func(_ context.Context, _ uuid.UUID) (bool, error) {
+					return false, nil
+				},
+				InsertJTIFunc: func(_ context.Context, _ uuid.UUID, _ time.Time) error {
+					return nil
+				},
+			},
 		)
 
 		// action
@@ -1014,6 +1058,7 @@ func TestService_ReactivateAccount(t *testing.T) {
 				},
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{},
 		)
 
 		// action
@@ -1037,8 +1082,6 @@ func TestService_ReactivateAccount(t *testing.T) {
 		require.NoError(t, err)
 
 		jti := uuid.Must(uuid.NewV7())
-		_, err = db.Exec(ctx, "INSERT INTO t_jti_blacklist (jti, expires_at) VALUES ($1, $2)", jti, time.Now().Add(time.Hour))
-		require.NoError(t, err)
 
 		svc := auth.NewService(
 			db,
@@ -1053,6 +1096,12 @@ func TestService_ReactivateAccount(t *testing.T) {
 				},
 			},
 			7*24*time.Hour,
+			&JtiBlacklistRepositoryMock{
+				IsJtiExistFunc: func(_ context.Context, gotJti uuid.UUID) (bool, error) {
+					assert.Equal(t, jti, gotJti)
+					return true, nil
+				},
+			},
 		)
 
 		// action

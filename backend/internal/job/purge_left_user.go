@@ -32,7 +32,6 @@ func (j *purgeLeftUserJob) run(ctx context.Context) (err error) {
 		if err := q.PurgeLeftUser(ctx, sqlc.PurgeLeftUserParams{
 			HUserID:         u.HUserID,
 			AuthorizationID: u.MUserAuthorizationID,
-			UserPublicID:    u.PublicID,
 		}); err != nil {
 			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to purge left user", slog.Int64("h_user_id", u.HUserID), slog.Any("error", err))
 			continue

@@ -166,19 +166,6 @@ type SMonthlyVideoWatch struct {
 	PublicID             uuid.UUID
 }
 
-type TJtiBlacklist struct {
-	Jti       uuid.UUID
-	ExpiresAt time.Time
-}
-
-type TRatelimit struct {
-	TRatelimitID  int64
-	UserPublicID  uuid.UUID
-	ConsumedQuota int
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-}
-
 type TVideoWatch struct {
 	TVideoWatchID        int64
 	MUserID              int64

@@ -9,11 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/middleware_d"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
-	"github.com/brqnko/anti-yt/backend/internal/testutil"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -57,7 +55,12 @@ func TestAccessTokenMiddleware(t *testing.T) {
 
 	t.Run("operationID is in ignore list: skip validation and pass through", func(t *testing.T) {
 		// arrange
-		db := testutil.NewTestPool(t)
+		jtiRepo := &JtiBlacklistRepositoryMock{
+			IsJtiExistFunc: func(_ context.Context, _ uuid.UUID) (bool, error) {
+				t.Fatal("IsJtiExist should not be called for ignored operations")
+				return false, nil
+			},
+		}
 		jwtMock := &ServiceMock{
 			VerifyUserAccessTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, time.Time, error) {
 				t.Fatal("VerifyUserAccessToken should not be called for ignored operations")
@@ -65,7 +68,7 @@ func TestAccessTokenMiddleware(t *testing.T) {
 			},
 		}
 		spy := &spyHandler{}
-		mw := middleware_d.AccessTokenMiddleware(jwtMock, db, map[string]struct{}{
+		mw := middleware_d.AccessTokenMiddleware(jwtMock, jtiRepo, map[string]struct{}{
 			"GetHealth": {},
 		})
 		wrapped := mw(spy.fn(), "GetHealth")
@@ -85,50 +88,21 @@ func TestAccessTokenMiddleware(t *testing.T) {
 
 	t.Run("success: jti not in blacklist", func(t *testing.T) {
 		// arrange
-		db := testutil.NewTestPool(t)
 		userID := uuid.Must(uuid.NewV7())
 		jti := uuid.Must(uuid.NewV7())
+		jtiRepo := &JtiBlacklistRepositoryMock{
+			IsJtiExistFunc: func(_ context.Context, gotJti uuid.UUID) (bool, error) {
+				assert.Equal(t, jti, gotJti)
+				return false, nil
+			},
+		}
 		jwtMock := &ServiceMock{
 			VerifyUserAccessTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, time.Time, error) {
 				return userID, jti, time.Now().Add(time.Hour), nil
 			},
 		}
 		spy := &spyHandler{}
-		mw := middleware_d.AccessTokenMiddleware(jwtMock, db, map[string]struct{}{})
-		wrapped := mw(spy.fn(), "GetSomething")
-
-		// action
-		w := httptest.NewRecorder()
-		resp, err := wrapped(ctx, w, newRequestWithAccessTokenCookie("valid-token"), nil)
-
-		// assert
-		require.NoError(t, err)
-		assert.Equal(t, "ok", resp)
-		assert.True(t, spy.called)
-		gotUserID, uerr := hutil.UserIDFromContext(spy.ctx)
-		require.NoError(t, uerr)
-		assert.Equal(t, userID, gotUserID)
-	})
-
-	t.Run("success: jti in blacklist but expired", func(t *testing.T) {
-		// arrange
-		db := testutil.NewTestPool(t)
-		q := sqlc.New(db)
-		userID := uuid.Must(uuid.NewV7())
-		jti := uuid.Must(uuid.NewV7())
-		// ブラックリストに入っているが有効期限切れ → アクセス許可される
-		require.NoError(t, q.InsertBlacklistedJTI(ctx, sqlc.InsertBlacklistedJTIParams{
-			Jti:       jti,
-			ExpiresAt: time.Now().Add(-time.Hour),
-		}))
-
-		jwtMock := &ServiceMock{
-			VerifyUserAccessTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, time.Time, error) {
-				return userID, jti, time.Now().Add(time.Hour), nil
-			},
-		}
-		spy := &spyHandler{}
-		mw := middleware_d.AccessTokenMiddleware(jwtMock, db, map[string]struct{}{})
+		mw := middleware_d.AccessTokenMiddleware(jwtMock, jtiRepo, map[string]struct{}{})
 		wrapped := mw(spy.fn(), "GetSomething")
 
 		// action
@@ -146,7 +120,7 @@ func TestAccessTokenMiddleware(t *testing.T) {
 
 	t.Run("unauthorized: access_token cookie is missing", func(t *testing.T) {
 		// arrange
-		db := testutil.NewTestPool(t)
+		jtiRepo := &JtiBlacklistRepositoryMock{}
 		jwtMock := &ServiceMock{
 			VerifyUserAccessTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, time.Time, error) {
 				t.Fatal("VerifyUserAccessToken should not be called when cookie is missing")
@@ -154,7 +128,7 @@ func TestAccessTokenMiddleware(t *testing.T) {
 			},
 		}
 		spy := &spyHandler{}
-		mw := middleware_d.AccessTokenMiddleware(jwtMock, db, map[string]struct{}{})
+		mw := middleware_d.AccessTokenMiddleware(jwtMock, jtiRepo, map[string]struct{}{})
 		wrapped := mw(spy.fn(), "GetSomething")
 
 		// action
@@ -170,14 +144,14 @@ func TestAccessTokenMiddleware(t *testing.T) {
 
 	t.Run("unauthorized: VerifyUserAccessToken fails", func(t *testing.T) {
 		// arrange
-		db := testutil.NewTestPool(t)
+		jtiRepo := &JtiBlacklistRepositoryMock{}
 		jwtMock := &ServiceMock{
 			VerifyUserAccessTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, time.Time, error) {
 				return uuid.Nil, uuid.Nil, time.Time{}, errors.New("invalid signature")
 			},
 		}
 		spy := &spyHandler{}
-		mw := middleware_d.AccessTokenMiddleware(jwtMock, db, map[string]struct{}{})
+		mw := middleware_d.AccessTokenMiddleware(jwtMock, jtiRepo, map[string]struct{}{})
 		wrapped := mw(spy.fn(), "GetSomething")
 
 		// action
@@ -191,25 +165,22 @@ func TestAccessTokenMiddleware(t *testing.T) {
 		assert.Equal(t, "unauthorized", decodeErrorTitle(t, w))
 	})
 
-	t.Run("unauthorized: jti is blacklisted and not expired", func(t *testing.T) {
+	t.Run("unauthorized: jti is blacklisted", func(t *testing.T) {
 		// arrange
-		db := testutil.NewTestPool(t)
-		q := sqlc.New(db)
 		userID := uuid.Must(uuid.NewV7())
 		jti := uuid.Must(uuid.NewV7())
-		// ブラックリストに存在し有効期限内 → 拒否される
-		require.NoError(t, q.InsertBlacklistedJTI(ctx, sqlc.InsertBlacklistedJTIParams{
-			Jti:       jti,
-			ExpiresAt: time.Now().Add(time.Hour),
-		}))
-
+		jtiRepo := &JtiBlacklistRepositoryMock{
+			IsJtiExistFunc: func(_ context.Context, _ uuid.UUID) (bool, error) {
+				return true, nil
+			},
+		}
 		jwtMock := &ServiceMock{
 			VerifyUserAccessTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, time.Time, error) {
 				return userID, jti, time.Now().Add(time.Hour), nil
 			},
 		}
 		spy := &spyHandler{}
-		mw := middleware_d.AccessTokenMiddleware(jwtMock, db, map[string]struct{}{})
+		mw := middleware_d.AccessTokenMiddleware(jwtMock, jtiRepo, map[string]struct{}{})
 		wrapped := mw(spy.fn(), "GetSomething")
 
 		// action
@@ -221,5 +192,34 @@ func TestAccessTokenMiddleware(t *testing.T) {
 		assert.False(t, spy.called)
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 		assert.Equal(t, "unauthorized", decodeErrorTitle(t, w))
+	})
+
+	t.Run("internal server error: jti blacklist lookup fails", func(t *testing.T) {
+		// arrange
+		userID := uuid.Must(uuid.NewV7())
+		jti := uuid.Must(uuid.NewV7())
+		jtiRepo := &JtiBlacklistRepositoryMock{
+			IsJtiExistFunc: func(_ context.Context, _ uuid.UUID) (bool, error) {
+				return false, errors.New("redis down")
+			},
+		}
+		jwtMock := &ServiceMock{
+			VerifyUserAccessTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, time.Time, error) {
+				return userID, jti, time.Now().Add(time.Hour), nil
+			},
+		}
+		spy := &spyHandler{}
+		mw := middleware_d.AccessTokenMiddleware(jwtMock, jtiRepo, map[string]struct{}{})
+		wrapped := mw(spy.fn(), "GetSomething")
+
+		// action
+		w := httptest.NewRecorder()
+		_, err := wrapped(ctx, w, newRequestWithAccessTokenCookie("valid-token"), nil)
+
+		// assert
+		require.NoError(t, err)
+		assert.False(t, spy.called)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, "internal_server_error", decodeErrorTitle(t, w))
 	})
 }
