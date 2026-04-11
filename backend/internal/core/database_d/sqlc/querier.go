@@ -65,6 +65,8 @@ type Querier interface {
 	// ユーザーを作成する。
 	InsertUser(ctx context.Context, arg InsertUserParams) (int64, error)
 	InsertWatchLater(ctx context.Context, arg InsertWatchLaterParams) error
+	// アクティブな全ユーザーのpublic_idを取得する。Redis feedのseed/refill用途。
+	ListAllActiveUserIDs(ctx context.Context) ([]uuid.UUID, error)
 	ListChannelPlaylists(ctx context.Context, arg ListChannelPlaylistsParams) ([]ListChannelPlaylistsRow, error)
 	// 指定ユーザーが未視聴の、チャンネルの動画IDを最新順で取得する。
 	// feedへの挿入・削除で利用する。視聴済み動画は feed 側で既に削除されている前提。

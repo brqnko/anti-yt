@@ -19,7 +19,6 @@ type FeedRepository interface {
 	DeleteMany(ctx context.Context, userID uuid.UUID, videoIDs []uuid.UUID) (err error)
 	DeleteAll(ctx context.Context, userID uuid.UUID) (err error)
 	Get(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int64) (videos []uuid.UUID, err error)
-	ListUserIDsWithFeedCountLessThan(ctx context.Context, count int64) (userIDs []uuid.UUID, err error)
 }
 
 func feedKey(userID uuid.UUID) string {
@@ -184,55 +183,6 @@ func (f *feedRepositoryImpl) Get(ctx context.Context, userID uuid.UUID, cursor *
 		videos = append(videos, videoID)
 	}
 	return videos, nil
-}
-
-func (f *feedRepositoryImpl) ListUserIDsWithFeedCountLessThan(ctx context.Context, count int64) (_ []uuid.UUID, err error) {
-	defer util.Wrap(&err, "database_d.(*feedRepositoryImpl).ListUserIDsWithFeedCountLessThan(count=%d)", count)
-
-	const scanCount = 500
-	var cursor uint64
-	var result []uuid.UUID
-
-	for {
-		keys, next, err := f.client.Scan(ctx, cursor, "feed:*", scanCount).Result()
-		if err != nil {
-			return nil, err
-		}
-
-		if len(keys) > 0 {
-			pipe := f.client.Pipeline()
-			cmds := make([]*redis.IntCmd, len(keys))
-			for i, k := range keys {
-				cmds[i] = pipe.ZCard(ctx, k)
-			}
-			if _, err := pipe.Exec(ctx); err != nil {
-				return nil, err
-			}
-
-			for i, c := range cmds {
-				if c.Val() >= count {
-					continue
-				}
-				encoded := keys[i][len("feed:"):]
-				b, err := base64.RawURLEncoding.DecodeString(encoded)
-				if err != nil {
-					continue
-				}
-				uid, err := uuid.FromBytes(b)
-				if err != nil {
-					continue
-				}
-				result = append(result, uid)
-			}
-		}
-
-		if next == 0 {
-			break
-		}
-		cursor = next
-	}
-
-	return result, nil
 }
 
 var _ FeedRepository = (*feedRepositoryImpl)(nil)

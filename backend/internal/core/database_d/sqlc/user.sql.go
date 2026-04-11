@@ -296,6 +296,31 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (int64, 
 	return m_user_id, err
 }
 
+const listAllActiveUserIDs = `-- name: ListAllActiveUserIDs :many
+SELECT m_user.public_id FROM m_user
+`
+
+// アクティブな全ユーザーのpublic_idを取得する。Redis feedのseed/refill用途。
+func (q *Queries) ListAllActiveUserIDs(ctx context.Context) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, listAllActiveUserIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var public_id uuid.UUID
+		if err := rows.Scan(&public_id); err != nil {
+			return nil, err
+		}
+		items = append(items, public_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listLeftUsers = `-- name: ListLeftUsers :many
 SELECT h_user_id, m_user_authorization_id, public_id FROM h_user
 `
