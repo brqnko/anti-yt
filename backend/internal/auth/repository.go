@@ -105,6 +105,7 @@ func (r *refreshTokenRepositoryImpl) Save(ctx context.Context, authorizationID i
 func (r *refreshTokenRepositoryImpl) RevokeByTokenHash(ctx context.Context, userID uuid.UUID, tokenHash string, jtiExpiresAt time.Time) (err error) {
 	defer util.Wrap(&err, "auth.(*refreshTokenRepositoryImpl).RevokeByTokenHash(userID=%s)", userID)
 
+	// TODO: jti
 	if _, err := r.q.RevokeRefreshTokenByHash(ctx, sqlc.RevokeRefreshTokenByHashParams{
 		UserPublicID: userID,
 		TokenHash:    tokenHash,
@@ -121,6 +122,7 @@ func (r *refreshTokenRepositoryImpl) RevokeByTokenHash(ctx context.Context, user
 func (r *refreshTokenRepositoryImpl) RevokeByID(ctx context.Context, userID, sessionID uuid.UUID, jtiExpiresAt time.Time) (_ uuid.UUID, err error) {
 	defer util.Wrap(&err, "auth.(*refreshTokenRepositoryImpl).RevokeByID(userID=%s, sessionID=%s)", userID, sessionID)
 
+	// TODO: jti
 	removedPublicID, err := r.q.RevokeRefreshTokenByID(ctx, sqlc.RevokeRefreshTokenByIDParams{
 		RefreshTokenPublicID: sessionID,
 		ExpiresAt:            jtiExpiresAt,

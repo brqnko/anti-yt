@@ -9,11 +9,3 @@ SELECT pg_try_advisory_lock($1::bigint) AS acquired;
 -- セッションレベルのアドバイザリロックを解除
 -- name: ReleaseAdvisoryLock :one
 SELECT pg_advisory_unlock($1::bigint) AS released;
-
--- jtiをブラックリストに追加する。既に存在する場合は何もしない。
--- name: InsertBlacklistedJTI :exec
-INSERT INTO
-    t_jti_blacklist (jti, expires_at)
-VALUES
-    ($1, $2)
-ON CONFLICT DO NOTHING;

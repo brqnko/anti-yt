@@ -234,9 +234,6 @@ d_video_watched AS (
 d_summary AS (
     DELETE FROM s_monthly_video_watch WHERE s_monthly_video_watch.m_user_id = @h_user_id
 ),
-d_ratelimit AS (
-    DELETE FROM t_ratelimit WHERE t_ratelimit.user_public_id = @user_public_id
-),
 d_h_user AS (
     DELETE FROM h_user WHERE h_user.h_user_id = @h_user_id
 )

@@ -103,18 +103,6 @@ WITH deleted AS (
     RETURNING
         m_refresh_token.public_id,
         m_refresh_token.access_token_jti
-),
-inserted AS (
-    INSERT INTO
-        t_jti_blacklist (jti, expires_at)
-    SELECT
-        access_token_jti,
-        @expires_at
-    FROM
-        deleted
-    ON CONFLICT DO NOTHING
-    RETURNING
-        jti
 )
 SELECT
     deleted.public_id
@@ -137,18 +125,6 @@ WITH deleted AS (
     RETURNING
         m_refresh_token.public_id,
         m_refresh_token.access_token_jti
-),
-inserted AS (
-    INSERT INTO
-        t_jti_blacklist (jti, expires_at)
-    SELECT
-        access_token_jti,
-        @expires_at
-    FROM
-        deleted
-    ON CONFLICT DO NOTHING
-    RETURNING
-        jti
 )
 SELECT
     deleted.public_id
@@ -156,23 +132,3 @@ FROM
     deleted
 LIMIT
     1;
-
--- jtiがブラックリストに存在するか確認する。
--- jtiが存在しない場合はpgx.ErrNoRowsが返される。
--- jtiが存在する場合は、そのexpires_atが返される。
--- name: FindBlacklistedJTI :one
-SELECT
-    expires_at
-FROM
-    t_jti_blacklist
-WHERE
-    jti = $1
-LIMIT
-    1;
-
--- expires_atが過ぎたjtiのブラックリストを削除します。
--- name: PurgeExpiredJTIBlacklist :exec
-DELETE FROM
-    t_jti_blacklist
-WHERE
-    expires_at < $1;

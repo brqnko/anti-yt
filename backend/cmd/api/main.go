@@ -141,7 +141,7 @@ func run(ctx context.Context) int {
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	db, err := database_d.ConnectDB(initCtx, cfg.dbUser, cfg.dbPassword, cfg.dbHost, cfg.dbPort, cfg.dbName, cfg.dbSSLMode)
+	db, err := database_d.ConnectPostgres(initCtx, cfg.dbUser, cfg.dbPassword, cfg.dbHost, cfg.dbPort, cfg.dbName, cfg.dbSSLMode)
 	if err != nil {
 		slog.Error("failed to connect db", slog.Any("error", err))
 		return 1
