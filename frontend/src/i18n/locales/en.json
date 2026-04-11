@@ -461,6 +461,7 @@
   },
   "apiErrors": {
     "channel.invalid_youtube_url": "Invalid YouTube URL or unsupported format.",
+    "youtube.channel_auto_generated": "Auto-generated topic channels (ending with \"- Topic\") cannot be added.",
     "channel.invalid_channel_id": "Invalid channel ID.",
     "channel.invalid_channel_handle": "Invalid channel handle.",
     "channel.invalid_subscription_limit": "Subscription limit reached.",

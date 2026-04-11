@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/channel"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -21,15 +22,17 @@ import (
 type Service struct {
 	db        *pgxpool.Pool
 	ytService youtube_d.Service
+	feedRepo  database_d.FeedRepository
 	feedQS    FeedQueryService
 
 	rssFetchDuration time.Duration
 }
 
-func NewService(db *pgxpool.Pool, ytService youtube_d.Service, rssFetchDuration time.Duration) *Service {
+func NewService(db *pgxpool.Pool, ytService youtube_d.Service, feedRepo database_d.FeedRepository, rssFetchDuration time.Duration) *Service {
 	return &Service{
 		db:               db,
 		ytService:        ytService,
+		feedRepo:         feedRepo,
 		feedQS:           NewFeedQueryService(db),
 		rssFetchDuration: rssFetchDuration,
 	}
@@ -82,6 +85,9 @@ func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UU
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(get feed)", slog.Any("error", err))
 				continue
 			}
+			if err := video.FanOut(ctx, q, s.feedRepo, v); err != nil {
+				util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(get feed)", slog.Any("error", err))
+			}
 		}
 
 		ch.MarkAsRSSFetched()
@@ -94,7 +100,12 @@ func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UU
 		return nil, false, err
 	}
 
-	videos, err := s.feedQS.GetVideoFeed(ctx, userID, cursor, limit+1)
+	videoIDs, err := s.feedRepo.Get(ctx, userID, cursor, int64(limit)+1)
+	if err != nil {
+		return nil, false, err
+	}
+
+	videos, err := s.feedQS.HydrateVideoFeed(ctx, userID, videoIDs)
 	if err != nil {
 		return nil, false, err
 	}
@@ -197,6 +208,9 @@ func (s *Service) Search(ctx context.Context, query string, limit int, cursor *s
 		if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
 			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(search)", slog.Any("error", err))
 			continue
+		}
+		if err := video.FanOut(ctx, q, s.feedRepo, v); err != nil {
+			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(search)", slog.Any("error", err))
 		}
 
 		items = append(items, SearchVideoView{

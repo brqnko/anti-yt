@@ -27,6 +27,12 @@ func UUIDv7MinForTime(t time.Time) uuid.UUID {
 	return u
 }
 
+// TimeFromUUIDv7 はUUID v7の先頭48ビット(ミリ秒)から時刻を復元する。
+func TimeFromUUIDv7(u uuid.UUID) time.Time {
+	ms := int64(u[0])<<40 | int64(u[1])<<32 | int64(u[2])<<24 | int64(u[3])<<16 | int64(u[4])<<8 | int64(u[5])
+	return time.UnixMilli(ms).UTC()
+}
+
 // NewUUIDv7WithTime は指定した時刻でUUID v7を生成する。
 func NewUUIDv7WithTime(t time.Time) (uuid.UUID, error) {
 	var u uuid.UUID

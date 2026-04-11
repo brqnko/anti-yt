@@ -469,6 +469,7 @@
   },
   "apiErrors": {
     "channel.invalid_youtube_url": "無効なYouTube URLまたはサポートされていない形式です。",
+    "youtube.channel_auto_generated": "「- トピック」で終わる自動生成チャンネルは登録できません。",
     "channel.invalid_channel_id": "無効なチャンネルIDです。",
     "channel.invalid_channel_handle": "無効なチャンネルハンドルです。",
     "channel.invalid_subscription_limit": "登録数の上限に達しました。",

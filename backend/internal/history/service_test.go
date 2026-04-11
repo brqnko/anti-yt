@@ -89,7 +89,7 @@ func TestService_Heartbeat(t *testing.T) {
 		channelID := setupChannel(t, ctx, q)
 		videoID := setupVideo(t, ctx, q, channelID, 300)
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		remaining, err := svc.Heartbeat(ctx, userID, videoID, 10, nil, loc)
 
@@ -105,7 +105,7 @@ func TestService_Heartbeat(t *testing.T) {
 		channelID := setupChannel(t, ctx, q)
 		videoID := setupVideo(t, ctx, q, channelID, 300)
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		_, err := svc.Heartbeat(ctx, userID, videoID, 10, nil, loc)
 		require.NoError(t, err)
@@ -124,7 +124,7 @@ func TestService_Heartbeat(t *testing.T) {
 		video1 := setupVideo(t, ctx, q, channelID, 300)
 		video2 := setupVideo(t, ctx, q, channelID, 600)
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		_, err := svc.Heartbeat(ctx, userID, video1, 10, nil, loc)
 		require.NoError(t, err)
@@ -144,7 +144,7 @@ func TestService_Heartbeat(t *testing.T) {
 		// playlistIDが存在しなくてもPushRecentPlaylistIdはエラーにならない（UPDATEのみ）
 		playlistID := uuid.Must(uuid.NewV7())
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		remaining, err := svc.Heartbeat(ctx, userID, videoID, 10, &playlistID, loc)
 
@@ -179,7 +179,7 @@ func TestService_Heartbeat(t *testing.T) {
 		channelID := setupChannel(t, ctx, q)
 		videoID := setupVideo(t, ctx, q, channelID, 300)
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		remaining, err := svc.Heartbeat(ctx, userPublicID, videoID, 10, nil, loc)
 
@@ -193,7 +193,7 @@ func TestService_Heartbeat(t *testing.T) {
 		channelID := setupChannel(t, ctx, q)
 		videoID := setupVideo(t, ctx, q, channelID, 300)
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		_, err := svc.Heartbeat(ctx, uuid.Must(uuid.NewV7()), videoID, 10, nil, loc)
 
@@ -211,7 +211,7 @@ func TestService_MarkVideoWatched(t *testing.T) {
 		channelID := setupChannel(t, ctx, q)
 		videoID := setupVideo(t, ctx, q, channelID, 300)
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		err := svc.MarkVideoWatched(ctx, userID, videoID)
 
@@ -225,7 +225,7 @@ func TestService_MarkVideoWatched(t *testing.T) {
 		channelID := setupChannel(t, ctx, q)
 		videoID := setupVideo(t, ctx, q, channelID, 300)
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		err := svc.MarkVideoWatched(ctx, userID, videoID)
 		require.NoError(t, err)
@@ -245,7 +245,7 @@ func TestService_UnmarkVideoWatched(t *testing.T) {
 		channelID := setupChannel(t, ctx, q)
 		videoID := setupVideo(t, ctx, q, channelID, 300)
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		err := svc.MarkVideoWatched(ctx, userID, videoID)
 		require.NoError(t, err)
@@ -261,7 +261,7 @@ func TestService_UnmarkVideoWatched(t *testing.T) {
 		channelID := setupChannel(t, ctx, q)
 		videoID := setupVideo(t, ctx, q, channelID, 300)
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		err := svc.UnmarkVideoWatched(ctx, userID, videoID)
 		require.NoError(t, err)
@@ -277,7 +277,7 @@ func TestService_GetHistory(t *testing.T) {
 		q := sqlc.New(db)
 		userID := setupUser(t, ctx, q)
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		views, hasMore, err := svc.GetHistory(ctx, userID, 10, nil, loc)
 
@@ -293,7 +293,7 @@ func TestService_GetHistory(t *testing.T) {
 		channelID := setupChannel(t, ctx, q)
 		videoID := setupVideo(t, ctx, q, channelID, 300)
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		_, err := svc.Heartbeat(ctx, userID, videoID, 10, nil, loc)
 		require.NoError(t, err)
@@ -313,7 +313,7 @@ func TestService_GetHistory(t *testing.T) {
 		userID := setupUser(t, ctx, q)
 		channelID := setupChannel(t, ctx, q)
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		// 3つの動画のheartbeatを作成
 		for range 3 {
@@ -336,7 +336,7 @@ func TestService_GetHistory(t *testing.T) {
 		userID := setupUser(t, ctx, q)
 		channelID := setupChannel(t, ctx, q)
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		for range 3 {
 			vid := setupVideo(t, ctx, q, channelID, 300)
@@ -360,7 +360,7 @@ func TestService_GetHistory(t *testing.T) {
 
 	t.Run("nonexistent user returns empty", func(t *testing.T) {
 		db := testutil.NewTestPool(t)
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		views, hasMore, err := svc.GetHistory(ctx, uuid.Must(uuid.NewV7()), 10, nil, loc)
 
@@ -379,7 +379,7 @@ func TestService_GetStatisticsByWeek(t *testing.T) {
 		q := sqlc.New(db)
 		userID := setupUser(t, ctx, q)
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		targetWeek := time.Now().In(loc).Truncate(24 * time.Hour)
 		aiSummary, views, err := svc.GetStatisticsByWeek(ctx, userID, targetWeek, loc)
@@ -396,7 +396,7 @@ func TestService_GetStatisticsByWeek(t *testing.T) {
 		channelID := setupChannel(t, ctx, q)
 		videoID := setupVideo(t, ctx, q, channelID, 300)
 
-		svc := history.NewService(db)
+		svc := history.NewService(db, testutil.NewFakeFeedRepository())
 
 		// heartbeatを作成してから、完了させる（watch_end_atをcloseする）
 		_, err := svc.Heartbeat(ctx, userID, videoID, 10, nil, loc)
