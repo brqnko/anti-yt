@@ -51,22 +51,11 @@ type config struct {
 
 	port int
 
-	dbPassword string
-	dbName     string
-	dbHost     string
-	dbPort     int
-	dbUser     string
-	dbSSLMode  string
-
-	redisURL string
+	databaseURL string
+	redisURL    string
 }
 
 func run(ctx context.Context) int {
-	dbPassword, err := os.ReadFile("/run/secrets/db-password")
-	if err != nil {
-		fmt.Printf("failed to read db-password: %v\n", err)
-		return 1
-	}
 	oidcGoogleClientSecret, err := os.ReadFile("/run/secrets/oidc-google-client-secret")
 	if err != nil {
 		fmt.Printf("failed to read oidc-google-client-secret: %v\n", err)
@@ -87,21 +76,11 @@ func run(ctx context.Context) int {
 		fmt.Printf("invalid or missing PORT: %v\n", err)
 		return 1
 	}
-	dbPort, err := strconv.Atoi(os.Getenv("DATABASE_PORT"))
-	if err != nil {
-		fmt.Printf("invalid or missing DATABASE_PORT: %v\n", err)
-		return 1
-	}
 	cfg := config{
 		env:                    os.Getenv("ENV"),
 		oidcGoogleClientID:     os.Getenv("OIDC_GOOGLE_CLIENT_ID"),
 		oidcGoogleClientSecret: strings.TrimSpace(string(oidcGoogleClientSecret)),
-		dbPassword:             strings.TrimSpace(string(dbPassword)),
-		dbName:                 os.Getenv("DATABASE_NAME"),
-		dbHost:                 os.Getenv("DATABASE_HOST"),
-		dbPort:                 dbPort,
-		dbUser:                 os.Getenv("DATABASE_USER"),
-		dbSSLMode:              os.Getenv("DATABASE_SSLMODE"),
+		databaseURL:            os.Getenv("DATABASE_URL"),
 		serverURL:              os.Getenv("SERVER_URL"),
 		frontendURL:            os.Getenv("FRONTEND_URL"),
 		youtubeDataAPIKey:      os.Getenv("YOUTUBE_DATA_API_KEY"),
@@ -111,7 +90,6 @@ func run(ctx context.Context) int {
 		redisURL:               os.Getenv("REDIS_URL"),
 		port:                   port,
 	}
-	clear(dbPassword)
 	clear(oidcGoogleClientSecret)
 
 	var handler slog.Handler
@@ -135,7 +113,7 @@ func run(ctx context.Context) int {
 
 	initCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
-	if err = database_d.RunMigration(initCtx, cfg.dbUser, cfg.dbPassword, cfg.dbHost, cfg.dbPort, cfg.dbName, cfg.dbSSLMode); err != nil {
+	if err = database_d.RunMigration(initCtx, cfg.databaseURL); err != nil {
 		slog.Error("failed to run migration", slog.Any("error", err))
 		return 1
 	}
@@ -143,7 +121,7 @@ func run(ctx context.Context) int {
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	db, err := database_d.ConnectPostgres(initCtx, cfg.dbUser, cfg.dbPassword, cfg.dbHost, cfg.dbPort, cfg.dbName, cfg.dbSSLMode)
+	db, err := database_d.ConnectPostgres(initCtx, cfg.databaseURL)
 	if err != nil {
 		slog.Error("failed to connect db", slog.Any("error", err))
 		return 1

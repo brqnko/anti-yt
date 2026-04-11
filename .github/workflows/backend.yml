@@ -99,15 +99,7 @@ jobs:
 
       - run: go build -v -o server ./cmd/api
 
-      - name: Setup test secrets
-        run: |
-          sudo mkdir -p /run/secrets
-          echo -n "postgres" | sudo tee /run/secrets/db-password > /dev/null
-
       - name: Run tests
         env:
-          DATABASE_HOST: localhost
-          DATABASE_PORT: "5432"
-          DATABASE_USER: postgres
-          DATABASE_SSLMODE: disable
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/anti_yt_test?sslmode=disable
         run: go test ./...

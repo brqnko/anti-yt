@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"log/slog"
 
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -17,10 +16,10 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-func RunMigration(ctx context.Context, dbUser, dbPassword, dbHost string, dbPort int, dbName, dbSSLMode string) (err error) {
+func RunMigration(ctx context.Context, databaseURL string) (err error) {
 	defer util.Wrap(&err, "database_d.RunMigration")
 
-	db, err := sql.Open("pgx", fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", dbUser, dbPassword, dbHost, dbPort, dbName, dbSSLMode))
+	db, err := sql.Open("pgx", databaseURL)
 	if err != nil {
 		return err
 	}
@@ -49,10 +48,10 @@ func RunMigration(ctx context.Context, dbUser, dbPassword, dbHost string, dbPort
 	return nil
 }
 
-func ConnectPostgres(ctx context.Context, dbUser, dbPassword, dbHost string, dbPort int, dbName, dbSSLMode string) (_ *pgxpool.Pool, err error) {
+func ConnectPostgres(ctx context.Context, databaseURL string) (_ *pgxpool.Pool, err error) {
 	defer util.Wrap(&err, "database_d.ConnectPostgres")
 
-	db, err := pgxpool.New(ctx, fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", dbUser, dbPassword, dbHost, dbPort, dbName, dbSSLMode))
+	db, err := pgxpool.New(ctx, databaseURL)
 	if err != nil {
 		return nil, err
 	}

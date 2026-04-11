@@ -7,7 +7,6 @@ services:
     env_file:
       - .env
     secrets:
-      - db-password
       - oidc-google-client-secret
       - jwt-private
       - jwt-public
@@ -29,8 +28,6 @@ volumes:
     name: anti-yt-frontend-dist
 
 secrets:
-  db-password:
-    file: ./secrets/db-password.txt
   oidc-google-client-secret:
     file: ./secrets/oidc_secret.txt
   jwt-private:
