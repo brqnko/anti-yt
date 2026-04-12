@@ -244,14 +244,10 @@ func run(ctx context.Context) int {
 			}),
 			middleware_d.UserRatelimitMiddleware(ratelimitRepo, 2000, map[string]int{
 				"PostChannelsSubscribe":         3,
-				"GetChannelsChannelIdVideos":    2,
-				"GetChannelsChannelId":          1,
-				"GetFeedChannels":               3,
-				"GetFeed":                       2,
 				"GetSearch":                     100,
 				"PostPlaylists":                 100,
-				"PostPlaylistsPlaylistIdVideos": 100,
-				"GetAuthOauthYoutubeCallback":   500,
+				"PostPlaylistsPlaylistIdVideos": 3,
+				"GetAuthOauthYoutubeCallback":   250,
 			}),
 			middleware_d.TimezoneMiddleware(map[string]struct{}{
 				"GetAuthGoogle":               {},
