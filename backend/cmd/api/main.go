@@ -267,6 +267,12 @@ func run(ctx context.Context) int {
 				"GetAuthOauthYoutubeCallback": {},
 				"PostUsersMe":                 {},
 				"PostAuthReactivate":          {},
+				"GetChannelsChannelId":          {},
+				"GetChannelsChannelIdVideos":    {},
+				"GetChannelsChannelIdPlaylists": {},
+				"GetVideosVideoId":              {},
+				"GetPlaylistsPlaylistId":        {},
+				"GetFeed":                       {},
 			}),
 			middleware_d.RequestIDMiddleware,
 		}), r)

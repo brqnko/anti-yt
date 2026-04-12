@@ -8,10 +8,7 @@ import (
 )
 
 func (h *APIHandler) GetVideosVideoId(ctx context.Context, request GetVideosVideoIdRequestObject) (GetVideosVideoIdResponseObject, error) {
-	userID, err := hutil.UserIDFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
+	userID, _ := hutil.UserIDFromContext(ctx)
 
 	videoDetail, err := h.videoService.GetVideoDetail(ctx, userID, request.VideoId.UUID())
 	if err != nil {

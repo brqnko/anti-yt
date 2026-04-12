@@ -7,7 +7,9 @@
       "dark": "Dark mode",
       "system": "System preference"
     },
-    "close": "Close"
+    "close": "Close",
+    "authRequired": "You need to create an account to use this feature.",
+    "signInWithGoogle": "Sign in with Google"
   },
   "videoCard": {
     "moreOptions": "More options",
@@ -481,17 +483,5 @@
     "playlist.not_modifiable": "This playlist cannot be modified.",
     "jti_blacklisted": "This link has already been used. Please start over.",
     "fallback": "An error occurred. Please try again."
-  },
-  "home": {
-    "heroTitle1": "Break the",
-    "heroTitle2": "YouTube Cycle",
-    "heroDescription": "Reclaim your time from the algorithm. Strict time controls, intelligent filtering, and distraction-free focus zones designed for a clearer mind.",
-    "signInWithGoogle": "Sign in with Google",
-    "dashboard": "Go to Dashboard",
-    "privacy": "Privacy",
-    "terms": "Terms",
-    "dailyAllowance": "Daily Allowance",
-    "watchTime": "Watch Time",
-    "whitelist": "Whitelist"
   }
 }

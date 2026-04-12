@@ -10,7 +10,6 @@ import { SWRConfig } from "swr";
 import { AuthProvider } from "./contexts/AuthContext";
 import "./i18n";
 
-const Home = lazy(() => import("./pages/Home/index.jsx"));
 const Register = lazy(() => import("./pages/Register/index.jsx"));
 const Reactivation = lazy(() => import("./pages/Reactivation/index.jsx"));
 const Terms = lazy(() => import("./pages/Terms/index.jsx"));
@@ -34,8 +33,7 @@ import "./style.css";
 function AppContent() {
   return (
     <Router>
-      <Route path="/" component={Home} />
-      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/" component={Dashboard} />
       <Route path="/channels" component={Channels} />
       <Route path="/channels/explore" component={Explore} />
       <Route path="/channels/:channelId" component={ChannelDetail} />

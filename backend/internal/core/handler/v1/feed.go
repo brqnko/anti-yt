@@ -6,6 +6,7 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
+	"github.com/brqnko/anti-yt/backend/internal/feed"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
@@ -65,12 +66,15 @@ func (h *APIHandler) GetSearch(ctx context.Context, request GetSearchRequestObje
 }
 
 func (h *APIHandler) GetFeed(ctx context.Context, request GetFeedRequestObject) (GetFeedResponseObject, error) {
+	var videos []feed.GetVideoFeedView
+	var hasNext bool
+
 	userID, err := hutil.UserIDFromContext(ctx)
 	if err != nil {
-		return nil, err
+		videos, hasNext, err = h.feedService.GetLatestVideos(ctx, cursorToUUID(request.Params.Cursor), int32(request.Params.Limit))
+	} else {
+		videos, hasNext, err = h.feedService.GetFeed(ctx, userID, cursorToUUID(request.Params.Cursor), int32(request.Params.Limit))
 	}
-
-	videos, hasNext, err := h.feedService.GetFeed(ctx, userID, cursorToUUID(request.Params.Cursor), int32(request.Params.Limit))
 	if err != nil {
 		return nil, err
 	}

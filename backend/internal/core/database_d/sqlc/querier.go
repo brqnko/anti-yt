@@ -75,6 +75,8 @@ type Querier interface {
 	ListChannelVideosOlder(ctx context.Context, arg ListChannelVideosOlderParams) ([]ListChannelVideosOlderRow, error)
 	ListChannelsBulkFetchedBefore(ctx context.Context, bulkFetchedBefore time.Time) ([]ListChannelsBulkFetchedBeforeRow, error)
 	ListDailyWatchStatsByRange(ctx context.Context, arg ListDailyWatchStatsByRangeParams) ([]ListDailyWatchStatsByRangeRow, error)
+	// 認証なしで最新の動画をpublic_id降順で取得する。
+	ListLatestVideos(ctx context.Context, arg ListLatestVideosParams) ([]ListLatestVideosRow, error)
 	// 退会済みユーザーの一覧を取得する。
 	ListLeftUsers(ctx context.Context) ([]ListLeftUsersRow, error)
 	ListPlaylistVideos(ctx context.Context, arg ListPlaylistVideosParams) ([]ListPlaylistVideosRow, error)

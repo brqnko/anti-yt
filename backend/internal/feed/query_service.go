@@ -26,6 +26,7 @@ type FeedQueryService interface {
 	ListAllActiveUserIDs(ctx context.Context) ([]uuid.UUID, error)
 	ListSubscriptionVideoIDs(ctx context.Context, userID uuid.UUID, limit int32) ([]uuid.UUID, error)
 	HydrateVideoFeed(ctx context.Context, userID uuid.UUID, videoIDs []uuid.UUID) ([]GetVideoFeedView, error)
+	ListLatestVideos(ctx context.Context, cursor *uuid.UUID, limit int32) ([]GetVideoFeedView, error)
 }
 
 type feedQueryServiceImpl struct {
@@ -93,6 +94,33 @@ func (f *feedQueryServiceImpl) HydrateVideoFeed(ctx context.Context, userID uuid
 			ExternalVideoTitle:         row.ExternalTitle,
 			LastWatchSeconds:           lastWatchSeconds,
 			VideoId:                    row.VideoID,
+		}
+	}
+	return views, nil
+}
+
+func (f *feedQueryServiceImpl) ListLatestVideos(ctx context.Context, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, err error) {
+	defer util.Wrap(&err, "feed.(*feedQueryServiceImpl).ListLatestVideos")
+
+	rows, err := f.q.ListLatestVideos(ctx, sqlc.ListLatestVideosParams{
+		Cursor:     cursor,
+		QueryLimit: limit,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	views := make([]GetVideoFeedView, len(rows))
+	for i, row := range rows {
+		views[i] = GetVideoFeedView{
+			VideoId:                    row.VideoID,
+			ExternalVideoThumbnailUrl:  row.ExternalVideoThumbnailUrl,
+			ExternalVideoTitle:         row.ExternalTitle,
+			ExternalVideoCreatedAt:     row.ExternalCreatedAt,
+			ExternalVideoLengthSeconds: row.ExternalLengthSeconds,
+			ChannelId:                  row.ChannelID,
+			ExternalChannelIconUrl:     row.ExternalChannelIconUrl,
+			ExternalChannelDisplayName: row.ExternalDisplayname,
 		}
 	}
 	return views, nil
