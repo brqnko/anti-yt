@@ -55,10 +55,7 @@ func (h *APIHandler) GetChannelsChannelIdPlaylists(ctx context.Context, request 
 }
 
 func (h *APIHandler) GetChannelsChannelIdVideos(ctx context.Context, request GetChannelsChannelIdVideosRequestObject) (GetChannelsChannelIdVideosResponseObject, error) {
-	userID, err := hutil.UserIDFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
+	userID, _ := hutil.UserIDFromContext(ctx)
 
 	var order string
 	if request.Params.Order != nil {

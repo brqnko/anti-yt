@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
-import { ProtectedRoute } from "../../components/ProtectedRoute";
+import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
+import { AuthPromptDialog } from "../../components/AuthPromptDialog";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
 import { getFeed } from "../../api/generated/feed";
@@ -18,6 +19,7 @@ import { AddPlaylistDialog } from "../../components/AddPlaylistDialog";
 function DashboardContent() {
   const { t } = useTranslation();
   useTitle(t("dashboard.pageTitle"));
+  const { isAuthenticated, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
 
   const [feedVideos, setFeedVideos] = useState<GetFeed200ItemsItem[]>([]);
   const [recentPlaylists, setRecentPlaylists] = useState<GetPlaylistsRecent200ItemsItem[]>([]);
@@ -31,29 +33,42 @@ function DashboardContent() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [feedRes, subsRes, recentRes] = await Promise.allSettled([
+        const promises: Promise<unknown>[] = [
           getFeed().getFeed({ limit: PAGE_SIZES.FEED }),
-          getChannel().getChannelsSubscribed({ limit: 50 }),
-          getPlaylist().getPlaylistsRecent(),
-        ]);
+        ];
+        if (isAuthenticated) {
+          promises.push(
+            getChannel().getChannelsSubscribed({ limit: 50 }),
+            getPlaylist().getPlaylistsRecent(),
+          );
+        }
+        const results = await Promise.allSettled(promises);
+        const feedRes = results[0];
         if (feedRes.status === "fulfilled") {
-          setFeedVideos(feedRes.value.items);
-          setHasNext(feedRes.value.has_next);
-          const lastItem = feedRes.value.items[feedRes.value.items.length - 1];
+          const feed = feedRes.value as { items: GetFeed200ItemsItem[]; has_next: boolean };
+          setFeedVideos(feed.items);
+          setHasNext(feed.has_next);
+          const lastItem = feed.items[feed.items.length - 1];
           cursorRef.current = lastItem?.video_id;
         }
-        if (subsRes.status === "fulfilled") {
-          setSubscribedChannelIds(new Set(subsRes.value.items.map((s) => s.channel_id)));
-        }
-        if (recentRes.status === "fulfilled") {
-          setRecentPlaylists(recentRes.value.items);
+        if (isAuthenticated) {
+          const subsRes = results[1];
+          const recentRes = results[2];
+          if (subsRes?.status === "fulfilled") {
+            const subs = subsRes.value as { items: { channel_id: string }[] };
+            setSubscribedChannelIds(new Set(subs.items.map((s) => s.channel_id)));
+          }
+          if (recentRes?.status === "fulfilled") {
+            const recent = recentRes.value as { items: GetPlaylistsRecent200ItemsItem[] };
+            setRecentPlaylists(recent.items);
+          }
         }
       } finally {
         setIsLoadingFeed(false);
       }
     };
     loadData();
-  }, []);
+  }, [isAuthenticated]);
 
   const handleMarkWatched = useCallback(async (videoId: string) => {
     await getHistory().postVideosVideoIdWatched(videoId);
@@ -142,7 +157,7 @@ function DashboardContent() {
             <button
               type="button"
               class="group flex-shrink-0 w-72 rounded-xl border border-dashed border-border-light dark:border-border-dark hover:border-primary hover:bg-primary/5 transition-all duration-300 overflow-hidden bg-transparent cursor-pointer flex flex-col items-center justify-center gap-3"
-              onClick={() => setShowAddPlaylist(true)}
+              onClick={() => requireAuth(() => setShowAddPlaylist(true))}
             >
               <Icon name="add" class="text-4xl text-text-muted-light dark:text-text-muted-dark group-hover:text-primary transition-all" />
               <span class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark group-hover:text-primary transition-colors">
@@ -172,8 +187,8 @@ function DashboardContent() {
                   dateStr={video.external_video_created_at}
                   watchedSeconds={video.last_watch_seconds}
                   isSubscribed={subscribedChannelIds.has(video.channel_id)}
-                  onToggleSubscription={() => handleToggleSubscription(video.channel_id)}
-                  onMarkWatched={() => handleMarkWatched(video.video_id)}
+                  onToggleSubscription={() => requireAuth(() => handleToggleSubscription(video.channel_id))}
+                  onMarkWatched={() => requireAuth(() => handleMarkWatched(video.video_id))}
                 />
               ))}
             </div>
@@ -208,14 +223,11 @@ function DashboardContent() {
           setRecentPlaylists(res.items);
         }}
       />
+      <AuthPromptDialog open={showAuthPrompt} onClose={closeAuthPrompt} />
     </DashboardLayout>
   );
 }
 
 export default function Dashboard() {
-  return (
-    <ProtectedRoute>
-      <DashboardContent />
-    </ProtectedRoute>
-  );
+  return <DashboardContent />;
 }

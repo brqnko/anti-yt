@@ -4,8 +4,9 @@ import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
-import { ProtectedRoute } from "../../components/ProtectedRoute";
+import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
+import { AuthPromptDialog } from "../../components/AuthPromptDialog";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
 import { Dialog } from "../../components/Dialog";
@@ -414,6 +415,7 @@ function CopyPlaylistDialog({
 function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
   const { t } = useTranslation();
   const { route } = useLocation();
+  const { requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
 
   const [playlistInfo, setPlaylistInfo] = useState<GetPlaylistsPlaylistId200 | null>(null);
   const [videos, setVideos] = useState<GetPlaylistsPlaylistIdVideos200ItemsItem[]>([]);
@@ -664,21 +666,21 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
               <div class="flex gap-2 flex-shrink-0">
                 <button
                   class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors cursor-pointer border-none"
-                  onClick={() => setShowAddVideo(true)}
+                  onClick={() => requireAuth(() => setShowAddVideo(true))}
                 >
                   <Icon name="add" class="text-[18px]" />
                   {t("playlistDetail.addVideo")}
                 </button>
                 <button
                   class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-transparent border border-border-light dark:border-border-dark text-sm font-medium text-charcoal dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                  onClick={() => setShowEdit(true)}
+                  onClick={() => requireAuth(() => setShowEdit(true))}
                 >
                   <Icon name="edit" class="text-[18px]" />
                   {t("playlistDetail.edit")}
                 </button>
                 <button
                   class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-transparent border border-red-300 dark:border-red-800 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
-                  onClick={() => setShowDelete(true)}
+                  onClick={() => requireAuth(() => setShowDelete(true))}
                 >
                   <Icon name="delete" class="text-[18px]" />
                   {t("playlistDetail.delete")}
@@ -688,7 +690,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
               <div class="flex gap-2 flex-shrink-0">
                 <button
                   class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors cursor-pointer border-none"
-                  onClick={() => setShowCopy(true)}
+                  onClick={() => requireAuth(() => setShowCopy(true))}
                 >
                   <Icon name="content_copy" class="text-[18px]" />
                   {t("playlistDetail.copy")}
@@ -808,6 +810,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
           }}
         />
       )}
+      <AuthPromptDialog open={showAuthPrompt} onClose={closeAuthPrompt} />
     </DashboardLayout>
   );
 }
@@ -817,9 +820,5 @@ export default function PlaylistDetail({
 }: {
   playlistId: string;
 }) {
-  return (
-    <ProtectedRoute>
-      <PlaylistDetailContent playlistId={playlistId} />
-    </ProtectedRoute>
-  );
+  return <PlaylistDetailContent playlistId={playlistId} />;
 }

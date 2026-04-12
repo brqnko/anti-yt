@@ -6,8 +6,10 @@ import useSWR from "swr";
 import { DashboardHeader } from "./DashboardHeader";
 import { AddChannelDialog } from "./AddChannelDialog";
 import { AddPlaylistDialog } from "./AddPlaylistDialog";
+import { AuthPromptDialog } from "./AuthPromptDialog";
 import { getChannel } from "../api/generated/channel";
 import { getPlaylist } from "../api/generated/playlist";
+import { useAuth } from "../contexts/AuthContext";
 import { CACHE_KEYS } from "../api/cache-keys";
 import { Icon } from "./Icon";
 import type {
@@ -32,8 +34,10 @@ export function DashboardLayout({
 }) {
   const { t } = useTranslation();
   const { url } = useLocation();
+  const { isAuthenticated } = useAuth();
   const [showAddChannel, setShowAddChannel] = useState(false);
   const [showAddPlaylist, setShowAddPlaylist] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   const [sidebarOpen, setSidebarOpen] = useState(getStoredSidebarState);
 
@@ -42,7 +46,7 @@ export function DashboardLayout({
     isLoading: isSubscriptionsLoading,
     mutate: mutateSubscriptions,
   } = useSWR<GetChannelsSubscribed200ItemsItem[]>(
-    CACHE_KEYS.dashboardSubscriptions,
+    isAuthenticated ? CACHE_KEYS.dashboardSubscriptions : null,
     async () => {
       const res = await getChannel().getChannelsSubscribed({ limit: 10 });
       return res.items;
@@ -54,7 +58,7 @@ export function DashboardLayout({
     isLoading: isPlaylistsLoading,
     mutate: mutatePlaylists,
   } = useSWR<GetPlaylists200ItemsItem[]>(
-    CACHE_KEYS.dashboardPlaylists,
+    isAuthenticated ? CACHE_KEYS.dashboardPlaylists : null,
     async () => {
       const res = await getPlaylist().getPlaylists({ limit: 10 });
       return res.items;
@@ -106,47 +110,50 @@ export function DashboardLayout({
             <nav class="flex flex-col gap-1" aria-label={t("dashboard.nav.mainNav")}>
               <a
                 class={`flex items-center gap-3 px-3 py-2 rounded-lg font-bold no-underline ${
-                  url === "/dashboard"
+                  url === "/"
                     ? "bg-primary/10 text-primary"
                     : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-charcoal dark:hover:text-white font-medium transition-colors"
                 }`}
-                href="/dashboard"
-                aria-current={url === "/dashboard" ? "page" : undefined}
+                href="/"
+                aria-current={url === "/" ? "page" : undefined}
               >
                 <Icon name="home" />
                 {t("dashboard.nav.mainFeed")}
               </a>
               <a
-                class={`flex items-center gap-3 px-3 py-2 rounded-lg no-underline ${
+                class={`flex items-center gap-3 px-3 py-2 rounded-lg no-underline cursor-pointer ${
                   url === "/analytics"
                     ? "bg-primary/10 text-primary font-bold"
                     : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-charcoal dark:hover:text-white font-medium transition-colors"
                 }`}
-                href="/analytics"
+                href={isAuthenticated ? "/analytics" : undefined}
+                onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
                 aria-current={url === "/analytics" ? "page" : undefined}
               >
                 <Icon name="analytics" />
                 {t("dashboard.nav.analytics")}
               </a>
               <a
-                class={`flex items-center gap-3 px-3 py-2 rounded-lg no-underline ${
+                class={`flex items-center gap-3 px-3 py-2 rounded-lg no-underline cursor-pointer ${
                   url === "/channels" || url === "/channels/explore"
                     ? "bg-primary/10 text-primary font-bold"
                     : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-charcoal dark:hover:text-white font-medium transition-colors"
                 }`}
-                href="/channels"
+                href={isAuthenticated ? "/channels" : undefined}
+                onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
                 aria-current={url === "/channels" || url === "/channels/explore" ? "page" : undefined}
               >
                 <Icon name="subscriptions" />
                 {t("dashboard.nav.bottomChannels")}
               </a>
               <a
-                class={`flex items-center gap-3 px-3 py-2 rounded-lg no-underline ${
+                class={`flex items-center gap-3 px-3 py-2 rounded-lg no-underline cursor-pointer ${
                   url === "/playlists" || url.startsWith("/playlists/")
                     ? "bg-primary/10 text-primary font-bold"
                     : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-charcoal dark:hover:text-white font-medium transition-colors"
                 }`}
-                href="/playlists"
+                href={isAuthenticated ? "/playlists" : undefined}
+                onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
                 aria-current={url === "/playlists" || url.startsWith("/playlists/") ? "page" : undefined}
               >
                 <Icon name="playlist_play" />
@@ -193,7 +200,7 @@ export function DashboardLayout({
               </div>
               <button
                   class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium mt-1 cursor-pointer bg-transparent border-none group/add"
-                  onClick={() => setShowAddChannel(true)}
+                  onClick={() => isAuthenticated ? setShowAddChannel(true) : setShowAuthPrompt(true)}
                 >
                   <Icon name="add" class="text-[18px]" />
                   <span class="group-hover/add:underline">{t("dashboard.requestChannel")}</span>
@@ -230,7 +237,7 @@ export function DashboardLayout({
               </div>
               <button
                 class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium mt-1 cursor-pointer bg-transparent border-none group/add"
-                onClick={() => setShowAddPlaylist(true)}
+                onClick={() => isAuthenticated ? setShowAddPlaylist(true) : setShowAuthPrompt(true)}
               >
                 <Icon name="add" class="text-[18px]" />
                 <span class="group-hover/add:underline">{t("dashboard.addPlaylist")}</span>
@@ -251,26 +258,27 @@ export function DashboardLayout({
         aria-label={t("dashboard.nav.mainNav")}
       >
         <a
-          href="/dashboard"
+          href="/"
           onClick={(e) => {
-            if (url === "/dashboard") {
+            if (url === "/") {
               e.preventDefault();
               window.scrollTo({ top: 0, behavior: "smooth" });
             }
           }}
           class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors ${
-            url === "/dashboard"
+            url === "/"
               ? "text-primary font-bold"
               : "text-text-muted-light dark:text-text-muted-dark"
           }`}
-          aria-current={url === "/dashboard" ? "page" : undefined}
+          aria-current={url === "/" ? "page" : undefined}
         >
           <Icon name="home" class="text-xl" />
           {t("dashboard.nav.bottomFeed")}
         </a>
         <a
-          href="/channels"
-          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors ${
+          href={isAuthenticated ? "/channels" : undefined}
+          onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
+          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors cursor-pointer ${
             url === "/channels" || url === "/channels/explore"
               ? "text-primary font-bold"
               : "text-text-muted-light dark:text-text-muted-dark"
@@ -281,8 +289,9 @@ export function DashboardLayout({
           {t("dashboard.nav.bottomChannels")}
         </a>
         <a
-          href="/playlists"
-          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors ${
+          href={isAuthenticated ? "/playlists" : undefined}
+          onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
+          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors cursor-pointer ${
             url === "/playlists" || url.startsWith("/playlists/")
               ? "text-primary font-bold"
               : "text-text-muted-light dark:text-text-muted-dark"
@@ -293,8 +302,9 @@ export function DashboardLayout({
           {t("dashboard.nav.bottomPlaylists")}
         </a>
         <a
-          href="/analytics"
-          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors ${
+          href={isAuthenticated ? "/analytics" : undefined}
+          onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
+          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors cursor-pointer ${
             url === "/analytics"
               ? "text-primary font-bold"
               : "text-text-muted-light dark:text-text-muted-dark"
@@ -305,14 +315,14 @@ export function DashboardLayout({
           {t("dashboard.nav.bottomAnalytics")}
         </a>
         <a
-          href="/profile"
-          onClick={(e) => {
+          href={isAuthenticated ? "/profile" : undefined}
+          onClick={() => {
+            if (!isAuthenticated) { setShowAuthPrompt(true); return; }
             if (url === "/profile") {
-              e.preventDefault();
               window.scrollTo({ top: 0, behavior: "smooth" });
             }
           }}
-          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors ${
+          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors cursor-pointer ${
             url === "/profile"
               ? "text-primary font-bold"
               : "text-text-muted-light dark:text-text-muted-dark"
@@ -333,6 +343,10 @@ export function DashboardLayout({
         open={showAddPlaylist}
         onClose={() => setShowAddPlaylist(false)}
         onAdded={() => mutatePlaylists()}
+      />
+      <AuthPromptDialog
+        open={showAuthPrompt}
+        onClose={() => setShowAuthPrompt(false)}
       />
     </div>
   );

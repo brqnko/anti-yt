@@ -20,12 +20,12 @@ export default function Register() {
           screen_time: [{ start_time: "00:00", end_time: "24:00" }],
         });
         if (cancelled) return;
-        window.location.href = "/dashboard";
+        window.location.href = "/";
       } catch (err) {
         if (cancelled) return;
         const code = getApiErrorCode(err);
         if (code === "user.already_registered") {
-          window.location.href = "/dashboard";
+          window.location.href = "/";
           return;
         }
         const msg = code

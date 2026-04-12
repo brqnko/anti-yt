@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
-import { ProtectedRoute } from "../../components/ProtectedRoute";
+import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
+import { AuthPromptDialog } from "../../components/AuthPromptDialog";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { ChannelInfoCard } from "../../components/ChannelInfoCard";
 import { getChannel } from "../../api/generated/channel";
@@ -20,6 +21,7 @@ import { Icon } from "../../components/Icon";
 
 function ChannelDetailContent({ channelId }: { channelId: string }) {
   const { t } = useTranslation();
+  const { isAuthenticated, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
 
   const [channelInfo, setChannelInfo] = useState<GetChannelsChannelId200 | null>(null);
   const [playlists, setPlaylists] = useState<GetChannelsChannelIdPlaylists200ItemsItem[]>([]);
@@ -47,34 +49,47 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     const load = async () => {
       setIsVideosLoading(true);
       try {
-        const [channelRes, subsRes, videosRes, playlistsRes] = await Promise.allSettled([
+        const promises: Promise<unknown>[] = [
           getChannel().getChannelsChannelId(channelId),
-          getChannel().getChannelsSubscribed({ limit: 50 }),
           getChannel().getChannelsChannelIdVideos(channelId, { limit: PAGE_SIZES.CHANNEL_VIDEOS, order }),
           getChannel().getChannelsChannelIdPlaylists(channelId, { limit: PAGE_SIZES.CHANNEL_PLAYLISTS }),
-        ]);
+        ];
+        if (isAuthenticated) {
+          promises.push(getChannel().getChannelsSubscribed({ limit: 50 }));
+        }
+        const results = await Promise.allSettled(promises);
+
+        const channelRes = results[0];
+        const videosRes = results[1];
+        const playlistsRes = results[2];
 
         if (channelRes.status === "fulfilled") {
-          setChannelInfo(channelRes.value);
+          setChannelInfo(channelRes.value as GetChannelsChannelId200);
         }
 
-        if (subsRes.status === "fulfilled") {
-          const found = subsRes.value.items.find(s => s.channel_id === channelId);
-          if (found) {
-            setIsSubscribed(true);
+        if (isAuthenticated) {
+          const subsRes = results[3];
+          if (subsRes?.status === "fulfilled") {
+            const subs = subsRes.value as { items: { channel_id: string }[] };
+            const found = subs.items.find(s => s.channel_id === channelId);
+            if (found) {
+              setIsSubscribed(true);
+            }
           }
         }
 
         if (videosRes.status === "fulfilled") {
-          setVideos(videosRes.value.items);
-          setHasNextVideos(videosRes.value.has_next);
-          setWatchedVideoIds(new Set(videosRes.value.items.filter(v => v.is_watched).map(v => v.video_id)));
-          const lastItem = videosRes.value.items[videosRes.value.items.length - 1];
+          const vids = videosRes.value as { items: GetChannelsChannelIdVideos200ItemsItem[]; has_next: boolean };
+          setVideos(vids.items);
+          setHasNextVideos(vids.has_next);
+          setWatchedVideoIds(new Set(vids.items.filter(v => v.is_watched).map(v => v.video_id)));
+          const lastItem = vids.items[vids.items.length - 1];
           cursorRef.current = lastItem?.video_id;
         }
 
         if (playlistsRes.status === "fulfilled") {
-          setPlaylists(playlistsRes.value.items);
+          const pls = playlistsRes.value as { items: GetChannelsChannelIdPlaylists200ItemsItem[] };
+          setPlaylists(pls.items);
         }
       } finally {
         setIsLoading(false);
@@ -82,7 +97,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       }
     };
     load();
-  }, [channelId, order]);
+  }, [channelId, order, isAuthenticated]);
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasNextVideos) return;
@@ -159,7 +174,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
             <p class="text-lg font-medium">{t("channelDetail.notFound")}</p>
             <a
               class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
-              href="/dashboard"
+              href="/"
             >
               <Icon name="arrow_back" class="text-[18px]" />
               {t("channelDetail.backToDashboard")}
@@ -176,7 +191,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
         <ChannelInfoCard
           channelInfo={channelInfo}
           isSubscribed={isSubscribed}
-          onToggleSubscription={handleToggleSubscription}
+          onToggleSubscription={() => requireAuth(handleToggleSubscription)}
           isToggling={isToggling}
         />
 
@@ -265,7 +280,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
                     dateStr={video.external_video_created_at}
                     watchedSeconds={video.last_watch_seconds}
                     isWatched={watchedVideoIds.has(video.video_id)}
-                    onMarkWatched={() => handleToggleWatched(video.video_id)}
+                    onMarkWatched={() => requireAuth(() => handleToggleWatched(video.video_id))}
                   />
                 ))}
               </div>
@@ -285,14 +300,11 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
           )}
         </div>
       </div>
+      <AuthPromptDialog open={showAuthPrompt} onClose={closeAuthPrompt} />
     </DashboardLayout>
   );
 }
 
 export default function ChannelDetail({ channelId }: { channelId: string }) {
-  return (
-    <ProtectedRoute>
-      <ChannelDetailContent channelId={channelId} />
-    </ProtectedRoute>
-  );
+  return <ChannelDetailContent channelId={channelId} />;
 }

@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
-import { ProtectedRoute } from "../../components/ProtectedRoute";
+import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
+import { AuthPromptDialog } from "../../components/AuthPromptDialog";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { ChannelInfoCard } from "../../components/ChannelInfoCard";
 import { getChannel } from "../../api/generated/channel";
@@ -16,6 +17,7 @@ import { Icon } from "../../components/Icon";
 
 function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
   const { t } = useTranslation();
+  const { isAuthenticated, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
 
   const [channelInfo, setChannelInfo] = useState<GetChannelsChannelId200 | null>(null);
   const [playlists, setPlaylists] = useState<GetChannelsChannelIdPlaylists200ItemsItem[]>([]);
@@ -36,35 +38,46 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
     const load = async () => {
       setIsLoading(true);
       try {
-        const [channelRes, subsRes, playlistsRes] = await Promise.allSettled([
+        const promises: Promise<unknown>[] = [
           getChannel().getChannelsChannelId(channelId),
-          getChannel().getChannelsSubscribed({ limit: 50 }),
           getChannel().getChannelsChannelIdPlaylists(channelId, { limit: PAGE_SIZES.CHANNEL_PLAYLISTS_PAGE }),
-        ]);
+        ];
+        if (isAuthenticated) {
+          promises.push(getChannel().getChannelsSubscribed({ limit: 50 }));
+        }
+        const results = await Promise.allSettled(promises);
+
+        const channelRes = results[0];
+        const playlistsRes = results[1];
 
         if (channelRes.status === "fulfilled") {
-          setChannelInfo(channelRes.value);
-        }
-
-        if (subsRes.status === "fulfilled") {
-          const found = subsRes.value.items.find(s => s.channel_id === channelId);
-          if (found) {
-            setIsSubscribed(true);
-          }
+          setChannelInfo(channelRes.value as GetChannelsChannelId200);
         }
 
         if (playlistsRes.status === "fulfilled") {
-          setPlaylists(playlistsRes.value.items);
-          setHasNext(playlistsRes.value.has_next);
-          const last = playlistsRes.value.items[playlistsRes.value.items.length - 1];
+          const pls = playlistsRes.value as { items: GetChannelsChannelIdPlaylists200ItemsItem[]; has_next: boolean };
+          setPlaylists(pls.items);
+          setHasNext(pls.has_next);
+          const last = pls.items[pls.items.length - 1];
           cursorRef.current = last?.playlist_id;
+        }
+
+        if (isAuthenticated) {
+          const subsRes = results[2];
+          if (subsRes?.status === "fulfilled") {
+            const subs = subsRes.value as { items: { channel_id: string }[] };
+            const found = subs.items.find(s => s.channel_id === channelId);
+            if (found) {
+              setIsSubscribed(true);
+            }
+          }
         }
       } finally {
         setIsLoading(false);
       }
     };
     load();
-  }, [channelId]);
+  }, [channelId, isAuthenticated]);
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasNext) return;
@@ -130,7 +143,7 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
           <ChannelInfoCard
             channelInfo={channelInfo}
             isSubscribed={isSubscribed}
-            onToggleSubscription={handleToggleSubscription}
+            onToggleSubscription={() => requireAuth(handleToggleSubscription)}
             isToggling={isToggling}
           />
         )}
@@ -184,14 +197,11 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
           </div>
         )}
       </div>
+      <AuthPromptDialog open={showAuthPrompt} onClose={closeAuthPrompt} />
     </DashboardLayout>
   );
 }
 
 export default function ChannelPlaylists({ channelId }: { channelId: string }) {
-  return (
-    <ProtectedRoute>
-      <ChannelPlaylistsContent channelId={channelId} />
-    </ProtectedRoute>
-  );
+  return <ChannelPlaylistsContent channelId={channelId} />;
 }

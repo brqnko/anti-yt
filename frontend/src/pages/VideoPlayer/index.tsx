@@ -2,8 +2,9 @@ import { useState, useEffect, useRef, useCallback } from "preact/hooks";
 import { useRoute, useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
-import { ProtectedRoute } from "../../components/ProtectedRoute";
+import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
+import { AuthPromptDialog } from "../../components/AuthPromptDialog";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getVideo } from "../../api/generated/video";
 import { getHistory } from "../../api/generated/history";
@@ -226,6 +227,7 @@ function VideoPlayerContent() {
   const { t } = useTranslation();
   const { params } = useRoute();
   const { route } = useLocation();
+  const { isAuthenticated, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
   const videoId = params.videoId;
 
   const [video, setVideo] = useState<GetVideosVideoId200 | null>(null);
@@ -523,7 +525,7 @@ function VideoPlayerContent() {
   isSeekingRef.current = isSeeking;
 
   const { remainingSeconds, tick: heartbeatTick } = useHeartbeat({
-    videoId: video?.video_id ?? null,
+    videoId: isAuthenticated ? (video?.video_id ?? null) : null,
     playlistId,
     playerState,
     currentTimeRef,
@@ -707,7 +709,7 @@ function VideoPlayerContent() {
           <Icon name="error" class="text-5xl mb-4" />
           <p class="text-lg font-medium">{t("videoPlayer.notFound")}</p>
           <a
-            href="/dashboard"
+            href="/"
             class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
           >
             {t("channelDetail.backToDashboard")}
@@ -891,7 +893,7 @@ function VideoPlayerContent() {
                           : "text-charcoal dark:text-white cursor-pointer hover:text-primary"
                     }`}
                     disabled={markingWatchLater}
-                    onClick={async () => {
+                    onClick={() => requireAuth(async () => {
                       if (markingWatchLater || !videoId) return;
                       setMarkingWatchLater(true);
                       try {
@@ -905,7 +907,7 @@ function VideoPlayerContent() {
                       } finally {
                         setMarkingWatchLater(false);
                       }
-                    }}
+                    })}
                   >
                     <Icon name="schedule" class="text-lg" />
                     <span class="text-[10px] font-semibold">{t("videoPlayer.watchLater")}</span>
@@ -919,7 +921,7 @@ function VideoPlayerContent() {
                           : "text-charcoal dark:text-white cursor-pointer hover:text-primary"
                     }`}
                     disabled={markingWatched}
-                    onClick={async () => {
+                    onClick={() => requireAuth(async () => {
                       if (markingWatched || !videoId) return;
                       setMarkingWatched(true);
                       try {
@@ -933,7 +935,7 @@ function VideoPlayerContent() {
                       } finally {
                         setMarkingWatched(false);
                       }
-                    }}
+                    })}
                   >
                     <Icon name="check_circle" class="text-lg" />
                     <span class="text-[10px] font-semibold">{t("videoCard.markWatchedButton")}</span>
@@ -951,7 +953,7 @@ function VideoPlayerContent() {
                   </button>
                   <button
                     class="flex flex-col items-center gap-0.5 bg-transparent border-none text-charcoal dark:text-white hover:text-primary transition-colors cursor-pointer"
-                    onClick={openPlaylistDialog}
+                    onClick={() => requireAuth(openPlaylistDialog)}
                   >
                     <Icon name="playlist_add" class="text-lg" />
                     <span class="text-[10px] font-semibold">{t("videoPlayer.playlist")}</span>
@@ -1199,14 +1201,11 @@ function VideoPlayerContent() {
           }
         />
       )}
+      <AuthPromptDialog open={showAuthPrompt} onClose={closeAuthPrompt} />
     </DashboardLayout>
   );
 }
 
 export default function VideoPlayer() {
-  return (
-    <ProtectedRoute>
-      <VideoPlayerContent />
-    </ProtectedRoute>
-  );
+  return <VideoPlayerContent />;
 }
