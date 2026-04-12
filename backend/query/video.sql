@@ -280,3 +280,25 @@ WHERE
     video.public_id = @video_id
 LIMIT
     1;
+
+-- 認証なしで最新の動画をpublic_id降順で取得する。
+-- name: ListLatestVideos :many
+SELECT
+    m_video.public_id AS video_id,
+    m_video.external_thumbnail_url AS external_video_thumbnail_url,
+    m_video.external_title AS external_title,
+    m_video.external_created_at AS external_created_at,
+    m_video.external_length_seconds AS external_length_seconds,
+    m_channel.public_id AS channel_id,
+    m_channel.external_icon_url AS external_channel_icon_url,
+    m_channel.external_display_name AS external_displayname
+FROM
+    m_video
+    INNER JOIN m_channel ON m_channel.m_channel_id = m_video.m_channel_id
+WHERE
+    sqlc.narg('cursor')::uuid IS NULL
+    OR m_video.public_id < sqlc.narg('cursor')::uuid
+ORDER BY
+    m_video.public_id DESC
+LIMIT
+    @query_limit;

@@ -7,7 +7,9 @@
       "dark": "ダークモード",
       "system": "システム設定に従う"
     },
-    "close": "閉じる"
+    "close": "閉じる",
+    "authRequired": "この機能を利用するにはアカウント登録が必要です。",
+    "signInWithGoogle": "Googleでログイン"
   },
   "videoCard": {
     "moreOptions": "その他のオプション",
@@ -489,17 +491,5 @@
     "playlist.not_modifiable": "このプレイリストは編集できません。",
     "jti_blacklisted": "このリンクは既に使用されています。最初からやり直してください。",
     "fallback": "エラーが発生しました。再度お試しください。"
-  },
-  "home": {
-    "heroTitle1": "断ち切ろう",
-    "heroTitle2": "YouTube依存",
-    "heroDescription": "アルゴリズムから時間を取り戻そう。厳格な時間制限、インテリジェントなフィルタリング、集中のためのディストラクションフリーゾーン。",
-    "signInWithGoogle": "Googleでサインイン",
-    "dashboard": "ダッシュボードに行く",
-    "privacy": "プライバシー",
-    "terms": "利用規約",
-    "dailyAllowance": "1日の許容時間",
-    "watchTime": "視聴時間",
-    "whitelist": "ホワイトリスト"
   }
 }

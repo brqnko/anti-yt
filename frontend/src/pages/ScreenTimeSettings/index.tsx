@@ -110,7 +110,7 @@ function ScreenTimeSettingsContent() {
     <div class="min-h-dvh bg-background-light dark:bg-background-dark flex flex-col items-center px-6 py-12">
       <div class="w-full max-w-lg flex flex-col gap-6">
         <a
-          href="/dashboard"
+          href="/"
           class="flex items-center gap-1 text-sm text-taupe dark:text-white/50 hover:text-charcoal dark:hover:text-white/80 transition-colors no-underline"
         >
           <Icon name="arrow_back" class="text-base" />

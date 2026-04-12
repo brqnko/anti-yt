@@ -116,6 +116,20 @@ func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UU
 	return videos, false, nil
 }
 
+func (s *Service) GetLatestVideos(ctx context.Context, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, _ bool, err error) {
+	defer util.Wrap(&err, "feed.(*Service).GetLatestVideos")
+
+	videos, err := s.feedQS.ListLatestVideos(ctx, cursor, limit+1)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if len(videos) > int(limit) {
+		return videos[:limit], true, nil
+	}
+	return videos, false, nil
+}
+
 type SearchVideoView struct {
 	VideoID                    uuid.UUID
 	ChannelID                  uuid.UUID

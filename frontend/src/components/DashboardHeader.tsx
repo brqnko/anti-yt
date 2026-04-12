@@ -2,8 +2,10 @@ import { useState, useMemo } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./Icon";
+import { AuthPromptDialog } from "./AuthPromptDialog";
 import { SearchFilterDialog } from "./SearchFilterDialog";
 import type { SearchFilters } from "./SearchFilterDialog";
+import { useAuth } from "../contexts/AuthContext";
 
 /** Read filter params from the current URL query string. */
 function parseFiltersFromURL(qs: string): SearchFilters {
@@ -38,6 +40,8 @@ export function DashboardHeader({
 }) {
   const { t } = useTranslation();
   const { url, route } = useLocation();
+  const { isAuthenticated } = useAuth();
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const qs = url.split("?")[1] || "";
   const initialQuery = url.startsWith("/search")
     ? new URLSearchParams(qs).get("q") || ""
@@ -53,6 +57,7 @@ export function DashboardHeader({
 
   const handleSearch = (e: Event) => {
     e.preventDefault();
+    if (!isAuthenticated) { setShowAuthPrompt(true); return; }
     (document.activeElement as HTMLElement | null)?.blur();
     const q = searchInput.trim();
     if (q) {
@@ -80,7 +85,7 @@ export function DashboardHeader({
             <Icon name="menu" class="text-2xl" />
           </button>
         )}
-        <a href="/dashboard" class="no-underline text-charcoal dark:text-white">
+        <a href="/" class="no-underline text-charcoal dark:text-white">
           <span class="text-xl font-bold tracking-tight whitespace-nowrap">anti-yt</span>
         </a>
       </div>
@@ -135,13 +140,15 @@ export function DashboardHeader({
 
       <div class="hidden lg:flex items-center gap-4 shrink-0">
         <a
-          href="/profile"
+          href={isAuthenticated ? "/profile" : undefined}
+          onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
           class="size-9 flex items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/20 cursor-pointer text-primary no-underline"
           aria-label={t("profile.pageTitle")}
         >
           <Icon name="person" class="text-[20px]" />
         </a>
       </div>
+      <AuthPromptDialog open={showAuthPrompt} onClose={() => setShowAuthPrompt(false)} />
     </header>
   );
 }
