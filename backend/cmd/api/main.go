@@ -13,7 +13,6 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"strings"
 	"syscall"
 	"time"
 
@@ -56,11 +55,6 @@ type config struct {
 }
 
 func run(ctx context.Context) int {
-	oidcGoogleClientSecret, err := os.ReadFile("/run/secrets/oidc-google-client-secret")
-	if err != nil {
-		fmt.Printf("failed to read oidc-google-client-secret: %v\n", err)
-		return 1
-	}
 	jwtPrivate, err := loadPrivateKey("/run/secrets/jwt-private")
 	if err != nil {
 		fmt.Printf("failed to load jwt-private: %v\n", err)
@@ -79,7 +73,7 @@ func run(ctx context.Context) int {
 	cfg := config{
 		env:                    os.Getenv("ENV"),
 		oidcGoogleClientID:     os.Getenv("OIDC_GOOGLE_CLIENT_ID"),
-		oidcGoogleClientSecret: strings.TrimSpace(string(oidcGoogleClientSecret)),
+		oidcGoogleClientSecret: os.Getenv("OIDC_GOOGLE_CLIENT_SECRET"),
 		databaseURL:            os.Getenv("DATABASE_URL"),
 		serverURL:              os.Getenv("SERVER_URL"),
 		frontendURL:            os.Getenv("FRONTEND_URL"),
@@ -90,7 +84,6 @@ func run(ctx context.Context) int {
 		redisURL:               os.Getenv("REDIS_URL"),
 		port:                   port,
 	}
-	clear(oidcGoogleClientSecret)
 
 	var handler slog.Handler
 	if cfg.env == "production" {
