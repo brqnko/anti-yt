@@ -24,7 +24,23 @@ func AccessTokenMiddleware(
 ) func(v1.StrictHandlerFunc, string) v1.StrictHandlerFunc {
 	return func(f v1.StrictHandlerFunc, operationID string) v1.StrictHandlerFunc {
 		if _, ok := ignoreOperationIDs[operationID]; ok {
-			return f
+			// 認証をオプショナルにする: JWTがあればuser_idをcontextに付与するが、なくても続行する
+			return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (_ interface{}, err error) {
+				cookie, err := r.Cookie("access_token")
+				if err != nil {
+					return f(ctx, w, r, request)
+				}
+				userID, jti, _, err := jwtService.VerifyUserAccessToken(cookie.Value)
+				if err != nil {
+					return f(ctx, w, r, request)
+				}
+				blacklisted, err := jtiBlacklistRepo.IsJtiExist(ctx, jti)
+				if err != nil || blacklisted {
+					return f(ctx, w, r, request)
+				}
+				newCtx := hutil.WithUserID(ctx, userID)
+				return f(newCtx, w, r.WithContext(newCtx), request)
+			}
 		}
 
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (_ interface{}, err error) {
