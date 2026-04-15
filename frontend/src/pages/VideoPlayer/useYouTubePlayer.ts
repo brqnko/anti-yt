@@ -1,3 +1,4 @@
+/// <reference types="youtube" />
 import { useEffect, useRef, useCallback, useState } from "preact/hooks";
 
 declare global {
