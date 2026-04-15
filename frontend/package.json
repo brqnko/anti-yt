@@ -27,7 +27,7 @@
     "@types/youtube": "^0.1.2",
     "eslint": "^9.0.0",
     "eslint-config-preact": "^2.0.0",
-    "orval": "^8.6.2",
+    "orval": "^8.7.0",
     "prettier": "^3.8.1",
     "typescript": "^6.0.2",
     "unplugin-icons": "^23.0.1",
