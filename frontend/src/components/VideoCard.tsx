@@ -98,14 +98,14 @@ function VideoCardMenu({
   const [open, setOpen] = useState(false);
   const [toggling, setToggling] = useState(false);
   const [marking, setMarking] = useState(false);
-  const [subscribed, setSubscribed] = useState(isSubscribed);
+  const [subscribed, setSubscribed] = useState<boolean>(isSubscribed ?? false);
 
   useEffect(() => {
-    setSubscribed(isSubscribed);
+    setSubscribed(isSubscribed ?? false);
   }, [isSubscribed]);
 
   const handleToggle = async () => {
-    if (toggling) return;
+    if (toggling || !onToggleSubscription) return;
     setToggling(true);
     try {
       await onToggleSubscription();

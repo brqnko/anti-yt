@@ -80,7 +80,7 @@ export function useHeartbeat({
     if (vid) {
       finalHeartbeatSentRef.current = true;
       lastFinalSentAtRef.current = now;
-      sendBeaconHeartbeat(vid, Math.floor(currentTimeRef.current), playlistIdRef.current);
+      sendBeaconHeartbeat(vid, Math.floor(currentTimeRef.current ?? 0), playlistIdRef.current);
     }
   }, [currentTimeRef]);
 
@@ -106,7 +106,7 @@ export function useHeartbeat({
     if (!vid) return;
     getHistory()
       .postVideosVideoIdHeartbeats(vid, {
-        current_position_seconds: Math.floor(currentTimeRef.current),
+        current_position_seconds: Math.floor(currentTimeRef.current ?? 0),
         ...(playlistIdRef.current ? { playlist_id: playlistIdRef.current } : {}),
       })
       .then((res) => {
