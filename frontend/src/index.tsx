@@ -77,9 +77,10 @@ export function App() {
 }
 
 if (typeof window !== "undefined") {
-  hydrate(<App />, document.getElementById("app"));
+  const el = document.getElementById("app");
+  if (el) hydrate(<App />, el);
 }
 
-export async function prerender(data) {
+export async function prerender(data: Record<string, unknown>) {
   return await ssr(<App {...data} />);
 }
