@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/discord_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
@@ -15,6 +16,7 @@ import (
 
 type purgeLeftUserJob struct {
 	db             *pgxpool.Pool
+	feedRepo       database_d.FeedRepository
 	discordService discord_d.Service
 }
 
@@ -32,10 +34,12 @@ func (j *purgeLeftUserJob) run(ctx context.Context) (err error) {
 		if err := q.PurgeLeftUser(ctx, sqlc.PurgeLeftUserParams{
 			HUserID:         u.HUserID,
 			AuthorizationID: u.MUserAuthorizationID,
-			UserPublicID:    u.PublicID,
 		}); err != nil {
 			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to purge left user", slog.Int64("h_user_id", u.HUserID), slog.Any("error", err))
 			continue
+		}
+		if err := j.feedRepo.DeleteAll(ctx, u.PublicID); err != nil {
+			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to delete feed for purged user", slog.String("public_id", u.PublicID.String()), slog.Any("error", err))
 		}
 	}
 
@@ -54,6 +58,6 @@ func (j *purgeLeftUserJob) Run() {
 	}
 }
 
-func NewPurgeLeftUserJob(db *pgxpool.Pool, discordService discord_d.Service) scheduler.Job {
-	return &purgeLeftUserJob{db: db, discordService: discordService}
+func NewPurgeLeftUserJob(db *pgxpool.Pool, feedRepo database_d.FeedRepository, discordService discord_d.Service) scheduler.Job {
+	return &purgeLeftUserJob{db: db, feedRepo: feedRepo, discordService: discordService}
 }

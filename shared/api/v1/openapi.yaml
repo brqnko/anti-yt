@@ -595,6 +595,7 @@ paths:
       summary: Get channel detail
       description: チャンネルの詳細情報を取得する
       operationId: getChannelsChannelId
+      security: [ ]
       parameters:
         - name: channel_id
           in: path
@@ -652,6 +653,7 @@ paths:
       summary: Get latest channel uploads
       description: チャンネルが投稿している動画を一覧で表示する
       operationId: getChannelsChannelIdVideos
+      security: [ ]
       parameters:
         - name: channel_id
           in: path
@@ -751,6 +753,7 @@ paths:
       summary: Get channel playlists
       description: チャンネルのプレイリスト一覧を取得する
       operationId: getChannelsChannelIdPlaylists
+      security: [ ]
       parameters:
         - name: channel_id
           in: path
@@ -1196,6 +1199,7 @@ paths:
       summary: Get latest videos
       description: チャンネル登録しているチャンネルの最新の一覧を取得
       operationId: getFeed
+      security: [ ]
       parameters:
         - name: limit
           description: 取得する最大の数
@@ -1294,6 +1298,7 @@ paths:
       summary: Get video detail
       description: 特定の動画の詳細を取得する
       operationId: getVideosVideoId
+      security: [ ]
       responses:
         "200":
           description: 200 OK
@@ -2125,6 +2130,7 @@ paths:
       summary: Get playlist info
       description: 特定のプレイリストのメタ情報を取得する
       operationId: getPlaylistsPlaylistId
+      security: [ ]
       responses:
         "200":
           description: 200 OK

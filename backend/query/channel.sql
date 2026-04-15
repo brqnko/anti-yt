@@ -124,6 +124,40 @@ ORDER BY
 LIMIT
     @query_limit;
 
+-- name: ListSubscribersByChannelPublicID :many
+-- 指定チャンネルを購読しているユーザーのうち、指定動画をまだ視聴していないユーザーだけを返す。
+-- fan-out時に視聴済み動画がfeedに再挿入されるのを防ぐ目的。
+SELECT
+    m_user.public_id
+FROM
+    m_user_subscribing_channel
+    INNER JOIN m_user ON m_user.m_user_id = m_user_subscribing_channel.m_user_id
+WHERE
+    m_user_subscribing_channel.m_channel_id = (
+        SELECT
+            m_channel.m_channel_id
+        FROM
+            m_channel
+        WHERE
+            m_channel.public_id = @channel_public_id
+        LIMIT
+            1
+    )
+    AND NOT EXISTS (
+        SELECT 1 FROM t_video_watched
+        WHERE t_video_watched.m_user_id = m_user_subscribing_channel.m_user_id
+            AND t_video_watched.m_video_id = (
+                SELECT
+                    m_video.m_video_id
+                FROM
+                    m_video
+                WHERE
+                    m_video.public_id = @video_public_id
+                LIMIT
+                    1
+            )
+    );
+
 -- name: DeleteSubscription :one
 DELETE FROM
     m_user_subscribing_channel

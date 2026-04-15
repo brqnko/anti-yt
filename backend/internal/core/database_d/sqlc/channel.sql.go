@@ -509,6 +509,66 @@ func (q *Queries) ListSubscribedChannels(ctx context.Context, arg ListSubscribed
 	return items, nil
 }
 
+const listSubscribersByChannelPublicID = `-- name: ListSubscribersByChannelPublicID :many
+SELECT
+    m_user.public_id
+FROM
+    m_user_subscribing_channel
+    INNER JOIN m_user ON m_user.m_user_id = m_user_subscribing_channel.m_user_id
+WHERE
+    m_user_subscribing_channel.m_channel_id = (
+        SELECT
+            m_channel.m_channel_id
+        FROM
+            m_channel
+        WHERE
+            m_channel.public_id = $1
+        LIMIT
+            1
+    )
+    AND NOT EXISTS (
+        SELECT 1 FROM t_video_watched
+        WHERE t_video_watched.m_user_id = m_user_subscribing_channel.m_user_id
+            AND t_video_watched.m_video_id = (
+                SELECT
+                    m_video.m_video_id
+                FROM
+                    m_video
+                WHERE
+                    m_video.public_id = $2
+                LIMIT
+                    1
+            )
+    )
+`
+
+type ListSubscribersByChannelPublicIDParams struct {
+	ChannelPublicID uuid.UUID
+	VideoPublicID   uuid.UUID
+}
+
+// 指定チャンネルを購読しているユーザーのうち、指定動画をまだ視聴していないユーザーだけを返す。
+// fan-out時に視聴済み動画がfeedに再挿入されるのを防ぐ目的。
+func (q *Queries) ListSubscribersByChannelPublicID(ctx context.Context, arg ListSubscribersByChannelPublicIDParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, listSubscribersByChannelPublicID, arg.ChannelPublicID, arg.VideoPublicID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var public_id uuid.UUID
+		if err := rows.Scan(&public_id); err != nil {
+			return nil, err
+		}
+		items = append(items, public_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const upsertChannel = `-- name: UpsertChannel :one
 INSERT INTO
     m_channel (

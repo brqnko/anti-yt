@@ -296,6 +296,31 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (int64, 
 	return m_user_id, err
 }
 
+const listAllActiveUserIDs = `-- name: ListAllActiveUserIDs :many
+SELECT m_user.public_id FROM m_user
+`
+
+// アクティブな全ユーザーのpublic_idを取得する。Redis feedのseed/refill用途。
+func (q *Queries) ListAllActiveUserIDs(ctx context.Context) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, listAllActiveUserIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var public_id uuid.UUID
+		if err := rows.Scan(&public_id); err != nil {
+			return nil, err
+		}
+		items = append(items, public_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listLeftUsers = `-- name: ListLeftUsers :many
 SELECT h_user_id, m_user_authorization_id, public_id FROM h_user
 `
@@ -397,9 +422,6 @@ d_video_watched AS (
 d_summary AS (
     DELETE FROM s_monthly_video_watch WHERE s_monthly_video_watch.m_user_id = $2
 ),
-d_ratelimit AS (
-    DELETE FROM t_ratelimit WHERE t_ratelimit.user_public_id = $3
-),
 d_h_user AS (
     DELETE FROM h_user WHERE h_user.h_user_id = $2
 )
@@ -409,13 +431,12 @@ DELETE FROM m_user_authorization WHERE m_user_authorization.m_user_authorization
 type PurgeLeftUserParams struct {
 	AuthorizationID int64
 	HUserID         int64
-	UserPublicID    uuid.UUID
 }
 
 // 退会済みユーザーとその関連データを全て削除する。
 // m_refresh_tokenはm_user_authorizationのCASCADE DELETEで自動削除される。
 func (q *Queries) PurgeLeftUser(ctx context.Context, arg PurgeLeftUserParams) error {
-	_, err := q.db.Exec(ctx, purgeLeftUser, arg.AuthorizationID, arg.HUserID, arg.UserPublicID)
+	_, err := q.db.Exec(ctx, purgeLeftUser, arg.AuthorizationID, arg.HUserID)
 	return err
 }
 

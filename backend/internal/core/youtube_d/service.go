@@ -97,14 +97,12 @@ func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) 
 
 		lengthSeconds := 0
 		matches := iso8601DurationRe.FindStringSubmatch(item.ContentDetails.Duration)
-		if matches == nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "duration matches is nil(fetch video detail)")
-			continue
+		if matches != nil {
+			hours, _ := strconv.Atoi(matches[1])
+			minutes, _ := strconv.Atoi(matches[2])
+			seconds, _ := strconv.Atoi(matches[3])
+			lengthSeconds = hours*3600 + minutes*60 + seconds
 		}
-		hours, _ := strconv.Atoi(matches[1])
-		minutes, _ := strconv.Atoi(matches[2])
-		seconds, _ := strconv.Atoi(matches[3])
-		lengthSeconds = hours*3600 + minutes*60 + seconds
 
 		if item.Snippet == nil {
 			util.LoggerFromContext(ctx).InfoContext(ctx, "item.Snippet is nil(fetch video detail)")
@@ -207,7 +205,7 @@ func (s *serviceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channe
 		found.Id,
 		found.Snippet.Title,
 		found.Snippet.CustomUrl,
-		found.Snippet.Description,
+		util.Truncate(found.Snippet.Description, 1024),
 		iconURL,
 		found.Statistics.SubscriberCount,
 		found.ContentDetails.RelatedPlaylists.Uploads,
@@ -281,7 +279,7 @@ func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []Chann
 			found.Id,
 			found.Snippet.Title,
 			found.Snippet.CustomUrl,
-			found.Snippet.Description,
+			util.Truncate(found.Snippet.Description, 1024),
 			iconURL,
 			found.Statistics.SubscriberCount,
 			found.ContentDetails.RelatedPlaylists.Uploads,
@@ -389,7 +387,6 @@ func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToke
 	call := s.ytClient.Search.List([]string{"id"}).
 		Q(query).
 		Type("video").
-		VideoDuration("medium").
 		MaxResults(50).
 		Context(ctx)
 	if pageToken != "" {
@@ -474,7 +471,7 @@ func NewService(ctx context.Context, apiKey, oauthClientID, oauthClientSecret, o
 			Scopes:       []string{"https://www.googleapis.com/auth/youtube.readonly"},
 			Endpoint:     googleOAuth2.Endpoint,
 		},
-		lastCheckedDay:  quotaDate().Add(24 * time.Hour),
+		lastCheckedDay:  quotaDate(),
 		consumedQuota:   0,
 		dailyQuotaLimit: 10000,
 	}, nil

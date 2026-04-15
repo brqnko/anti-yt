@@ -4,13 +4,14 @@ import (
 	"net/http"
 
 	"github.com/brqnko/anti-yt/backend/internal/channel"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func HandleAdminEndpoints(m *chi.Mux, db *pgxpool.Pool, ytService youtube_d.Service, adminAPIKey string) {
-	h := newHandler(channel.NewService(db, ytService, 0))
+func HandleAdminEndpoints(m *chi.Mux, db *pgxpool.Pool, ytService youtube_d.Service, feedRepo database_d.FeedRepository, adminAPIKey string) {
+	h := newHandler(channel.NewService(db, ytService, feedRepo, 0))
 
 	m.Route("/api/admin", func(r chi.Router) {
 		r.Use(adminAPIKeyAuthMiddleware(adminAPIKey))

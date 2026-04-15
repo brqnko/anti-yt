@@ -33,10 +33,6 @@ type Querier interface {
 	DeleteScreenTimeRangesByUserID(ctx context.Context, mUserID int64) error
 	DeleteSubscription(ctx context.Context, arg DeleteSubscriptionParams) (int64, error)
 	DeleteValuableChannel(ctx context.Context, channelPublicID uuid.UUID) error
-	// jtiがブラックリストに存在するか確認する。
-	// jtiが存在しない場合はpgx.ErrNoRowsが返される。
-	// jtiが存在する場合は、そのexpires_atが返される。
-	FindBlacklistedJTI(ctx context.Context, jti uuid.UUID) (time.Time, error)
 	FindChannelByExternalID(ctx context.Context, arg FindChannelByExternalIDParams) (FindChannelByExternalIDRow, error)
 	GetChannelByPublicID(ctx context.Context, channelID uuid.UUID) (GetChannelByPublicIDRow, error)
 	GetChannelForUpdate(ctx context.Context, channelID uuid.UUID) (GetChannelForUpdateRow, error)
@@ -60,8 +56,6 @@ type Querier interface {
 	GetVideoWatchTitlesByUser(ctx context.Context, lowerID uuid.UUID) ([]GetVideoWatchTitlesByUserRow, error)
 	GetWatchLaterForUpdate(ctx context.Context, userID uuid.UUID) (GetWatchLaterForUpdateRow, error)
 	GetWatchLaterPlaylist(ctx context.Context, userID uuid.UUID) (GetWatchLaterPlaylistRow, error)
-	// jtiをブラックリストに追加する。既に存在する場合は何もしない。
-	InsertBlacklistedJTI(ctx context.Context, arg InsertBlacklistedJTIParams) error
 	InsertHeartbeat(ctx context.Context, arg InsertHeartbeatParams) error
 	InsertPlaylistVideo(ctx context.Context, arg InsertPlaylistVideoParams) error
 	// リフレッシュトークンをテーブルに保存する。
@@ -71,11 +65,18 @@ type Querier interface {
 	// ユーザーを作成する。
 	InsertUser(ctx context.Context, arg InsertUserParams) (int64, error)
 	InsertWatchLater(ctx context.Context, arg InsertWatchLaterParams) error
+	// アクティブな全ユーザーのpublic_idを取得する。Redis feedのseed/refill用途。
+	ListAllActiveUserIDs(ctx context.Context) ([]uuid.UUID, error)
 	ListChannelPlaylists(ctx context.Context, arg ListChannelPlaylistsParams) ([]ListChannelPlaylistsRow, error)
+	// 指定ユーザーが未視聴の、チャンネルの動画IDを最新順で取得する。
+	// feedへの挿入・削除で利用する。視聴済み動画は feed 側で既に削除されている前提。
+	ListChannelVideoIDs(ctx context.Context, arg ListChannelVideoIDsParams) ([]uuid.UUID, error)
 	ListChannelVideos(ctx context.Context, arg ListChannelVideosParams) ([]ListChannelVideosRow, error)
 	ListChannelVideosOlder(ctx context.Context, arg ListChannelVideosOlderParams) ([]ListChannelVideosOlderRow, error)
 	ListChannelsBulkFetchedBefore(ctx context.Context, bulkFetchedBefore time.Time) ([]ListChannelsBulkFetchedBeforeRow, error)
 	ListDailyWatchStatsByRange(ctx context.Context, arg ListDailyWatchStatsByRangeParams) ([]ListDailyWatchStatsByRangeRow, error)
+	// 認証なしで最新の動画をpublic_id降順で取得する。
+	ListLatestVideos(ctx context.Context, arg ListLatestVideosParams) ([]ListLatestVideosRow, error)
 	// 退会済みユーザーの一覧を取得する。
 	ListLeftUsers(ctx context.Context) ([]ListLeftUsersRow, error)
 	ListPlaylistVideos(ctx context.Context, arg ListPlaylistVideosParams) ([]ListPlaylistVideosRow, error)
@@ -86,14 +87,19 @@ type Querier interface {
 	ListScreenTimeRanges(ctx context.Context, userPublicID uuid.UUID) ([]ListScreenTimeRangesRow, error)
 	ListStaleRSSChannelsForUpdate(ctx context.Context, arg ListStaleRSSChannelsForUpdateParams) ([]ListStaleRSSChannelsForUpdateRow, error)
 	ListSubscribedChannels(ctx context.Context, arg ListSubscribedChannelsParams) ([]ListSubscribedChannelsRow, error)
-	// ユーザーが登録しているチャンネルがだしている動画を最新順(public_id)で取得する。
-	ListSubscriptionFeed(ctx context.Context, arg ListSubscriptionFeedParams) ([]ListSubscriptionFeedRow, error)
+	// 指定チャンネルを購読しているユーザーのうち、指定動画をまだ視聴していないユーザーだけを返す。
+	// fan-out時に視聴済み動画がfeedに再挿入されるのを防ぐ目的。
+	ListSubscribersByChannelPublicID(ctx context.Context, arg ListSubscribersByChannelPublicIDParams) ([]uuid.UUID, error)
+	// ユーザーが登録しているチャンネルがだしている未視聴動画IDを最新順(public_id)で取得する。
+	// Redis feedの補充で利用する。hydrateは ListVideoFeedByIDs で別途行う。
+	ListSubscriptionFeed(ctx context.Context, arg ListSubscriptionFeedParams) ([]uuid.UUID, error)
 	ListUserPlaylists(ctx context.Context, arg ListUserPlaylistsParams) ([]ListUserPlaylistsRow, error)
 	ListValuableChannels(ctx context.Context) ([]ListValuableChannelsRow, error)
+	// 指定されたvideo_idsのフィード用データを、入力順序を保持して取得する。
+	// Redisフィードのハイドレーション用。視聴済みフィルタはRedis側で管理されているためここでは行わない。
+	ListVideoFeedByIDs(ctx context.Context, arg ListVideoFeedByIDsParams) ([]ListVideoFeedByIDsRow, error)
 	ListWatchHistory(ctx context.Context, arg ListWatchHistoryParams) ([]ListWatchHistoryRow, error)
 	MarkVideoWatched(ctx context.Context, arg MarkVideoWatchedParams) error
-	// expires_atが過ぎたjtiのブラックリストを削除します。
-	PurgeExpiredJTIBlacklist(ctx context.Context, expiresAt time.Time) error
 	// 退会済みユーザーとその関連データを全て削除する。
 	// m_refresh_tokenはm_user_authorizationのCASCADE DELETEで自動削除される。
 	PurgeLeftUser(ctx context.Context, arg PurgeLeftUserParams) error
@@ -106,9 +112,9 @@ type Querier interface {
 	// 削除されたレコードのpublic_idが返されます。
 	RevokeRefreshTokenByHash(ctx context.Context, arg RevokeRefreshTokenByHashParams) (uuid.UUID, error)
 	// m_refresh_tokenのpublic_idから、そのレコードを削除します。
-	// 削除されたレコードに紐づくjtiをブラックリストに保存します。
-	// 削除されたレコードのpublic_idが返されます。
-	RevokeRefreshTokenByID(ctx context.Context, arg RevokeRefreshTokenByIDParams) (uuid.UUID, error)
+	// 削除されたレコードのpublic_idと、紐づくaccess_token_jtiが返されます。
+	// jtiは呼び出し側でブラックリストに保存します。
+	RevokeRefreshTokenByID(ctx context.Context, arg RevokeRefreshTokenByIDParams) (RevokeRefreshTokenByIDRow, error)
 	// リフレッシュトークンを更新します。
 	// token_hash = token_hash_for_check
 	// updated_at < updated_at_for_check
@@ -132,7 +138,6 @@ type Querier interface {
 	UpsertChannel(ctx context.Context, arg UpsertChannelParams) (UpsertChannelRow, error)
 	UpsertMonthlyVideoWatchSummary(ctx context.Context, arg UpsertMonthlyVideoWatchSummaryParams) error
 	UpsertPlaylist(ctx context.Context, arg UpsertPlaylistParams) (int64, error)
-	UpsertRatelimit(ctx context.Context, arg UpsertRatelimitParams) (UpsertRatelimitRow, error)
 	UpsertSystemPlaylist(ctx context.Context, arg UpsertSystemPlaylistParams) (int64, error)
 	UpsertValuableChannel(ctx context.Context, arg UpsertValuableChannelParams) (int64, error)
 	UpsertVideo(ctx context.Context, arg UpsertVideoParams) (UpsertVideoRow, error)

@@ -23,7 +23,10 @@ type GetVideoFeedView struct {
 }
 
 type FeedQueryService interface {
-	GetVideoFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetVideoFeedView, error)
+	ListAllActiveUserIDs(ctx context.Context) ([]uuid.UUID, error)
+	ListSubscriptionVideoIDs(ctx context.Context, userID uuid.UUID, limit int32) ([]uuid.UUID, error)
+	HydrateVideoFeed(ctx context.Context, userID uuid.UUID, videoIDs []uuid.UUID) ([]GetVideoFeedView, error)
+	ListLatestVideos(ctx context.Context, cursor *uuid.UUID, limit int32) ([]GetVideoFeedView, error)
 }
 
 type feedQueryServiceImpl struct {
@@ -36,13 +39,40 @@ func NewFeedQueryService(db *pgxpool.Pool) FeedQueryService {
 	}
 }
 
-func (f *feedQueryServiceImpl) GetVideoFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, err error) {
-	defer util.Wrap(&err, "feed.(*feedQueryServiceImpl).GetVideoFeed(userID=%s)", userID)
+func (f *feedQueryServiceImpl) ListAllActiveUserIDs(ctx context.Context) (_ []uuid.UUID, err error) {
+	defer util.Wrap(&err, "feed.(*feedQueryServiceImpl).ListAllActiveUserIDs")
+
+	rows, err := f.q.ListAllActiveUserIDs(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return rows, nil
+}
+
+func (f *feedQueryServiceImpl) ListSubscriptionVideoIDs(ctx context.Context, userID uuid.UUID, limit int32) (_ []uuid.UUID, err error) {
+	defer util.Wrap(&err, "feed.(*feedQueryServiceImpl).ListSubscriptionVideoIDs(userID=%s)", userID)
 
 	rows, err := f.q.ListSubscriptionFeed(ctx, sqlc.ListSubscriptionFeedParams{
 		UserID:     userID,
-		Cursor:     cursor,
 		QueryLimit: limit,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return rows, nil
+}
+
+func (f *feedQueryServiceImpl) HydrateVideoFeed(ctx context.Context, userID uuid.UUID, videoIDs []uuid.UUID) (_ []GetVideoFeedView, err error) {
+	defer util.Wrap(&err, "feed.(*feedQueryServiceImpl).HydrateVideoFeed(userID=%s)", userID)
+
+	if len(videoIDs) == 0 {
+		return []GetVideoFeedView{}, nil
+	}
+
+	rows, err := f.q.ListVideoFeedByIDs(ctx, sqlc.ListVideoFeedByIDsParams{
+		UserID:   userID,
+		VideoIds: videoIDs,
 	})
 	if err != nil {
 		return nil, err
@@ -64,6 +94,33 @@ func (f *feedQueryServiceImpl) GetVideoFeed(ctx context.Context, userID uuid.UUI
 			ExternalVideoTitle:         row.ExternalTitle,
 			LastWatchSeconds:           lastWatchSeconds,
 			VideoId:                    row.VideoID,
+		}
+	}
+	return views, nil
+}
+
+func (f *feedQueryServiceImpl) ListLatestVideos(ctx context.Context, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, err error) {
+	defer util.Wrap(&err, "feed.(*feedQueryServiceImpl).ListLatestVideos")
+
+	rows, err := f.q.ListLatestVideos(ctx, sqlc.ListLatestVideosParams{
+		Cursor:     cursor,
+		QueryLimit: limit,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	views := make([]GetVideoFeedView, len(rows))
+	for i, row := range rows {
+		views[i] = GetVideoFeedView{
+			VideoId:                    row.VideoID,
+			ExternalVideoThumbnailUrl:  row.ExternalVideoThumbnailUrl,
+			ExternalVideoTitle:         row.ExternalTitle,
+			ExternalVideoCreatedAt:     row.ExternalCreatedAt,
+			ExternalVideoLengthSeconds: row.ExternalLengthSeconds,
+			ChannelId:                  row.ChannelID,
+			ExternalChannelIconUrl:     row.ExternalChannelIconUrl,
+			ExternalChannelDisplayName: row.ExternalDisplayname,
 		}
 	}
 	return views, nil

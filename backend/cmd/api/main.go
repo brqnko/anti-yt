@@ -13,12 +13,10 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"strings"
 	"syscall"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
-	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/discord_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/admin"
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/middleware_d"
@@ -52,25 +50,11 @@ type config struct {
 
 	port int
 
-	dbPassword string
-	dbName     string
-	dbHost     string
-	dbPort     int
-	dbUser     string
-	dbSSLMode  string
+	databaseURL string
+	redisURL    string
 }
 
 func run(ctx context.Context) int {
-	dbPassword, err := os.ReadFile("/run/secrets/db-password")
-	if err != nil {
-		fmt.Printf("failed to read db-password: %v\n", err)
-		return 1
-	}
-	oidcGoogleClientSecret, err := os.ReadFile("/run/secrets/oidc-google-client-secret")
-	if err != nil {
-		fmt.Printf("failed to read oidc-google-client-secret: %v\n", err)
-		return 1
-	}
 	jwtPrivate, err := loadPrivateKey("/run/secrets/jwt-private")
 	if err != nil {
 		fmt.Printf("failed to load jwt-private: %v\n", err)
@@ -86,31 +70,20 @@ func run(ctx context.Context) int {
 		fmt.Printf("invalid or missing PORT: %v\n", err)
 		return 1
 	}
-	dbPort, err := strconv.Atoi(os.Getenv("DATABASE_PORT"))
-	if err != nil {
-		fmt.Printf("invalid or missing DATABASE_PORT: %v\n", err)
-		return 1
-	}
 	cfg := config{
 		env:                    os.Getenv("ENV"),
 		oidcGoogleClientID:     os.Getenv("OIDC_GOOGLE_CLIENT_ID"),
-		oidcGoogleClientSecret: strings.TrimSpace(string(oidcGoogleClientSecret)),
-		dbPassword:             strings.TrimSpace(string(dbPassword)),
-		dbName:                 os.Getenv("DATABASE_NAME"),
-		dbHost:                 os.Getenv("DATABASE_HOST"),
-		dbPort:                 dbPort,
-		dbUser:                 os.Getenv("DATABASE_USER"),
-		dbSSLMode:              os.Getenv("DATABASE_SSLMODE"),
+		oidcGoogleClientSecret: os.Getenv("OIDC_GOOGLE_CLIENT_SECRET"),
+		databaseURL:            os.Getenv("DATABASE_URL"),
 		serverURL:              os.Getenv("SERVER_URL"),
 		frontendURL:            os.Getenv("FRONTEND_URL"),
 		youtubeDataAPIKey:      os.Getenv("YOUTUBE_DATA_API_KEY"),
 		adminAPIKey:            os.Getenv("ADMIN_API_KEY"),
 		geminiAPIKey:           os.Getenv("GEMINI_API_KEY"),
 		discordWebhookURL:      os.Getenv("DISCORD_WEBHOOK_URL"),
+		redisURL:               os.Getenv("REDIS_URL"),
 		port:                   port,
 	}
-	clear(dbPassword)
-	clear(oidcGoogleClientSecret)
 
 	var handler slog.Handler
 	if cfg.env == "production" {
@@ -133,7 +106,7 @@ func run(ctx context.Context) int {
 
 	initCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
-	if err = database_d.RunMigration(initCtx, cfg.dbUser, cfg.dbPassword, cfg.dbHost, cfg.dbPort, cfg.dbName, cfg.dbSSLMode); err != nil {
+	if err = database_d.RunMigration(initCtx, cfg.databaseURL); err != nil {
 		slog.Error("failed to run migration", slog.Any("error", err))
 		return 1
 	}
@@ -141,7 +114,7 @@ func run(ctx context.Context) int {
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	db, err := database_d.ConnectDB(initCtx, cfg.dbUser, cfg.dbPassword, cfg.dbHost, cfg.dbPort, cfg.dbName, cfg.dbSSLMode)
+	db, err := database_d.ConnectPostgres(initCtx, cfg.databaseURL)
 	if err != nil {
 		slog.Error("failed to connect db", slog.Any("error", err))
 		return 1
@@ -150,11 +123,22 @@ func run(ctx context.Context) int {
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	if err := sqlc.New(db).PurgeExpiredJTIBlacklist(initCtx, time.Now().UTC()); err != nil {
-		slog.Error("failed to clean up jti blacklist", slog.Any("error", err))
+	redisClient, err := database_d.ConnectRedis(initCtx, cfg.redisURL)
+	if err != nil {
+		slog.Error("failed to connect redis", slog.Any("error", err))
+		return 1
 	}
+	defer func() {
+		if err := redisClient.Close(); err != nil {
+			slog.Error("failed to close redis", slog.Any("error", err))
+		}
+	}()
+	jtiBlacklistRepo := database_d.NewJtiBlacklistRepository(redisClient)
+	ratelimitRepo := database_d.NewRatelimitRepository(redisClient, 24*time.Hour)
+	feedRepo := database_d.NewFeedRepository(redisClient, 1000)
 
-	job.NewPurgeLeftUserJob(db, discord_d.NewDiscordClient(cfg.discordWebhookURL)).Run()
+	job.NewPurgeLeftUserJob(db, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL)).Run()
+	job.NewRefillFeedJob(db, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL)).Run()
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
@@ -195,20 +179,20 @@ func run(ctx context.Context) int {
 		slog.Error("failed to setup llm summary job", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("0 0 * * *", job.NewPurgeLeftUserJob(db, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
+	if err := scheduler.AddFunc("0 0 * * *", job.NewPurgeLeftUserJob(db, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
 		slog.Error("failed to setup purge left user job", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("0 * * * *", job.NewPurgeJTIBlacklistJob(db, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
-		slog.Error("failed to setup purge jti blacklist job", slog.Any("error", err))
-		return 1
-	}
-	if err := scheduler.AddFunc("50 6 * * *", job.NewExhaustQuotaJob(db, ytService, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil { // 夏
+	if err := scheduler.AddFunc("50 6 * * *", job.NewExhaustQuotaJob(db, ytService, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil { // 夏
 		slog.Error("failed to setup exhaust quota job (PDT)", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("50 7 * * *", job.NewExhaustQuotaJob(db, ytService, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil { // 冬
+	if err := scheduler.AddFunc("50 7 * * *", job.NewExhaustQuotaJob(db, ytService, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil { // 冬
 		slog.Error("failed to setup exhaust quota job (PST)", slog.Any("error", err))
+		return 1
+	}
+	if err := scheduler.AddFunc("0 * * * *", job.NewRefillFeedJob(db, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
+		slog.Error("failed to setup refill feed job", slog.Any("error", err))
 		return 1
 	}
 
@@ -228,9 +212,9 @@ func run(ctx context.Context) int {
 		r.Use(middleware_d.RandomLag)
 		r.Use(v1.SwaggerMiddleware())
 	}
-	admin.HandleAdminEndpoints(r, db, ytService, cfg.adminAPIKey)
+	admin.HandleAdminEndpoints(r, db, ytService, feedRepo, cfg.adminAPIKey)
 	v1.HandlerFromMux(v1.NewStrictHandler(
-		v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour, ytService, 1*time.Hour, scheduler),
+		v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour, ytService, 1*time.Hour, scheduler, jtiBlacklistRepo, feedRepo),
 		// StrictMiddlewareは下に書いた順から実行される
 		[]v1.StrictMiddlewareFunc{
 			middleware_d.ResponseCookieMiddleware,
@@ -258,16 +242,12 @@ func run(ctx context.Context) int {
 				"PostAuthReactivate": {},
 				"PostUsersMe":        {},
 			}),
-			middleware_d.UserRatelimitMiddleware(db, 2000, map[string]int{
+			middleware_d.UserRatelimitMiddleware(ratelimitRepo, 2000, map[string]int{
 				"PostChannelsSubscribe":         3,
-				"GetChannelsChannelIdVideos":    2,
-				"GetChannelsChannelId":          1,
-				"GetFeedChannels":               3,
-				"GetFeed":                       2,
 				"GetSearch":                     100,
 				"PostPlaylists":                 100,
-				"PostPlaylistsPlaylistIdVideos": 100,
-				"GetAuthOauthYoutubeCallback":   500,
+				"PostPlaylistsPlaylistIdVideos": 3,
+				"GetAuthOauthYoutubeCallback":   250,
 			}),
 			middleware_d.TimezoneMiddleware(map[string]struct{}{
 				"GetAuthGoogle":               {},
@@ -280,13 +260,19 @@ func run(ctx context.Context) int {
 			}),
 			// slogはuser_id(AccessTokenMiddlewareで付与), request_idをcontextに必要としているためここに配置
 			middleware_d.SlogMiddleware,
-			middleware_d.AccessTokenMiddleware(jwtService, db, map[string]struct{}{
+			middleware_d.AccessTokenMiddleware(jwtService, jtiBlacklistRepo, map[string]struct{}{
 				"GetAuthGoogle":               {},
 				"GetAuthGoogleCallback":       {},
 				"PostAuthRefresh":             {},
 				"GetAuthOauthYoutubeCallback": {},
 				"PostUsersMe":                 {},
 				"PostAuthReactivate":          {},
+				"GetChannelsChannelId":          {},
+				"GetChannelsChannelIdVideos":    {},
+				"GetChannelsChannelIdPlaylists": {},
+				"GetVideosVideoId":              {},
+				"GetPlaylistsPlaylistId":        {},
+				"GetFeed":                       {},
 			}),
 			middleware_d.RequestIDMiddleware,
 		}), r)

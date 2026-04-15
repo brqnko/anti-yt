@@ -134,10 +134,7 @@ func (h *APIHandler) DeletePlaylistsPlaylistId(ctx context.Context, request Dele
 }
 
 func (h *APIHandler) GetPlaylistsPlaylistId(ctx context.Context, request GetPlaylistsPlaylistIdRequestObject) (GetPlaylistsPlaylistIdResponseObject, error) {
-	userID, err := hutil.UserIDFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
+	userID, _ := hutil.UserIDFromContext(ctx)
 
 	pl, err := h.playlistService.GetPlaylistDetail(ctx, userID, request.PlaylistId.UUID())
 	if err != nil {

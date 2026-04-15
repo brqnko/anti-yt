@@ -23,6 +23,7 @@ import (
 type exhaustQuotaJob struct {
 	db             *pgxpool.Pool
 	ytService      youtube_d.Service
+	feedRepo       database_d.FeedRepository
 	discordService discord_d.Service
 	mx             *sync.Mutex
 }
@@ -79,9 +80,13 @@ channelLoop:
 						util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(exhaust quota job)", slog.Any("error", err))
 						continue
 					}
-					if _, err := video.NewVideoRepository(sqlc.New(j.db)).Save(ctx, v); err != nil {
+					q := sqlc.New(j.db)
+					if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
 						util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(exhaust quota job)", slog.Any("error", err))
 						continue
+					}
+					if err := video.FanOut(ctx, q, j.feedRepo, v); err != nil {
+						util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(exhaust quota job)", slog.Any("error", err))
 					}
 				}
 			}
@@ -233,10 +238,14 @@ channelLoop:
 					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(exhaust quota job)", slog.Any("error", err))
 					continue
 				}
-				savedVideoID, err := video.NewVideoRepository(sqlc.New(j.db)).Save(ctx, v)
+				q := sqlc.New(j.db)
+				savedVideoID, err := video.NewVideoRepository(q).Save(ctx, v)
 				if err != nil {
 					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(exhaust quota job)", slog.Any("error", err))
 					continue
+				}
+				if err := video.FanOut(ctx, q, j.feedRepo, v); err != nil {
+					util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(exhaust quota job)", slog.Any("error", err))
 				}
 				savedVideos[v.Video.ID] = savedVideoID
 			}
@@ -313,6 +322,10 @@ channelLoop:
 		}
 	}
 
+	if err := j.discordService.SendWebhookMessage(ctx, fmt.Sprintf("exhaust quota jobが完了しました (対象チャンネル数: %d)", len(channels))); err != nil {
+		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to send discord webhook", slog.Any("error", err))
+	}
+
 	return nil
 }
 
@@ -345,10 +358,11 @@ func (j *exhaustQuotaJob) Run() {
 	}
 }
 
-func NewExhaustQuotaJob(db *pgxpool.Pool, ytService youtube_d.Service, discordService discord_d.Service) scheduler.Job {
+func NewExhaustQuotaJob(db *pgxpool.Pool, ytService youtube_d.Service, feedRepo database_d.FeedRepository, discordService discord_d.Service) scheduler.Job {
 	return &exhaustQuotaJob{
 		db:             db,
 		ytService:      ytService,
+		feedRepo:       feedRepo,
 		discordService: discordService,
 		mx:             &sync.Mutex{},
 	}

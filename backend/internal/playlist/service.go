@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/channel"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -19,13 +20,15 @@ import (
 type Service struct {
 	db         *pgxpool.Pool
 	ytService  youtube_d.Service
+	feedRepo   database_d.FeedRepository
 	playlistQS PlaylistQueryService
 }
 
-func NewService(db *pgxpool.Pool, ytService youtube_d.Service) *Service {
+func NewService(db *pgxpool.Pool, ytService youtube_d.Service, feedRepo database_d.FeedRepository) *Service {
 	return &Service{
 		db:         db,
 		ytService:  ytService,
+		feedRepo:   feedRepo,
 		playlistQS: NewPlaylistQueryService(db),
 	}
 }
@@ -136,10 +139,14 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 				continue
 			}
 
-			savedVideoID, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v)
+			q := sqlc.New(s.db)
+			savedVideoID, err := video.NewVideoRepository(q).Save(ctx, v)
 			if err != nil {
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(create playlist)", slog.Any("error", err))
 				continue
+			}
+			if err := video.FanOut(ctx, q, s.feedRepo, v); err != nil {
+				util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(create playlist)", slog.Any("error", err))
 			}
 			videoIDToint64[v.Video.ID] = savedVideoID
 		}
@@ -261,10 +268,14 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(create playlist with access token)", slog.Any("error", err))
 				continue
 			}
-			savedVideoID, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v)
+			q := sqlc.New(s.db)
+			savedVideoID, err := video.NewVideoRepository(q).Save(ctx, v)
 			if err != nil {
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(create playlist with access token)", slog.Any("error", err))
 				continue
+			}
+			if err := video.FanOut(ctx, q, s.feedRepo, v); err != nil {
+				util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(create playlist with access token)", slog.Any("error", err))
 			}
 			videoIDToInt64[v.Video.ID] = savedVideoID
 		}
@@ -521,6 +532,9 @@ func (s *Service) FetchAndInsertVideoIntoPlaylist(ctx context.Context, userID, p
 	}
 	if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
 		return uuid.Nil, err
+	}
+	if err := video.FanOut(ctx, q, s.feedRepo, v); err != nil {
+		util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(insert video by url)", slog.Any("error", err))
 	}
 
 	// プレイリストに追加

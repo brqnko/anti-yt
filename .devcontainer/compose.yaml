@@ -26,11 +26,8 @@ services:
       - ./server.key:/etc/nginx/certs/server.key:ro
       - ~/.ssh:/root/.ssh:ro
     secrets:
-      - db-password
-      - oidc-google-client-secret
       - jwt-private
       - jwt-public
-      - google-oidc-secret
     env_file:
       - .env
     networks:
@@ -74,14 +71,9 @@ volumes:
 secrets:
  db-password:
    file: password.txt
- oidc-google-client-secret:
-   file: oidc_secret.txt
  jwt-private:
    file: jwt_private.pem
  jwt-public:
    file: jwt_public.pem
- google-oidc-secret:
-   file: google_oidc_secret.txt
-
 networks:
   dev-network:
