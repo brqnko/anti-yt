@@ -251,7 +251,7 @@ function ProfileContent() {
                   </label>
                   <div class="relative">
                     <span class="absolute inset-y-0 left-3 flex items-center text-text-muted-light dark:text-text-muted-dark pointer-events-none">
-                      <Icon name={colorModes.find((m) => m.value === mode)?.icon} class="text-[20px]" />
+                      <Icon name={colorModes.find((m) => m.value === mode)?.icon ?? ""} class="text-[20px]" />
                     </span>
                     <select
                       value={mode}
