@@ -17,7 +17,7 @@ import { Icon } from "../../components/Icon";
 
 function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
   const { t } = useTranslation();
-  const { isAuthenticated, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
+  const { isAuthenticated, isLoading: isAuthLoading, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
 
   const [channelInfo, setChannelInfo] = useState<GetChannelsChannelId200 | null>(null);
   const [playlists, setPlaylists] = useState<GetChannelsChannelIdPlaylists200ItemsItem[]>([]);
@@ -35,41 +35,33 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
   );
 
   useEffect(() => {
+    if (isAuthLoading) return;
     const load = async () => {
       setIsLoading(true);
       try {
-        const promises: Promise<unknown>[] = [
-          getChannel().getChannelsChannelId(channelId),
-          getChannel().getChannelsChannelIdPlaylists(channelId, { limit: PAGE_SIZES.CHANNEL_PLAYLISTS_PAGE }),
-        ];
-        if (isAuthenticated) {
-          promises.push(getChannel().getChannelsSubscribed({ limit: 50 }));
-        }
-        const results = await Promise.allSettled(promises);
+        const [channelRes, playlistsRes, subsRes] = await Promise.all([
+          getChannel().getChannelsChannelId(channelId).catch(() => null),
+          getChannel().getChannelsChannelIdPlaylists(channelId, { limit: PAGE_SIZES.CHANNEL_PLAYLISTS_PAGE }).catch(() => null),
+          isAuthenticated
+            ? getChannel().getChannelsSubscribed({ limit: 50 }).catch(() => null)
+            : Promise.resolve(null),
+        ]);
 
-        const channelRes = results[0];
-        const playlistsRes = results[1];
-
-        if (channelRes.status === "fulfilled") {
-          setChannelInfo(channelRes.value as GetChannelsChannelId200);
+        if (channelRes) {
+          setChannelInfo(channelRes);
         }
 
-        if (playlistsRes.status === "fulfilled") {
-          const pls = playlistsRes.value as { items: GetChannelsChannelIdPlaylists200ItemsItem[]; has_next: boolean };
-          setPlaylists(pls.items);
-          setHasNext(pls.has_next);
-          const last = pls.items[pls.items.length - 1];
+        if (playlistsRes) {
+          setPlaylists(playlistsRes.items);
+          setHasNext(playlistsRes.has_next);
+          const last = playlistsRes.items[playlistsRes.items.length - 1];
           cursorRef.current = last?.playlist_id;
         }
 
-        if (isAuthenticated) {
-          const subsRes = results[2];
-          if (subsRes?.status === "fulfilled") {
-            const subs = subsRes.value as { items: { channel_id: string }[] };
-            const found = subs.items.find(s => s.channel_id === channelId);
-            if (found) {
-              setIsSubscribed(true);
-            }
+        if (subsRes) {
+          const found = subsRes.items.find(s => s.channel_id === channelId);
+          if (found) {
+            setIsSubscribed(true);
           }
         }
       } finally {
@@ -77,7 +69,7 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
       }
     };
     load();
-  }, [channelId, isAuthenticated]);
+  }, [channelId, isAuthenticated, isAuthLoading]);
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasNext) return;
