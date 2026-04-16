@@ -21,7 +21,7 @@ import { Icon } from "../../components/Icon";
 
 function ChannelDetailContent({ channelId }: { channelId: string }) {
   const { t } = useTranslation();
-  const { isAuthenticated, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
+  const { isAuthenticated, isLoading: isAuthLoading, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
 
   const [channelInfo, setChannelInfo] = useState<GetChannelsChannelId200 | null>(null);
   const [playlists, setPlaylists] = useState<GetChannelsChannelIdPlaylists200ItemsItem[]>([]);
@@ -46,50 +46,40 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
   }, [channelId]);
 
   useEffect(() => {
+    if (isAuthLoading) return;
     const load = async () => {
       setIsVideosLoading(true);
       try {
-        const promises: Promise<unknown>[] = [
-          getChannel().getChannelsChannelId(channelId),
-          getChannel().getChannelsChannelIdVideos(channelId, { limit: PAGE_SIZES.CHANNEL_VIDEOS, order }),
-          getChannel().getChannelsChannelIdPlaylists(channelId, { limit: PAGE_SIZES.CHANNEL_PLAYLISTS }),
-        ];
-        if (isAuthenticated) {
-          promises.push(getChannel().getChannelsSubscribed({ limit: 50 }));
-        }
-        const results = await Promise.allSettled(promises);
+        const [channelRes, videosRes, playlistsRes, subsRes] = await Promise.all([
+          getChannel().getChannelsChannelId(channelId).catch(() => null),
+          getChannel().getChannelsChannelIdVideos(channelId, { limit: PAGE_SIZES.CHANNEL_VIDEOS, order }).catch(() => null),
+          getChannel().getChannelsChannelIdPlaylists(channelId, { limit: PAGE_SIZES.CHANNEL_PLAYLISTS }).catch(() => null),
+          isAuthenticated
+            ? getChannel().getChannelsSubscribed({ limit: 50 }).catch(() => null)
+            : Promise.resolve(null),
+        ]);
 
-        const channelRes = results[0];
-        const videosRes = results[1];
-        const playlistsRes = results[2];
-
-        if (channelRes.status === "fulfilled") {
-          setChannelInfo(channelRes.value as GetChannelsChannelId200);
+        if (channelRes) {
+          setChannelInfo(channelRes);
         }
 
-        if (isAuthenticated) {
-          const subsRes = results[3];
-          if (subsRes?.status === "fulfilled") {
-            const subs = subsRes.value as { items: { channel_id: string }[] };
-            const found = subs.items.find(s => s.channel_id === channelId);
-            if (found) {
-              setIsSubscribed(true);
-            }
+        if (subsRes) {
+          const found = subsRes.items.find(s => s.channel_id === channelId);
+          if (found) {
+            setIsSubscribed(true);
           }
         }
 
-        if (videosRes.status === "fulfilled") {
-          const vids = videosRes.value as { items: GetChannelsChannelIdVideos200ItemsItem[]; has_next: boolean };
-          setVideos(vids.items);
-          setHasNextVideos(vids.has_next);
-          setWatchedVideoIds(new Set(vids.items.filter(v => v.is_watched).map(v => v.video_id)));
-          const lastItem = vids.items[vids.items.length - 1];
+        if (videosRes) {
+          setVideos(videosRes.items);
+          setHasNextVideos(videosRes.has_next);
+          setWatchedVideoIds(new Set(videosRes.items.filter(v => v.is_watched).map(v => v.video_id)));
+          const lastItem = videosRes.items[videosRes.items.length - 1];
           cursorRef.current = lastItem?.video_id;
         }
 
-        if (playlistsRes.status === "fulfilled") {
-          const pls = playlistsRes.value as { items: GetChannelsChannelIdPlaylists200ItemsItem[] };
-          setPlaylists(pls.items);
+        if (playlistsRes) {
+          setPlaylists(playlistsRes.items);
         }
       } finally {
         setIsLoading(false);
@@ -97,7 +87,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       }
     };
     load();
-  }, [channelId, order, isAuthenticated]);
+  }, [channelId, order, isAuthenticated, isAuthLoading]);
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasNextVideos) return;

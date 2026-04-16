@@ -19,7 +19,7 @@ import { AddPlaylistDialog } from "../../components/AddPlaylistDialog";
 function DashboardContent() {
   const { t } = useTranslation();
   useTitle(t("dashboard.pageTitle"));
-  const { isAuthenticated, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
+  const { isAuthenticated, isLoading: isAuthLoading, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
 
   const [feedVideos, setFeedVideos] = useState<GetFeed200ItemsItem[]>([]);
   const [recentPlaylists, setRecentPlaylists] = useState<GetPlaylistsRecent200ItemsItem[]>([]);
@@ -31,44 +31,36 @@ function DashboardContent() {
   const cursorRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
+    if (isAuthLoading) return;
     const loadData = async () => {
       try {
-        const promises: Promise<unknown>[] = [
-          getFeed().getFeed({ limit: PAGE_SIZES.FEED }),
-        ];
-        if (isAuthenticated) {
-          promises.push(
-            getChannel().getChannelsSubscribed({ limit: 50 }),
-            getPlaylist().getPlaylistsRecent(),
-          );
-        }
-        const results = await Promise.allSettled(promises);
-        const feedRes = results[0];
-        if (feedRes.status === "fulfilled") {
-          const feed = feedRes.value as { items: GetFeed200ItemsItem[]; has_next: boolean };
-          setFeedVideos(feed.items);
-          setHasNext(feed.has_next);
-          const lastItem = feed.items[feed.items.length - 1];
+        const [feedRes, subsRes, recentRes] = await Promise.all([
+          getFeed().getFeed({ limit: PAGE_SIZES.FEED }).catch(() => null),
+          isAuthenticated
+            ? getChannel().getChannelsSubscribed({ limit: 50 }).catch(() => null)
+            : Promise.resolve(null),
+          isAuthenticated
+            ? getPlaylist().getPlaylistsRecent().catch(() => null)
+            : Promise.resolve(null),
+        ]);
+        if (feedRes) {
+          setFeedVideos(feedRes.items);
+          setHasNext(feedRes.has_next);
+          const lastItem = feedRes.items[feedRes.items.length - 1];
           cursorRef.current = lastItem?.video_id;
         }
-        if (isAuthenticated) {
-          const subsRes = results[1];
-          const recentRes = results[2];
-          if (subsRes?.status === "fulfilled") {
-            const subs = subsRes.value as { items: { channel_id: string }[] };
-            setSubscribedChannelIds(new Set(subs.items.map((s) => s.channel_id)));
-          }
-          if (recentRes?.status === "fulfilled") {
-            const recent = recentRes.value as { items: GetPlaylistsRecent200ItemsItem[] };
-            setRecentPlaylists(recent.items);
-          }
+        if (subsRes) {
+          setSubscribedChannelIds(new Set(subsRes.items.map((s) => s.channel_id)));
+        }
+        if (recentRes) {
+          setRecentPlaylists(recentRes.items);
         }
       } finally {
         setIsLoadingFeed(false);
       }
     };
     loadData();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isAuthLoading]);
 
   const handleMarkWatched = useCallback(async (videoId: string) => {
     await getHistory().postVideosVideoIdWatched(videoId);
