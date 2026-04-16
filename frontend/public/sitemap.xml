@@ -3,15 +3,47 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://anti-yt.app/</loc>
-    <lastmod>2026-03-28</lastmod>
-    <changefreq>monthly</changefreq>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://anti-yt.app/"/>
     <xhtml:link rel="alternate" hreflang="ja" href="https://anti-yt.app/"/>
   </url>
   <url>
+    <loc>https://anti-yt.app/channels</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://anti-yt.app/channels"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://anti-yt.app/channels"/>
+  </url>
+  <url>
+    <loc>https://anti-yt.app/channels/explore</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://anti-yt.app/channels/explore"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://anti-yt.app/channels/explore"/>
+  </url>
+  <url>
+    <loc>https://anti-yt.app/playlists</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://anti-yt.app/playlists"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://anti-yt.app/playlists"/>
+  </url>
+  <url>
+    <loc>https://anti-yt.app/search</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://anti-yt.app/search"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://anti-yt.app/search"/>
+  </url>
+  <url>
     <loc>https://anti-yt.app/terms</loc>
-    <lastmod>2026-03-28</lastmod>
+    <lastmod>2026-04-17</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://anti-yt.app/terms"/>
@@ -19,7 +51,7 @@
   </url>
   <url>
     <loc>https://anti-yt.app/privacy</loc>
-    <lastmod>2026-03-28</lastmod>
+    <lastmod>2026-04-17</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://anti-yt.app/privacy"/>

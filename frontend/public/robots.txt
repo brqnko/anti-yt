@@ -1,15 +1,18 @@
 User-agent: *
-Disallow: /dashboard
 Disallow: /analytics
 Disallow: /history
 Disallow: /profile
-Disallow: /playlists
-Disallow: /channels/
-Disallow: /watch/
-Disallow: /search
 Disallow: /screen-time-settings
 Disallow: /register
+Disallow: /reactivation
 Allow: /
+Allow: /channels
+Allow: /channels/explore
+Allow: /channels/
+Allow: /watch/
+Allow: /playlists
+Allow: /playlists/
+Allow: /search
 Allow: /terms
 Allow: /privacy
 
