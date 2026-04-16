@@ -284,7 +284,7 @@ func run(ctx context.Context) int {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("shutting down the server")
+			slog.Error("shutting down the server", slog.Any("error", err))
 		}
 	}()
 
