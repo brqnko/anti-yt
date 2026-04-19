@@ -384,6 +384,15 @@ func TestNewDailyScreenTimeLimitRangeSet(t *testing.T) {
 			arg:  arg{ranges: []rangeInput{{Start: 3600, End: 3600}}, loc: time.UTC},
 			want: &want{ranges: nil},
 		},
+		"full day (00:00-24:00) UTC is preserved as [0, 86400)": {
+			arg:  arg{ranges: []rangeInput{{Start: 0, End: 24 * 3600}}, loc: time.UTC},
+			want: &want{ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 24 * 3600}}},
+		},
+		"full day (00:00-24:00) JST is preserved as [0, 86400) without timezone shift": {
+			// wrapが0と86400を同点に丸めて消失するregression防止。
+			arg:  arg{ranges: []rangeInput{{Start: 0, End: 24 * 3600}}, loc: time.FixedZone("JST", 9*3600)},
+			want: &want{ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 24 * 3600}}},
+		},
 	}
 
 	for name, c := range cases {

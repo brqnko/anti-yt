@@ -2571,16 +2571,18 @@ components:
 
     ScreenTimeSlot:
       type: object
-      description: スクリーン時間の許可時間帯
+      description: |
+        スクリーン時間の許可時間帯。区間は半開区間 [start_time, end_time) として扱う。
+        end_time に "24:00" を指定すると「その日の終わりまで(排他)」を意味する。
       properties:
         start_time:
           type: string
-          pattern: "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
-          description: 開始時刻 (HH:mm形式)
+          pattern: "^(([0-1][0-9]|2[0-3]):[0-5][0-9]|24:00)$"
+          description: 開始時刻 (HH:mm形式、両端含む)
         end_time:
           type: string
-          pattern: "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
-          description: 終了時刻 (HH:mm形式)
+          pattern: "^(([0-1][0-9]|2[0-3]):[0-5][0-9]|24:00)$"
+          description: 終了時刻 (HH:mm形式、排他)。"24:00" は当日終端を表す。
       required: [ start_time, end_time ]
 
     User:

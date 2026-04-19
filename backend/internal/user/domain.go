@@ -191,6 +191,17 @@ func NewDailyScreenTimeLimitRangeSet(screenLimits []struct{ Start, End int }, lo
 	// NOTE: UX的に、時間範囲の重複は許容する
 	var ranges []DailyScreenTimeLimitRange
 	for _, r := range screenLimits {
+		// フル一日 [00:00, 24:00) はオフセット適用後にwrapで開始と終了が
+		// 同じ点に丸められて消えてしまうため、タイムゾーン変換せず[0, 86400)として保存する。
+		if r.End-r.Start == daySeconds {
+			domainRange, err := NewDailyScreenTimeLimitRange(0, daySeconds)
+			if err != nil {
+				return nil, err
+			}
+			ranges = append(ranges, domainRange)
+			continue
+		}
+
 		utcStart := wrap(r.Start - offsetSec)
 		utcEnd := wrap(r.End - offsetSec)
 

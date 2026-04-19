@@ -160,6 +160,30 @@ func TestNewHeartbeat(t *testing.T) {
 	}
 }
 
+// 放置されたセッション(watch_end_at=farFuture)に次の動画再生が来たとき、
+// 旧セッションの閉じ時刻は「今」ではなく「最後の更新+1分」になるべき。
+// そうでないと放置中の何時間/何日もが視聴時間として計上される。
+func TestHeartbeat_Rotate_StaleDifferentVideo_ClosesAtLastUpdatedAt(t *testing.T) {
+	t.Parallel()
+
+	videoID := uuid.Must(uuid.NewV7())
+	otherVideoID := uuid.Must(uuid.NewV7())
+	userID := uuid.Must(uuid.NewV7())
+
+	h, err := history.NewHeartbeat(videoID, userID, 0)
+	assert.NoError(t, err)
+
+	lastUpdatedAt := time.Now().UTC().Add(-3 * time.Hour)
+	got, result, err := h.Rotate(otherVideoID, 30, 200, lastUpdatedAt)
+	assert.NoError(t, err)
+	assert.Equal(t, history.RotateResultContinue, result)
+	assert.NotNil(t, got)
+
+	expectedEnd := lastUpdatedAt.Add(time.Minute)
+	assert.WithinDuration(t, expectedEnd, h.WatchEndAt, time.Second,
+		"stale session should close at lastUpdatedAt+1min, not at time.Now()")
+}
+
 func TestHeartbeat_Rotate(t *testing.T) {
 	t.Parallel()
 
@@ -210,6 +234,10 @@ func TestHeartbeat_Rotate(t *testing.T) {
 		},
 		"active + same video + last updated over 5 min": {
 			arg:  arg{heartbeat: active, videoID: videoID, watchPositionSeconds: 30, lastVideoLength: 200, lastUpdatedAt: time.Now().UTC().Add(-6 * time.Minute)},
+			want: want{newHeartbeat: true, originalClosed: true, result: history.RotateResultContinue},
+		},
+		"active + different video + last updated over 5 min": {
+			arg:  arg{heartbeat: active, videoID: otherVideoID, watchPositionSeconds: 30, lastVideoLength: 200, lastUpdatedAt: time.Now().UTC().Add(-10 * time.Minute)},
 			want: want{newHeartbeat: true, originalClosed: true, result: history.RotateResultContinue},
 		},
 		"active + same video + last updated 3 min ago (within threshold)": {

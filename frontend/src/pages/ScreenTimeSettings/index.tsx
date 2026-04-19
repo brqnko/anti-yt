@@ -114,7 +114,7 @@ function ScreenTimeSettingsContent() {
           class="flex items-center gap-1 text-sm text-taupe dark:text-white/50 hover:text-charcoal dark:hover:text-white/80 transition-colors no-underline"
         >
           <Icon name="arrow_back" class="text-base" />
-          {t("register.restrictions.back")}
+          {t("channelDetail.backToDashboard")}
         </a>
 
         <h1 class="text-2xl font-bold text-charcoal dark:text-white tracking-tight">
