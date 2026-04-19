@@ -18,17 +18,19 @@ export interface ProblemDetailError {
 }
 
 /**
- * スクリーン時間の許可時間帯
+ * スクリーン時間の許可時間帯。区間は半開区間 [start_time, end_time) として扱う。
+end_time に "24:00" を指定すると「その日の終わりまで(排他)」を意味する。
+
  */
 export interface ScreenTimeSlot {
   /**
-     * 開始時刻 (HH:mm形式)
-     * @pattern ^([0-1][0-9]|2[0-3]):[0-5][0-9]$
+     * 開始時刻 (HH:mm形式、両端含む)
+     * @pattern ^(([0-1][0-9]|2[0-3]):[0-5][0-9]|24:00)$
      */
   start_time: string;
   /**
-     * 終了時刻 (HH:mm形式)
-     * @pattern ^([0-1][0-9]|2[0-3]):[0-5][0-9]$
+     * 終了時刻 (HH:mm形式、排他)。"24:00" は当日終端を表す。
+     * @pattern ^(([0-1][0-9]|2[0-3]):[0-5][0-9]|24:00)$
      */
   end_time: string;
 }
