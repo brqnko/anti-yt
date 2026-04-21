@@ -1,5 +1,5 @@
-/// <reference types="youtube" />
 import { useEffect, useRef, useCallback, useState } from "preact/hooks";
+import type YT from "youtube";
 
 declare global {
   interface Window {
