@@ -14,6 +14,7 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"golang.org/x/oauth2"
 	googleOAuth2 "golang.org/x/oauth2/google"
+	"google.golang.org/api/googleapi"
 	"google.golang.org/api/option"
 	"google.golang.org/api/youtube/v3"
 )
@@ -55,10 +56,9 @@ type serviceImpl struct {
 	ytClient    *youtube.Service
 	oauthConfig *oauth2.Config
 
-	mu              sync.Mutex
-	lastCheckedDay  time.Time
-	consumedQuota   int
-	dailyQuotaLimit int
+	mu             sync.RWMutex
+	lastCheckedDay time.Time
+	quotaExceeded  bool
 }
 
 // NOTE: 削除された動画などはAPIから返ってこず、また順番も保証されないのでmapで返す
@@ -72,7 +72,7 @@ func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) 
 		return nil, ErrVideoIDsTooMuch
 	}
 
-	if err := s.tryConsumeQuota(1); err != nil {
+	if err := s.checkQuota(); err != nil {
 		return nil, err
 	}
 
@@ -85,6 +85,7 @@ func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) 
 		Context(ctx).
 		Do()
 	if err != nil {
+		s.markIfQuotaExceeded(err)
 		return nil, err
 	}
 
@@ -151,7 +152,7 @@ func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) 
 func (s *serviceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (_ Channel, err error) {
 	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchChannelDetailByIDOrHandle")
 
-	if err := s.tryConsumeQuota(1); err != nil {
+	if err := s.checkQuota(); err != nil {
 		return Channel{}, err
 	}
 
@@ -166,6 +167,7 @@ func (s *serviceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channe
 
 	res, err := q.Context(ctx).Do()
 	if err != nil {
+		s.markIfQuotaExceeded(err)
 		return Channel{}, err
 	}
 	if len(res.Items) == 0 {
@@ -225,7 +227,7 @@ func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []Chann
 		return map[ChannelID]Channel{}, nil
 	}
 
-	if err := s.tryConsumeQuota(1); err != nil {
+	if err := s.checkQuota(); err != nil {
 		return nil, err
 	}
 
@@ -236,6 +238,7 @@ func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []Chann
 	}
 	res, err := s.ytClient.Channels.List([]string{"snippet", "statistics", "contentDetails"}).Id(ids...).Context(ctx).Do()
 	if err != nil {
+		s.markIfQuotaExceeded(err)
 		return nil, err
 	}
 
@@ -299,7 +302,7 @@ func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []Chann
 func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error) {
 	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchPlaylistVideoIDs")
 
-	if err := s.tryConsumeQuota(1); err != nil {
+	if err := s.checkQuota(); err != nil {
 		return nil, "", err
 	}
 
@@ -313,6 +316,7 @@ func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID stri
 
 	res, err := call.Do()
 	if err != nil {
+		s.markIfQuotaExceeded(err)
 		return nil, "", err
 	}
 
@@ -336,7 +340,7 @@ func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID stri
 func (s *serviceImpl) FetchChannelPlaylists(ctx context.Context, channelID ChannelID, pageToken string) (_ []Playlist, _ string, err error) {
 	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchChannelPlaylists")
 
-	if err := s.tryConsumeQuota(1); err != nil {
+	if err := s.checkQuota(); err != nil {
 		return nil, "", err
 	}
 
@@ -350,6 +354,7 @@ func (s *serviceImpl) FetchChannelPlaylists(ctx context.Context, channelID Chann
 
 	res, err := call.Do()
 	if err != nil {
+		s.markIfQuotaExceeded(err)
 		return nil, "", err
 	}
 
@@ -380,7 +385,7 @@ func (s *serviceImpl) FetchChannelPlaylists(ctx context.Context, channelID Chann
 func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToken string, opts SearchOptions) (_ []VideoID, _ string, err error) {
 	defer util.Wrap(&err, "youtube_d.(*serviceImpl).SearchVideoIDs")
 
-	if err := s.tryConsumeQuota(100); err != nil {
+	if err := s.checkQuota(); err != nil {
 		return nil, "", err
 	}
 
@@ -413,6 +418,7 @@ func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToke
 
 	res, err := call.Do()
 	if err != nil {
+		s.markIfQuotaExceeded(err)
 		return nil, "", err
 	}
 
@@ -437,21 +443,55 @@ var (
 	errDailyQuotaExceeded = errors.New("daily quota exceeded")
 )
 
-func (s *serviceImpl) tryConsumeQuota(quota int) error {
+func (s *serviceImpl) checkQuota() error {
+	today := quotaDate()
+
+	s.mu.RLock()
+	if !s.lastCheckedDay.Before(today) {
+		exceeded := s.quotaExceeded
+		s.mu.RUnlock()
+		if exceeded {
+			return errDailyQuotaExceeded
+		}
+		return nil
+	}
+	s.mu.RUnlock()
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
-	if s.lastCheckedDay.Before(quotaDate()) {
-		s.consumedQuota = 0
-		s.lastCheckedDay = quotaDate()
+	if s.lastCheckedDay.Before(today) {
+		s.quotaExceeded = false
+		s.lastCheckedDay = today
 	}
-
-	if s.consumedQuota+quota > s.dailyQuotaLimit {
+	if s.quotaExceeded {
 		return errDailyQuotaExceeded
 	}
-
-	s.consumedQuota += quota
 	return nil
+}
+
+func (s *serviceImpl) markIfQuotaExceeded(err error) {
+	if err == nil {
+		return
+	}
+	var apiErr *googleapi.Error
+	if !errors.As(err, &apiErr) {
+		return
+	}
+	for _, e := range apiErr.Errors {
+		if e.Reason != "quotaExceeded" {
+			continue
+		}
+		s.mu.RLock()
+		already := s.quotaExceeded
+		s.mu.RUnlock()
+		if already {
+			return
+		}
+		s.mu.Lock()
+		s.quotaExceeded = true
+		s.mu.Unlock()
+		return
+	}
 }
 
 func NewService(ctx context.Context, apiKey, oauthClientID, oauthClientSecret, oauthRedirectURL string) (_ Service, err error) {
@@ -471,9 +511,8 @@ func NewService(ctx context.Context, apiKey, oauthClientID, oauthClientSecret, o
 			Scopes:       []string{"https://www.googleapis.com/auth/youtube.readonly"},
 			Endpoint:     googleOAuth2.Endpoint,
 		},
-		lastCheckedDay:  quotaDate(),
-		consumedQuota:   0,
-		dailyQuotaLimit: 10000,
+		lastCheckedDay: quotaDate(),
+		quotaExceeded:  false,
 	}, nil
 }
 
