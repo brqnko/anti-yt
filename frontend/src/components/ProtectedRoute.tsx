@@ -3,7 +3,6 @@ import { useEffect } from "preact/hooks";
 import type { ComponentChildren } from "preact";
 import { useAuth } from "../contexts/AuthContext";
 import { LoadingSpinner } from "./LoadingSpinner";
-import { ScreenTimeGate } from "./ScreenTimeGate";
 
 interface ProtectedRouteProps {
   children: ComponentChildren;
@@ -29,5 +28,5 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return null;
   }
 
-  return <ScreenTimeGate>{children}</ScreenTimeGate>;
+  return <>{children}</>;
 }

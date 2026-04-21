@@ -6,7 +6,6 @@ import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { AuthPromptDialog } from "../../components/AuthPromptDialog";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
-import { ScreenTimeGate } from "../../components/ScreenTimeGate";
 import { VideoCard } from "../../components/VideoCard";
 import { getFeed } from "../../api/generated/feed";
 import { getChannel } from "../../api/generated/channel";
@@ -222,9 +221,5 @@ function DashboardContent() {
 }
 
 export default function Dashboard() {
-  return (
-    <ScreenTimeGate>
-      <DashboardContent />
-    </ScreenTimeGate>
-  );
+  return <DashboardContent />;
 }

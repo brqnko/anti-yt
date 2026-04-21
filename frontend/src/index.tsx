@@ -8,6 +8,7 @@ import {
 } from "preact-iso";
 import { SWRConfig } from "swr";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ScreenTimeGate } from "./components/ScreenTimeGate";
 import "./i18n";
 
 const Register = lazy(() => import("./pages/Register/index.jsx"));
@@ -69,7 +70,9 @@ export function App() {
         }}
       >
         <AuthProvider>
-          <AppContent />
+          <ScreenTimeGate>
+            <AppContent />
+          </ScreenTimeGate>
         </AuthProvider>
       </SWRConfig>
     </LocationProvider>
