@@ -1,13 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { useTranslation } from "react-i18next";
-import { lazy } from "preact-iso";
 import { useTitle } from "../../hooks/useTitle";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
-import { useAuth } from "../../contexts/AuthContext";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { AuthPromptDialog } from "../../components/AuthPromptDialog";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { ScreenTimeGate } from "../../components/ScreenTimeGate";
 import { VideoCard } from "../../components/VideoCard";
 import { getFeed } from "../../api/generated/feed";
 import { getChannel } from "../../api/generated/channel";
@@ -18,13 +17,10 @@ import type { GetFeed200ItemsItem, GetPlaylistsRecent200ItemsItem } from "../../
 import { Icon } from "../../components/Icon";
 import { AddPlaylistDialog } from "../../components/AddPlaylistDialog";
 
-const ScreenTimeBlock = lazy(() => import("../ScreenTimeBlock/index"));
-
 function DashboardContent() {
   const { t } = useTranslation();
   useTitle(t("dashboard.pageTitle"));
   const { isAuthenticated, isLoading: isAuthLoading, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
-  const { screenTimeBlocked, screenTimeBlockReason } = useAuth();
 
   const [feedVideos, setFeedVideos] = useState<GetFeed200ItemsItem[]>([]);
   const [recentPlaylists, setRecentPlaylists] = useState<GetPlaylistsRecent200ItemsItem[]>([]);
@@ -102,10 +98,6 @@ function DashboardContent() {
   }, [isLoadingMore, hasNext]);
 
   const sentinelRef = useInfiniteScroll(loadMore);
-
-  if (isAuthenticated && screenTimeBlocked) {
-    return <ScreenTimeBlock reason={screenTimeBlockReason ?? "limit_exceeded"} />;
-  }
 
   return (
     <DashboardLayout>
@@ -230,5 +222,9 @@ function DashboardContent() {
 }
 
 export default function Dashboard() {
-  return <DashboardContent />;
+  return (
+    <ScreenTimeGate>
+      <DashboardContent />
+    </ScreenTimeGate>
+  );
 }
