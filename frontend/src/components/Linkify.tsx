@@ -1,4 +1,6 @@
 import type { VNode } from "preact";
+import { rewriteYouTubeUrl } from "../utils/url";
+import { SITE_URL } from "../constants";
 
 const URL_REGEX = /(https?:\/\/[^\s<>"']+)/g;
 const URL_TEST = /^https?:\/\//;
@@ -7,6 +9,27 @@ const TOKEN_REGEX = new RegExp(
   `(https?:\\/\\/[^\\s<>"']+)|(?:(\\d{1,2}):)?(\\d{1,2}):(\\d{2})`,
   "g",
 );
+
+function UrlAnchor({ url }: { url: string }): VNode {
+  const internal = rewriteYouTubeUrl(url);
+  if (internal) {
+    return (
+      <a href={internal} class="text-primary hover:underline break-all">
+        {SITE_URL}{internal}
+      </a>
+    );
+  }
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="text-primary hover:underline break-all"
+    >
+      {url}
+    </a>
+  );
+}
 
 function parseTimestamp(
   hours: string | undefined,
@@ -33,19 +56,7 @@ export function Linkify({
     return (
       <>
         {parts.map((part, i) =>
-          URL_TEST.test(part) ? (
-            <a
-              key={i}
-              href={part}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary hover:underline break-all"
-            >
-              {part}
-            </a>
-          ) : (
-            part
-          ),
+          URL_TEST.test(part) ? <UrlAnchor key={i} url={part} /> : part,
         )}
       </>
     );
@@ -65,17 +76,7 @@ export function Linkify({
 
     if (match[1]) {
       // URL match
-      nodes.push(
-        <a
-          key={match.index}
-          href={match[1]}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-primary hover:underline break-all"
-        >
-          {match[1]}
-        </a>,
-      );
+      nodes.push(<UrlAnchor key={match.index} url={match[1]} />);
     } else {
       // Timestamp match: groups [2]=hours, [3]=minutes, [4]=seconds
       const seconds = parseTimestamp(match[2], match[3], match[4]);
