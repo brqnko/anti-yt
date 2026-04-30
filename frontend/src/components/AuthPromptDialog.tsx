@@ -56,27 +56,32 @@ export function AuthPromptDialog({ open, onClose }: AuthPromptDialogProps) {
           <GoogleIcon />
           {t("common.signInWithGoogle")}
         </button>
-        <p class="text-xs text-text-muted-light dark:text-text-muted-dark leading-relaxed">
-          {t("common.privacyPolicyConsentBefore")}
-          <a
-            href="/terms"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="underline hover:text-charcoal dark:hover:text-white transition-colors"
-          >
-            {t("common.termsLink")}
-          </a>
-          {t("common.privacyPolicyConsentMiddle")}
-          <a
-            href="/privacy"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="underline hover:text-charcoal dark:hover:text-white transition-colors"
-          >
-            {t("common.privacyPolicyLink")}
-          </a>
-          {t("common.privacyPolicyConsentAfter")}
-        </p>
+        <div class="flex flex-col gap-2">
+          <p class="text-xs text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+            {t("common.oidcNoticeNoPii")}
+          </p>
+          <p class="text-xs text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+            {t("common.privacyPolicyConsentBefore")}
+            <a
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="underline hover:text-charcoal dark:hover:text-white transition-colors"
+            >
+              {t("common.termsLink")}
+            </a>
+            {t("common.privacyPolicyConsentMiddle")}
+            <a
+              href="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="underline hover:text-charcoal dark:hover:text-white transition-colors"
+            >
+              {t("common.privacyPolicyLink")}
+            </a>
+            {t("common.privacyPolicyConsentAfter")}
+          </p>
+        </div>
       </div>
     </Dialog>
   );

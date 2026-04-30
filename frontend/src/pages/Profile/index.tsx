@@ -289,7 +289,7 @@ function ProfileContent() {
                 <div class="mt-4" />
                 <button
                   onClick={() => setShowLogoutConfirm(true)}
-                  class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 text-text-muted-light dark:text-text-muted-dark hover:text-red-500 transition-all font-bold cursor-pointer bg-transparent border-none"
+                  class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-all font-bold cursor-pointer bg-transparent border-none"
                 >
                   <Icon name="logout" />
                   {t("profile.nav.signOut")}

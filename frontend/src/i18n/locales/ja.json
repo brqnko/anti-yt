@@ -10,6 +10,7 @@
     "close": "閉じる",
     "authRequired": "この機能を利用するにはアカウント登録が必要です。",
     "signInWithGoogle": "Googleでログイン",
+    "oidcNoticeNoPii": "メールアドレスや氏名は取得しません。アカウント識別用のIDのみ保存します。",
     "privacyPolicyConsentBefore": "続行することで、",
     "termsLink": "利用規約",
     "privacyPolicyConsentMiddle": "および",
@@ -251,7 +252,8 @@
     "notFound": "チャンネルが見つかりません",
     "showMore": "もっと見る",
     "showLess": "閉じる",
-    "playlists": "プレイリスト"
+    "playlists": "プレイリスト",
+    "openOnYouTube": "YouTubeで見る"
   },
   "videoPlayer": {
     "pageTitle": "動画プレーヤー",
@@ -270,7 +272,8 @@
     "volume": "音量",
     "fullscreen": "全画面表示",
     "exitFullscreen": "全画面解除",
-    "seekBar": "シークバー"
+    "seekBar": "シークバー",
+    "openOnYouTube": "YTで見る"
   },
   "analytics": {
     "pageTitle": "アナリティクス",

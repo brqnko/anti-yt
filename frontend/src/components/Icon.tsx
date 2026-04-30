@@ -62,6 +62,7 @@ import VideocamOff from "~icons/material-symbols/videocam-off-outline";
 import VolumeDown from "~icons/material-symbols/volume-down-outline";
 import VolumeOff from "~icons/material-symbols/volume-off-outline";
 import VolumeUp from "~icons/material-symbols/volume-up-outline";
+import OpenInNew from "~icons/material-symbols/open-in-new";
 import Warning from "~icons/material-symbols/warning-outline";
 
 const iconMap: Record<string, string> = {
@@ -103,6 +104,7 @@ const iconMap: Record<string, string> = {
   memory: Memory,
   menu: Menu,
   more_vert: MoreVert,
+  open_in_new: OpenInNew,
   music_note: MusicNote,
   pause: Pause,
   person: Person,

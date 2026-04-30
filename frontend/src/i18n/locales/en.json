@@ -10,6 +10,7 @@
     "close": "Close",
     "authRequired": "You need to create an account to use this feature.",
     "signInWithGoogle": "Sign in with Google",
+    "oidcNoticeNoPii": "We do not receive your email address or name. We only store an identifier for your account.",
     "privacyPolicyConsentBefore": "By continuing, you agree to our ",
     "termsLink": "Terms of Service",
     "privacyPolicyConsentMiddle": " and ",
@@ -251,7 +252,8 @@
     "notFound": "Channel not found",
     "showMore": "Show more",
     "showLess": "Show less",
-    "playlists": "Playlists"
+    "playlists": "Playlists",
+    "openOnYouTube": "Open on YouTube"
   },
   "videoPlayer": {
     "pageTitle": "Video Player",
@@ -270,7 +272,8 @@
     "volume": "Volume",
     "fullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
-    "seekBar": "Seek bar"
+    "seekBar": "Seek bar",
+    "openOnYouTube": "Open on YT"
   },
   "analytics": {
     "pageTitle": "Analytics",
