@@ -2,20 +2,10 @@ import { useState, useEffect, useCallback } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
 import type { ComponentChildren } from "preact";
-import useSWR from "swr";
 import { DashboardHeader } from "./DashboardHeader";
-import { AddChannelDialog } from "./AddChannelDialog";
-import { AddPlaylistDialog } from "./AddPlaylistDialog";
 import { AuthPromptDialog } from "./AuthPromptDialog";
-import { getChannel } from "../api/generated/channel";
-import { getPlaylist } from "../api/generated/playlist";
 import { useAuth } from "../contexts/AuthContext";
-import { CACHE_KEYS } from "../api/cache-keys";
 import { Icon } from "./Icon";
-import type {
-  GetChannelsSubscribed200ItemsItem,
-  GetPlaylists200ItemsItem,
-} from "../api/generated/antiYtApi.schemas";
 
 const SIDEBAR_STORAGE_KEY = "sidebar-open";
 
@@ -35,37 +25,9 @@ export function DashboardLayout({
   const { t } = useTranslation();
   const { url } = useLocation();
   const { isAuthenticated } = useAuth();
-  const [showAddChannel, setShowAddChannel] = useState(false);
-  const [showAddPlaylist, setShowAddPlaylist] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   const [sidebarOpen, setSidebarOpen] = useState(getStoredSidebarState);
-
-  const {
-    data: subscriptions = [],
-    isLoading: isSubscriptionsLoading,
-    mutate: mutateSubscriptions,
-  } = useSWR<GetChannelsSubscribed200ItemsItem[]>(
-    isAuthenticated ? CACHE_KEYS.dashboardSubscriptions : null,
-    async () => {
-      const res = await getChannel().getChannelsSubscribed({ limit: 10 });
-      return res.items;
-    },
-  );
-
-  const {
-    data: playlists = [],
-    isLoading: isPlaylistsLoading,
-    mutate: mutatePlaylists,
-  } = useSWR<GetPlaylists200ItemsItem[]>(
-    isAuthenticated ? CACHE_KEYS.dashboardPlaylists : null,
-    async () => {
-      const res = await getPlaylist().getPlaylists({ limit: 10 });
-      return res.items;
-    },
-  );
-
-  const isLoaded = !isSubscriptionsLoading && !isPlaylistsLoading;
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((v) => {
@@ -161,88 +123,6 @@ export function DashboardLayout({
               </a>
 
             </nav>
-
-            <div class="h-px bg-border-light dark:bg-border-dark w-full my-2" role="separator" />
-
-            {/* Whitelisted Channels */}
-            <div class="flex flex-col gap-4">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark px-3">
-                {t("dashboard.whitelistedChannels")}
-              </h3>
-              <div class="flex flex-col gap-2 max-h-32 overflow-y-auto">
-                {subscriptions.map((sub) => (
-                  <a
-                    key={sub.channel_id}
-                    class={`flex items-center gap-3 px-3 py-2 hover:bg-card-light dark:hover:bg-card-dark rounded-lg group transition-colors no-underline ${
-                      url === `/channels/${sub.channel_id}` ? "bg-primary/10" : ""
-                    }`}
-                    href={`/channels/${sub.channel_id}`}
-                    aria-current={url === `/channels/${sub.channel_id}` ? "page" : undefined}
-                  >
-                    <div class="size-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden shrink-0">
-                      <img
-                        alt={sub.external_channel_display_name}
-                        loading="lazy"
-                        class="w-full h-full object-cover"
-                        src={sub.external_channel_icon_url}
-                      />
-                    </div>
-                    <span class="text-sm font-medium text-charcoal dark:text-white group-hover:text-primary transition-colors truncate">
-                      {sub.external_channel_display_name}
-                    </span>
-                  </a>
-                ))}
-                {subscriptions.length === 0 && isLoaded && (
-                  <p class="text-xs text-text-muted-light dark:text-text-muted-dark px-3">
-                    {t("dashboard.noChannels")}
-                  </p>
-                )}
-              </div>
-              <button
-                  class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium mt-1 cursor-pointer bg-transparent border-none group/add"
-                  onClick={() => isAuthenticated ? setShowAddChannel(true) : setShowAuthPrompt(true)}
-                >
-                  <Icon name="add" class="text-[18px]" />
-                  <span class="group-hover/add:underline">{t("dashboard.requestChannel")}</span>
-                </button>
-            </div>
-
-            <div class="h-px bg-border-light dark:bg-border-dark w-full my-2" role="separator" />
-
-            {/* Playlists */}
-            <div class="flex flex-col gap-4">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark px-3">
-                {t("dashboard.myPlaylists")}
-              </h3>
-              <div class="flex flex-col gap-2 max-h-36 overflow-y-auto">
-                {playlists.map((pl) => (
-                  <a
-                    key={pl.playlist_id}
-                    class={`flex items-center gap-3 px-3 py-2 hover:bg-card-light dark:hover:bg-card-dark rounded-lg group transition-colors no-underline ${
-                      url === `/playlists/${pl.playlist_id}` ? "bg-primary/10" : ""
-                    }`}
-                    href={`/playlists/${pl.playlist_id}`}
-                  >
-                    <Icon name="playlist_play" class="text-text-muted-light dark:text-text-muted-dark group-hover:text-primary" />
-                    <span class="text-sm font-medium text-charcoal dark:text-white truncate">
-                      {pl.playlist_title}
-                    </span>
-                  </a>
-                ))}
-                {playlists.length === 0 && isLoaded && (
-                  <p class="text-xs text-text-muted-light dark:text-text-muted-dark px-3">
-                    {t("dashboard.noPlaylists")}
-                  </p>
-                )}
-              </div>
-              <button
-                class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium mt-1 cursor-pointer bg-transparent border-none group/add"
-                onClick={() => isAuthenticated ? setShowAddPlaylist(true) : setShowAuthPrompt(true)}
-              >
-                <Icon name="add" class="text-[18px]" />
-                <span class="group-hover/add:underline">{t("dashboard.addPlaylist")}</span>
-              </button>
-            </div>
           </div>
         </aside>
 
@@ -334,16 +214,6 @@ export function DashboardLayout({
         </a>
       </nav>
 
-      <AddChannelDialog
-        open={showAddChannel}
-        onClose={() => setShowAddChannel(false)}
-        onAdded={() => mutateSubscriptions()}
-      />
-      <AddPlaylistDialog
-        open={showAddPlaylist}
-        onClose={() => setShowAddPlaylist(false)}
-        onAdded={() => mutatePlaylists()}
-      />
       <AuthPromptDialog
         open={showAuthPrompt}
         onClose={() => setShowAuthPrompt(false)}
