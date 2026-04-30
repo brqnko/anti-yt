@@ -96,7 +96,7 @@ function ProfileContent() {
 
   return (
     <DashboardLayout>
-      <div class="flex-1 max-w-6xl w-full px-4 sm:px-6 lg:px-10 py-8 flex flex-col gap-6">
+      <div class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-10 py-8 flex flex-col gap-6">
         {/* Tab navigation */}
         <nav class="flex items-center gap-1 bg-background-light dark:bg-background-dark p-1 rounded-full border border-border-light dark:border-border-dark overflow-x-auto">
           <button
@@ -137,12 +137,6 @@ function ProfileContent() {
 
         {activeTab === "profile" && (
           <>
-            <div class="flex flex-col">
-              <h1 class="text-3xl lg:text-4xl font-black leading-tight tracking-[-0.033em]">
-                {t("profile.title")}
-              </h1>
-            </div>
-
             {/* Account Details */}
             <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
               <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">

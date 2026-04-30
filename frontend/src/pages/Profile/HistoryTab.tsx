@@ -112,12 +112,6 @@ export function HistoryTab() {
 
   return (
     <div class="flex flex-col gap-8">
-      <div class="flex flex-col gap-2 mb-2">
-        <h1 class="text-3xl lg:text-4xl font-black leading-tight tracking-[-0.033em]">
-          {t("history.title")}
-        </h1>
-      </div>
-
       {error ? (
         <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
           <Icon name="error_outline" class="text-5xl mb-4" />
@@ -164,7 +158,7 @@ export function HistoryTab() {
           {isLoadingMore && <LoadingSpinner size="sm" className="py-8" />}
           {!hasNext && !isLoadingMore && (
             <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">
-              {t("history.endOfHistory")}
+              🎉 {t("history.endOfHistory")}
             </p>
           )}
         </>

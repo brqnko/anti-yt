@@ -119,8 +119,6 @@
       "bottomAnalytics": "Analytics",
       "bottomProfile": "Profile"
     },
-    "whitelistedChannels": "Whitelisted Channels",
-    "requestChannel": "Request Channel",
     "addChannelDialog": {
       "title": "Add Channel",
       "description": "Enter a YouTube channel URL or ID.",
@@ -131,8 +129,6 @@
       "error": "Failed to add channel. Please check the ID and try again.",
       "paste": "Paste from clipboard"
     },
-    "noChannels": "No channels subscribed yet.",
-    "myPlaylists": "My Playlists",
     "addPlaylist": "Create Playlist",
     "addPlaylistDialog": {
       "title": "New Playlist",
@@ -151,7 +147,6 @@
     },
     "recentPlaylists": "Recently Played Playlists",
     "showAllPlaylists": "Show all",
-    "noPlaylists": "No playlists yet.",
     "noVideos": "No videos yet",
     "noVideosDesc": "Subscribe to channels to see their latest videos here.",
     "endOfFeed": "You're all caught up",
@@ -179,22 +174,10 @@
     "saving": "Saving...",
     "saved": "Saved!",
     "zeroTimeError": "Daily cap limit must be greater than 0 minutes.",
-    "whitelist": "Whitelist",
-    "searchChannels": "Search channels...",
-    "noChannels": "No channels subscribed yet.",
-    "saveError": "Failed to save. Please try again.",
-    "unsubscribeError": "Failed to unsubscribe.",
-    "removeChannelDialog": {
-      "title": "Remove Channel",
-      "description": "Are you sure you want to remove \"{{name}}\" from the whitelist? Content from this channel will no longer be allowed.",
-      "cancel": "Cancel",
-      "remove": "Remove",
-      "removing": "Removing..."
-    }
+    "saveError": "Failed to save. Please try again."
   },
   "profile": {
     "pageTitle": "Profile",
-    "title": "Profile",
     "nav": {
       "profileSettings": "Profile",
       "security": "Security",
@@ -230,14 +213,12 @@
     "cancel": "Cancel"
   },
   "security": {
-    "title": "Security",
-    "currentSession": "Current Session",
-    "activeNow": "Active Now",
-    "loggedInAt": "Logged In",
-    "lastActivity": "Last Activity",
-    "ipAddress": "IP Address",
-    "userAgent": "User Agent",
-    "otherSessions": "Other Active Sessions",
+    "activeSessions": "Active Sessions",
+    "device": "Device",
+    "location": "Location",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "logout": "Sign out",
     "revoke": "Revoke",
     "revokeConfirmTitle": "Revoke Session?",
     "revokeConfirmDesc": "The session on \"{{name}}\" will be logged out immediately. This action cannot be undone.",
@@ -247,11 +228,6 @@
     "loadError": "Failed to load sessions.",
     "revokeError": "Failed to revoke session. Please try again.",
     "retry": "Retry",
-    "justNow": "Just now",
-    "minutesAgo": "{{count}}m ago",
-    "hoursAgo": "{{count}}h ago",
-    "daysAgo": "{{count}}d ago",
-    "monthsAgo": "{{count}}mo ago",
     "loadMore": "Load More"
   },
   "appearance": {
@@ -276,7 +252,6 @@
     "pageTitle": "Video Player",
     "notFound": "Video not found",
 "curatedPlaylist": "Curated Playlist",
-    "viewPlaylist": "View Full Playlist",
     "addToPlaylist": "Save",
     "playlist": "Playlist",
     "watchLater": "Watch Later",
@@ -290,15 +265,13 @@
     "volume": "Volume",
     "fullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
-    "seekBar": "Seek bar",
-    "postedSuffix": " posted"
+    "seekBar": "Seek bar"
   },
   "analytics": {
     "pageTitle": "Analytics",
     "title": "Analytics",
     "timeWasted": "Time Watched",
     "dailyAverage": "Daily Average",
-    "weeklyAverageGoal": "Weekly Avg Goal",
     "weeklyUsageTrends": "This Week's Usage",
     "dailyLimit": "Daily Limit ({{hours}}h)",
     "tooltipVideos": "{{count}} videos",
@@ -318,7 +291,6 @@
   },
   "history": {
     "pageTitle": "Watch History",
-    "title": "Watch History",
     "today": "Today",
     "yesterday": "Yesterday",
     "noHistory": "No watch history",
@@ -331,8 +303,6 @@
     "pageTitle": "Playlists",
     "title": "Playlists",
     "createNew": "New Playlist",
-    "videoCount_one": "{{count}} video",
-    "videoCount_other": "{{count}} videos",
     "lastUpdated": "Last updated {{time}}",
     "createdAt": "Created {{time}}",
     "empty": "No playlists yet",
@@ -345,7 +315,6 @@
     "videos": "Videos",
     "edit": "Edit",
     "addVideo": "Add Video",
-    "addVideoLabel": "YouTube video URL or ID",
     "addVideoPlaceholder": "https://youtube.com/watch?v=... or video ID",
     "addVideoButton": "Add",
     "addVideoAdding": "Adding...",

@@ -195,7 +195,6 @@ function DashboardContent() {
         ) : (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
             <Icon name="subscriptions" class="text-5xl mb-4" />
-            <p class="text-lg font-medium">{t("dashboard.noVideos")}</p>
             <p class="text-sm mt-1">{t("dashboard.noVideosDesc")}</p>
             <a
               class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"

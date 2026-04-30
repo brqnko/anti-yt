@@ -1,27 +1,68 @@
-import { useState, useEffect } from "preact/hooks";
+import { useState, useEffect, useRef } from "preact/hooks";
+import { createPortal } from "preact/compat";
 import { useTranslation } from "react-i18next";
 import { getAuth } from "../../api/generated/auth";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import type { GetUsersMeSessions200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
 
-function formatLastActive(dateStr: string, t: (key: string, opts?: Record<string, unknown>) => string): string {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const diffMs = now - then;
-  const diffMin = Math.floor(diffMs / 60000);
-
-  if (diffMin < 1) return t("security.justNow");
-  if (diffMin < 60) return t("security.minutesAgo", { count: diffMin });
-  const diffHours = Math.floor(diffMin / 60);
-  if (diffHours < 24) return t("security.hoursAgo", { count: diffHours });
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 30) return t("security.daysAgo", { count: diffDays });
-  const diffMonths = Math.floor(diffDays / 30);
-  return t("security.monthsAgo", { count: diffMonths });
-}
-
 const PAGE_SIZE = 20;
+
+function SessionMenu({ session, onRevoke }: { session: GetUsersMeSessions200ItemsItem; onRevoke: () => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (btnRef.current && !btnRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setMenuPos({
+        top: rect.bottom + window.scrollY + 4,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setOpen((v) => !v);
+  };
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        onClick={handleOpen}
+        class="text-text-muted-light dark:text-text-muted-dark hover:text-foreground-light dark:hover:text-foreground-dark transition-colors cursor-pointer bg-transparent border-none p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5"
+        aria-label={t("security.revoke")}
+      >
+        <Icon name="more_vert" class="text-xl" />
+      </button>
+      {open && createPortal(
+        <div
+          style={{ position: "absolute", top: menuPos.top, right: menuPos.right }}
+          class="z-[200] bg-card-light dark:bg-card-dark rounded-lg shadow-lg border border-border-light dark:border-border-dark p-1 min-w-[140px]"
+        >
+          <button
+            onClick={() => { setOpen(false); onRevoke(); }}
+            class="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium cursor-pointer bg-transparent border-none rounded-md"
+          >
+            {t("security.logout")}
+          </button>
+        </div>,
+        document.body,
+      )}
+    </>
+  );
+}
 
 export function SecurityTab() {
   const { t } = useTranslation();
@@ -31,7 +72,6 @@ export function SecurityTab() {
   const [hasNext, setHasNext] = useState(false);
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [revokeError, setRevokeError] = useState<string | null>(null);
 
@@ -44,10 +84,6 @@ export function SecurityTab() {
         setSessions((prev) => [...prev, ...data.items]);
       } else {
         setSessions(data.items);
-        // TODO: 現在のセッションを正確に判定する
-        if (data.items.length > 0) {
-          setCurrentSessionId(data.items[0].id);
-        }
       }
       setHasNext(data.has_next);
     } catch {
@@ -84,22 +120,12 @@ export function SecurityTab() {
     }
   };
 
-  const currentSession = sessions.find((s) => s.id === currentSessionId);
-  const otherSessions = sessions.filter((s) => s.id !== currentSessionId);
-
   if (isLoading) {
     return <LoadingSpinner />;
   }
 
   return (
     <div class="flex flex-col gap-8">
-      {/* Page Heading */}
-      <div class="flex flex-col gap-2 mb-2">
-        <h1 class="text-3xl lg:text-4xl font-black leading-tight tracking-[-0.033em]">
-          {t("security.title")}
-        </h1>
-      </div>
-
       {/* Error banner */}
       {error && (
         <div class="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm font-medium">
@@ -114,101 +140,57 @@ export function SecurityTab() {
         </div>
       )}
 
-      {/* Current Session */}
-      {currentSession && (
+      {/* Active Sessions Table */}
+      {sessions.length > 0 && (
         <div class="flex flex-col gap-4">
           <h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">
-            {t("security.currentSession")}
+            {t("security.activeSessions")}
           </h3>
-          <div class="overflow-hidden rounded-xl border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark">
-            {/* Main Row */}
-            <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-6 border-b border-border-light dark:border-border-dark">
-              <div class="flex items-center gap-4 flex-1">
-                <div class="flex flex-col justify-center">
-                  <p class="text-lg font-bold leading-normal line-clamp-1">
-                    {currentSession.browser_name}
-                  </p>
-                  <p class="text-text-muted-light dark:text-text-muted-dark text-sm font-medium leading-normal mt-1">
-                    {currentSession.city_name}, {currentSession.country_code}
-                  </p>
-                </div>
-              </div>
-            </div>
-            {/* Details */}
-            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 bg-background-light/50 dark:bg-background-dark/30">
-              <div class="flex flex-col gap-1">
-                <p class="text-text-muted-light dark:text-text-muted-dark text-xs font-bold uppercase tracking-wider">
-                  {t("security.loggedInAt")}
-                </p>
-                <p class="text-sm font-medium leading-relaxed">
-                  {new Date(currentSession.created_at).toLocaleString()}
-                </p>
-              </div>
-              <div class="flex flex-col gap-1">
-                <p class="text-text-muted-light dark:text-text-muted-dark text-xs font-bold uppercase tracking-wider">
-                  {t("security.lastActivity")}
-                </p>
-                <p class="text-sm font-medium leading-relaxed">
-                  {formatLastActive(currentSession.last_logged_in_at, t)}
-                </p>
-              </div>
-              <div class="flex flex-col gap-1">
-                <p class="text-text-muted-light dark:text-text-muted-dark text-xs font-bold uppercase tracking-wider">
-                  {t("security.ipAddress")}
-                </p>
-                <p class="text-sm font-medium leading-relaxed ">
-                  {currentSession.ip_address}
-                </p>
-              </div>
-              <div class="flex flex-col gap-1 md:col-span-2">
-                <p class="text-text-muted-light dark:text-text-muted-dark text-xs font-bold uppercase tracking-wider">
-                  {t("security.userAgent")}
-                </p>
-                <p class="text-sm font-medium leading-relaxed  break-all">
-                  {currentSession.user_agent}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Other Active Sessions */}
-      {otherSessions.length > 0 && (
-        <div class="flex flex-col gap-4">
-          <h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">
-            {t("security.otherSessions")}
-          </h3>
-          <div class="flex flex-col gap-3">
-            {otherSessions.map((session) => (
-              <div
-                key={session.id}
-                class="flex flex-col sm:flex-row sm:items-center gap-4 bg-card-light dark:bg-card-dark px-5 py-4 rounded-xl border border-border-light dark:border-border-dark justify-between group hover:border-primary/50 transition-colors"
-              >
-                <div class="flex items-center gap-4">
-                  <div class="flex flex-col justify-center">
-                    <p class="text-base font-bold leading-normal">
-                      {session.browser_name}
-                    </p>
-                    <div class="flex items-center gap-2 text-text-muted-light dark:text-text-muted-dark text-sm flex-wrap">
-                      <span>{session.city_name}, {session.country_code}</span>
-                      <span class="size-1 rounded-full bg-text-muted-light dark:bg-text-muted-dark" />
-                      <span class="">{session.ip_address}</span>
-                      <span class="size-1 rounded-full bg-text-muted-light dark:bg-text-muted-dark" />
-                      <span>{formatLastActive(session.last_logged_in_at, t)}</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="flex items-center pl-16 sm:pl-0">
-                  <button
-                    onClick={() => setConfirmRevokeId(session.id)}
-                    class="text-red-600 dark:text-red-400 text-sm font-bold hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 rounded-lg transition-colors cursor-pointer bg-transparent border-none"
+          <div class="overflow-x-auto rounded-xl border border-border-light dark:border-border-dark">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-border-light dark:border-border-dark bg-background-light/50 dark:bg-background-dark/30">
+                  <th class="text-left px-4 py-3 font-semibold text-text-muted-light dark:text-text-muted-dark whitespace-nowrap">
+                    {t("security.device")}
+                  </th>
+                  <th class="text-left px-4 py-3 font-semibold text-text-muted-light dark:text-text-muted-dark whitespace-nowrap">
+                    {t("security.location")}
+                  </th>
+                  <th class="text-left px-4 py-3 font-semibold text-text-muted-light dark:text-text-muted-dark whitespace-nowrap">
+                    {t("security.createdAt")}
+                  </th>
+                  <th class="text-left px-4 py-3 font-semibold text-text-muted-light dark:text-text-muted-dark whitespace-nowrap">
+                    {t("security.updatedAt")}
+                  </th>
+                  <th class="px-4 py-3 w-10" />
+                </tr>
+              </thead>
+              <tbody>
+                {sessions.map((session) => (
+                  <tr
+                    key={session.id}
+                    class="border-b border-border-light dark:border-border-dark last:border-0 hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors"
                   >
-                    {t("security.revoke")}
-                  </button>
-                </div>
-              </div>
-            ))}
+                    <td class="px-4 py-3 font-bold leading-normal">{session.browser_name}</td>
+                    <td class="px-4 py-3 text-text-muted-light dark:text-text-muted-dark max-w-[200px] truncate">
+                      {session.city_name}, {session.country_code}
+                    </td>
+                    <td class="px-4 py-3 text-text-muted-light dark:text-text-muted-dark whitespace-nowrap">
+                      {new Date(session.created_at).toLocaleString()}
+                    </td>
+                    <td class="px-4 py-3 text-text-muted-light dark:text-text-muted-dark whitespace-nowrap">
+                      {new Date(session.last_logged_in_at).toLocaleString()}
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                      <SessionMenu
+                        session={session}
+                        onRevoke={() => setConfirmRevokeId(session.id)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
