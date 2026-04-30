@@ -13,7 +13,6 @@ export function buildWatchUrl(
 
 const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
 const CHANNEL_ID_RE = /^UC[A-Za-z0-9_-]{22}$/;
-const PLAYLIST_ID_RE = /^[A-Za-z0-9_-]{13,}$/;
 
 function parseTimeParam(value: string | null): number | undefined {
   if (!value) return undefined;
@@ -48,8 +47,7 @@ export function rewriteYouTubeUrl(raw: string): string | null {
     const id = url.pathname.replace(/^\/+/, "").split("/")[0];
     if (!VIDEO_ID_RE.test(id)) return null;
     const t = parseTimeParam(url.searchParams.get("t"));
-    const list = url.searchParams.get("list");
-    return buildWatchUrl(id, t, list && PLAYLIST_ID_RE.test(list) ? list : undefined);
+    return buildWatchUrl(id, t);
   }
 
   const segments = url.pathname.split("/").filter(Boolean);
@@ -59,21 +57,14 @@ export function rewriteYouTubeUrl(raw: string): string | null {
     const id = url.searchParams.get("v");
     if (!id || !VIDEO_ID_RE.test(id)) return null;
     const t = parseTimeParam(url.searchParams.get("t"));
-    const list = url.searchParams.get("list");
-    return buildWatchUrl(id, t, list && PLAYLIST_ID_RE.test(list) ? list : undefined);
+    return buildWatchUrl(id, t);
   }
 
-  if (first === "shorts" || first === "embed" || first === "v" || first === "live") {
+  if (first === "embed" || first === "v" || first === "live") {
     const id = segments[1];
     if (!id || !VIDEO_ID_RE.test(id)) return null;
     const t = parseTimeParam(url.searchParams.get("t") ?? url.searchParams.get("start"));
     return buildWatchUrl(id, t);
-  }
-
-  if (first === "playlist") {
-    const list = url.searchParams.get("list");
-    if (!list || !PLAYLIST_ID_RE.test(list)) return null;
-    return `/playlists/${list}`;
   }
 
   if (first === "channel") {

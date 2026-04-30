@@ -5,17 +5,6 @@ import { LoadingSpinner } from "../../components/LoadingSpinner";
 import type { GetUsersMeSessions200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
 
-function getDeviceIcon(deviceType: string): string {
-  const lower = deviceType.toLowerCase();
-  if (lower.includes("iphone") || lower.includes("android") || lower.includes("mobile")) {
-    return "smartphone";
-  }
-  if (lower.includes("ipad") || lower.includes("tablet")) {
-    return "tablet_mac";
-  }
-  return "desktop_windows";
-}
-
 function formatLastActive(dateStr: string, t: (key: string, opts?: Record<string, unknown>) => string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
@@ -135,20 +124,12 @@ export function SecurityTab() {
             {/* Main Row */}
             <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-6 border-b border-border-light dark:border-border-dark">
               <div class="flex items-center gap-4 flex-1">
-                <div class="flex items-center justify-center rounded-lg bg-primary/20 shrink-0 size-14">
-                  <Icon name={getDeviceIcon(currentSession.device_type)} class="text-2xl text-primary font-bold" />
-                </div>
                 <div class="flex flex-col justify-center">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <p class="text-lg font-bold leading-normal line-clamp-1">
-                      {currentSession.browser_name}
-                    </p>
-                    <span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold px-2 py-0.5 rounded-full border border-green-200 dark:border-green-800">
-                      {t("security.activeNow")}
-                    </span>
-                  </div>
+                  <p class="text-lg font-bold leading-normal line-clamp-1">
+                    {currentSession.browser_name}
+                  </p>
                   <p class="text-text-muted-light dark:text-text-muted-dark text-sm font-medium leading-normal mt-1">
-                    {currentSession.device_type} · {currentSession.city_name}, {currentSession.country_code}
+                    {currentSession.city_name}, {currentSession.country_code}
                   </p>
                 </div>
               </div>
@@ -205,16 +186,11 @@ export function SecurityTab() {
                 class="flex flex-col sm:flex-row sm:items-center gap-4 bg-card-light dark:bg-card-dark px-5 py-4 rounded-xl border border-border-light dark:border-border-dark justify-between group hover:border-primary/50 transition-colors"
               >
                 <div class="flex items-center gap-4">
-                  <div class="flex items-center justify-center rounded-lg bg-background-light dark:bg-background-dark shrink-0 size-12">
-                    <Icon name={getDeviceIcon(session.device_type)} class="text-text-muted-light dark:text-text-muted-dark" />
-                  </div>
                   <div class="flex flex-col justify-center">
                     <p class="text-base font-bold leading-normal">
                       {session.browser_name}
                     </p>
                     <div class="flex items-center gap-2 text-text-muted-light dark:text-text-muted-dark text-sm flex-wrap">
-                      <span>{session.device_type}</span>
-                      <span class="size-1 rounded-full bg-text-muted-light dark:bg-text-muted-dark" />
                       <span>{session.city_name}, {session.country_code}</span>
                       <span class="size-1 rounded-full bg-text-muted-light dark:bg-text-muted-dark" />
                       <span class="">{session.ip_address}</span>
