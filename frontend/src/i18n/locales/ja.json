@@ -9,7 +9,12 @@
     },
     "close": "閉じる",
     "authRequired": "この機能を利用するにはアカウント登録が必要です。",
-    "signInWithGoogle": "Googleでログイン"
+    "signInWithGoogle": "Googleでログイン",
+    "privacyPolicyConsentBefore": "続行することで、",
+    "termsLink": "利用規約",
+    "privacyPolicyConsentMiddle": "および",
+    "privacyPolicyLink": "プライバシーポリシー",
+    "privacyPolicyConsentAfter": "に同意したものとみなされます。"
   },
   "videoCard": {
     "moreOptions": "その他のオプション",

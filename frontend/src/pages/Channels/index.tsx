@@ -160,9 +160,11 @@ function ChannelsContent() {
           {/* Link to valuable channels */}
           <a
             href="/channels/explore"
-            class="flex items-center gap-3 px-5 py-4 rounded-xl bg-primary/5 dark:bg-primary/10 border border-primary/20 hover:border-primary/40 transition-colors no-underline group"
+            class="flex items-center gap-4 px-5 py-4 rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark hover:border-primary/50 hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors no-underline group"
           >
-            <Icon name="recommend" class="text-2xl text-primary" />
+            <div class="size-10 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center shrink-0">
+              <Icon name="recommend" class="text-xl text-primary" />
+            </div>
             <div class="flex-1 min-w-0">
               <span class="text-base font-bold text-charcoal dark:text-white group-hover:text-primary transition-colors">
                 {t("channels.exploreLink")}
@@ -171,7 +173,7 @@ function ChannelsContent() {
                 {t("channels.exploreLinkDesc")}
               </p>
             </div>
-            <Icon name="chevron_right" class="text-xl text-text-muted-light dark:text-text-muted-dark group-hover:text-primary transition-colors" />
+            <Icon name="chevron_right" class="text-xl text-text-muted-light dark:text-text-muted-dark group-hover:text-primary transition-colors shrink-0" />
           </a>
 
           {/* Subscribed channels list */}

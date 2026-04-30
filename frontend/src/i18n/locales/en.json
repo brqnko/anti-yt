@@ -9,7 +9,12 @@
     },
     "close": "Close",
     "authRequired": "You need to create an account to use this feature.",
-    "signInWithGoogle": "Sign in with Google"
+    "signInWithGoogle": "Sign in with Google",
+    "privacyPolicyConsentBefore": "By continuing, you agree to our ",
+    "termsLink": "Terms of Service",
+    "privacyPolicyConsentMiddle": " and ",
+    "privacyPolicyLink": "Privacy Policy",
+    "privacyPolicyConsentAfter": "."
   },
   "videoCard": {
     "moreOptions": "More options",
