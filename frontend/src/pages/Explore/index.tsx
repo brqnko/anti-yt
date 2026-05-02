@@ -10,20 +10,24 @@ import { Icon } from "../../components/Icon";
 
 const CATEGORY_CODES = [
   { code: -1, key: "all", icon: "grid_view" },
-  { code: 1, key: "education", icon: "school" },
-  { code: 2, key: "technology", icon: "memory" },
-  { code: 3, key: "economy", icon: "trending_up" },
-  { code: 4, key: "politics", icon: "gavel" },
-  { code: 5, key: "music", icon: "music_note" },
+  { code: 1, key: "learn_deepen", icon: "menu_book" },
+  { code: 2, key: "act_practice", icon: "fitness_center" },
+  { code: 3, key: "rest_regulate", icon: "spa" },
+  { code: 4, key: "catch_up", icon: "bolt" },
+  { code: 5, key: "short_concise", icon: "timer" },
+  { code: 6, key: "audio_only", icon: "headphones" },
+  { code: 7, key: "weekend_deep_dive", icon: "weekend" },
 ] as const;
 
 const CATEGORY_KEY_MAP: Record<number, string> = {
   0: "unknown",
-  1: "education",
-  2: "technology",
-  3: "economy",
-  4: "politics",
-  5: "music",
+  1: "learn_deepen",
+  2: "act_practice",
+  3: "rest_regulate",
+  4: "catch_up",
+  5: "short_concise",
+  6: "audio_only",
+  7: "weekend_deep_dive",
 };
 
 function getCategoryBadgeClasses(code: number): string {
@@ -38,6 +42,10 @@ function getCategoryBadgeClasses(code: number): string {
       return "text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-300";
     case 5:
       return "text-pink-600 bg-pink-100 dark:bg-pink-900/30 dark:text-pink-300";
+    case 6:
+      return "text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-300";
+    case 7:
+      return "text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300";
     default:
       return "text-[#637588] bg-gray-100 dark:bg-gray-700/50 dark:text-gray-300";
   }

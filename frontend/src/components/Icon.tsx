@@ -3,6 +3,7 @@ import AddCircle from "~icons/material-symbols/add-circle-outline";
 import Analytics from "~icons/material-symbols/analytics-outline";
 import ArrowBack from "~icons/material-symbols/arrow-back";
 import ArrowForward from "~icons/material-symbols/arrow-forward";
+import Bolt from "~icons/material-symbols/bolt-outline";
 import CalendarClock from "~icons/material-symbols/calendar-clock-outline";
 import Check from "~icons/material-symbols/check";
 import CheckCircle from "~icons/material-symbols/check-circle-outline";
@@ -18,6 +19,7 @@ import Edit from "~icons/material-symbols/edit-outline";
 import EditNote from "~icons/material-symbols/edit-note-outline";
 import Error from "~icons/material-symbols/error-outline";
 import ExpandMore from "~icons/material-symbols/expand-more";
+import FitnessCenter from "~icons/material-symbols/fitness-center";
 import Flag from "~icons/material-symbols/flag-outline";
 import FormatBold from "~icons/material-symbols/format-bold";
 import Fullscreen from "~icons/material-symbols/fullscreen";
@@ -27,6 +29,7 @@ import FormatListBulleted from "~icons/material-symbols/format-list-bulleted";
 import Gavel from "~icons/material-symbols/gavel";
 import Grass from "~icons/material-symbols/grass";
 import GridView from "~icons/material-symbols/grid-view-outline";
+import Headphones from "~icons/material-symbols/headphones";
 import History from "~icons/material-symbols/history";
 import Home from "~icons/material-symbols/home-outline";
 import Language from "~icons/material-symbols/language";
@@ -34,6 +37,7 @@ import LightMode from "~icons/material-symbols/light-mode-outline";
 import Logout from "~icons/material-symbols/logout";
 import Memory from "~icons/material-symbols/memory-outline";
 import Menu from "~icons/material-symbols/menu";
+import MenuBook from "~icons/material-symbols/menu-book-outline";
 import MoreVert from "~icons/material-symbols/more-vert";
 import MusicNote from "~icons/material-symbols/music-note";
 import Pause from "~icons/material-symbols/pause-outline";
@@ -45,6 +49,7 @@ import PlaylistRemove from "~icons/material-symbols/playlist-remove";
 import ProgressActivity from "~icons/material-symbols/progress-activity";
 import Recommend from "~icons/material-symbols/recommend-outline";
 import Smartphone from "~icons/material-symbols/smartphone";
+import Spa from "~icons/material-symbols/spa-outline";
 import TabletMac from "~icons/material-symbols/tablet-mac-outline";
 import Refresh from "~icons/material-symbols/refresh";
 import Repeat from "~icons/material-symbols/repeat";
@@ -64,6 +69,7 @@ import VolumeOff from "~icons/material-symbols/volume-off-outline";
 import VolumeUp from "~icons/material-symbols/volume-up-outline";
 import OpenInNew from "~icons/material-symbols/open-in-new";
 import Warning from "~icons/material-symbols/warning-outline";
+import Weekend from "~icons/material-symbols/weekend-outline";
 
 const iconMap: Record<string, string> = {
   add: Add,
@@ -71,6 +77,7 @@ const iconMap: Record<string, string> = {
   analytics: Analytics,
   arrow_back: ArrowBack,
   arrow_forward: ArrowForward,
+  bolt: Bolt,
   calendar_clock: CalendarClock,
   check: Check,
   check_circle: CheckCircle,
@@ -87,6 +94,7 @@ const iconMap: Record<string, string> = {
   error: Error,
   error_outline: Error,
   expand_more: ExpandMore,
+  fitness_center: FitnessCenter,
   flag: Flag,
   format_bold: FormatBold,
   format_italic: FormatItalic,
@@ -96,6 +104,7 @@ const iconMap: Record<string, string> = {
   gavel: Gavel,
   grass: Grass,
   grid_view: GridView,
+  headphones: Headphones,
   history: History,
   home: Home,
   language: Language,
@@ -103,6 +112,7 @@ const iconMap: Record<string, string> = {
   logout: Logout,
   memory: Memory,
   menu: Menu,
+  menu_book: MenuBook,
   more_vert: MoreVert,
   open_in_new: OpenInNew,
   music_note: MusicNote,
@@ -122,6 +132,7 @@ const iconMap: Record<string, string> = {
   search: Search,
   smartphone: Smartphone,
   search_off: SearchOff,
+  spa: Spa,
   subscriptions: Subscriptions,
   tablet_mac: TabletMac,
   timer: Timer,
@@ -133,6 +144,7 @@ const iconMap: Record<string, string> = {
   volume_off: VolumeOff,
   volume_up: VolumeUp,
   warning: Warning,
+  weekend: Weekend,
 };
 
 interface IconProps {

@@ -496,7 +496,7 @@ func TestService_GetChannelFeeds(t *testing.T) {
 		ytMock := newYTMock(testCh, map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid})
 		svc := channel.NewService(db, ytMock, testutil.NewFakeFeedRepository(), 24*time.Hour)
 
-		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "education", "good channel")
+		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "learn_deepen", "good channel")
 		require.NoError(t, err)
 
 		channels, err := svc.GetChannelFeeds(ctx)
@@ -514,7 +514,7 @@ func TestService_CreateNewValuableChannel(t *testing.T) {
 	t.Run("invalid channel text returns error", func(t *testing.T) {
 		svc := channel.NewService((*pgxpool.Pool)(nil), &ServiceMock{}, testutil.NewFakeFeedRepository(), time.Hour)
 
-		_, err := svc.CreateNewValuableChannel(ctx, "invalid", "education", "good channel")
+		_, err := svc.CreateNewValuableChannel(ctx, "invalid", "learn_deepen", "good channel")
 
 		assert.Error(t, err)
 	})
@@ -528,7 +528,7 @@ func TestService_CreateNewValuableChannel(t *testing.T) {
 			},
 		}, testutil.NewFakeFeedRepository(), time.Hour)
 
-		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "education", "good channel")
+		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "learn_deepen", "good channel")
 
 		assert.ErrorIs(t, err, fetchErr)
 	})
@@ -550,10 +550,10 @@ func TestService_CreateNewValuableChannel(t *testing.T) {
 			},
 		}, testutil.NewFakeFeedRepository(), time.Hour)
 
-		vc, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "education", "good channel")
+		vc, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "learn_deepen", "good channel")
 
 		require.NoError(t, err)
-		assert.Equal(t, "education", vc.ValuableReasonCode.String())
+		assert.Equal(t, "learn_deepen", vc.ValuableReasonCode.String())
 		assert.Equal(t, "good channel", vc.ValuableDescription.String())
 	})
 
@@ -608,7 +608,7 @@ func TestService_RemoveValuableChannel(t *testing.T) {
 			},
 		}, testutil.NewFakeFeedRepository(), time.Hour)
 
-		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "education", "good channel")
+		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "learn_deepen", "good channel")
 		require.NoError(t, err)
 
 		err = svc.RemoveValuableChannel(ctx, "@testchannel")
@@ -644,15 +644,15 @@ func TestService_UpdateValuableChannel(t *testing.T) {
 			},
 		}, testutil.NewFakeFeedRepository(), time.Hour)
 
-		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "education", "good channel")
+		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "learn_deepen", "good channel")
 		require.NoError(t, err)
 
-		newReason := "technology"
+		newReason := "act_practice"
 		newDesc := "updated description"
 		vc, err := svc.UpdateValuableChannel(ctx, "@testchannel", &newReason, &newDesc)
 
 		require.NoError(t, err)
-		assert.Equal(t, "technology", vc.ValuableReasonCode.String())
+		assert.Equal(t, "act_practice", vc.ValuableReasonCode.String())
 		assert.Equal(t, "updated description", vc.ValuableDescription.String())
 	})
 
@@ -673,14 +673,14 @@ func TestService_UpdateValuableChannel(t *testing.T) {
 			},
 		}, testutil.NewFakeFeedRepository(), time.Hour)
 
-		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "education", "good channel")
+		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "learn_deepen", "good channel")
 		require.NoError(t, err)
 
-		newReason := "music"
+		newReason := "audio_only"
 		vc, err := svc.UpdateValuableChannel(ctx, "@testchannel", &newReason, nil)
 
 		require.NoError(t, err)
-		assert.Equal(t, "music", vc.ValuableReasonCode.String())
+		assert.Equal(t, "audio_only", vc.ValuableReasonCode.String())
 		assert.Equal(t, "good channel", vc.ValuableDescription.String())
 	})
 }
