@@ -69,9 +69,8 @@ function ScreenTimeSettingsContent() {
     setSaveError(null);
     try {
       const { patchUsersMeStatus } = getUser();
-      await patchUsersMeStatus({
+      const updated = await patchUsersMeStatus({
         screen_time: timeRanges.map((r) => ({
-          id: r.id,
           start_time: formatTime(r.startMinutes),
           end_time: formatTime(r.endMinutes),
         })),
@@ -79,6 +78,21 @@ function ScreenTimeSettingsContent() {
           ? 86400
           : hours * 3600 + minutes * 60,
       });
+      setTimeRanges(
+        (updated.screen_time ?? []).map((slot, i) => ({
+          id: String(i),
+          startMinutes: parseTimeToMinutes(slot.start_time),
+          endMinutes: parseTimeToMinutes(slot.end_time),
+        })),
+      );
+      const ds = updated.daily_screen_seconds;
+      if (ds != null && ds > 0) {
+        setHours(Math.floor(ds / 3600));
+        setMinutes(Math.floor((ds % 3600) / 60));
+        setIsUnlimited(false);
+      } else if (ds == null) {
+        setIsUnlimited(true);
+      }
       clearScreenTimeBlock();
       setSaveSuccess(true);
       setSaveFading(false);

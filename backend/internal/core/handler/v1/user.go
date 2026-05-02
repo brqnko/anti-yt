@@ -3,10 +3,9 @@ package v1
 import (
 	"context"
 	"net/http"
-	"sort"
-	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/hutil"
+	userdomain "github.com/brqnko/anti-yt/backend/internal/user"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
@@ -29,77 +28,19 @@ func (h *APIHandler) GetUsersMeStatus(ctx context.Context, request GetUsersMeSta
 		return nil, err
 	}
 
-	user, err := h.userService.GetUserStatus(ctx, userID)
+	view, err := h.userService.GetUserStatus(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
 	loc := hutil.TimezoneFromContext(ctx)
-	_, offsetSec := time.Now().In(loc).Zone()
-	const daySec = 24 * 60 * 60
-
-	// UTC HH:mm → ローカル秒に変換
-	type secRange struct{ start, end int }
-	localRanges := make([]secRange, 0, len(user.ScreenTimeLimitRange))
-	for _, v := range user.ScreenTimeLimitRange {
-		startMin, err := util.HHmmToInt(v.StartTime)
-		if err != nil {
-			return nil, err
-		}
-		endMin, err := util.HHmmToInt(v.EndTime)
-		if err != nil {
-			return nil, err
-		}
-		startSec := startMin * 60
-		endSec := endMin * 60
-		// [0, 86400] は全日を表すため、タイムゾーン変換せずそのまま返す
-		// (endSec % daySec == 0 になりオフセットが加算されると開始と同じ値になるため)
-		if startSec == 0 && endSec == daySec {
-			localRanges = append(localRanges, secRange{start: 0, end: daySec})
-			continue
-		}
-		localRanges = append(localRanges, secRange{
-			start: ((startSec+offsetSec)%daySec + daySec) % daySec,
-			end:   ((endSec+offsetSec)%daySec + daySec) % daySec,
-		})
-	}
-
-	// ソートしてマージ
-	sort.Slice(localRanges, func(i, j int) bool { return localRanges[i].start < localRanges[j].start })
-	var merged []secRange
-	for _, r := range localRanges {
-		if len(merged) > 0 && r.start <= merged[len(merged)-1].end+1 {
-			if r.end > merged[len(merged)-1].end {
-				merged[len(merged)-1].end = r.end
-			}
-		} else {
-			merged = append(merged, r)
-		}
-	}
-
-	screenTime := make([]ScreenTimeSlot, len(merged))
-	for i, r := range merged {
-		startStr, err := util.IntToHHmm(r.start / 60)
-		if err != nil {
-			return nil, err
-		}
-		endStr, err := util.IntToHHmm(r.end / 60)
-		if err != nil {
-			return nil, err
-		}
-		screenTime[i] = ScreenTimeSlot{
-			StartTime: startStr,
-			EndTime:   endStr,
-		}
-	}
-
 	return GetUsersMeStatus200JSONResponse{
-		DailyScreenSeconds: user.DailyScreenSeconds,
-		DisplayName:        user.DisplayName,
-		Id:                 util.Base64UUID(user.UserID),
-		JoinedAt:           user.JoinedAt.In(loc),
-		LanguageCode:       user.LanguageCode,
-		ScreenTime:         screenTime,
+		DailyScreenSeconds: view.DailyScreenSeconds,
+		DisplayName:        view.DisplayName,
+		Id:                 util.Base64UUID(view.UserID),
+		JoinedAt:           view.JoinedAt.In(loc),
+		LanguageCode:       view.LanguageCode,
+		ScreenTime:         domainRangesToSlots(view.ScreenTimeLimitRange.ToLocalRanges(loc)),
 	}, nil
 }
 
@@ -117,7 +58,8 @@ func (h *APIHandler) PatchUsersMeStatus(ctx context.Context, request PatchUsersM
 		return nil, err
 	}
 
-	u, err := h.userService.EditUser(ctx, userID, request.Body.DisplayName, request.Body.LanguageCode, request.Body.DailyScreenSeconds, screenTimeDto, hutil.TimezoneFromContext(ctx))
+	loc := hutil.TimezoneFromContext(ctx)
+	u, rangeSet, err := h.userService.EditUser(ctx, userID, request.Body.DisplayName, request.Body.LanguageCode, request.Body.DailyScreenSeconds, screenTimeDto, loc)
 	if err != nil {
 		return nil, err
 	}
@@ -126,8 +68,9 @@ func (h *APIHandler) PatchUsersMeStatus(ctx context.Context, request PatchUsersM
 		DailyScreenSeconds: u.ScreenTimeLimit.ToIntPtr(),
 		DisplayName:        u.DisplayName.String(),
 		Id:                 util.Base64UUID(u.ID),
-		JoinedAt:           u.JoinedAt.In(hutil.TimezoneFromContext(ctx)),
+		JoinedAt:           u.JoinedAt.In(loc),
 		LanguageCode:       u.LanguageCode.String(),
+		ScreenTime:         domainRangesToSlots(rangeSet.ToLocalRanges(loc)),
 	}, nil
 }
 
@@ -141,14 +84,15 @@ func (h *APIHandler) PostUsersMe(ctx context.Context, request PostUsersMeRequest
 		return nil, hutil.ErrUserIDNotFoundInContext
 	}
 
-	u, newAccessToken, accessTokenExpiresAt, err := h.userService.CreateNewUser(
+	loc := hutil.TimezoneFromContext(ctx)
+	u, rangeSet, newAccessToken, accessTokenExpiresAt, err := h.userService.CreateNewUser(
 		ctx,
 		accessToken,
 		request.Body.DailyScreenSeconds,
 		screenTimeDto,
 		request.Body.DisplayName,
 		request.Body.LanguageCode,
-		hutil.TimezoneFromContext(ctx),
+		loc,
 	)
 	if err != nil {
 		return nil, err
@@ -169,8 +113,9 @@ func (h *APIHandler) PostUsersMe(ctx context.Context, request PostUsersMeRequest
 		DailyScreenSeconds: u.ScreenTimeLimit.ToIntPtr(),
 		DisplayName:        u.DisplayName.String(),
 		Id:                 util.Base64UUID(u.ID),
-		JoinedAt:           u.JoinedAt.In(hutil.TimezoneFromContext(ctx)),
+		JoinedAt:           u.JoinedAt.In(loc),
 		LanguageCode:       u.LanguageCode.String(),
+		ScreenTime:         domainRangesToSlots(rangeSet.ToLocalRanges(loc)),
 	}, nil
 }
 
@@ -188,4 +133,14 @@ func screenTimeSlotsToDto(slots []ScreenTimeSlot) ([]struct{ Start, End int }, e
 		result[i] = struct{ Start, End int }{start * 60, end * 60}
 	}
 	return result, nil
+}
+
+func domainRangesToSlots(ranges []userdomain.DailyScreenTimeLimitRange) []ScreenTimeSlot {
+	slots := make([]ScreenTimeSlot, len(ranges))
+	for i, r := range ranges {
+		startStr, _ := util.IntToHHmm(r.StartTimeSeconds / 60)
+		endStr, _ := util.IntToHHmm(r.EndTimeSeconds / 60)
+		slots[i] = ScreenTimeSlot{StartTime: startStr, EndTime: endStr}
+	}
+	return slots
 }
