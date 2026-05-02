@@ -131,23 +131,31 @@ var (
 		},
 		{
 			code: 1,
-			str:  "education",
+			str:  "learn_deepen",
 		},
 		{
 			code: 2,
-			str:  "technology",
+			str:  "act_practice",
 		},
 		{
 			code: 3,
-			str:  "economy",
+			str:  "rest_regulate",
 		},
 		{
 			code: 4,
-			str:  "politics",
+			str:  "catch_up",
 		},
 		{
 			code: 5,
-			str:  "music",
+			str:  "short_concise",
+		},
+		{
+			code: 6,
+			str:  "audio_only",
+		},
+		{
+			code: 7,
+			str:  "weekend_deep_dive",
 		},
 	}
 )

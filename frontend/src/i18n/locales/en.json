@@ -440,11 +440,13 @@
     "retry": "Retry",
     "categories": {
       "unknown": "Other",
-      "education": "Education",
-      "technology": "Technology",
-      "economy": "Economy",
-      "politics": "Politics",
-      "music": "Music"
+      "learn_deepen": "Learn & Deepen",
+      "act_practice": "Act & Practice",
+      "rest_regulate": "Rest & Regulate",
+      "catch_up": "Catch-up",
+      "short_concise": "Short & Concise",
+      "audio_only": "Audio Only",
+      "weekend_deep_dive": "Weekend Deep Dives"
     }
   },
   "search": {

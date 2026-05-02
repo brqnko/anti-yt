@@ -153,8 +153,8 @@ func TestNewValuableCategoryCode(t *testing.T) {
 			want:    &want{code: 0},
 			wantErr: nil,
 		},
-		"education": {
-			arg:     arg{str: "education"},
+		"learn_deepen": {
+			arg:     arg{str: "learn_deepen"},
 			want:    &want{code: 1},
 			wantErr: nil,
 		},

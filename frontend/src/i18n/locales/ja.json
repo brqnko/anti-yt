@@ -451,11 +451,13 @@
     "retry": "再試行",
     "categories": {
       "unknown": "その他",
-      "education": "教育",
-      "technology": "テクノロジー",
-      "economy": "経済",
-      "politics": "政治",
-      "music": "音楽"
+      "learn_deepen": "学ぶ・深める",
+      "act_practice": "動く・実践する",
+      "rest_regulate": "休む・整える",
+      "catch_up": "キャッチアップ",
+      "short_concise": "5分で完結",
+      "audio_only": "画面を見ない・ラジオ",
+      "weekend_deep_dive": "週末のじっくり視聴"
     }
   },
   "search": {
