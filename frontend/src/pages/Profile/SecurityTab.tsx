@@ -157,6 +157,9 @@ export function SecurityTab() {
                     {t("security.location")}
                   </th>
                   <th class="text-left px-4 py-3 font-semibold text-text-muted-light dark:text-text-muted-dark whitespace-nowrap">
+                    {t("security.userAgent")}
+                  </th>
+                  <th class="text-left px-4 py-3 font-semibold text-text-muted-light dark:text-text-muted-dark whitespace-nowrap">
                     {t("security.createdAt")}
                   </th>
                   <th class="text-left px-4 py-3 font-semibold text-text-muted-light dark:text-text-muted-dark whitespace-nowrap">
@@ -174,6 +177,9 @@ export function SecurityTab() {
                     <td class="px-4 py-3 font-bold leading-normal">{session.browser_name}</td>
                     <td class="px-4 py-3 text-text-muted-light dark:text-text-muted-dark max-w-[200px] truncate">
                       {session.city_name}, {session.country_code}
+                    </td>
+                    <td class="px-4 py-3 text-text-muted-light dark:text-text-muted-dark max-w-[280px] truncate" title={session.user_agent}>
+                      {session.user_agent}
                     </td>
                     <td class="px-4 py-3 text-text-muted-light dark:text-text-muted-dark whitespace-nowrap">
                       {new Date(session.created_at).toLocaleString()}
