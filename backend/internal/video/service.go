@@ -18,14 +18,20 @@ func NewService(db *pgxpool.Pool) *Service {
 	}
 }
 
-func (s *Service) GetVideoDetail(ctx context.Context, userID, videoID uuid.UUID) (_ GetVideoDetailView, err error) {
+func (s *Service) GetVideoDetail(ctx context.Context, userID uuid.UUID, rawID string) (_ GetVideoDetailView, err error) {
 	defer util.Wrap(&err, "video.(*Service).GetVideoDetail")
 
-	view, err := s.videoQS.Find(ctx, userID, videoID)
-	if err != nil {
-		return GetVideoDetailView{}, err
+	var videoID *uuid.UUID
+	var externalVideoID *string
+	var b util.Base64UUID
+	if parseErr := b.UnmarshalText([]byte(rawID)); parseErr == nil {
+		id := b.UUID()
+		videoID = &id
+	} else {
+		externalVideoID = &rawID
 	}
 
-	return view, nil
+	// TODO: DBに存在せず、外部IDが指定され、かつ userID != uuid.Nil の場合はYouTube APIからチャンネルと動画詳細をフェッチして保存する
+	// NOTE: channel パッケージが video パッケージをインポートしているため循環依存が発生し、channel.ChannelRepository を直接利用できない
+	return s.videoQS.FindByIDOrExternalID(ctx, userID, videoID, externalVideoID)
 }
-

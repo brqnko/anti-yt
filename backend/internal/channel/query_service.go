@@ -2,12 +2,15 @@ package channel
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -22,7 +25,7 @@ type GetSubscriptionsView struct {
 
 type ChannelQueryService interface {
 	GetSubscriptions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetSubscriptionsView, error)
-	GetChannelDetail(ctx context.Context, channelID uuid.UUID) (GetChannelDetailView, error)
+	GetChannelDetail(ctx context.Context, channelID *uuid.UUID, externalChannelID *string) (GetChannelDetailView, error)
 	GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32, order string) ([]GetChannelUploadsView, error)
 	ListChannelVideoIDs(ctx context.Context, userID, channelID uuid.UUID, limit int32) ([]uuid.UUID, error)
 }
@@ -117,11 +120,17 @@ type GetChannelDetailView struct {
 	SubscribersCount   int64
 }
 
-func (c *channelQueryServiceImpl) GetChannelDetail(ctx context.Context, channelID uuid.UUID) (_ GetChannelDetailView, err error) {
-	defer util.Wrap(&err, "channel.(*channelQueryServiceImpl).GetChannelDetail(channelID=%s)", channelID)
+func (c *channelQueryServiceImpl) GetChannelDetail(ctx context.Context, channelID *uuid.UUID, externalChannelID *string) (_ GetChannelDetailView, err error) {
+	defer util.Wrap(&err, "channel.(*channelQueryServiceImpl).GetChannelDetail")
 
-	row, err := c.q.GetChannelByPublicID(ctx, channelID)
+	row, err := c.q.GetChannelByPublicID(ctx, sqlc.GetChannelByPublicIDParams{
+		ChannelID:         channelID,
+		ExternalChannelID: externalChannelID,
+	})
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return GetChannelDetailView{}, core.ErrNotFound
+		}
 		return GetChannelDetailView{}, err
 	}
 

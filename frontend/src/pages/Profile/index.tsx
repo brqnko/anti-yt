@@ -12,6 +12,7 @@ import { RestrictionsTab } from "./RestrictionsTab";
 import { SecurityTab } from "./SecurityTab";
 import { HistoryTab } from "./HistoryTab";
 import { Icon } from "../../components/Icon";
+import { Dropdown } from "../../components/Dropdown";
 
 type Tab = "profile" | "security" | "history";
 
@@ -173,29 +174,16 @@ function ProfileContent() {
                   <label class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
                     {t("profile.language")}
                   </label>
-                  <div class="relative">
-                    <span class="absolute inset-y-0 left-3 flex items-center text-text-muted-light dark:text-text-muted-dark pointer-events-none">
-                      <Icon name="language" class="text-[20px]" />
-                    </span>
-                    <select
-                      value={languageCode}
-                      onChange={(e) =>
-                        setLanguageCode(
-                          (e.target as HTMLSelectElement).value,
-                        )
-                      }
-                      class="w-full pl-10 pr-8 py-2.5 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none font-medium"
-                    >
-                      {languages.map((lang) => (
-                        <option key={lang.code} value={lang.code}>
-                          {lang.label}
-                        </option>
-                      ))}
-                    </select>
-                    <span class="absolute inset-y-0 right-3 flex items-center text-text-muted-light dark:text-text-muted-dark pointer-events-none">
-                      <Icon name="expand_more" class="text-[20px]" />
-                    </span>
-                  </div>
+                  <Dropdown
+                    value={languageCode}
+                    onChange={setLanguageCode}
+                    ariaLabel={t("profile.language")}
+                    leadingIcon="language"
+                    options={languages.map((lang) => ({
+                      value: lang.code,
+                      label: lang.label,
+                    }))}
+                  />
                 </div>
               </div>
               <div class="px-6 py-4 border-t border-border-light dark:border-border-dark flex items-center">
@@ -243,25 +231,16 @@ function ProfileContent() {
                   <label class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
                     {t("appearance.colorMode")}
                   </label>
-                  <div class="relative">
-                    <span class="absolute inset-y-0 left-3 flex items-center text-text-muted-light dark:text-text-muted-dark pointer-events-none">
-                      <Icon name={colorModes.find((m) => m.value === mode)?.icon ?? ""} class="text-[20px]" />
-                    </span>
-                    <select
-                      value={mode}
-                      onChange={(e) => setMode((e.target as HTMLSelectElement).value as ColorMode)}
-                      class="w-full pl-10 pr-8 py-2.5 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none font-medium"
-                    >
-                      {colorModes.map((m) => (
-                        <option key={m.value} value={m.value}>
-                          {t(`common.colorMode.${m.value}`)}
-                        </option>
-                      ))}
-                    </select>
-                    <span class="absolute inset-y-0 right-3 flex items-center text-text-muted-light dark:text-text-muted-dark pointer-events-none">
-                      <Icon name="expand_more" class="text-[20px]" />
-                    </span>
-                  </div>
+                  <Dropdown
+                    value={mode}
+                    onChange={(v) => setMode(v as ColorMode)}
+                    ariaLabel={t("appearance.colorMode")}
+                    leadingIcon={modeIcons[mode]}
+                    options={colorModes.map((m) => ({
+                      value: m.value,
+                      label: t(`common.colorMode.${m.value}`),
+                    }))}
+                  />
                 </div>
               </div>
             </div>

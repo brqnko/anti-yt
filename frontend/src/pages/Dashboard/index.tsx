@@ -15,6 +15,7 @@ import { PAGE_SIZES } from "../../constants";
 import type { GetFeed200ItemsItem, GetPlaylistsRecent200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
 import { AddPlaylistDialog } from "../../components/AddPlaylistDialog";
+import { getApiErrorCode } from "../../utils/api-error";
 
 function DashboardContent() {
   const { t } = useTranslation();
@@ -26,6 +27,7 @@ function DashboardContent() {
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasNext, setHasNext] = useState(false);
+  const [feedRateLimited, setFeedRateLimited] = useState(false);
   const [subscribedChannelIds, setSubscribedChannelIds] = useState<Set<string>>(new Set());
   const [showAddPlaylist, setShowAddPlaylist] = useState(false);
   const cursorRef = useRef<string | undefined>(undefined);
@@ -34,8 +36,12 @@ function DashboardContent() {
     if (isAuthLoading) return;
     const loadData = async () => {
       try {
+        const feedResPromise = getFeed().getFeed({ limit: PAGE_SIZES.FEED }).catch((err) => {
+          if (getApiErrorCode(err) === "too_many_requests") setFeedRateLimited(true);
+          return null;
+        });
         const [feedRes, subsRes, recentRes] = await Promise.all([
-          getFeed().getFeed({ limit: PAGE_SIZES.FEED }).catch(() => null),
+          feedResPromise,
           isAuthenticated
             ? getChannel().getChannelsSubscribed({ limit: 50 }).catch(() => null)
             : Promise.resolve(null),
@@ -101,6 +107,28 @@ function DashboardContent() {
   return (
     <DashboardLayout>
       <div class="p-6">
+        {!isAuthenticated && !isAuthLoading && (
+          <a
+            href="/about"
+            class="flex items-center gap-8 px-8 py-6 rounded-xl no-underline mb-8 bg-background-light border border-border-light"
+          >
+            <div class="w-1/2 min-w-0 pl-8 flex flex-col">
+              <span class="text-4xl font-black text-charcoal mb-2">{t("dashboard.aboutBanner")}</span>
+              <span class="block text-sm font-bold text-text-muted-light">{t("dashboard.aboutBannerDesc")}</span>
+              <span class="block text-sm font-bold text-text-muted-light">{t("dashboard.aboutBannerCta")}</span>
+            </div>
+            <div class="flex flex-1 justify-center relative">
+              <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div class="w-36 h-36 bg-green-400/35 rounded-full blur-3xl translate-x-8" />
+              </div>
+              <img
+                src="/about-preview.png"
+                alt=""
+                class="w-52 h-52 object-contain shrink-0 rounded-xl relative"
+              />
+            </div>
+          </a>
+        )}
         {recentPlaylists.length > 0 && (
         <div class="mb-8">
           <div class="flex items-center justify-between mb-4">
@@ -161,6 +189,12 @@ function DashboardContent() {
         )}
         {isLoadingFeed ? (
           <LoadingSpinner />
+        ) : feedRateLimited ? (
+          <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
+            <Icon name="hourglass_top" class="text-5xl mb-4" />
+            <p class="text-sm font-medium">{t("dashboard.rateLimitedTitle")}</p>
+            <p class="text-sm mt-1">{t("dashboard.rateLimitedDesc")}</p>
+          </div>
         ) : feedVideos.length > 0 ? (
           <>
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -194,14 +228,9 @@ function DashboardContent() {
           </>
         ) : (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-            <Icon name="subscriptions" class="text-5xl mb-4" />
             <p class="text-sm mt-1">{t("dashboard.noVideosDesc")}</p>
-            <a
-              class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
-              href="/channels/explore"
-            >
-              <Icon name="recommend" class="text-[18px]" />
-              {t("dashboard.nav.recommendedChannels")}
+            <a href="/channels" class="mt-3 text-sm text-primary hover:underline">
+              {t("dashboard.goToChannels")}
             </a>
           </div>
         )}

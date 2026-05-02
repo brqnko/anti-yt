@@ -9,8 +9,8 @@ import (
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 )
 
-// ctxにuserIDがあるなら、そのユーザーのレートリミットを確認&更新する
-// operationIDQuotasに登録されていないoperationIDは1quota扱い。
+// ctxにuserIDがあり、かつoperationIDがoperationIDQuotasに登録されている場合のみレートリミットを確認&更新する。
+// operationIDQuotasに登録されていないoperationIDはチェックをスキップしてそのまま通す。
 // userQuotaLimitは1ウィンドウあたりに使えるquotaの上限。
 func UserRatelimitMiddleware(
 	repo database_d.RatelimitRepository,
@@ -24,9 +24,9 @@ func UserRatelimitMiddleware(
 				return f(ctx, w, r, request)
 			}
 
-			quota := 1 // 見つからない場合は1クオータ
-			if found, ok := operationIDQuotas[operationID]; ok {
-				quota = found
+			quota, ok := operationIDQuotas[operationID]
+			if !ok {
+				return f(ctx, w, r, request)
 			}
 			consumed, err := repo.Consume(ctx, userID, quota)
 			if err != nil {

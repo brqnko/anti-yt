@@ -1,6 +1,6 @@
 {
   "common": {
-    "notFoundMessage": "お探しのページは存在しません。正しいページに戻りましょう。",
+    "notFoundMessage": "お探しのページは存在しません。",
     "returnHome": "ホームに戻る",
     "colorMode": {
       "light": "ライトモード",
@@ -8,10 +8,10 @@
       "system": "システム設定に従う"
     },
     "close": "閉じる",
-    "authRequired": "この機能を利用するにはアカウント登録が必要です。",
+    "authRequired": "この機能を利用するには無料アカウントの登録が必要です。",
     "signInWithGoogle": "Googleでログイン",
     "oidcNoticeNoPii": "メールアドレスや氏名は取得しません。アカウント識別用のIDのみ保存します。",
-    "privacyPolicyConsentBefore": "続行することで、",
+    "privacyPolicyConsentBefore": "また、続行することで、",
     "termsLink": "利用規約",
     "privacyPolicyConsentMiddle": "および",
     "privacyPolicyLink": "プライバシーポリシー",
@@ -33,10 +33,53 @@
     "navPrivacy": "プライバシーポリシー",
     "languageSelect": "言語を選択"
   },
+  "about": {
+    "pageTitle": "anti-ytとは",
+    "hero": {
+      "title1": "YouTubeの視聴環境を、",
+      "title2": "自律的に管理する。",
+      "description": "アルゴリズムによる推奨を排除し、登録チャンネルと視聴時間の制御を目的としたインターフェースを無料で提供します。"
+    },
+    "statement": {
+      "heading": "設計による滞在時間の最大化への対処",
+      "body1": "プラットフォームの推奨アルゴリズムは、ユーザーの満足度ではなく滞在時間の最大化を目的として設計されています。",
+      "body2": "本ツールは、その設計から物理的に距離を置くための手段です。"
+    },
+    "principles": {
+      "feed": {
+        "title": "登録済みフィードへの限定",
+        "body": "推奨や関連動画を排除し、明示的に登録したコンテンツのみを時系列で表示します。不必要な情報入力を最小化し、視聴対象の選別を簡略化します。"
+      },
+      "time": {
+        "title": "時間枠の規定",
+        "body": "1日の上限および視聴可能な時間帯を定義し、システムレベルで制御します。リソースとしての時間を計画的に配分することを目的としています。"
+      },
+      "analytics": {
+        "title": "視聴データの定量化",
+        "body": "利用時間の推移をグラフで可視化し、客観的な利用状況の把握を支援します。蓄積されたログは、利用傾向の分析に活用可能です。"
+      }
+    },
+    "features": {
+      "heading": "機能仕様概略",
+      "feed": {
+        "title": "フィード",
+        "body": "API連携による登録チャンネルの取得と、時系列順のリスト表示機能。推薦アルゴリズムによる介在を排除したフィード構築を行います。"
+      },
+      "limit": {
+        "title": "視聴制限",
+        "body": "指定した閾値に基づくセッション制限およびスケジュール設定。過剰な利用を物理的に制約するための時間管理モジュールです。"
+      },
+      "analytics": {
+        "title": "アナリティクス",
+        "body": "視聴統計の自動集計。日次・週次での利用時間内訳、および対象チャンネル別の消費リソースを定量的に表示します。"
+      }
+    },
+    "finalCta": {
+      "description": "設計された環境下での視聴体験を無料で始めましょう。"
+    }
+  },
   "terms": {
     "title": "利用規約",
-    "version": "v1.0 — 2025年3月",
-    "endOfAgreement": "利用規約は以上です。",
     "sections": {
       "acceptance": {
         "title": "規約への同意",
@@ -62,8 +105,6 @@
   },
   "privacy": {
     "title": "プライバシーポリシー",
-    "version": "v1.0 — 2025年3月",
-    "endOfPolicy": "プライバシーポリシーは以上です。",
     "sections": {
       "dataCollection": {
         "title": "収集する情報",
@@ -155,7 +196,17 @@
     "showAllPlaylists": "すべて表示",
     "noVideos": "動画がありません",
     "noVideosDesc": "チャンネルを登録すると、最新の動画がここに表示されます。",
+    "goToChannels": "チャンネル一覧へ",
+    "aboutBanner": "anti-ytとは？",
+    "aboutBannerHook": "YouTubeとの付き合い方、このままでいいですか？",
+    "aboutBannerDesc": "anti-ytは、登録したチャンネルの動画だけをフィードに表示し、視聴時間を自分で管理できる無料サービスです。",
+    "aboutBannerCta": "もっと知る →",
+    "rateLimitedTitle": "しばらくお待ちください",
+    "rateLimitedDesc": "リクエスト数が上限に達しました。時間をおいてから再度お試しください。",
     "endOfFeed": "すべての動画を読み込みました",
+    "sidebarFooter": {
+      "copyright": "© 2026 anti-yt"
+    },
     "timeAgo": {
       "justNow": "たった今",
       "minutes": "{{count}}分前",

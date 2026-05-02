@@ -77,7 +77,7 @@ export function DashboardHeader({
       <div class="flex items-center gap-3 shrink-0">
         {onToggleSidebar && (
           <button
-            class="hidden lg:inline-flex p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer text-charcoal dark:text-white"
+            class="hidden tablet:inline-flex p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer text-charcoal dark:text-white"
             onClick={onToggleSidebar}
             aria-label={t("dashboard.toggleSidebar")}
             aria-expanded={sidebarOpen}
@@ -138,7 +138,7 @@ export function DashboardHeader({
         onApply={handleApplyFilters}
       />
 
-      <div class="hidden lg:flex items-center gap-4 shrink-0">
+      <div class="hidden tablet:flex items-center gap-4 shrink-0">
         <a
           href={isAuthenticated ? "/profile" : undefined}
           onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}

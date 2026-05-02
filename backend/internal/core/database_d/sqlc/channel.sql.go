@@ -149,10 +149,17 @@ SELECT
 FROM
     m_channel
 WHERE
-    m_channel.public_id = $1
+    m_channel.public_id = $1::uuid
+    OR m_channel.external_id = $2
+    OR m_channel.external_custom_id = $2
 LIMIT
     1
 `
+
+type GetChannelByPublicIDParams struct {
+	ChannelID         *uuid.UUID
+	ExternalChannelID *string
+}
 
 type GetChannelByPublicIDRow struct {
 	PublicID                 uuid.UUID
@@ -163,8 +170,8 @@ type GetChannelByPublicIDRow struct {
 	ExternalSubscribersCount int64
 }
 
-func (q *Queries) GetChannelByPublicID(ctx context.Context, channelID uuid.UUID) (GetChannelByPublicIDRow, error) {
-	row := q.db.QueryRow(ctx, getChannelByPublicID, channelID)
+func (q *Queries) GetChannelByPublicID(ctx context.Context, arg GetChannelByPublicIDParams) (GetChannelByPublicIDRow, error) {
+	row := q.db.QueryRow(ctx, getChannelByPublicID, arg.ChannelID, arg.ExternalChannelID)
 	var i GetChannelByPublicIDRow
 	err := row.Scan(
 		&i.PublicID,

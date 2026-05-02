@@ -8,7 +8,7 @@
       "system": "System preference"
     },
     "close": "Close",
-    "authRequired": "You need to create an account to use this feature.",
+    "authRequired": "You need to create a free account to use this feature.",
     "signInWithGoogle": "Sign in with Google",
     "oidcNoticeNoPii": "We do not receive your email address or name. We only store an identifier for your account.",
     "privacyPolicyConsentBefore": "By continuing, you agree to our ",
@@ -33,10 +33,53 @@
     "navPrivacy": "Privacy Policy",
     "languageSelect": "Select language"
   },
+  "about": {
+    "pageTitle": "About",
+    "hero": {
+      "title1": "Manage your YouTube",
+      "title2": "viewing on your own terms.",
+      "description": "A free interface designed to remove algorithmic recommendations and put you in control of which channels you follow and how long you watch."
+    },
+    "statement": {
+      "heading": "A response to engagement maximization by design",
+      "body1": "Recommendation algorithms are engineered to maximize time-on-platform, not user satisfaction.",
+      "body2": "This tool puts physical distance between you and that design."
+    },
+    "principles": {
+      "feed": {
+        "title": "A feed limited to your subscriptions",
+        "body": "No recommendations, no related videos — only the channels you have explicitly subscribed to, ordered chronologically. Less noise, easier choices."
+      },
+      "time": {
+        "title": "Defined time boundaries",
+        "body": "Set daily caps and allowed viewing windows, enforced at the system level. Treat your time as a resource to be allocated deliberately."
+      },
+      "analytics": {
+        "title": "Quantified viewing data",
+        "body": "Visualize your usage over time with clear graphs. The logs that accumulate help you understand your patterns objectively."
+      }
+    },
+    "features": {
+      "heading": "Feature summary",
+      "feed": {
+        "title": "Feed",
+        "body": "Subscribed channels are pulled via API and displayed in chronological order — a feed built without algorithmic interference."
+      },
+      "limit": {
+        "title": "Limit",
+        "body": "Session limits and schedules based on thresholds you define. A time-management module that physically constrains overuse."
+      },
+      "analytics": {
+        "title": "Analytics",
+        "body": "Automatic aggregation of viewing statistics — daily and weekly breakdowns plus per-channel consumption, all quantified."
+      }
+    },
+    "finalCta": {
+      "description": "Begin a free viewing experience designed on your own terms."
+    }
+  },
   "terms": {
     "title": "Terms of Service",
-    "version": "v1.0 — Mar 2025",
-    "endOfAgreement": "You have reached the end of the legal agreement.",
     "sections": {
       "acceptance": {
         "title": "Acceptance of Terms",
@@ -62,8 +105,6 @@
   },
   "privacy": {
     "title": "Privacy Policy",
-    "version": "v1.0 — Mar 2025",
-    "endOfPolicy": "You have reached the end of the privacy policy.",
     "sections": {
       "dataCollection": {
         "title": "Information We Collect",
@@ -155,7 +196,17 @@
     "showAllPlaylists": "Show all",
     "noVideos": "No videos yet",
     "noVideosDesc": "Subscribe to channels to see their latest videos here.",
+    "goToChannels": "Go to channels",
+    "aboutBanner": "What is anti-yt?",
+    "aboutBannerHook": "Is your relationship with YouTube really okay?",
+    "aboutBannerDesc": "anti-yt is a free service that shows only videos from channels you subscribe to and lets you manage your own screen time.",
+    "aboutBannerCta": "Learn more →",
+    "rateLimitedTitle": "Please wait a moment",
+    "rateLimitedDesc": "You've reached the request limit. Please try again later.",
     "endOfFeed": "You're all caught up",
+    "sidebarFooter": {
+      "copyright": "© 2026 anti-yt"
+    },
     "timeAgo": {
       "justNow": "just now",
       "minutes": "{{count}}m ago",

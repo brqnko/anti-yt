@@ -15,6 +15,7 @@ const Register = lazy(() => import("./pages/Register/index.jsx"));
 const Reactivation = lazy(() => import("./pages/Reactivation/index.jsx"));
 const Terms = lazy(() => import("./pages/Terms/index.jsx"));
 const Privacy = lazy(() => import("./pages/Privacy/index.jsx"));
+const About = lazy(() => import("./pages/About/index.jsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard/index.jsx"));
 const ChannelDetail = lazy(() => import("./pages/ChannelDetail/index.jsx"));
 const ChannelPlaylists = lazy(() => import("./pages/ChannelPlaylists/index.jsx"));
@@ -51,6 +52,7 @@ function AppContent() {
       <Route path="/reactivation" component={Reactivation} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
+      <Route path="/about" component={About} />
       <Route default component={NotFound} />
     </Router>
   );

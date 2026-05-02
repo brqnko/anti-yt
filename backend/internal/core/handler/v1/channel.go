@@ -9,7 +9,9 @@ import (
 )
 
 func (h *APIHandler) GetChannelsChannelId(ctx context.Context, request GetChannelsChannelIdRequestObject) (GetChannelsChannelIdResponseObject, error) {
-	detail, err := h.channelService.GetChannelDetail(ctx, request.ChannelId.UUID())
+	userID, _ := hutil.UserIDFromContext(ctx)
+
+	detail, err := h.channelService.GetChannelDetail(ctx, userID, request.ChannelId)
 	if err != nil {
 		return nil, err
 	}

@@ -277,7 +277,8 @@ FROM
     m_video video
     INNER JOIN m_channel channel ON video.m_channel_id = channel.m_channel_id
 WHERE
-    video.public_id = @video_id
+    video.public_id = sqlc.narg('video_id')::uuid
+    OR video.external_id = sqlc.narg('external_video_id')
 LIMIT
     1;
 
