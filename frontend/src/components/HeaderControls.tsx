@@ -11,7 +11,7 @@ export function HeaderControls() {
   const nextMode = modeOrder[(modeOrder.indexOf(mode) + 1) % modeOrder.length];
   const cycleMode = () => setMode(nextMode);
 
-  const currentLang = i18n.language.startsWith("ja") ? "ja" : "en";
+  const currentLang = languages.find((l) => l.code === i18n.language)?.code ?? "en";
   const [langOpen, setLangOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
 

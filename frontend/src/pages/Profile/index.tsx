@@ -32,7 +32,7 @@ function ProfileContent() {
 
   const [displayName, setDisplayName] = useState("");
   const [languageCode, setLanguageCode] = useState(
-    i18n.language.startsWith("ja") ? "ja" : "en",
+    languages.find((l) => l.code === i18n.language)?.code ?? "en",
   );
 
   useEffect(() => {
