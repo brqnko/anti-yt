@@ -231,6 +231,11 @@ func TestNewLanguageCode(t *testing.T) {
 			want:    &want{code: "en"},
 			wantErr: nil,
 		},
+		"zh": {
+			arg:     arg{str: "zh"},
+			want:    &want{code: "zh"},
+			wantErr: nil,
+		},
 		"invalid": {
 			arg:     arg{str: "invalid"},
 			want:    nil,
