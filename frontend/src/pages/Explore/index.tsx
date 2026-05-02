@@ -76,16 +76,24 @@ function ExploreContent() {
 
   return (
     <DashboardLayout>
+      {/* Banner */}
+      <div class="relative overflow-hidden" style={{ minHeight: "180px" }}>
+        <div
+          class="absolute inset-0"
+          style={{ backgroundImage: "url('/explore-banner.png')", backgroundSize: "cover", backgroundPosition: "center 70%" }}
+        />
+        <div class="absolute inset-0 bg-black/50" />
+        <div class="relative z-10 flex items-end px-8 sm:px-12 py-8" style={{ minHeight: "180px" }}>
+          <h1 class="text-white text-4xl font-black leading-tight tracking-[-0.033em]">
+            {t("explore.title")}
+          </h1>
+        </div>
+      </div>
+
       <div class="flex-1 flex justify-center py-8 px-4 sm:px-8">
         <div class="w-full max-w-[1440px] flex flex-col gap-8">
             {/* Header */}
             <div class="flex flex-col gap-6">
-              <div>
-                <h1 class="text-charcoal dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">
-                  {t("explore.title")}
-                </h1>
-              </div>
-
               {/* Category pills */}
               <div class="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2">
                 {CATEGORY_CODES.map((cat) => {

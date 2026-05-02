@@ -14,14 +14,9 @@ export default function NotFound() {
           {t("common.notFoundMessage")}
         </p>
       </div>
-      <div class="flex justify-center w-full">
-        <a
-          href="/"
-          class="flex items-center justify-center rounded-xl h-14 px-10 bg-primary text-white text-base font-bold transition-transform hover:scale-[1.02] active:scale-[0.98] min-w-[240px] no-underline"
-        >
-          {t("common.returnHome")}
-        </a>
-      </div>
+      <a href="/" class="text-primary hover:underline text-base">
+        {t("common.returnHome")}
+      </a>
     </main>
   );
 }

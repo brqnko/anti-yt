@@ -44,7 +44,7 @@ export function AuthPromptDialog({ open, onClose }: AuthPromptDialogProps) {
       maxWidth="max-w-sm"
     >
       <div class="flex flex-col items-center gap-6 text-center">
-        <p class="text-base text-charcoal dark:text-white">
+        <p class="text-base font-bold text-charcoal dark:text-white">
           {t("common.authRequired")}
         </p>
         <button
@@ -56,6 +56,28 @@ export function AuthPromptDialog({ open, onClose }: AuthPromptDialogProps) {
           <GoogleIcon />
           {t("common.signInWithGoogle")}
         </button>
+        <p class="text-xs text-text-muted-light dark:text-text-muted-dark leading-relaxed text-center">
+          {t("common.oidcNoticeNoPii")}{" "}
+          {t("common.privacyPolicyConsentBefore")}
+          <a
+            href="/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline hover:text-charcoal dark:hover:text-white transition-colors"
+          >
+            {t("common.termsLink")}
+          </a>
+          {t("common.privacyPolicyConsentMiddle")}
+          <a
+            href="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline hover:text-charcoal dark:hover:text-white transition-colors"
+          >
+            {t("common.privacyPolicyLink")}
+          </a>
+          {t("common.privacyPolicyConsentAfter")}
+        </p>
       </div>
     </Dialog>
   );

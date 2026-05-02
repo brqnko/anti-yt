@@ -1,7 +1,7 @@
 import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
 import type { ComponentChildren } from "preact";
-import { languages } from "../constants";
+import { HeaderControls } from "./HeaderControls";
 
 const navLinks = [
   { href: "/terms", labelKey: "legal.navTerms" },
@@ -9,7 +9,7 @@ const navLinks = [
 ];
 
 export function LegalLayout({ children }: { children: ComponentChildren }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { url } = useLocation();
 
   return (
@@ -20,21 +20,24 @@ export function LegalLayout({ children }: { children: ComponentChildren }) {
           <a href="/" class="no-underline text-inherit">
             <span class="text-xl font-bold tracking-tight">anti-yt</span>
           </a>
-          <nav class="flex items-center gap-6">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                class={`text-sm font-bold no-underline transition-colors ${
-                  url === link.href
-                    ? "text-primary"
-                    : "text-[#847862] dark:text-[#a89d89] hover:text-primary"
-                }`}
-              >
-                {t(link.labelKey)}
-              </a>
-            ))}
-          </nav>
+          <div class="flex items-center gap-6">
+            <nav class="hidden sm:flex items-center gap-6">
+              {navLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  class={`text-sm font-bold no-underline transition-colors ${
+                    url === link.href
+                      ? "text-primary"
+                      : "text-[#847862] dark:text-[#a89d89] hover:text-primary"
+                  }`}
+                >
+                  {t(link.labelKey)}
+                </a>
+              ))}
+            </nav>
+            <HeaderControls />
+          </div>
         </div>
       </header>
 
@@ -43,7 +46,7 @@ export function LegalLayout({ children }: { children: ComponentChildren }) {
 
         {/* Footer */}
         <footer class="max-w-4xl mx-auto py-16 border-t border-[#e1ddd6] dark:border-[#3d372e] flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-[#847862]">
-          <div class="flex items-center gap-6">
+          <nav class="flex items-center gap-6">
             {navLinks.map((link) => (
               <a
                 key={link.href}
@@ -57,26 +60,8 @@ export function LegalLayout({ children }: { children: ComponentChildren }) {
                 {t(link.labelKey)}
               </a>
             ))}
-          </div>
-          <div class="flex items-center gap-4">
-            <select
-              class="text-sm font-semibold text-[#847862] dark:text-[#a89d89] bg-[#f0eeea] dark:bg-[#3d372e] border-none rounded-full px-4 py-1.5 cursor-pointer outline-none"
-              aria-label={t("legal.languageSelect")}
-              value={i18n.language}
-              onChange={(e) => {
-                const lang = (e.target as HTMLSelectElement).value;
-                i18n.changeLanguage(lang);
-                localStorage.setItem("lang", lang);
-              }}
-            >
-              {languages.map((lang) => (
-                <option key={lang.code} value={lang.code}>
-                  {lang.label}
-                </option>
-              ))}
-            </select>
-            <span>&copy; {new Date().getFullYear()} anti-yt</span>
-          </div>
+          </nav>
+          <span>&copy; {new Date().getFullYear()} anti-yt</span>
         </footer>
       </main>
     </div>

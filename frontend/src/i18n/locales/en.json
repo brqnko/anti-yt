@@ -8,8 +8,14 @@
       "system": "System preference"
     },
     "close": "Close",
-    "authRequired": "You need to create an account to use this feature.",
-    "signInWithGoogle": "Sign in with Google"
+    "authRequired": "You need to create a free account to use this feature.",
+    "signInWithGoogle": "Sign in with Google",
+    "oidcNoticeNoPii": "We do not receive your email address or name. We only store an identifier for your account.",
+    "privacyPolicyConsentBefore": "By continuing, you agree to our ",
+    "termsLink": "Terms of Service",
+    "privacyPolicyConsentMiddle": " and ",
+    "privacyPolicyLink": "Privacy Policy",
+    "privacyPolicyConsentAfter": "."
   },
   "videoCard": {
     "moreOptions": "More options",
@@ -27,10 +33,53 @@
     "navPrivacy": "Privacy Policy",
     "languageSelect": "Select language"
   },
+  "about": {
+    "pageTitle": "About",
+    "hero": {
+      "title1": "Manage your YouTube",
+      "title2": "viewing on your own terms.",
+      "description": "A free interface designed to remove algorithmic recommendations and put you in control of which channels you follow and how long you watch."
+    },
+    "statement": {
+      "heading": "A response to engagement maximization by design",
+      "body1": "Recommendation algorithms are engineered to maximize time-on-platform, not user satisfaction.",
+      "body2": "This tool puts physical distance between you and that design."
+    },
+    "principles": {
+      "feed": {
+        "title": "A feed limited to your subscriptions",
+        "body": "No recommendations, no related videos — only the channels you have explicitly subscribed to, ordered chronologically. Less noise, easier choices."
+      },
+      "time": {
+        "title": "Defined time boundaries",
+        "body": "Set daily caps and allowed viewing windows, enforced at the system level. Treat your time as a resource to be allocated deliberately."
+      },
+      "analytics": {
+        "title": "Quantified viewing data",
+        "body": "Visualize your usage over time with clear graphs. The logs that accumulate help you understand your patterns objectively."
+      }
+    },
+    "features": {
+      "heading": "Feature summary",
+      "feed": {
+        "title": "Feed",
+        "body": "Subscribed channels are pulled via API and displayed in chronological order — a feed built without algorithmic interference."
+      },
+      "limit": {
+        "title": "Limit",
+        "body": "Session limits and schedules based on thresholds you define. A time-management module that physically constrains overuse."
+      },
+      "analytics": {
+        "title": "Analytics",
+        "body": "Automatic aggregation of viewing statistics — daily and weekly breakdowns plus per-channel consumption, all quantified."
+      }
+    },
+    "finalCta": {
+      "description": "Begin a free viewing experience designed on your own terms."
+    }
+  },
   "terms": {
     "title": "Terms of Service",
-    "version": "v1.0 — Mar 2025",
-    "endOfAgreement": "You have reached the end of the legal agreement.",
     "sections": {
       "acceptance": {
         "title": "Acceptance of Terms",
@@ -56,8 +105,6 @@
   },
   "privacy": {
     "title": "Privacy Policy",
-    "version": "v1.0 — Mar 2025",
-    "endOfPolicy": "You have reached the end of the privacy policy.",
     "sections": {
       "dataCollection": {
         "title": "Information We Collect",
@@ -119,8 +166,6 @@
       "bottomAnalytics": "Analytics",
       "bottomProfile": "Profile"
     },
-    "whitelistedChannels": "Whitelisted Channels",
-    "requestChannel": "Request Channel",
     "addChannelDialog": {
       "title": "Add Channel",
       "description": "Enter a YouTube channel URL or ID.",
@@ -131,8 +176,6 @@
       "error": "Failed to add channel. Please check the ID and try again.",
       "paste": "Paste from clipboard"
     },
-    "noChannels": "No channels subscribed yet.",
-    "myPlaylists": "My Playlists",
     "addPlaylist": "Create Playlist",
     "addPlaylistDialog": {
       "title": "New Playlist",
@@ -151,10 +194,19 @@
     },
     "recentPlaylists": "Recently Played Playlists",
     "showAllPlaylists": "Show all",
-    "noPlaylists": "No playlists yet.",
     "noVideos": "No videos yet",
     "noVideosDesc": "Subscribe to channels to see their latest videos here.",
+    "goToChannels": "Go to channels",
+    "aboutBanner": "What is anti-yt?",
+    "aboutBannerHook": "Is your relationship with YouTube really okay?",
+    "aboutBannerDesc": "anti-yt is a free service that shows only videos from channels you subscribe to and lets you manage your own screen time.",
+    "aboutBannerCta": "Learn more →",
+    "rateLimitedTitle": "Please wait a moment",
+    "rateLimitedDesc": "You've reached the request limit. Please try again later.",
     "endOfFeed": "You're all caught up",
+    "sidebarFooter": {
+      "copyright": "© 2026 anti-yt"
+    },
     "timeAgo": {
       "justNow": "just now",
       "minutes": "{{count}}m ago",
@@ -179,22 +231,10 @@
     "saving": "Saving...",
     "saved": "Saved!",
     "zeroTimeError": "Daily cap limit must be greater than 0 minutes.",
-    "whitelist": "Whitelist",
-    "searchChannels": "Search channels...",
-    "noChannels": "No channels subscribed yet.",
-    "saveError": "Failed to save. Please try again.",
-    "unsubscribeError": "Failed to unsubscribe.",
-    "removeChannelDialog": {
-      "title": "Remove Channel",
-      "description": "Are you sure you want to remove \"{{name}}\" from the whitelist? Content from this channel will no longer be allowed.",
-      "cancel": "Cancel",
-      "remove": "Remove",
-      "removing": "Removing..."
-    }
+    "saveError": "Failed to save. Please try again."
   },
   "profile": {
     "pageTitle": "Profile",
-    "title": "Profile",
     "nav": {
       "profileSettings": "Profile",
       "security": "Security",
@@ -230,14 +270,12 @@
     "cancel": "Cancel"
   },
   "security": {
-    "title": "Security",
-    "currentSession": "Current Session",
-    "activeNow": "Active Now",
-    "loggedInAt": "Logged In",
-    "lastActivity": "Last Activity",
-    "ipAddress": "IP Address",
-    "userAgent": "User Agent",
-    "otherSessions": "Other Active Sessions",
+    "activeSessions": "Active Sessions",
+    "device": "Device",
+    "location": "Location",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "logout": "Sign out",
     "revoke": "Revoke",
     "revokeConfirmTitle": "Revoke Session?",
     "revokeConfirmDesc": "The session on \"{{name}}\" will be logged out immediately. This action cannot be undone.",
@@ -247,11 +285,6 @@
     "loadError": "Failed to load sessions.",
     "revokeError": "Failed to revoke session. Please try again.",
     "retry": "Retry",
-    "justNow": "Just now",
-    "minutesAgo": "{{count}}m ago",
-    "hoursAgo": "{{count}}h ago",
-    "daysAgo": "{{count}}d ago",
-    "monthsAgo": "{{count}}mo ago",
     "loadMore": "Load More"
   },
   "appearance": {
@@ -270,13 +303,13 @@
     "notFound": "Channel not found",
     "showMore": "Show more",
     "showLess": "Show less",
-    "playlists": "Playlists"
+    "playlists": "Playlists",
+    "openOnYouTube": "Open on YouTube"
   },
   "videoPlayer": {
     "pageTitle": "Video Player",
     "notFound": "Video not found",
 "curatedPlaylist": "Curated Playlist",
-    "viewPlaylist": "View Full Playlist",
     "addToPlaylist": "Save",
     "playlist": "Playlist",
     "watchLater": "Watch Later",
@@ -291,14 +324,13 @@
     "fullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "seekBar": "Seek bar",
-    "postedSuffix": " posted"
+    "openOnYouTube": "Open on YT"
   },
   "analytics": {
     "pageTitle": "Analytics",
     "title": "Analytics",
     "timeWasted": "Time Watched",
     "dailyAverage": "Daily Average",
-    "weeklyAverageGoal": "Weekly Avg Goal",
     "weeklyUsageTrends": "This Week's Usage",
     "dailyLimit": "Daily Limit ({{hours}}h)",
     "tooltipVideos": "{{count}} videos",
@@ -318,7 +350,6 @@
   },
   "history": {
     "pageTitle": "Watch History",
-    "title": "Watch History",
     "today": "Today",
     "yesterday": "Yesterday",
     "noHistory": "No watch history",
@@ -331,8 +362,6 @@
     "pageTitle": "Playlists",
     "title": "Playlists",
     "createNew": "New Playlist",
-    "videoCount_one": "{{count}} video",
-    "videoCount_other": "{{count}} videos",
     "lastUpdated": "Last updated {{time}}",
     "createdAt": "Created {{time}}",
     "empty": "No playlists yet",
@@ -345,7 +374,6 @@
     "videos": "Videos",
     "edit": "Edit",
     "addVideo": "Add Video",
-    "addVideoLabel": "YouTube video URL or ID",
     "addVideoPlaceholder": "https://youtube.com/watch?v=... or video ID",
     "addVideoButton": "Add",
     "addVideoAdding": "Adding...",

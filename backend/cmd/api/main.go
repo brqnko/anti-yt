@@ -138,7 +138,7 @@ func run(ctx context.Context) int {
 	feedRepo := database_d.NewFeedRepository(redisClient, 1000)
 
 	job.NewPurgeLeftUserJob(db, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL)).Run()
-	job.NewRefillFeedJob(db, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL)).Run()
+	job.NewRefillFeedJob(db, feedRepo).Run()
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
@@ -183,15 +183,15 @@ func run(ctx context.Context) int {
 		slog.Error("failed to setup purge left user job", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("50 6 * * *", job.NewExhaustQuotaJob(db, ytService, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil { // 夏
+	if err := scheduler.AddFunc("50 6 * * *", job.NewExhaustQuotaJob(db, ytService, feedRepo)); err != nil { // 夏
 		slog.Error("failed to setup exhaust quota job (PDT)", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("50 7 * * *", job.NewExhaustQuotaJob(db, ytService, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil { // 冬
+	if err := scheduler.AddFunc("50 7 * * *", job.NewExhaustQuotaJob(db, ytService, feedRepo)); err != nil { // 冬
 		slog.Error("failed to setup exhaust quota job (PST)", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("0 * * * *", job.NewRefillFeedJob(db, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
+	if err := scheduler.AddFunc("0 * * * *", job.NewRefillFeedJob(db, feedRepo)); err != nil {
 		slog.Error("failed to setup refill feed job", slog.Any("error", err))
 		return 1
 	}

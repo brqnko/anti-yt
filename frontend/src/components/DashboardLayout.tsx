@@ -1,21 +1,12 @@
-import { useState, useEffect, useCallback } from "preact/hooks";
+import { useState, useCallback } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
 import type { ComponentChildren } from "preact";
-import useSWR from "swr";
 import { DashboardHeader } from "./DashboardHeader";
-import { AddChannelDialog } from "./AddChannelDialog";
-import { AddPlaylistDialog } from "./AddPlaylistDialog";
 import { AuthPromptDialog } from "./AuthPromptDialog";
-import { getChannel } from "../api/generated/channel";
-import { getPlaylist } from "../api/generated/playlist";
 import { useAuth } from "../contexts/AuthContext";
-import { CACHE_KEYS } from "../api/cache-keys";
 import { Icon } from "./Icon";
-import type {
-  GetChannelsSubscribed200ItemsItem,
-  GetPlaylists200ItemsItem,
-} from "../api/generated/antiYtApi.schemas";
+import { REPORT_FORM_URL } from "../constants";
 
 const SIDEBAR_STORAGE_KEY = "sidebar-open";
 
@@ -35,37 +26,9 @@ export function DashboardLayout({
   const { t } = useTranslation();
   const { url } = useLocation();
   const { isAuthenticated } = useAuth();
-  const [showAddChannel, setShowAddChannel] = useState(false);
-  const [showAddPlaylist, setShowAddPlaylist] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   const [sidebarOpen, setSidebarOpen] = useState(getStoredSidebarState);
-
-  const {
-    data: subscriptions = [],
-    isLoading: isSubscriptionsLoading,
-    mutate: mutateSubscriptions,
-  } = useSWR<GetChannelsSubscribed200ItemsItem[]>(
-    isAuthenticated ? CACHE_KEYS.dashboardSubscriptions : null,
-    async () => {
-      const res = await getChannel().getChannelsSubscribed({ limit: 10 });
-      return res.items;
-    },
-  );
-
-  const {
-    data: playlists = [],
-    isLoading: isPlaylistsLoading,
-    mutate: mutatePlaylists,
-  } = useSWR<GetPlaylists200ItemsItem[]>(
-    isAuthenticated ? CACHE_KEYS.dashboardPlaylists : null,
-    async () => {
-      const res = await getPlaylist().getPlaylists({ limit: 10 });
-      return res.items;
-    },
-  );
-
-  const isLoaded = !isSubscriptionsLoading && !isPlaylistsLoading;
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((v) => {
@@ -75,186 +38,105 @@ export function DashboardLayout({
     });
   }, []);
 
-  // Close sidebar on mobile when navigating
-  useEffect(() => {
-    if (window.innerWidth < 1024) {
-      setSidebarOpen(false);
-    }
-  }, [url]);
+  const navItemClass = (active: boolean) =>
+    `flex items-center gap-3 px-3 py-2 rounded-lg no-underline cursor-pointer transition-colors ${
+      active
+        ? "bg-primary/10 text-primary font-bold"
+        : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-charcoal dark:hover:text-white font-medium"
+    }`;
 
   return (
-    <div class="relative flex lg:h-dvh w-full flex-col lg:overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
+    <div class="relative flex min-h-dvh tablet:h-dvh w-full flex-col tablet:overflow-hidden bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display antialiased">
       <DashboardHeader sidebarOpen={sidebarOpen} onToggleSidebar={toggleSidebar} />
 
-      <div class="flex flex-1 w-full max-w-[1600px] mx-auto lg:overflow-hidden">
-        {/* Mobile backdrop (desktop only) */}
-        {sidebarOpen && (
-          <div
-            class="fixed inset-0 z-30 bg-black/40 hidden lg:hidden"
-            onClick={toggleSidebar}
-          />
-        )}
-
-        {/* Sidebar (desktop only) */}
+      <div class="flex flex-1 w-full tablet:overflow-hidden">
+        {/* Sidebar (tablet and up): full when open, fully hidden when closed */}
         <aside
-          class={`hidden lg:flex flex-col border-r border-border-light dark:border-border-dark shrink-0 transition-[width,opacity,transform] duration-200
-            lg:relative lg:top-auto lg:bottom-auto lg:z-auto
-            ${sidebarOpen
-              ? "w-64 opacity-100 translate-x-0 overflow-y-auto overflow-x-hidden"
-              : "w-0 opacity-0 lg:translate-x-0 overflow-hidden"
-            }`}
+          class={`hidden tablet:flex flex-col border-r border-border-light dark:border-border-dark shrink-0 transition-[width,opacity] duration-200 ${
+            sidebarOpen
+              ? "w-64 opacity-100 overflow-hidden"
+              : "w-0 opacity-0 overflow-hidden"
+          }`}
           role="navigation"
           aria-label={t("dashboard.nav.sidebar")}
+          aria-hidden={!sidebarOpen}
         >
-          <div class="flex flex-col gap-6 px-6 pb-6 pt-4 min-w-[16rem]">
-            <nav class="flex flex-col gap-1" aria-label={t("dashboard.nav.mainNav")}>
+          <div class="flex flex-col overflow-y-auto flex-1 min-w-64">
+            <nav class="flex flex-col gap-1 p-2 pt-4" aria-label={t("dashboard.nav.mainNav")}>
               <a
-                class={`flex items-center gap-3 px-3 py-2 rounded-lg font-bold no-underline ${
-                  url === "/"
-                    ? "bg-primary/10 text-primary"
-                    : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-charcoal dark:hover:text-white font-medium transition-colors"
-                }`}
+                class={navItemClass(url === "/")}
                 href="/"
                 aria-current={url === "/" ? "page" : undefined}
               >
-                <Icon name="home" />
-                {t("dashboard.nav.mainFeed")}
+                <Icon name="home" class="shrink-0 text-xl" />
+                <span class="truncate text-sm">{t("dashboard.nav.mainFeed")}</span>
               </a>
               <a
-                class={`flex items-center gap-3 px-3 py-2 rounded-lg no-underline cursor-pointer ${
-                  url === "/analytics"
-                    ? "bg-primary/10 text-primary font-bold"
-                    : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-charcoal dark:hover:text-white font-medium transition-colors"
-                }`}
+                class={navItemClass(url === "/analytics")}
                 href={isAuthenticated ? "/analytics" : undefined}
                 onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
                 aria-current={url === "/analytics" ? "page" : undefined}
               >
-                <Icon name="analytics" />
-                {t("dashboard.nav.analytics")}
+                <Icon name="analytics" class="shrink-0 text-xl" />
+                <span class="truncate text-sm">{t("dashboard.nav.analytics")}</span>
               </a>
               <a
-                class={`flex items-center gap-3 px-3 py-2 rounded-lg no-underline cursor-pointer ${
-                  url === "/channels" || url === "/channels/explore"
-                    ? "bg-primary/10 text-primary font-bold"
-                    : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-charcoal dark:hover:text-white font-medium transition-colors"
-                }`}
+                class={navItemClass(url === "/channels" || url === "/channels/explore")}
                 href={isAuthenticated ? "/channels" : undefined}
                 onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
                 aria-current={url === "/channels" || url === "/channels/explore" ? "page" : undefined}
               >
-                <Icon name="subscriptions" />
-                {t("dashboard.nav.bottomChannels")}
+                <Icon name="subscriptions" class="shrink-0 text-xl" />
+                <span class="truncate text-sm">{t("dashboard.nav.bottomChannels")}</span>
               </a>
               <a
-                class={`flex items-center gap-3 px-3 py-2 rounded-lg no-underline cursor-pointer ${
-                  url === "/playlists" || url.startsWith("/playlists/")
-                    ? "bg-primary/10 text-primary font-bold"
-                    : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-charcoal dark:hover:text-white font-medium transition-colors"
-                }`}
+                class={navItemClass(url === "/playlists" || url.startsWith("/playlists/"))}
                 href={isAuthenticated ? "/playlists" : undefined}
                 onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
                 aria-current={url === "/playlists" || url.startsWith("/playlists/") ? "page" : undefined}
               >
-                <Icon name="playlist_play" />
-                {t("dashboard.nav.playlists")}
+                <Icon name="playlist_play" class="shrink-0 text-xl" />
+                <span class="truncate text-sm">{t("dashboard.nav.playlists")}</span>
               </a>
-
             </nav>
+          </div>
 
-            <div class="h-px bg-border-light dark:bg-border-dark w-full my-2" role="separator" />
-
-            {/* Whitelisted Channels */}
-            <div class="flex flex-col gap-4">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark px-3">
-                {t("dashboard.whitelistedChannels")}
-              </h3>
-              <div class="flex flex-col gap-2 max-h-32 overflow-y-auto">
-                {subscriptions.map((sub) => (
-                  <a
-                    key={sub.channel_id}
-                    class={`flex items-center gap-3 px-3 py-2 hover:bg-card-light dark:hover:bg-card-dark rounded-lg group transition-colors no-underline ${
-                      url === `/channels/${sub.channel_id}` ? "bg-primary/10" : ""
-                    }`}
-                    href={`/channels/${sub.channel_id}`}
-                    aria-current={url === `/channels/${sub.channel_id}` ? "page" : undefined}
-                  >
-                    <div class="size-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden shrink-0">
-                      <img
-                        alt={sub.external_channel_display_name}
-                        loading="lazy"
-                        class="w-full h-full object-cover"
-                        src={sub.external_channel_icon_url}
-                      />
-                    </div>
-                    <span class="text-sm font-medium text-charcoal dark:text-white group-hover:text-primary transition-colors truncate">
-                      {sub.external_channel_display_name}
-                    </span>
-                  </a>
-                ))}
-                {subscriptions.length === 0 && isLoaded && (
-                  <p class="text-xs text-text-muted-light dark:text-text-muted-dark px-3">
-                    {t("dashboard.noChannels")}
-                  </p>
-                )}
-              </div>
-              <button
-                  class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium mt-1 cursor-pointer bg-transparent border-none group/add"
-                  onClick={() => isAuthenticated ? setShowAddChannel(true) : setShowAuthPrompt(true)}
-                >
-                  <Icon name="add" class="text-[18px]" />
-                  <span class="group-hover/add:underline">{t("dashboard.requestChannel")}</span>
-                </button>
-            </div>
-
-            <div class="h-px bg-border-light dark:bg-border-dark w-full my-2" role="separator" />
-
-            {/* Playlists */}
-            <div class="flex flex-col gap-4">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark px-3">
-                {t("dashboard.myPlaylists")}
-              </h3>
-              <div class="flex flex-col gap-2 max-h-36 overflow-y-auto">
-                {playlists.map((pl) => (
-                  <a
-                    key={pl.playlist_id}
-                    class={`flex items-center gap-3 px-3 py-2 hover:bg-card-light dark:hover:bg-card-dark rounded-lg group transition-colors no-underline ${
-                      url === `/playlists/${pl.playlist_id}` ? "bg-primary/10" : ""
-                    }`}
-                    href={`/playlists/${pl.playlist_id}`}
-                  >
-                    <Icon name="playlist_play" class="text-text-muted-light dark:text-text-muted-dark group-hover:text-primary" />
-                    <span class="text-sm font-medium text-charcoal dark:text-white truncate">
-                      {pl.playlist_title}
-                    </span>
-                  </a>
-                ))}
-                {playlists.length === 0 && isLoaded && (
-                  <p class="text-xs text-text-muted-light dark:text-text-muted-dark px-3">
-                    {t("dashboard.noPlaylists")}
-                  </p>
-                )}
-              </div>
-              <button
-                class="flex items-center gap-2 px-3 py-2 text-sm text-primary font-medium mt-1 cursor-pointer bg-transparent border-none group/add"
-                onClick={() => isAuthenticated ? setShowAddPlaylist(true) : setShowAuthPrompt(true)}
+          <div class="shrink-0 border-t border-border-light dark:border-border-dark px-2 min-w-64">
+            <div class="pt-2 pb-1">
+              <a
+                href={REPORT_FORM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                class={navItemClass(false)}
               >
-                <Icon name="add" class="text-[18px]" />
-                <span class="group-hover/add:underline">{t("dashboard.addPlaylist")}</span>
-              </button>
+                <Icon name="flag" class="shrink-0 text-xl" />
+                <span class="truncate text-sm">{t("profile.nav.reportProblem")}</span>
+              </a>
             </div>
+            <div class="border-t border-border-light dark:border-border-dark mx-1 my-1" />
+            <div class="px-3 py-2 flex flex-wrap gap-x-3 gap-y-2">
+              <a href="/terms" class="text-xs text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline transition-colors">
+                {t("common.termsLink")}
+              </a>
+              <a href="/privacy" class="text-xs text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline transition-colors">
+                {t("common.privacyPolicyLink")}
+              </a>
+            </div>
+            <p class="px-3 pb-4 text-xs text-text-muted-light dark:text-text-muted-dark">
+              {t("dashboard.sidebarFooter.copyright")}
+            </p>
           </div>
         </aside>
 
         {/* Main Content */}
-        <main class="flex-1 flex flex-col min-w-0 lg:overflow-y-auto overflow-x-hidden pb-14 lg:pb-0">
+        <main class="flex-1 flex flex-col min-w-0 tablet:overflow-y-auto overflow-x-hidden pb-14 tablet:pb-0">
           {children}
         </main>
       </div>
 
-      {/* Bottom Navigation (mobile only) */}
+      {/* Bottom Navigation (below 657px only) */}
       <nav
-        class="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden items-center justify-around border-t border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark"
+        class="fixed bottom-0 left-0 right-0 z-50 flex tablet:hidden items-center justify-around border-t border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark"
         aria-label={t("dashboard.nav.mainNav")}
       >
         <a
@@ -334,16 +216,6 @@ export function DashboardLayout({
         </a>
       </nav>
 
-      <AddChannelDialog
-        open={showAddChannel}
-        onClose={() => setShowAddChannel(false)}
-        onAdded={() => mutateSubscriptions()}
-      />
-      <AddPlaylistDialog
-        open={showAddPlaylist}
-        onClose={() => setShowAddPlaylist(false)}
-        onAdded={() => mutatePlaylists()}
-      />
       <AuthPromptDialog
         open={showAuthPrompt}
         onClose={() => setShowAuthPrompt(false)}

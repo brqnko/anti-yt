@@ -94,7 +94,7 @@ func TestUserRatelimitMiddleware(t *testing.T) {
 		assert.Equal(t, 100, repo.get(userID))
 	})
 
-	t.Run("operationID not in quota map: falls back to default quota 1", func(t *testing.T) {
+	t.Run("operationID not in quota map: skips rate limit check", func(t *testing.T) {
 		// arrange
 		repo := newFakeRatelimitRepo()
 		userID := uuid.Must(uuid.NewV7())
@@ -112,7 +112,7 @@ func TestUserRatelimitMiddleware(t *testing.T) {
 		// assert
 		require.NoError(t, err)
 		assert.True(t, spy.called)
-		assert.Equal(t, 1, repo.get(userID))
+		assert.Equal(t, 0, repo.get(userID)) // repoに触れていない
 	})
 
 	t.Run("within limit: passes", func(t *testing.T) {
@@ -122,8 +122,8 @@ func TestUserRatelimitMiddleware(t *testing.T) {
 		repo.set(userID, 9) // limit 10 の直前
 
 		spy := &spyHandler{}
-		mw := middleware_d.UserRatelimitMiddleware(repo, 10, map[string]int{})
-		wrapped := mw(spy.fn(), "NoopOperation") // default quota=1
+		mw := middleware_d.UserRatelimitMiddleware(repo, 10, map[string]int{"NoopOperation": 1})
+		wrapped := mw(spy.fn(), "NoopOperation")
 		reqCtx := hutil.WithUserID(ctx, userID)
 
 		// action: pre-request = 9 < 10 なので通る
@@ -142,8 +142,8 @@ func TestUserRatelimitMiddleware(t *testing.T) {
 		repo.set(userID, 10) // 既に limit ちょうどまで消費している状態
 
 		spy := &spyHandler{}
-		mw := middleware_d.UserRatelimitMiddleware(repo, 10, map[string]int{})
-		wrapped := mw(spy.fn(), "NoopOperation") // default quota=1
+		mw := middleware_d.UserRatelimitMiddleware(repo, 10, map[string]int{"NoopOperation": 1})
+		wrapped := mw(spy.fn(), "NoopOperation")
 		reqCtx := hutil.WithUserID(ctx, userID)
 
 		// action: pre-request = 10 >= 10 なので拒否
@@ -186,7 +186,7 @@ func TestUserRatelimitMiddleware(t *testing.T) {
 		userID := uuid.Must(uuid.NewV7())
 
 		spy := &spyHandler{}
-		mw := middleware_d.UserRatelimitMiddleware(repo, 10, map[string]int{})
+		mw := middleware_d.UserRatelimitMiddleware(repo, 10, map[string]int{"NoopOperation": 1})
 		wrapped := mw(spy.fn(), "NoopOperation")
 		reqCtx := hutil.WithUserID(ctx, userID)
 

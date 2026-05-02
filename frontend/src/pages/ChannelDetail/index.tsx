@@ -35,6 +35,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
   const [order, setOrder] = useState<GetChannelsChannelIdVideosOrder>("newer");
   const [watchedVideoIds, setWatchedVideoIds] = useState<Set<string>>(new Set());
   const cursorRef = useRef<string | undefined>(undefined);
+  const channelUuidRef = useRef<string | undefined>(undefined);
 
   useTitle(channelInfo?.external_channel_display_name ?? t("channelDetail.pageTitle"));
 
@@ -43,6 +44,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     setVideos([]);
     setHasNextVideos(false);
     cursorRef.current = undefined;
+    channelUuidRef.current = undefined;
   }, [channelId]);
 
   useEffect(() => {
@@ -50,21 +52,22 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     const load = async () => {
       setIsVideosLoading(true);
       try {
-        const [channelRes, videosRes, playlistsRes, subsRes] = await Promise.all([
-          getChannel().getChannelsChannelId(channelId).catch(() => null),
-          getChannel().getChannelsChannelIdVideos(channelId, { limit: PAGE_SIZES.CHANNEL_VIDEOS, order }).catch(() => null),
-          getChannel().getChannelsChannelIdPlaylists(channelId, { limit: PAGE_SIZES.CHANNEL_PLAYLISTS }).catch(() => null),
+        const channelRes = await getChannel().getChannelsChannelId(channelId).catch(() => null);
+        if (!channelRes) return;
+        setChannelInfo(channelRes);
+        const uuid = channelRes.channel_id;
+        channelUuidRef.current = uuid;
+
+        const [videosRes, playlistsRes, subsRes] = await Promise.all([
+          getChannel().getChannelsChannelIdVideos(uuid, { limit: PAGE_SIZES.CHANNEL_VIDEOS, order }).catch(() => null),
+          getChannel().getChannelsChannelIdPlaylists(uuid, { limit: PAGE_SIZES.CHANNEL_PLAYLISTS }).catch(() => null),
           isAuthenticated
             ? getChannel().getChannelsSubscribed({ limit: 50 }).catch(() => null)
             : Promise.resolve(null),
         ]);
 
-        if (channelRes) {
-          setChannelInfo(channelRes);
-        }
-
         if (subsRes) {
-          const found = subsRes.items.find(s => s.channel_id === channelId);
+          const found = subsRes.items.find(s => s.channel_id === uuid);
           if (found) {
             setIsSubscribed(true);
           }
@@ -91,9 +94,11 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasNextVideos) return;
+    const uuid = channelUuidRef.current;
+    if (!uuid) return;
     setIsLoadingMore(true);
     try {
-      const res = await getChannel().getChannelsChannelIdVideos(channelId, { limit: PAGE_SIZES.CHANNEL_VIDEOS, cursor: cursorRef.current, order });
+      const res = await getChannel().getChannelsChannelIdVideos(uuid, { limit: PAGE_SIZES.CHANNEL_VIDEOS, cursor: cursorRef.current, order });
       setVideos(prev => [...prev, ...res.items]);
       setHasNextVideos(res.has_next);
       setWatchedVideoIds(prev => {
@@ -108,7 +113,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [channelId, isLoadingMore, hasNextVideos, order]);
+  }, [isLoadingMore, hasNextVideos, order]);
 
   const sentinelRef = useInfiniteScroll(loadMore);
 

@@ -11,6 +11,7 @@ import Computer from "~icons/material-symbols/computer-outline";
 import ContentPaste from "~icons/material-symbols/content-paste";
 import DarkMode from "~icons/material-symbols/dark-mode-outline";
 import Delete from "~icons/material-symbols/delete-outline";
+import DeleteForever from "~icons/material-symbols/delete-forever-outline";
 import DesktopWindows from "~icons/material-symbols/desktop-windows-outline";
 import Devices from "~icons/material-symbols/devices-outline";
 import Edit from "~icons/material-symbols/edit-outline";
@@ -61,6 +62,7 @@ import VideocamOff from "~icons/material-symbols/videocam-off-outline";
 import VolumeDown from "~icons/material-symbols/volume-down-outline";
 import VolumeOff from "~icons/material-symbols/volume-off-outline";
 import VolumeUp from "~icons/material-symbols/volume-up-outline";
+import OpenInNew from "~icons/material-symbols/open-in-new";
 import Warning from "~icons/material-symbols/warning-outline";
 
 const iconMap: Record<string, string> = {
@@ -77,6 +79,7 @@ const iconMap: Record<string, string> = {
   content_paste: ContentPaste,
   dark_mode: DarkMode,
   delete: Delete,
+  delete_forever: DeleteForever,
   desktop_windows: DesktopWindows,
   devices: Devices,
   edit: Edit,
@@ -101,6 +104,7 @@ const iconMap: Record<string, string> = {
   memory: Memory,
   menu: Menu,
   more_vert: MoreVert,
+  open_in_new: OpenInNew,
   music_note: MusicNote,
   pause: Pause,
   person: Person,

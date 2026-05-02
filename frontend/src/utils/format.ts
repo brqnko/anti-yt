@@ -50,7 +50,7 @@ export function formatTimeAgo(
   const days = Math.floor(diff / 86400000);
   const weeks = Math.floor(days / 7);
   const months = Math.floor(days / 30);
-  const years = Math.floor(days / 365);
+  const years = Math.floor(months / 12);
 
   if (years > 0) return t("dashboard.timeAgo.years", { count: years });
   if (months > 0) return t("dashboard.timeAgo.months", { count: months });

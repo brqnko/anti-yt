@@ -49,14 +49,16 @@ FROM
     m_video video
     INNER JOIN m_channel channel ON video.m_channel_id = channel.m_channel_id
 WHERE
-    video.public_id = $2
+    video.public_id = $2::uuid
+    OR video.external_id = $3
 LIMIT
     1
 `
 
 type GetVideoDetailParams struct {
-	UserID  uuid.UUID
-	VideoID uuid.UUID
+	UserID          uuid.UUID
+	VideoID         *uuid.UUID
+	ExternalVideoID *string
 }
 
 type GetVideoDetailRow struct {
@@ -77,7 +79,7 @@ type GetVideoDetailRow struct {
 }
 
 func (q *Queries) GetVideoDetail(ctx context.Context, arg GetVideoDetailParams) (GetVideoDetailRow, error) {
-	row := q.db.QueryRow(ctx, getVideoDetail, arg.UserID, arg.VideoID)
+	row := q.db.QueryRow(ctx, getVideoDetail, arg.UserID, arg.VideoID, arg.ExternalVideoID)
 	var i GetVideoDetailRow
 	err := row.Scan(
 		&i.ID,

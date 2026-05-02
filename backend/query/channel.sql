@@ -195,7 +195,9 @@ SELECT
 FROM
     m_channel
 WHERE
-    m_channel.public_id = @channel_id
+    m_channel.public_id = sqlc.narg('channel_id')::uuid
+    OR m_channel.external_id = sqlc.narg('external_channel_id')
+    OR m_channel.external_custom_id = sqlc.narg('external_channel_id')
 LIMIT
     1;
 
