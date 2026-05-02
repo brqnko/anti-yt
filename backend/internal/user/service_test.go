@@ -79,7 +79,7 @@ func TestService_CreateNewUser(t *testing.T) {
 
 		screenLimit := 3600
 		// action
-		u, accessToken, expiresAt, err := svc.CreateNewUser(
+		u, _, accessToken, expiresAt, err := svc.CreateNewUser(
 			ctx,
 			"register-token",
 			&screenLimit,
@@ -140,7 +140,7 @@ func TestService_CreateNewUser(t *testing.T) {
 		}
 
 		// action
-		u, _, _, err := svc.CreateNewUser(
+		u, rangeSet, _, _, err := svc.CreateNewUser(
 			ctx, "register-token", &screenLimit, ranges, "Ranged User", "en", time.UTC,
 		)
 
@@ -148,6 +148,11 @@ func TestService_CreateNewUser(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "Ranged User", u.DisplayName.String())
 		assert.Equal(t, "en", u.LanguageCode.String())
+		require.NotNil(t, rangeSet)
+		assert.Equal(t, []user.DailyScreenTimeLimitRange{
+			{StartTimeSeconds: 3600, EndTimeSeconds: 7200},
+			{StartTimeSeconds: 36000, EndTimeSeconds: 72000},
+		}, rangeSet.Ranges)
 	})
 
 	t.Run("unlimited screen time", func(t *testing.T) {
@@ -187,7 +192,7 @@ func TestService_CreateNewUser(t *testing.T) {
 		)
 
 		// action
-		u, _, _, err := svc.CreateNewUser(
+		u, _, _, _, err := svc.CreateNewUser(
 			ctx, "register-token", nil, nil, "Unlimited User", "ja", time.UTC,
 		)
 
@@ -211,7 +216,7 @@ func TestService_CreateNewUser(t *testing.T) {
 		)
 
 		// action
-		_, _, _, err := svc.CreateNewUser(
+		_, _, _, _, err := svc.CreateNewUser(
 			ctx, "invalid-token", nil, nil, "Test User", "ja", time.UTC,
 		)
 
@@ -233,7 +238,7 @@ func TestService_CreateNewUser(t *testing.T) {
 		)
 
 		// action
-		_, _, _, err := svc.CreateNewUser(
+		_, _, _, _, err := svc.CreateNewUser(
 			ctx, "register-token", nil, nil, "", "ja", time.UTC,
 		)
 
@@ -255,7 +260,7 @@ func TestService_CreateNewUser(t *testing.T) {
 		)
 
 		// action
-		_, _, _, err := svc.CreateNewUser(
+		_, _, _, _, err := svc.CreateNewUser(
 			ctx, "register-token", nil, nil, "Test User", "xx", time.UTC,
 		)
 
@@ -286,7 +291,7 @@ func TestService_CreateNewUser(t *testing.T) {
 		)
 
 		// action
-		_, _, _, err := svc.CreateNewUser(
+		_, _, _, _, err := svc.CreateNewUser(
 			ctx, "register-token", nil, nil, "Duplicate User", "ja", time.UTC,
 		)
 
@@ -326,7 +331,7 @@ func TestService_CreateNewUser(t *testing.T) {
 		)
 
 		// action
-		_, _, _, err = svc.CreateNewUser(
+		_, _, _, _, err = svc.CreateNewUser(
 			ctx, "register-token", nil, nil, "Test User", "ja", time.UTC,
 		)
 
@@ -349,7 +354,7 @@ func TestService_EditUser(t *testing.T) {
 		newName := "Updated Name"
 
 		// action
-		u, err := svc.EditUser(ctx, userPublicID, &newName, nil, nil, nil, time.UTC)
+		u, _, err := svc.EditUser(ctx, userPublicID, &newName, nil, nil, nil, time.UTC)
 
 		// assert
 		require.NoError(t, err)
@@ -367,7 +372,7 @@ func TestService_EditUser(t *testing.T) {
 		newLang := "en"
 
 		// action
-		u, err := svc.EditUser(ctx, userPublicID, nil, &newLang, nil, nil, time.UTC)
+		u, _, err := svc.EditUser(ctx, userPublicID, nil, &newLang, nil, nil, time.UTC)
 
 		// assert
 		require.NoError(t, err)
@@ -385,7 +390,7 @@ func TestService_EditUser(t *testing.T) {
 		newLimit := 7200
 
 		// action
-		u, err := svc.EditUser(ctx, userPublicID, nil, nil, &newLimit, nil, time.UTC)
+		u, _, err := svc.EditUser(ctx, userPublicID, nil, nil, &newLimit, nil, time.UTC)
 
 		// assert
 		require.NoError(t, err)
@@ -406,10 +411,15 @@ func TestService_EditUser(t *testing.T) {
 		}
 
 		// action
-		_, err := svc.EditUser(ctx, userPublicID, nil, nil, nil, &newRanges, time.UTC)
+		_, rangeSet, err := svc.EditUser(ctx, userPublicID, nil, nil, nil, &newRanges, time.UTC)
 
 		// assert
 		require.NoError(t, err)
+		require.NotNil(t, rangeSet)
+		assert.Equal(t, []user.DailyScreenTimeLimitRange{
+			{StartTimeSeconds: 0, EndTimeSeconds: 3600},
+			{StartTimeSeconds: 7200, EndTimeSeconds: 10800},
+		}, rangeSet.Ranges)
 	})
 
 	t.Run("update all fields", func(t *testing.T) {
@@ -428,7 +438,7 @@ func TestService_EditUser(t *testing.T) {
 		}
 
 		// action
-		u, err := svc.EditUser(ctx, userPublicID, &newName, &newLang, &newLimit, &newRanges, time.UTC)
+		u, _, err := svc.EditUser(ctx, userPublicID, &newName, &newLang, &newLimit, &newRanges, time.UTC)
 
 		// assert
 		require.NoError(t, err)
@@ -445,7 +455,7 @@ func TestService_EditUser(t *testing.T) {
 		newName := "Updated Name"
 
 		// action
-		_, err := svc.EditUser(ctx, uuid.Must(uuid.NewV7()), &newName, nil, nil, nil, time.UTC)
+		_, _, err := svc.EditUser(ctx, uuid.Must(uuid.NewV7()), &newName, nil, nil, nil, time.UTC)
 
 		// assert
 		assert.ErrorIs(t, err, core.ErrNotFound)
@@ -462,7 +472,7 @@ func TestService_EditUser(t *testing.T) {
 		emptyName := ""
 
 		// action
-		_, err := svc.EditUser(ctx, userPublicID, &emptyName, nil, nil, nil, time.UTC)
+		_, _, err := svc.EditUser(ctx, userPublicID, &emptyName, nil, nil, nil, time.UTC)
 
 		// assert
 		assert.ErrorIs(t, err, user.ErrDisplayNameTooShort)
@@ -479,7 +489,7 @@ func TestService_EditUser(t *testing.T) {
 		invalidLang := "xx"
 
 		// action
-		_, err := svc.EditUser(ctx, userPublicID, nil, &invalidLang, nil, nil, time.UTC)
+		_, _, err := svc.EditUser(ctx, userPublicID, nil, &invalidLang, nil, nil, time.UTC)
 
 		// assert
 		assert.ErrorIs(t, err, user.ErrLanguageCodeNotSupported)

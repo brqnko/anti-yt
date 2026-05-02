@@ -420,6 +420,137 @@ func TestNewDailyScreenTimeLimitRangeSet(t *testing.T) {
 	}
 }
 
+func TestDailyScreenTimeLimitRangeSet_ToLocalRanges(t *testing.T) {
+	t.Parallel()
+
+	jst := time.FixedZone("JST", 9*3600)
+	pst := time.FixedZone("PST", -8*3600)
+
+	cases := map[string]struct {
+		set  *user.DailyScreenTimeLimitRangeSet
+		loc  *time.Location
+		want []user.DailyScreenTimeLimitRange
+	}{
+		"nil set": {
+			set:  nil,
+			loc:  time.UTC,
+			want: nil,
+		},
+		"empty set": {
+			set:  &user.DailyScreenTimeLimitRangeSet{Ranges: nil},
+			loc:  time.UTC,
+			want: nil,
+		},
+		"single range UTC": {
+			set:  &user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 3600, EndTimeSeconds: 7200}}},
+			loc:  time.UTC,
+			want: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 3600, EndTimeSeconds: 7200}},
+		},
+		"full day UTC preserved": {
+			set:  &user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 86400}}},
+			loc:  time.UTC,
+			want: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 86400}},
+		},
+		"full day JST preserved without shift": {
+			set:  &user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 86400}}},
+			loc:  jst,
+			want: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 86400}},
+		},
+		"non-wrapping JST": {
+			// stored UTC 14:00-16:00 → JST 23:00-01:00 wraps midnight → split
+			set:  &user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 14 * 3600, EndTimeSeconds: 16 * 3600}}},
+			loc:  jst,
+			want: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 1 * 3600}, {StartTimeSeconds: 23 * 3600, EndTimeSeconds: 86400}},
+		},
+		"midnight crossing PST": {
+			// stored UTC 06:00-10:00 → PST(-8h) 22:00-02:00 wraps midnight → split
+			set:  &user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 6 * 3600, EndTimeSeconds: 10 * 3600}}},
+			loc:  pst,
+			want: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 2 * 3600}, {StartTimeSeconds: 22 * 3600, EndTimeSeconds: 86400}},
+		},
+		"adjacent ranges merged after offset": {
+			// JST shift: stored UTC [00:00-01:00) and [01:00-02:00) → JST [09:00-10:00) and [10:00-11:00) merge
+			set: &user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{
+				{StartTimeSeconds: 0, EndTimeSeconds: 1 * 3600},
+				{StartTimeSeconds: 1 * 3600, EndTimeSeconds: 2 * 3600},
+			}},
+			loc:  jst,
+			want: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 9 * 3600, EndTimeSeconds: 11 * 3600}},
+		},
+		"two split ranges merge to single after wrap": {
+			// stored UTC [00:00, 06:00) and [15:00, 24:00) → JST [09:00, 15:00) and [00:00, 09:00)+[24:00 wrap]
+			// expected after sort+merge: full day-spanning two pieces that touch at 09:00 → merged into [00:00, 86400) pieces
+			set: &user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{
+				{StartTimeSeconds: 0, EndTimeSeconds: 6 * 3600},
+				{StartTimeSeconds: 15 * 3600, EndTimeSeconds: 24 * 3600},
+			}},
+			loc: jst,
+			// stored UTC [0,6h) → JST [9h,15h)
+			// stored UTC [15h,24h) → JST [0h,9h) and (none on the wrap side because 24h+9h % 86400 == 9h, 15h+9h=24h; localStart=24h%86400=0, localEnd=(24h+9h)%86400=9h → start<end, single piece [0,9h))
+			// Wait: localStart for stored 15h: wrap(15h+9h)=wrap(24h)=0. localEnd for stored 24h: wrap(24h+9h)=wrap(33h)=9h. localStart<localEnd → single piece [0,9h).
+			// Pieces: [9h,15h) and [0,9h). Sort: [0,9h),[9h,15h). Adjacent → merge to [0,15h).
+			want: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 15 * 3600}},
+		},
+	}
+
+	for name, c := range cases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := c.set.ToLocalRanges(c.loc)
+
+			assert.Equal(t, c.want, got)
+		})
+	}
+}
+
+func TestDailyScreenTimeLimitRangeSet_RoundTrip(t *testing.T) {
+	t.Parallel()
+
+	// NewDailyScreenTimeLimitRangeSet (local→UTC, normalized) followed by
+	// ToLocalRanges (UTC→local, normalized) must yield the same canonical set.
+	cases := map[string]struct {
+		input []struct{ Start, End int }
+		loc   *time.Location
+		want  []user.DailyScreenTimeLimitRange
+	}{
+		"single non-wrapping JST": {
+			input: []struct{ Start, End int }{{Start: 9 * 3600, End: 11 * 3600}},
+			loc:   time.FixedZone("JST", 9*3600),
+			want:  []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 9 * 3600, EndTimeSeconds: 11 * 3600}},
+		},
+		"midnight crossing JST stays split": {
+			// JST 23:00-25:00 (overflow form not allowed here, so test wrap as two pieces in UTC then back to local)
+			// Use input [22:00, 24:00) which doesn't wrap and stays one piece.
+			input: []struct{ Start, End int }{{Start: 22 * 3600, End: 24 * 3600}},
+			loc:   time.FixedZone("JST", 9*3600),
+			want:  []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 22 * 3600, EndTimeSeconds: 24 * 3600}},
+		},
+		"overlap merged": {
+			input: []struct{ Start, End int }{{Start: 9 * 3600, End: 11 * 3600}, {Start: 10 * 3600, End: 12 * 3600}},
+			loc:   time.UTC,
+			want:  []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 9 * 3600, EndTimeSeconds: 12 * 3600}},
+		},
+		"full day JST": {
+			input: []struct{ Start, End int }{{Start: 0, End: 86400}},
+			loc:   time.FixedZone("JST", 9*3600),
+			want:  []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 86400}},
+		},
+	}
+
+	for name, c := range cases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			set, err := user.NewDailyScreenTimeLimitRangeSet(c.input, c.loc)
+			assert.NoError(t, err)
+
+			got := set.ToLocalRanges(c.loc)
+			assert.Equal(t, c.want, got)
+		})
+	}
+}
+
 func TestDailyScreenTimeLimitRangeSet_BlockedUntil(t *testing.T) {
 	t.Parallel()
 
