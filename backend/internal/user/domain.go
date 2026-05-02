@@ -250,6 +250,59 @@ func NewDailyScreenTimeLimitRangeSet(screenLimits []struct{ Start, End int }, lo
 	}, nil
 }
 
+// ToLocalRanges はUTC秒で保存された範囲群を、指定タイムゾーンのローカル秒に変換し、
+// 真夜中跨ぎを分割した上でソート・マージして返す。NewDailyScreenTimeLimitRangeSet
+// の逆変換にあたるため、書き込み入力と読み出し出力で正規形が対称になる。
+func (s *DailyScreenTimeLimitRangeSet) ToLocalRanges(loc *time.Location) []DailyScreenTimeLimitRange {
+	if s == nil || len(s.Ranges) == 0 {
+		return nil
+	}
+
+	ref := time.Date(2000, 1, 1, 0, 0, 0, 0, loc)
+	_, offsetSec := ref.Zone()
+	const daySeconds = 24 * 60 * 60
+
+	wrap := func(v int) int { return ((v % daySeconds) + daySeconds) % daySeconds }
+
+	var ranges []DailyScreenTimeLimitRange
+	for _, r := range s.Ranges {
+		// フル一日 [0, 86400) はTZシフトすると消滅するためそのまま返す。
+		if r.EndTimeSeconds-r.StartTimeSeconds == daySeconds {
+			ranges = append(ranges, DailyScreenTimeLimitRange{StartTimeSeconds: 0, EndTimeSeconds: daySeconds})
+			continue
+		}
+
+		localStart := wrap(r.StartTimeSeconds + offsetSec)
+		localEnd := wrap(r.EndTimeSeconds + offsetSec)
+
+		if localStart == localEnd {
+			continue
+		}
+
+		if localStart < localEnd {
+			ranges = append(ranges, DailyScreenTimeLimitRange{StartTimeSeconds: localStart, EndTimeSeconds: localEnd})
+		} else {
+			ranges = append(ranges, DailyScreenTimeLimitRange{StartTimeSeconds: localStart, EndTimeSeconds: daySeconds})
+			if localEnd > 0 {
+				ranges = append(ranges, DailyScreenTimeLimitRange{StartTimeSeconds: 0, EndTimeSeconds: localEnd})
+			}
+		}
+	}
+
+	sort.Slice(ranges, func(i, j int) bool { return ranges[i].StartTimeSeconds < ranges[j].StartTimeSeconds })
+	var merged []DailyScreenTimeLimitRange
+	for _, r := range ranges {
+		if len(merged) > 0 && r.StartTimeSeconds <= merged[len(merged)-1].EndTimeSeconds+1 {
+			if r.EndTimeSeconds > merged[len(merged)-1].EndTimeSeconds {
+				merged[len(merged)-1].EndTimeSeconds = r.EndTimeSeconds
+			}
+		} else {
+			merged = append(merged, r)
+		}
+	}
+	return merged
+}
+
 // BlockedUntil は現在時刻が許可された時間範囲外の場合、次の許可開始時刻を返す。
 // 範囲が空の場合は許可時間帯が存在しないため常にブロックする。
 func (s *DailyScreenTimeLimitRangeSet) BlockedUntil(now time.Time) *time.Time {

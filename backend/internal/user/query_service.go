@@ -19,12 +19,7 @@ type UserStatusView struct {
 	LanguageCode         string
 	JoinedAt             time.Time
 	DailyScreenSeconds   *int
-	ScreenTimeLimitRange []ScreenTimeLimitRangeView
-}
-
-type ScreenTimeLimitRangeView struct {
-	StartTime string
-	EndTime   string
+	ScreenTimeLimitRange *DailyScreenTimeLimitRangeSet
 }
 
 type UserQueryService interface {
@@ -54,22 +49,15 @@ func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (_ Us
 	first := rows[0]
 
 	// rangeが0件の場合はNULL行1行のみ返る
-	var ranges []ScreenTimeLimitRangeView
+	var ranges []DailyScreenTimeLimitRange
 	if first.ScreenTimeRangeStart != nil {
-		ranges = make([]ScreenTimeLimitRangeView, len(rows))
+		ranges = make([]DailyScreenTimeLimitRange, len(rows))
 		for i, row := range rows {
-			startTime, err := util.IntToHHmm(int(*row.ScreenTimeRangeStart) / 60)
+			r, err := NewDailyScreenTimeLimitRange(int(*row.ScreenTimeRangeStart), int(*row.ScreenTimeRangeEnd))
 			if err != nil {
 				return UserStatusView{}, err
 			}
-			endTime, err := util.IntToHHmm(int(*row.ScreenTimeRangeEnd) / 60)
-			if err != nil {
-				return UserStatusView{}, err
-			}
-			ranges[i] = ScreenTimeLimitRangeView{
-				StartTime: startTime,
-				EndTime:   endTime,
-			}
+			ranges[i] = r
 		}
 	}
 
@@ -84,7 +72,7 @@ func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (_ Us
 		LanguageCode:         first.LanguageCode,
 		JoinedAt:             first.JoinedAt.UTC(),
 		DailyScreenSeconds:   dailyScreenSeconds,
-		ScreenTimeLimitRange: ranges,
+		ScreenTimeLimitRange: &DailyScreenTimeLimitRangeSet{Ranges: ranges},
 	}, nil
 }
 
