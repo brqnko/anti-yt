@@ -130,6 +130,7 @@ var languageCodeMap = []struct {
 }{
 	{code: "ja", str: "ja"},
 	{code: "en", str: "en"},
+	{code: "zh", str: "zh"},
 }
 
 func NewLanguageCode(value string) (_ LanguageCode, err error) {

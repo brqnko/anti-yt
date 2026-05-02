@@ -1,0 +1,515 @@
+{
+  "common": {
+    "notFoundMessage": "您访问的页面不存在。",
+    "returnHome": "返回首页",
+    "colorMode": {
+      "light": "浅色模式",
+      "dark": "深色模式",
+      "system": "跟随系统"
+    },
+    "close": "关闭",
+    "authRequired": "使用此功能需要注册免费账户。",
+    "signInWithGoogle": "使用 Google 登录",
+    "oidcNoticeNoPii": "我们不会获取您的电子邮件地址或姓名，仅保存账户标识符。",
+    "privacyPolicyConsentBefore": "继续即表示您同意我们的",
+    "termsLink": "服务条款",
+    "privacyPolicyConsentMiddle": "和",
+    "privacyPolicyLink": "隐私政策",
+    "privacyPolicyConsentAfter": "。"
+  },
+  "videoCard": {
+    "moreOptions": "更多选项",
+    "subscribeChannel": "订阅",
+    "subscribeDesc": "允许显示在您的动态",
+    "markWatched": "标记为已看",
+    "markWatchedDesc": "从动态中隐藏",
+    "markWatchedButton": "已看",
+    "unmarkWatched": "标记为未看",
+    "unmarkWatchedDesc": "重新显示在动态中",
+    "unmarkWatchedButton": "未看"
+  },
+  "legal": {
+    "navTerms": "服务条款",
+    "navPrivacy": "隐私政策",
+    "languageSelect": "选择语言"
+  },
+  "about": {
+    "pageTitle": "关于",
+    "hero": {
+      "title1": "按照您自己的方式",
+      "title2": "管理 YouTube 观看体验。",
+      "description": "一款免费界面，旨在消除算法推荐，让您掌控所关注的频道和观看时长。"
+    },
+    "statement": {
+      "heading": "对以参与度最大化为设计目标的回应",
+      "body1": "推荐算法的设计目的是最大化用户在平台上的停留时间，而非用户满意度。",
+      "body2": "本工具让您与这种设计保持物理距离。"
+    },
+    "principles": {
+      "feed": {
+        "title": "仅限您订阅的动态",
+        "body": "没有推荐，没有相关视频——只有您明确订阅的频道，按时间顺序排列。减少干扰，轻松选择。"
+      },
+      "time": {
+        "title": "明确的时间边界",
+        "body": "设置每日上限和允许观看的时间段，在系统层面强制执行。将您的时间视为需要有意分配的资源。"
+      },
+      "analytics": {
+        "title": "量化观看数据",
+        "body": "通过清晰的图表可视化您的使用情况。积累的日志帮助您客观了解自己的使用规律。"
+      }
+    },
+    "features": {
+      "heading": "功能概要",
+      "feed": {
+        "title": "动态",
+        "body": "通过 API 获取订阅频道，并按时间顺序显示——一个没有算法干预的动态。"
+      },
+      "limit": {
+        "title": "限制",
+        "body": "基于您设定阈值的会话限制和计划。一个从物理上约束过度使用的时间管理模块。"
+      },
+      "analytics": {
+        "title": "分析",
+        "body": "自动汇总观看统计数据——每日和每周细分以及各频道消耗，全部量化。"
+      }
+    },
+    "finalCta": {
+      "description": "开始按照您自己的方式设计的免费观看体验。"
+    }
+  },
+  "terms": {
+    "title": "服务条款",
+    "sections": {
+      "acceptance": {
+        "title": "条款接受",
+        "body": "通过访问和使用 anti-yt，您同意受本服务条款的约束。如果您不同意所有条款，请勿使用我们的服务。anti-yt 提供工具，通过旨在减少平台成瘾的浏览器级控制和会话管理，帮助您管理数字消费。"
+      },
+      "serviceDescription": {
+        "title": "服务说明",
+        "body": "anti-yt 作为数字中介服务运营，协助用户设置有意识的边界。我们的服务包括网站屏蔽、时间限制和内容过滤。您承认这些限制是自我设置的，但由我们的软件强制执行，以帮助养成习惯和长期行为改变。"
+      },
+      "userObligations": {
+        "title": "用户义务",
+        "body": "您同意仅将 anti-yt 用于个人、非商业目的。您不得试图通过未经授权的修改或使用旨在绕过 anti-yt 限制的第三方工具来规避软件的技术限制，因为这会破坏服务的治疗意图。"
+      },
+      "privacy": {
+        "title": "隐私和数据收集",
+        "body": "您的隐私至关重要。我们仅收集提供服务所必需的数据。这包括报告所需的使用统计数据和用于故障排除的技术日志。我们不会向第三方出售您的个人数据或浏览历史记录。我们的承诺是您的恢复，而非数据变现。"
+      },
+      "subscription": {
+        "title": "订阅和计费",
+        "body": "anti-yt 通过订阅提供高级功能。费用在每个周期开始时收取，除法律要求外不予退款。您可以随时通过账户设置取消订阅，在当前计费周期结束之前，您将继续享有高级功能。"
+      }
+    }
+  },
+  "privacy": {
+    "title": "隐私政策",
+    "sections": {
+      "dataCollection": {
+        "title": "我们收集的信息",
+        "body": "anti-yt 仅收集提供和改进服务所必需的最少数据。这包括账户创建期间提供的电子邮件地址、匿名使用统计数据和用于故障排除的技术日志。我们不收集您的浏览历史记录或被屏蔽内容的详细信息。"
+      },
+      "dataUsage": {
+        "title": "我们如何使用您的信息",
+        "body": "我们收集的数据仅用于提供、维护和改进我们的服务、生成使用报告、诊断和解决技术问题以及发送重要的服务相关通知。我们不会将您的数据用于营销目的。"
+      },
+      "dataSharing": {
+        "title": "第三方共享",
+        "body": "anti-yt 不向第三方出售、出租或交易您的个人数据。我们可能仅在需要时或法律义务要求时，与服务运营所必需的受信任合作伙伴（如托管提供商）共享最少数据。"
+      },
+      "cookies": {
+        "title": "Cookie 和跟踪",
+        "body": "anti-yt 仅使用身份验证和会话管理所必需的 Cookie。我们不使用第三方跟踪 Cookie 或广告 Cookie。您可以通过浏览器设置管理 Cookie，但某些功能可能会因此受到限制。"
+      },
+      "security": {
+        "title": "数据保护",
+        "body": "我们实施行业标准加密和安全措施来保护您的数据。数据通过加密连接传输，并通过访问控制防止未经授权的访问。但是，通过互联网传输的方法不能保证 100% 安全。"
+      },
+      "userRights": {
+        "title": "您的权利",
+        "body": "您有权请求访问、更正和删除您的个人数据。您可以通过账户设置导出数据或删除账户。账户删除后，所有相关数据将在 30 天内永久清除。"
+      },
+      "changes": {
+        "title": "政策变更",
+        "body": "本隐私政策可能会根据需要更新。我们将通过服务内通知或电子邮件通知您重大变更。继续使用服务即表示您同意更新后的政策。"
+      }
+    }
+  },
+  "reactivation": {
+    "title": "欢迎回来",
+    "description": "我们找到了一个与您登录关联的已删除账户。恢复您的账户以重新开始。",
+    "reactivate": "恢复账户",
+    "error": {
+      "title": "恢复失败"
+    }
+  },
+  "register": {
+    "error": {
+      "title": "注册失败"
+    }
+  },
+  "dashboard": {
+    "pageTitle": "仪表板",
+    "toggleSidebar": "切换侧边栏",
+    "nav": {
+      "mainFeed": "主动态",
+      "analytics": "分析",
+      "playlists": "播放列表",
+      "history": "历史记录",
+      "sidebar": "侧边栏导航",
+      "mainNav": "主导航",
+      "bottomFeed": "动态",
+      "bottomChannels": "频道",
+      "bottomPlaylists": "播放列表",
+      "bottomAnalytics": "分析",
+      "bottomProfile": "个人资料"
+    },
+    "addChannelDialog": {
+      "title": "添加频道",
+      "description": "输入 YouTube 频道 URL 或 ID。",
+      "placeholder": "https://www.youtube.com/@handle 或 UC...",
+      "cancel": "取消",
+      "add": "添加",
+      "adding": "添加中...",
+      "error": "添加频道失败，请检查 ID 后重试。",
+      "paste": "从剪贴板粘贴"
+    },
+    "addPlaylist": "创建播放列表",
+    "addPlaylistDialog": {
+      "title": "新播放列表",
+      "titleLabel": "标题",
+      "titlePlaceholder": "输入播放列表名称",
+      "descriptionLabel": "描述",
+      "descriptionPlaceholder": "播放列表描述（可选）",
+      "importLabel": "从 YouTube 播放列表导入",
+      "optional": "可选",
+      "importPlaceholder": "https://www.youtube.com/playlist?list=PL...",
+      "cancel": "取消",
+      "add": "创建",
+      "adding": "创建中...",
+      "error": "创建播放列表失败，请重试。",
+      "required": "必填"
+    },
+    "recentPlaylists": "最近播放的列表",
+    "showAllPlaylists": "显示全部",
+    "noVideosDesc": "订阅频道后，最新视频将显示在这里。",
+    "goToChannels": "前往频道",
+    "aboutBanner": "什么是 anti-yt？",
+    "aboutBannerDesc": "anti-yt 是一项免费服务，仅显示您订阅频道的视频，并让您自行管理屏幕使用时间。",
+    "aboutBannerCta": "了解更多 →",
+    "rateLimitedTitle": "请稍候",
+    "rateLimitedDesc": "您已达到请求限制，请稍后再试。",
+    "endOfFeed": "您已看完所有内容",
+    "sidebarFooter": {
+      "copyright": "© 2026 anti-yt"
+    },
+    "timeAgo": {
+      "justNow": "刚刚",
+      "minutes": "{{count}}分钟前",
+      "hours": "{{count}}小时前",
+      "days": "{{count}}天前",
+      "weeks": "{{count}}周前",
+      "months": "{{count}}个月前",
+      "years": "{{count}}年前"
+    }
+  },
+  "restrictions": {
+    "timeConstraints": "时间限制",
+    "permittedHours": "允许时段",
+    "permittedHoursDesc": "定义允许观看的时间窗口",
+    "addTimeRange": "添加时间段",
+    "removeRange": "删除时间段",
+    "dailyCapLimit": "每日上限",
+    "enableLimit": "启用限制",
+    "hr": "时",
+    "min": "分",
+    "save": "保存",
+    "saving": "保存中...",
+    "saved": "已保存！",
+    "zeroTimeError": "每日上限必须大于 0 分钟。",
+    "saveError": "保存失败，请重试。"
+  },
+  "profile": {
+    "pageTitle": "个人资料",
+    "nav": {
+      "profileSettings": "个人资料",
+      "security": "安全",
+      "signOut": "退出登录",
+      "reportProblem": "报告问题",
+      "other": "其他"
+    },
+    "accountDetails": "账户",
+    "youtubeImport": {
+      "button": "从 YouTube 导入",
+      "dialogTitle": "选择要导入的数据",
+      "subscriptions": "频道订阅",
+      "subscriptionsDesc": "导入您在 YouTube 上订阅的频道",
+      "likes": "点赞视频",
+      "likesDesc": "导入您在 YouTube 上点赞的视频",
+      "start": "开始导入",
+      "cancel": "取消",
+      "selectAtLeastOne": "请至少选择一项"
+    },
+    "displayName": "显示名称",
+    "displayNamePlaceholder": "您的姓名",
+    "language": "语言",
+    "saveChanges": "保存更改",
+    "saving": "保存中...",
+    "saved": "已保存！",
+    "deleteAccount": "删除账户",
+    "deleteConfirmTitle": "删除账户？",
+    "deleteConfirmDesc": "此操作无法撤销，您的所有数据将被永久删除。",
+    "deleteConfirmInputLabel": "输入「Delete my account」以确认",
+    "deleteConfirm": "永久删除",
+    "logoutConfirmTitle": "退出登录？",
+    "logoutConfirmDesc": "确定要退出您的账户吗？",
+    "cancel": "取消"
+  },
+  "security": {
+    "activeSessions": "活跃会话",
+    "device": "设备",
+    "location": "位置",
+    "userAgent": "用户代理",
+    "createdAt": "创建时间",
+    "updatedAt": "更新时间",
+    "logout": "退出登录",
+    "revoke": "撤销",
+    "revokeConfirmTitle": "撤销会话？",
+    "revokeConfirmDesc": "「{{name}}」上的会话将立即退出登录，此操作无法撤销。",
+    "revokeConfirm": "撤销会话",
+    "cancel": "取消",
+    "noSessions": "未找到活跃会话。",
+    "loadError": "加载会话失败。",
+    "revokeError": "撤销会话失败，请重试。",
+    "retry": "重试",
+    "loadMore": "加载更多"
+  },
+  "appearance": {
+    "title": "外观",
+    "colorMode": "颜色模式"
+  },
+  "channelDetail": {
+    "pageTitle": "频道",
+    "backToDashboard": "仪表板",
+    "subscribers": "订阅者",
+    "whitelistChannel": "将频道加入白名单",
+    "latestUploads": "最新上传",
+    "orderNewer": "最新",
+    "orderOlder": "最旧",
+    "noVideos": "暂无视频",
+    "notFound": "未找到频道",
+    "showMore": "显示更多",
+    "showLess": "收起",
+    "playlists": "播放列表",
+    "openOnYouTube": "在 YouTube 上打开"
+  },
+  "videoPlayer": {
+    "pageTitle": "视频播放器",
+    "notFound": "未找到视频",
+    "curatedPlaylist": "精选播放列表",
+    "addToPlaylist": "保存",
+    "playlist": "播放列表",
+    "watchLater": "稍后观看",
+    "loop": "循环",
+    "noPlaylists": "暂无播放列表。",
+    "remaining": "今日剩余",
+    "play": "播放",
+    "pause": "暂停",
+    "mute": "静音",
+    "unmute": "取消静音",
+    "volume": "音量",
+    "fullscreen": "进入全屏",
+    "exitFullscreen": "退出全屏",
+    "seekBar": "进度条",
+    "openOnYouTube": "在 YT 打开"
+  },
+  "analytics": {
+    "pageTitle": "分析",
+    "title": "分析",
+    "timeWasted": "观看时长",
+    "dailyAverage": "每日平均",
+    "weeklyUsageTrends": "本周使用情况",
+    "dailyLimit": "每日限制（{{hours}}小时）",
+    "tooltipVideos": "{{count}} 个视频",
+    "loadError": "加载数据失败",
+    "retry": "重试"
+  },
+  "screenTimeBlock": {
+    "pageTitle": "屏幕时间限制",
+    "title": "屏幕时间限制",
+    "limitExceeded": "您已达到今日屏幕时间限制，请休息一下，明天再来。",
+    "outsideTimeRange": "现在无法观看，您的预定访问时间窗口已关闭。",
+    "tapTheGrass": "点击草地清空思绪",
+    "reset": "重置",
+    "mowTile": "割这块草",
+    "mownTile": "已割过",
+    "goToSettings": "屏幕时间设置"
+  },
+  "history": {
+    "pageTitle": "观看历史",
+    "today": "今天",
+    "yesterday": "昨天",
+    "noHistory": "暂无观看历史",
+    "endOfHistory": "已到达历史记录末尾",
+    "watchedAgo": "{{time}}前观看",
+    "loadError": "加载历史记录失败",
+    "retry": "重试"
+  },
+  "playlists": {
+    "pageTitle": "播放列表",
+    "title": "播放列表",
+    "createNew": "新建播放列表",
+    "lastUpdated": "最后更新 {{time}}",
+    "createdAt": "创建于 {{time}}",
+    "empty": "暂无播放列表",
+    "loadError": "加载播放列表失败",
+    "retry": "重试"
+  },
+  "playlistDetail": {
+    "pageTitle": "播放列表详情",
+    "backToPlaylists": "返回播放列表",
+    "videos": "视频",
+    "edit": "编辑",
+    "addVideo": "添加视频",
+    "addVideoPlaceholder": "https://youtube.com/watch?v=... 或视频 ID",
+    "addVideoButton": "添加",
+    "addVideoAdding": "添加中...",
+    "addVideoPaste": "从剪贴板粘贴",
+    "addVideoCancel": "取消",
+    "addVideoError": "添加视频失败，请检查 URL。",
+    "delete": "删除",
+    "removeVideo": "删除视频",
+    "noVideos": "暂无视频",
+    "notFound": "未找到播放列表",
+    "loadError": "加载播放列表失败",
+    "retry": "重试",
+    "endOfList": "🎉 已到达播放列表末尾",
+    "editDialog": {
+      "title": "编辑播放列表",
+      "titleLabel": "标题",
+      "descriptionLabel": "描述",
+      "cancel": "取消",
+      "save": "保存",
+      "saving": "保存中...",
+      "error": "保存失败，请重试。"
+    },
+    "deleteDialog": {
+      "title": "删除此播放列表？",
+      "description": "此操作无法撤销，播放列表中的所有视频将被移除。",
+      "cancel": "取消",
+      "confirm": "删除",
+      "deleting": "删除中..."
+    },
+    "copy": "复制到我的播放列表",
+    "copyDialog": {
+      "title": "复制播放列表",
+      "titleLabel": "标题",
+      "descriptionLabel": "描述",
+      "cancel": "取消",
+      "copy": "复制",
+      "copying": "复制中...",
+      "error": "复制播放列表失败，请重试。"
+    },
+    "removeVideoDialog": {
+      "title": "删除视频？",
+      "description": "从此播放列表中删除「{{title}}」？",
+      "cancel": "取消",
+      "confirm": "删除",
+      "removing": "删除中...",
+      "error": "删除失败，请重试。"
+    }
+  },
+  "channels": {
+    "pageTitle": "频道",
+    "exploreLink": "推荐频道",
+    "exploreLinkDesc": "发现精选频道",
+    "noChannels": "尚未订阅任何频道。",
+    "loadError": "加载频道失败",
+    "retry": "重试",
+    "loadMore": "加载更多"
+  },
+  "explore": {
+    "pageTitle": "探索频道",
+    "title": "探索频道",
+    "allCategories": "所有分类",
+    "noChannels": "未找到频道",
+    "loadError": "加载频道失败",
+    "retry": "重试",
+    "categories": {
+      "unknown": "其他",
+      "learn_deepen": "学习与深入",
+      "act_practice": "行动与实践",
+      "rest_regulate": "休息与调节",
+      "catch_up": "跟进资讯",
+      "short_concise": "简短精炼",
+      "audio_only": "纯音频",
+      "weekend_deep_dive": "周末深度探索"
+    }
+  },
+  "search": {
+    "pageTitle": "搜索",
+    "inputPlaceholder": "搜索视频...",
+    "placeholder": "搜索视频",
+    "resultsFor": "「{{query}}」的搜索结果",
+    "noResults": "未找到结果",
+    "noResultsDesc": "请尝试使用不同的关键词搜索。",
+    "endOfResults": "已加载全部结果",
+    "loadError": "搜索失败",
+    "retry": "重试",
+    "filters": {
+      "title": "搜索筛选",
+      "close": "关闭",
+      "order": "排序方式",
+      "orderDefault": "默认（相关性）",
+      "orderOptions": {
+        "date": "上传日期",
+        "rating": "评分",
+        "relevance": "相关性",
+        "title": "标题",
+        "videoCount": "视频数量",
+        "viewCount": "观看次数"
+      },
+      "publishedAfter": "发布时间（之后）",
+      "publishedBefore": "发布时间（之前）",
+      "regionCode": "地区",
+      "regionDefault": "所有地区",
+      "regions": {
+        "JP": "日本",
+        "US": "美国"
+      },
+      "relevanceLanguage": "相关语言",
+      "languageDefault": "所有语言",
+      "languages": {
+        "ja": "日语",
+        "en": "英语"
+      },
+      "apply": "应用",
+      "cancel": "取消",
+      "reset": "重置"
+    }
+  },
+  "apiErrors": {
+    "channel.invalid_youtube_url": "无效的 YouTube URL 或不支持的格式。",
+    "youtube.channel_auto_generated": "无法添加自动生成的话题频道（以「- Topic」结尾）。",
+    "channel.invalid_channel_id": "无效的频道 ID。",
+    "channel.invalid_channel_handle": "无效的频道句柄。",
+    "channel.invalid_subscription_limit": "已达到订阅上限。",
+    "user.display_name_too_long": "显示名称过长。",
+    "user.display_name_too_short": "显示名称过短。",
+    "user.invalid_daily_screen_time": "每日屏幕时间限制超出范围。",
+    "user.unsupported_language_code": "不支持的语言代码。",
+    "user.invalid_screen_time_range_order": "开始时间必须早于结束时间。",
+    "user.invalid_screen_time_range": "屏幕时间范围无效。",
+    "user.already_registered": "此账户已注册。",
+    "user.invalid_leave_reason_code": "无效的注销原因代码。",
+    "playlist.invalid_title": "播放列表标题必须在 1 到 128 个字符之间。",
+    "playlist.invalid_description": "播放列表描述最多 255 个字符。",
+    "playlist.invalid_visibility_code": "无效的可见性设置。",
+    "playlist.invalid_playlist_code": "无效的播放列表代码。",
+    "playlist.invalid_playlist_id": "无效的播放列表 ID 或不支持的格式。",
+    "playlist.not_modifiable": "此播放列表无法修改。",
+    "jti_blacklisted": "此链接已被使用，请重新开始。",
+    "fallback": "发生错误，请重试。"
+  }
+}
