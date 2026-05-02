@@ -96,14 +96,17 @@ axiosInstance.interceptors.response.use(
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
-      }).then(() => axiosInstance(originalRequest));
+      }).then(() => {
+        originalRequest._retry = true;
+        return axiosInstance(originalRequest);
+      });
     }
 
     originalRequest._retry = true;
     isRefreshing = true;
 
     try {
-      await axiosInstance.post("/api/v1/auth/refresh");
+      await axiosInstance.post("/api/v1/auth/refresh", undefined, { timeout: 15000 });
       processQueue(null);
       return axiosInstance(originalRequest);
     } catch (refreshError) {

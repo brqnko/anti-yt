@@ -26,11 +26,7 @@ export default function Terms() {
 
       <div class="max-w-4xl mx-auto">
         <div class="bg-white dark:bg-[#26221c] border border-[#e1ddd6] dark:border-[#3d372e] rounded-2xl overflow-hidden mb-12">
-          <div class="p-8 border-b border-[#e1ddd6] dark:border-[#3d372e] flex items-center bg-[#fdfdfc] dark:bg-[#2a2620]">
-            <span class="text-xs text-[#847862] font-semibold px-3 py-1.5 bg-[#f0eeea] dark:bg-[#3d372e] rounded-full uppercase tracking-wider">
-              {t("terms.version")}
-            </span>
-          </div>
+
           <div class="p-10 md:p-16 text-lg text-[#3a352e] dark:text-[#d1cdc7] leading-8 tracking-[0.01em]">
             {sections.map((s) => (
               <section class="mb-12" key={s.key}>
@@ -41,12 +37,6 @@ export default function Terms() {
                 <p class="m-0">{t(`terms.sections.${s.key}.body`)}</p>
               </section>
             ))}
-
-            <div class="mt-16 pt-12 border-t border-[#e1ddd6] dark:border-[#3d372e] text-center">
-              <p class="italic text-[#847862] dark:text-[#a89d89] text-base m-0">
-                {t("terms.endOfAgreement")}
-              </p>
-            </div>
           </div>
         </div>
       </div>

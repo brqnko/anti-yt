@@ -3,6 +3,8 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme {
+  --breakpoint-tablet: 657px;
+  --breakpoint-wide: 1313px;
   --font-display: "Manrope", system-ui, sans-serif;
   --color-primary: #d0bb95;
   --color-surface-dark: #1a1a1a;

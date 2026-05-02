@@ -3,6 +3,7 @@ import preact from "@preact/preset-vite";
 import tailwindcss from "@tailwindcss/vite";
 import Icons from "unplugin-icons/vite";
 import { VitePWA } from "vite-plugin-pwa";
+import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -15,11 +16,12 @@ export default defineConfig({
   plugins: [
     Icons({ compiler: "raw" }),
     tailwindcss(),
+    ViteImageOptimizer(),
     preact({
       prerender: {
         enabled: true,
         renderTarget: "#app",
-        additionalPrerenderRoutes: ["/404", "/terms", "/privacy"],
+        additionalPrerenderRoutes: ["/404", "/terms", "/privacy", "/about"],
         previewMiddlewareEnabled: false,
         previewMiddlewareFallback: "/404",
       },
@@ -30,7 +32,7 @@ export default defineConfig({
         name: "anti-yt",
         short_name: "anti-yt",
         description:
-          "Reclaim your time from the algorithm. Strict time controls, whitelist-based filtering, and distraction-free focus zones.",
+          "A free YouTube viewer that reclaims your time from the algorithm. Strict time controls, whitelist-based filtering, and distraction-free focus zones.",
         theme_color: "#1a1a1a",
         background_color: "#1a1a1a",
         display: "standalone",

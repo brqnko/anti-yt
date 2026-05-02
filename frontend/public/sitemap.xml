@@ -42,6 +42,14 @@
     <xhtml:link rel="alternate" hreflang="ja" href="https://anti-yt.app/search"/>
   </url>
   <url>
+    <loc>https://anti-yt.app/about</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://anti-yt.app/about"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://anti-yt.app/about"/>
+  </url>
+  <url>
     <loc>https://anti-yt.app/terms</loc>
     <lastmod>2026-04-17</lastmod>
     <changefreq>yearly</changefreq>

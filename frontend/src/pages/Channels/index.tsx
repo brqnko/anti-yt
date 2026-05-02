@@ -160,18 +160,22 @@ function ChannelsContent() {
           {/* Link to valuable channels */}
           <a
             href="/channels/explore"
-            class="flex items-center gap-3 px-5 py-4 rounded-xl bg-primary/5 dark:bg-primary/10 border border-primary/20 hover:border-primary/40 transition-colors no-underline group"
+            class="flex items-center gap-4 px-5 py-14 rounded-xl no-underline overflow-hidden relative"
           >
-            <Icon name="recommend" class="text-2xl text-primary" />
-            <div class="flex-1 min-w-0">
-              <span class="text-base font-bold text-charcoal dark:text-white group-hover:text-primary transition-colors">
+            <div
+              class="absolute inset-0"
+              style={{ backgroundImage: "url('/explore-banner.png')", backgroundSize: "cover", backgroundPosition: "center 70%" }}
+            />
+            <div class="absolute inset-0 bg-black/50" />
+            <div class="flex-1 min-w-0 relative z-10">
+              <span class="text-xl font-bold text-white">
                 {t("channels.exploreLink")}
               </span>
-              <p class="text-sm text-text-muted-light dark:text-text-muted-dark mt-0.5">
+              <p class="text-base text-white/80 mt-0.5">
                 {t("channels.exploreLinkDesc")}
               </p>
             </div>
-            <Icon name="chevron_right" class="text-xl text-text-muted-light dark:text-text-muted-dark group-hover:text-primary transition-colors" />
+            <Icon name="chevron_right" class="text-xl text-white/80 shrink-0 relative z-10" />
           </a>
 
           {/* Subscribed channels list */}
@@ -190,7 +194,6 @@ function ChannelsContent() {
             </div>
           ) : channels.length === 0 ? (
             <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-              <Icon name="subscriptions" class="text-5xl mb-4" />
               <p class="text-lg font-medium">{t("channels.noChannels")}</p>
             </div>
           ) : (

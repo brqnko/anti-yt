@@ -2,7 +2,6 @@ package job
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"sync"
 	"time"
@@ -10,7 +9,6 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/channel"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
-	"github.com/brqnko/anti-yt/backend/internal/core/discord_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/brqnko/anti-yt/backend/internal/playlist"
@@ -21,11 +19,10 @@ import (
 )
 
 type exhaustQuotaJob struct {
-	db             *pgxpool.Pool
-	ytService      youtube_d.Service
-	feedRepo       database_d.FeedRepository
-	discordService discord_d.Service
-	mx             *sync.Mutex
+	db        *pgxpool.Pool
+	ytService youtube_d.Service
+	feedRepo  database_d.FeedRepository
+	mx        *sync.Mutex
 }
 
 func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
@@ -316,14 +313,6 @@ channelLoop:
 			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to release ad lock for channel", slog.String("channel_id", c.ID.String()), slog.Any("error", err))
 		}
 
-		// discord webhookに送信
-		if err := j.discordService.SendWebhookMessage(ctx, fmt.Sprintf("チャンネル %s のバルクフェッチが完了しました", c.ID.String())); err != nil {
-			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to send discord webhook", slog.String("channel_id", c.ID.String()), slog.Any("error", err))
-		}
-	}
-
-	if err := j.discordService.SendWebhookMessage(ctx, fmt.Sprintf("exhaust quota jobが完了しました (対象チャンネル数: %d)", len(channels))); err != nil {
-		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to send discord webhook", slog.Any("error", err))
 	}
 
 	return nil
@@ -352,18 +341,14 @@ func (j *exhaustQuotaJob) Run() {
 
 	if err := j.run(ctx); err != nil {
 		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to run exhaust quota job", slog.Any("error", err))
-		if wErr := j.discordService.SendWebhookMessage(ctx, fmt.Sprintf("[Error] exhaust quota job: %v", err)); wErr != nil {
-			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to send discord webhook", slog.Any("error", wErr))
-		}
 	}
 }
 
-func NewExhaustQuotaJob(db *pgxpool.Pool, ytService youtube_d.Service, feedRepo database_d.FeedRepository, discordService discord_d.Service) scheduler.Job {
+func NewExhaustQuotaJob(db *pgxpool.Pool, ytService youtube_d.Service, feedRepo database_d.FeedRepository) scheduler.Job {
 	return &exhaustQuotaJob{
-		db:             db,
-		ytService:      ytService,
-		feedRepo:       feedRepo,
-		discordService: discordService,
-		mx:             &sync.Mutex{},
+		db:        db,
+		ytService: ytService,
+		feedRepo:  feedRepo,
+		mx:        &sync.Mutex{},
 	}
 }

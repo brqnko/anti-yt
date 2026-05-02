@@ -2,14 +2,12 @@ package job
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"sync"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
-	"github.com/brqnko/anti-yt/backend/internal/core/discord_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
 	"github.com/brqnko/anti-yt/backend/internal/feed"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -17,11 +15,10 @@ import (
 )
 
 type refillFeedJob struct {
-	db             *pgxpool.Pool
-	feedRepo       database_d.FeedRepository
-	feedQS         feed.FeedQueryService
-	discordService discord_d.Service
-	mx             *sync.Mutex
+	db       *pgxpool.Pool
+	feedRepo database_d.FeedRepository
+	feedQS   feed.FeedQueryService
+	mx       *sync.Mutex
 }
 
 func (j *refillFeedJob) run(ctx context.Context) (err error) {
@@ -61,10 +58,6 @@ func (j *refillFeedJob) run(ctx context.Context) (err error) {
 		refilled++
 	}
 
-	if err := j.discordService.SendWebhookMessage(ctx, fmt.Sprintf("refill feed jobが完了しました (対象: %d, 補充: %d)", len(userIDs), refilled)); err != nil {
-		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to send discord webhook", slog.Any("error", err))
-	}
-
 	return nil
 }
 
@@ -77,18 +70,14 @@ func (j *refillFeedJob) Run() {
 
 	if err := j.run(ctx); err != nil {
 		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to run refill feed job", slog.Any("error", err))
-		if wErr := j.discordService.SendWebhookMessage(ctx, fmt.Sprintf("[Error] refill feed job: %v", err)); wErr != nil {
-			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to send discord webhook", slog.Any("error", wErr))
-		}
 	}
 }
 
-func NewRefillFeedJob(db *pgxpool.Pool, feedRepo database_d.FeedRepository, discordService discord_d.Service) scheduler.Job {
+func NewRefillFeedJob(db *pgxpool.Pool, feedRepo database_d.FeedRepository) scheduler.Job {
 	return &refillFeedJob{
-		db:             db,
-		feedRepo:       feedRepo,
-		feedQS:         feed.NewFeedQueryService(db),
-		discordService: discordService,
-		mx:             &sync.Mutex{},
+		db:       db,
+		feedRepo: feedRepo,
+		feedQS:   feed.NewFeedQueryService(db),
+		mx:       &sync.Mutex{},
 	}
 }
