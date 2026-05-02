@@ -3,6 +3,7 @@ import preact from "@preact/preset-vite";
 import tailwindcss from "@tailwindcss/vite";
 import Icons from "unplugin-icons/vite";
 import { VitePWA } from "vite-plugin-pwa";
+import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -15,6 +16,7 @@ export default defineConfig({
   plugins: [
     Icons({ compiler: "raw" }),
     tailwindcss(),
+    ViteImageOptimizer(),
     preact({
       prerender: {
         enabled: true,
