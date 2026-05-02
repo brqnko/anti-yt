@@ -273,6 +273,7 @@
     "activeSessions": "Active Sessions",
     "device": "Device",
     "location": "Location",
+    "userAgent": "User Agent",
     "createdAt": "Created",
     "updatedAt": "Updated",
     "logout": "Sign out",

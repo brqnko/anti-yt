@@ -273,6 +273,7 @@
     "activeSessions": "アクティブなセッション",
     "device": "デバイス",
     "location": "場所",
+    "userAgent": "ユーザーエージェント",
     "createdAt": "作成済み",
     "updatedAt": "更新日時",
     "logout": "ログアウト",
