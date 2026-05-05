@@ -22,7 +22,7 @@
     "tailwindcss": "^4.2.1"
   },
   "devDependencies": {
-    "@iconify-json/material-symbols": "^1.2.63",
+    "@iconify-json/material-symbols": "^1.2.69",
     "@preact/preset-vite": "^2.10.5",
     "@types/youtube": "^0.2.0",
     "eslint": "^9.0.0",
