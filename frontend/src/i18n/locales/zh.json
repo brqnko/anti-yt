@@ -163,7 +163,8 @@
       "bottomChannels": "频道",
       "bottomPlaylists": "播放列表",
       "bottomAnalytics": "分析",
-      "bottomProfile": "个人资料"
+      "bottomProfile": "个人资料",
+      "aboutAntiYt": "什么是 anti-yt？"
     },
     "addChannelDialog": {
       "title": "添加频道",

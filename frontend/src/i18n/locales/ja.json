@@ -163,7 +163,8 @@
       "bottomChannels": "チャンネル",
       "bottomPlaylists": "再生リスト",
       "bottomAnalytics": "分析",
-      "bottomProfile": "プロフィール"
+      "bottomProfile": "プロフィール",
+      "aboutAntiYt": "anti-ytとは？"
     },
     "addChannelDialog": {
       "title": "チャンネルを追加",

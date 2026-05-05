@@ -970,31 +970,33 @@ function VideoPlayerContent() {
                 </div>
 
               {/* Description */}
-              {video.external_video_description && (
-                <div class="mt-6">
-                  <div class="bg-border-light/50 dark:bg-[#332e27]/30 p-6 rounded-xl">
-                    <p class="text-base text-charcoal dark:text-white mb-3">
-                      {new Date(video.external_video_created_at).toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" }).replaceAll("-", "/")}
-                    </p>
-                    <div
-                      ref={descRef}
-                      class={`text-charcoal dark:text-white/80 leading-relaxed whitespace-pre-line overflow-hidden ${isDescExpanded ? "" : "max-h-[4.875rem]"}`}
-                    >
-                        <Linkify text={video.external_video_description} onTimestamp={seekTo} />
-                    </div>
-                    {(descOverflows || isDescExpanded) && (
-                      <button
-                        class="mt-3 text-sm font-semibold text-primary hover:text-primary/80 transition-colors bg-transparent border-none cursor-pointer p-0"
-                        onClick={() => setIsDescExpanded((v) => !v)}
+              <div class="mt-6">
+                <div class="bg-border-light/50 dark:bg-[#332e27]/30 p-6 rounded-xl">
+                  <p class={`text-base text-charcoal dark:text-white ${video.external_video_description ? "mb-3" : ""}`}>
+                    {new Date(video.external_video_created_at).toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" }).replaceAll("-", "/")}
+                  </p>
+                  {video.external_video_description && (
+                    <>
+                      <div
+                        ref={descRef}
+                        class={`text-charcoal dark:text-white/80 leading-relaxed whitespace-pre-line overflow-hidden ${isDescExpanded ? "" : "max-h-[4.875rem]"}`}
                       >
-                        {isDescExpanded
-                          ? t("channelDetail.showLess")
-                          : t("channelDetail.showMore")}
-                      </button>
-                    )}
-                  </div>
+                          <Linkify text={video.external_video_description} onTimestamp={seekTo} />
+                      </div>
+                      {(descOverflows || isDescExpanded) && (
+                        <button
+                          class="mt-3 text-sm font-semibold text-primary hover:text-primary/80 transition-colors bg-transparent border-none cursor-pointer p-0"
+                          onClick={() => setIsDescExpanded((v) => !v)}
+                        >
+                          {isDescExpanded
+                            ? t("channelDetail.showLess")
+                            : t("channelDetail.showMore")}
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
