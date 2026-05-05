@@ -15,6 +15,7 @@ import { PAGE_SIZES } from "../../constants";
 import type { GetFeed200ItemsItem, GetPlaylistsRecent200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
 import { AddPlaylistDialog } from "../../components/AddPlaylistDialog";
+import { ExploreChannelsBanner } from "../../components/ExploreChannelsBanner";
 import { getApiErrorCode } from "../../utils/api-error";
 
 function DashboardContent() {
@@ -29,6 +30,7 @@ function DashboardContent() {
   const [hasNext, setHasNext] = useState(false);
   const [feedRateLimited, setFeedRateLimited] = useState(false);
   const [subscribedChannelIds, setSubscribedChannelIds] = useState<Set<string>>(new Set());
+  const [hasZeroSubs, setHasZeroSubs] = useState(false);
   const [showAddPlaylist, setShowAddPlaylist] = useState(false);
   const cursorRef = useRef<string | undefined>(undefined);
 
@@ -57,6 +59,7 @@ function DashboardContent() {
         }
         if (subsRes) {
           setSubscribedChannelIds(new Set(subsRes.items.map((s) => s.channel_id)));
+          setHasZeroSubs(subsRes.items.length === 0);
         }
         if (recentRes) {
           setRecentPlaylists(recentRes.items);
@@ -107,6 +110,11 @@ function DashboardContent() {
   return (
     <DashboardLayout>
       <div class="p-6">
+        {isAuthenticated && !isAuthLoading && !isLoadingFeed && hasZeroSubs && (
+          <div class="mb-8">
+            <ExploreChannelsBanner />
+          </div>
+        )}
         {!isAuthenticated && !isAuthLoading && (
           <a
             href="/about"
@@ -229,9 +237,11 @@ function DashboardContent() {
         ) : (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
             <p class="text-sm mt-1">{t("dashboard.noVideosDesc")}</p>
-            <a href="/channels" class="mt-3 text-sm text-primary hover:underline">
-              {t("dashboard.goToChannels")}
-            </a>
+            {!hasZeroSubs && (
+              <a href="/channels" class="mt-3 text-sm text-primary hover:underline">
+                {t("dashboard.goToChannels")}
+              </a>
+            )}
           </div>
         )}
       </div>

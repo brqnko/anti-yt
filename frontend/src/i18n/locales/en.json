@@ -163,7 +163,8 @@
       "bottomChannels": "Channels",
       "bottomPlaylists": "Playlist",
       "bottomAnalytics": "Analytics",
-      "bottomProfile": "Profile"
+      "bottomProfile": "Profile",
+      "aboutAntiYt": "What is anti-yt?"
     },
     "addChannelDialog": {
       "title": "Add Channel",
