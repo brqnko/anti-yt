@@ -9,6 +9,7 @@ import { formatSubscriberCount } from "../../utils/format";
 import type { GetChannelsSubscribed200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
 import { Dialog } from "../../components/Dialog";
+import { ExploreChannelsBanner } from "../../components/ExploreChannelsBanner";
 
 const PAGE_SIZE = 30;
 
@@ -158,25 +159,7 @@ function ChannelsContent() {
           </h1>
 
           {/* Link to valuable channels */}
-          <a
-            href="/channels/explore"
-            class="flex items-center gap-4 px-5 py-14 rounded-xl no-underline overflow-hidden relative"
-          >
-            <div
-              class="absolute inset-0"
-              style={{ backgroundImage: "url('/explore-banner.png')", backgroundSize: "cover", backgroundPosition: "center 70%" }}
-            />
-            <div class="absolute inset-0 bg-black/50" />
-            <div class="flex-1 min-w-0 relative z-10">
-              <span class="text-xl font-bold text-white">
-                {t("channels.exploreLink")}
-              </span>
-              <p class="text-base text-white/80 mt-0.5">
-                {t("channels.exploreLinkDesc")}
-              </p>
-            </div>
-            <Icon name="chevron_right" class="text-xl text-white/80 shrink-0 relative z-10" />
-          </a>
+          <ExploreChannelsBanner />
 
           {/* Subscribed channels list */}
           {isLoading ? (
