@@ -133,7 +133,7 @@ func run(ctx context.Context) int {
 			slog.Error("failed to close redis", slog.Any("error", err))
 		}
 	}()
-	jtiBlacklistRepo := database_d.NewJtiBlacklistRepository(redisClient)
+	jtiBlacklistRepo := database_d.NewInMemoryJtiBlacklistRepository()
 	ratelimitRepo := database_d.NewRatelimitRepository(redisClient, 24*time.Hour)
 	feedRepo := database_d.NewFeedRepository(redisClient, 1000)
 
@@ -272,6 +272,7 @@ func run(ctx context.Context) int {
 				"GetChannelsChannelIdPlaylists": {},
 				"GetVideosVideoId":              {},
 				"GetPlaylistsPlaylistId":        {},
+				"GetPlaylistsPlaylistIdVideos":  {},
 				"GetFeed":                       {},
 			}),
 			middleware_d.RequestIDMiddleware,
