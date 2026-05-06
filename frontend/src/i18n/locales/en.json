@@ -511,6 +511,7 @@
     "playlist.invalid_playlist_id": "Invalid playlist ID or unsupported format.",
     "playlist.not_modifiable": "This playlist cannot be modified.",
     "jti_blacklisted": "This link has already been used. Please start over.",
+    "too_many_requests": "Too many requests. Please wait a moment and try again.",
     "fallback": "An error occurred. Please try again."
   }
 }
