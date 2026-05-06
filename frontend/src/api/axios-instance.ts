@@ -59,6 +59,16 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Handle 429 Too Many Requests (rate limit)
+    if (error.response?.status === 429) {
+      window.dispatchEvent(
+        new CustomEvent("notification:show", {
+          detail: { type: "error", messageKey: "apiErrors.too_many_requests" },
+        }),
+      );
+      return Promise.reject(error);
+    }
+
     // Handle 403 Forbidden (screen time restrictions)
     if (error.response?.status === 403) {
       const title: string = error.response?.data?.title ?? "";

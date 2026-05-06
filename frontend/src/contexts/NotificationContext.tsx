@@ -1,0 +1,113 @@
+import { createContext } from "preact";
+import { useState, useEffect, useCallback, useContext, useRef } from "preact/hooks";
+import type { ComponentChildren } from "preact";
+import { NotificationHost } from "../components/NotificationHost";
+
+export type NotificationType = "error" | "info";
+
+export interface NotificationItem {
+  id: string;
+  type: NotificationType;
+  messageKey: string;
+  durationMs: number;
+}
+
+export interface ShowNotificationInput {
+  type?: NotificationType;
+  messageKey: string;
+  durationMs?: number;
+}
+
+interface NotificationState {
+  notifications: NotificationItem[];
+  show: (input: ShowNotificationInput) => void;
+  dismiss: (id: string) => void;
+}
+
+const DEFAULT_DURATION_MS = 5000;
+
+const NotificationContext = createContext<NotificationState>({
+  notifications: [],
+  show: () => {},
+  dismiss: () => {},
+});
+
+export function NotificationProvider({ children }: { children: ComponentChildren }) {
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  const dismiss = useCallback((id: string) => {
+    const timer = timersRef.current.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      timersRef.current.delete(id);
+    }
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
+
+  const scheduleDismiss = useCallback(
+    (id: string, durationMs: number) => {
+      const existing = timersRef.current.get(id);
+      if (existing) clearTimeout(existing);
+      const timer = setTimeout(() => dismiss(id), durationMs);
+      timersRef.current.set(id, timer);
+    },
+    [dismiss],
+  );
+
+  const show = useCallback(
+    (input: ShowNotificationInput) => {
+      const type = input.type ?? "info";
+      const durationMs = input.durationMs ?? DEFAULT_DURATION_MS;
+
+      setNotifications((prev) => {
+        const existing = prev.find((n) => n.messageKey === input.messageKey);
+        if (existing) {
+          scheduleDismiss(existing.id, durationMs);
+          return prev;
+        }
+        const id =
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `n-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        scheduleDismiss(id, durationMs);
+        return [...prev, { id, type, messageKey: input.messageKey, durationMs }];
+      });
+    },
+    [scheduleDismiss],
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail || typeof detail.messageKey !== "string") return;
+      show({
+        type: detail.type,
+        messageKey: detail.messageKey,
+        durationMs: detail.durationMs,
+      });
+    };
+    window.addEventListener("notification:show", handler);
+    return () => window.removeEventListener("notification:show", handler);
+  }, [show]);
+
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => {
+      timers.forEach((t) => clearTimeout(t));
+      timers.clear();
+    };
+  }, []);
+
+  return (
+    <NotificationContext.Provider value={{ notifications, show, dismiss }}>
+      {children}
+      <NotificationHost />
+    </NotificationContext.Provider>
+  );
+}
+
+export function useNotification(): NotificationState {
+  return useContext(NotificationContext);
+}
