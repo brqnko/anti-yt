@@ -114,10 +114,10 @@ func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 	}
 
 	startedAt := time.Now().UTC()
-	y, m, d := startedAt.Date()
+	y, m, _ := startedAt.Date()
 	rows, err := q.GetVideoWatchTitlesByUser(
 		ctx,
-		util.UUIDv7MinForTime(time.Date(y, m, d, 0, 0, 0, 0, time.UTC).AddDate(0, 0, -7)),
+		util.UUIDv7MinForTime(startedAt.Add(-24*time.Hour)),
 	)
 	if err != nil {
 		return err
