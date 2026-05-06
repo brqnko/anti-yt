@@ -12,10 +12,10 @@
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^5.2.0",
     "@tailwindcss/vite": "^4.2.4",
-    "axios": "^1.15.2",
-    "i18next": "^26.0.4",
+    "axios": "^1.16.0",
+    "i18next": "^26.0.8",
     "preact": "^10.29.1",
-    "preact-iso": "^2.11.1",
+    "preact-iso": "^2.12.0",
     "preact-render-to-string": "^6.6.7",
     "react-i18next": "^17.0.6",
     "swr": "^2.4.1",
