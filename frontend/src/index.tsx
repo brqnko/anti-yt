@@ -8,6 +8,7 @@ import {
 } from "preact-iso";
 import { SWRConfig } from "swr";
 import { AuthProvider } from "./contexts/AuthContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
 import { ScreenTimeGate } from "./components/ScreenTimeGate";
 import "./i18n";
 
@@ -72,9 +73,11 @@ export function App() {
         }}
       >
         <AuthProvider>
-          <ScreenTimeGate>
-            <AppContent />
-          </ScreenTimeGate>
+          <NotificationProvider>
+            <ScreenTimeGate>
+              <AppContent />
+            </ScreenTimeGate>
+          </NotificationProvider>
         </AuthProvider>
       </SWRConfig>
     </LocationProvider>

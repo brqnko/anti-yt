@@ -511,6 +511,7 @@
     "playlist.invalid_playlist_id": "无效的播放列表 ID 或不支持的格式。",
     "playlist.not_modifiable": "此播放列表无法修改。",
     "jti_blacklisted": "此链接已被使用，请重新开始。",
+    "too_many_requests": "请求过于频繁，请稍候再试。",
     "fallback": "发生错误，请重试。"
   }
 }

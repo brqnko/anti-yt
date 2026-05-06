@@ -522,6 +522,7 @@
     "playlist.invalid_playlist_id": "無効なプレイリストIDです。",
     "playlist.not_modifiable": "このプレイリストは編集できません。",
     "jti_blacklisted": "このリンクは既に使用されています。最初からやり直してください。",
+    "too_many_requests": "リクエストが多すぎます。しばらく待ってから再度お試しください。",
     "fallback": "エラーが発生しました。再度お試しください。"
   }
 }
