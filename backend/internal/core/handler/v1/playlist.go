@@ -155,10 +155,7 @@ func (h *APIHandler) GetPlaylistsPlaylistId(ctx context.Context, request GetPlay
 }
 
 func (h *APIHandler) GetPlaylistsPlaylistIdVideos(ctx context.Context, request GetPlaylistsPlaylistIdVideosRequestObject) (GetPlaylistsPlaylistIdVideosResponseObject, error) {
-	userID, err := hutil.UserIDFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
+	userID, _ := hutil.UserIDFromContext(ctx)
 
 	videos, hasNext, err := h.playlistService.GetPlaylistItems(ctx, userID, request.PlaylistId.UUID(), cursorToUUID(request.Params.Cursor), int32(request.Params.Limit))
 	if err != nil {
