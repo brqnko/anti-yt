@@ -2,6 +2,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { useCanonical } from "../../hooks/useCanonical";
 import { HeaderControls } from "../../components/HeaderControls";
+import { Reveal } from "../../components/Reveal";
 
 const principles = ["feed", "time", "analytics"] as const;
 
@@ -334,7 +335,7 @@ export default function About() {
         {/* Hero */}
         <section class="max-w-7xl mx-auto px-6 md:px-8 mb-14 md:mb-20">
           <div class="grid lg:grid-cols-[1.05fr_1fr] items-center gap-12 lg:gap-20">
-            <div class="flex flex-col gap-6 md:gap-8 lg:pl-16 xl:pl-24">
+            <Reveal class="flex flex-col gap-6 md:gap-8 lg:pl-16 xl:pl-24">
               <h1 class="text-5xl md:text-6xl xl:text-7xl font-black text-charcoal dark:text-white leading-[1.05] tracking-tighter">
                 {t("about.hero.title1")}
                 <br />
@@ -343,19 +344,23 @@ export default function About() {
               <p class="text-lg md:text-xl text-taupe dark:text-text-muted-dark leading-relaxed font-medium max-w-md">
                 {t("about.hero.description")}
               </p>
-            </div>
-            <ul class="flex flex-col gap-5 md:gap-6 list-disc pl-7 text-xl md:text-2xl font-bold text-charcoal dark:text-white marker:text-primary leading-snug">
+            </Reveal>
+            <Reveal
+              as="ul"
+              delay={150}
+              class="flex flex-col gap-5 md:gap-6 list-disc pl-7 text-xl md:text-2xl font-bold text-charcoal dark:text-white marker:text-primary leading-snug"
+            >
               <li>{t("about.hero.feature1")}</li>
               <li>{t("about.hero.feature2")}</li>
               <li>{t("about.hero.feature3")}</li>
-            </ul>
+            </Reveal>
           </div>
         </section>
 
         {/* Editorial statement */}
         <section class="max-w-7xl mx-auto px-6 md:px-8 mb-14 md:mb-20">
           <div class="lg:pl-16 xl:pl-24">
-            <div class="max-w-2xl border-l-4 border-primary pl-6 md:pl-10 py-4 md:py-6">
+            <Reveal class="max-w-2xl border-l-4 border-primary pl-6 md:pl-10 py-4 md:py-6">
               <h2 class="text-2xl md:text-4xl font-bold text-charcoal dark:text-white mb-6 md:mb-8 leading-tight">
                 {t("about.statement.heading")}
               </h2>
@@ -365,7 +370,7 @@ export default function About() {
                   {t("about.statement.body2")}
                 </p>
               </div>
-            </div>
+            </Reveal>
           </div>
         </section>
 
@@ -407,9 +412,9 @@ export default function About() {
 
               if (key === "time") {
                 return (
-                  <div
+                  <Reveal
                     key={key}
-                    class="md:grid md:grid-cols-12 md:items-start md:gap-y-8 flex flex-col gap-8 md:mb-16"
+                    class="md:grid md:grid-cols-12 md:items-start md:gap-y-8 flex flex-col gap-8 md:mt-32 md:mb-16"
                   >
                     <div class="md:col-start-2 md:col-span-6 md:row-start-1 space-y-4 md:space-y-6 md:text-right order-2 md:order-1">
                       <h3 class="text-2xl md:text-4xl font-bold text-charcoal dark:text-white leading-tight">
@@ -427,12 +432,12 @@ export default function About() {
                     <div class="md:col-start-1 md:col-span-9 md:row-start-2 order-3">
                       {mockBlock}
                     </div>
-                  </div>
+                  </Reveal>
                 );
               }
               // even (feed / analytics): num left, text middle, mock below
               return (
-                <div
+                <Reveal
                   key={key}
                   class="md:grid md:grid-cols-12 md:items-start md:gap-y-8 flex flex-col gap-8"
                 >
@@ -456,7 +461,7 @@ export default function About() {
                   <div class="md:col-start-4 md:col-span-9 md:row-start-2 order-3">
                     {mockBlock}
                   </div>
-                </div>
+                </Reveal>
               );
             })}
           </div>
