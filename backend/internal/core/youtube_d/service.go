@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -12,12 +13,24 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"golang.org/x/oauth2"
 	googleOAuth2 "golang.org/x/oauth2/google"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/option"
+	htransport "google.golang.org/api/transport/http"
 	"google.golang.org/api/youtube/v3"
 )
+
+func otelHTTPClient() *http.Client {
+	return &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
+}
+
+func newOAuthYouTubeClient(ctx context.Context, accessToken string) (*youtube.Service, error) {
+	ctx = context.WithValue(ctx, oauth2.HTTPClient, otelHTTPClient())
+	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}))
+	return youtube.NewService(ctx, option.WithHTTPClient(httpClient))
+}
 
 var iso8601DurationRe = regexp.MustCompile(`PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?`)
 
@@ -497,7 +510,12 @@ func (s *serviceImpl) markIfQuotaExceeded(err error) {
 func NewService(ctx context.Context, apiKey, oauthClientID, oauthClientSecret, oauthRedirectURL string) (_ Service, err error) {
 	defer util.Wrap(&err, "youtube_d.NewService")
 
-	ytClient, err := youtube.NewService(ctx, option.WithAPIKey(apiKey))
+	baseTransport, err := htransport.NewTransport(ctx, http.DefaultTransport, option.WithAPIKey(apiKey))
+	if err != nil {
+		return nil, err
+	}
+	httpClient := &http.Client{Transport: otelhttp.NewTransport(baseTransport)}
+	ytClient, err := youtube.NewService(ctx, option.WithHTTPClient(httpClient))
 	if err != nil {
 		return nil, err
 	}
@@ -533,8 +551,7 @@ func (s *serviceImpl) OAuthExchange(ctx context.Context, code string) (_ string,
 func (s *serviceImpl) FetchAllSubscriptions(ctx context.Context, accessToken string) (_ []Channel, err error) {
 	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchAllSubscriptions")
 
-	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}))
-	ytClient, err := youtube.NewService(ctx, option.WithHTTPClient(httpClient))
+	ytClient, err := newOAuthYouTubeClient(ctx, accessToken)
 	if err != nil {
 		return nil, err
 	}
@@ -569,8 +586,7 @@ func (s *serviceImpl) FetchAllSubscriptions(ctx context.Context, accessToken str
 func (s *serviceImpl) FetchPlaylistVideoIDsWithOAuth(ctx context.Context, accessToken string, playlistID string, pageToken string) (_ []VideoID, _ string, err error) {
 	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchPlaylistVideoIDsWithOAuth")
 
-	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}))
-	ytClient, err := youtube.NewService(ctx, option.WithHTTPClient(httpClient))
+	ytClient, err := newOAuthYouTubeClient(ctx, accessToken)
 	if err != nil {
 		return nil, "", err
 	}
@@ -608,8 +624,7 @@ func (s *serviceImpl) FetchPlaylistVideoIDsWithOAuth(ctx context.Context, access
 func (s *serviceImpl) FetchWatchHistory(ctx context.Context, accessToken string, pageToken string) (_ []WatchHistory, _ string, err error) {
 	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchWatchHistory")
 
-	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}))
-	ytClient, err := youtube.NewService(ctx, option.WithHTTPClient(httpClient))
+	ytClient, err := newOAuthYouTubeClient(ctx, accessToken)
 	if err != nil {
 		return nil, "", err
 	}

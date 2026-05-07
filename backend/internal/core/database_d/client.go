@@ -8,9 +8,11 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/brqnko/anti-yt/backend/migrations"
+	"github.com/exaring/otelpgx"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pressly/goose/v3"
+	"github.com/redis/go-redis/extra/redisotel/v9"
 	"github.com/redis/go-redis/v9"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -51,8 +53,19 @@ func RunMigration(ctx context.Context, databaseURL string) (err error) {
 func ConnectPostgres(ctx context.Context, databaseURL string) (_ *pgxpool.Pool, err error) {
 	defer util.Wrap(&err, "database_d.ConnectPostgres")
 
-	db, err := pgxpool.New(ctx, databaseURL)
+	cfg, err := pgxpool.ParseConfig(databaseURL)
 	if err != nil {
+		return nil, err
+	}
+	cfg.ConnConfig.Tracer = otelpgx.NewTracer()
+
+	db, err := pgxpool.NewWithConfig(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := otelpgx.RecordStats(db); err != nil {
+		db.Close()
 		return nil, err
 	}
 
@@ -71,5 +84,14 @@ func ConnectRedis(ctx context.Context, url string) (_ *redis.Client, err error) 
 	if err != nil {
 		return nil, err
 	}
-	return redis.NewClient(opt), nil
+	client := redis.NewClient(opt)
+	if err := redisotel.InstrumentTracing(client); err != nil {
+		_ = client.Close()
+		return nil, err
+	}
+	if err := redisotel.InstrumentMetrics(client); err != nil {
+		_ = client.Close()
+		return nil, err
+	}
+	return client, nil
 }
