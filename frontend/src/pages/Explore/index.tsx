@@ -88,7 +88,7 @@ function ExploreContent() {
       <div class="relative overflow-hidden" style={{ minHeight: "180px" }}>
         <div
           class="absolute inset-0"
-          style={{ backgroundImage: "url('/explore-banner.png')", backgroundSize: "cover", backgroundPosition: "center 70%" }}
+          style={{ backgroundImage: "url('/explore-banner.webp')", backgroundSize: "cover", backgroundPosition: "center 70%" }}
         />
         <div class="absolute inset-0 bg-black/50" />
         <div class="relative z-10 flex items-end px-8 sm:px-12 py-8" style={{ minHeight: "180px" }}>

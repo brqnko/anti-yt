@@ -36,27 +36,36 @@
   "about": {
     "pageTitle": "About",
     "hero": {
-      "title1": "Manage your YouTube",
-      "title2": "viewing on your own terms.",
-      "description": "A free interface designed to remove algorithmic recommendations and put you in control of which channels you follow and how long you watch."
+      "title1": "Break free",
+      "title2": "from YouTube",
+      "description": "anti-yt is a free service that shows only videos from channels you subscribe to, and lets you manage your own screen time.",
+      "feature1": "No recommendations",
+      "feature2": "Set time limits",
+      "feature3": "Make YouTube more useful"
     },
     "statement": {
-      "heading": "A response to engagement maximization by design",
-      "body1": "Recommendation algorithms are engineered to maximize time-on-platform, not user satisfaction.",
-      "body2": "This tool puts physical distance between you and that design."
+      "heading": "Is YouTube stealing your time?",
+      "body1": "We believe the recommendation algorithm is the main reason people get hooked on YouTube. We only surface videos from channels you've allowed.",
+      "body2": "Put YouTube to more meaningful use."
     },
     "principles": {
       "feed": {
-        "title": "A feed limited to your subscriptions",
-        "body": "No recommendations, no related videos — only the channels you have explicitly subscribed to, ordered chronologically. Less noise, easier choices."
+        "title": "Don't get pulled in by recommendations",
+        "body": "Only the channels you've subscribed to show up as recommendations. No more endless scrolling that drains your time."
       },
       "time": {
-        "title": "Defined time boundaries",
-        "body": "Set daily caps and allowed viewing windows, enforced at the system level. Treat your time as a resource to be allocated deliberately."
+        "title": "Cap your daily screen time",
+        "body": "Restrict both the hours you can watch and your daily limit. No more breaks that quietly turn into hours.",
+        "mock": {
+          "title": "Allowed window",
+          "windowLabel": "Window",
+          "dailyLabel": "Daily cap",
+          "remainingLabel": "Remaining"
+        }
       },
       "analytics": {
-        "title": "Quantified viewing data",
-        "body": "Visualize your usage over time with clear graphs. The logs that accumulate help you understand your patterns objectively."
+        "title": "Look back on your viewing time",
+        "body": "Visualize a full week of viewing data. Look back on your past behavior and reflect on how you've been spending your time."
       }
     },
     "features": {
@@ -75,7 +84,7 @@
       }
     },
     "finalCta": {
-      "description": "Begin a free viewing experience designed on your own terms."
+      "description": "Begin a viewing experience designed on your own terms\n<b>for free</b>"
     }
   },
   "terms": {
@@ -196,8 +205,11 @@
     "showAllPlaylists": "Show all",
     "noVideosDesc": "Subscribe to channels to see their latest videos here.",
     "goToChannels": "Go to channels",
-    "aboutBanner": "What is anti-yt?",
-    "aboutBannerDesc": "anti-yt is a free service that shows only videos from channels you subscribe to and lets you manage your own screen time.",
+    "aboutBanner": "Break free\nfrom YouTube",
+    "aboutBannerDesc": "anti-yt is a free service that shows only videos from channels you subscribe to,\nand lets you manage your own screen time.",
+    "aboutBannerFeature1": "No recommendations",
+    "aboutBannerFeature2": "Set time limits",
+    "aboutBannerFeature3": "Make YouTube more useful",
     "aboutBannerCta": "Learn more →",
     "rateLimitedTitle": "Please wait a moment",
     "rateLimitedDesc": "You've reached the request limit. Please try again later.",

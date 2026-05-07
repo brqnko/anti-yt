@@ -115,6 +115,12 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // No CSRF cookie means there's no session to refresh. Skip the refresh
+    // request to avoid a guaranteed 400 surfacing as a console error.
+    if (!getCookie("csrf_token")) {
+      return Promise.reject(error);
+    }
+
     // jti_blacklisted is raised during register/reactivation flows when a
     // one-time token has already been consumed. Refreshing the session token
     // would not help and would mask the original error, so surface it to the
