@@ -7,13 +7,13 @@ import (
 
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
 // Setup は OTLP HTTP exporter で TracerProvider と MeterProvider を初期化し、
@@ -25,10 +25,9 @@ func Setup(ctx context.Context, serviceName, serviceVersion string) (shutdown fu
 
 	res, err := resource.Merge(
 		resource.Default(),
-		resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceName(serviceName),
-			semconv.ServiceVersion(serviceVersion),
+		resource.NewSchemaless(
+			attribute.String("service.name", serviceName),
+			attribute.String("service.version", serviceVersion),
 		),
 	)
 	if err != nil {
