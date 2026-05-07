@@ -4,6 +4,7 @@ import type { ComponentChildren } from "preact";
 import { AxiosError } from "axios";
 import { getUser } from "../api/generated/user";
 import { getAuth } from "../api/generated/auth";
+import { getCookie } from "../utils/cookie";
 
 interface AuthState {
   isLoading: boolean;
@@ -38,6 +39,15 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
 
   const checkAuth = useCallback(async () => {
     if (typeof window === "undefined") {
+      setIsLoading(false);
+      return;
+    }
+
+    // Skip the status request entirely when there's no CSRF cookie. The API
+    // would respond 401 (which would then trigger a refresh that 400s),
+    // surfacing console errors even though the app already handles the case.
+    if (!getCookie("csrf_token")) {
+      setIsAuthenticated(false);
       setIsLoading(false);
       return;
     }
