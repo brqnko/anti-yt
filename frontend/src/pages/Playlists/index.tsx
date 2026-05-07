@@ -5,7 +5,6 @@ import { useTitle } from "../../hooks/useTitle";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { AddPlaylistDialog } from "../../components/AddPlaylistDialog";
 import { getPlaylist } from "../../api/generated/playlist";
 import { formatTimeAgo } from "../../utils/format";
@@ -148,9 +147,7 @@ function PlaylistsContent() {
         </div>
 
         {/* Content */}
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : error ? (
+        {isLoading ? null : error ? (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
             <Icon name="error_outline" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("playlists.loadError")}</p>
@@ -172,7 +169,6 @@ function PlaylistsContent() {
               ))}
             </div>
             {hasNext && <div ref={sentinelRef} class="h-1" />}
-            {isLoadingMore && <LoadingSpinner size="sm" className="py-8" />}
           </>
         ) : (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">

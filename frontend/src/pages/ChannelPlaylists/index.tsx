@@ -5,7 +5,6 @@ import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { AuthPromptDialog } from "../../components/AuthPromptDialog";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { ChannelInfoCard } from "../../components/ChannelInfoCard";
 import { getChannel } from "../../api/generated/channel";
 import { PAGE_SIZES } from "../../constants";
@@ -110,14 +109,6 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
     }
   };
 
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <LoadingSpinner className="py-32" />
-      </DashboardLayout>
-    );
-  }
-
   return (
     <DashboardLayout>
       <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
@@ -131,6 +122,8 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
           <h2 class="text-2xl font-bold">{t("channelDetail.playlists")}</h2>
         </div>
 
+        {isLoading ? null : (
+          <>
         {channelInfo && (
           <ChannelInfoCard
             channelInfo={channelInfo}
@@ -175,7 +168,6 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
               ))}
             </div>
             <div ref={sentinelRef} class="h-1" />
-            {isLoadingMore && <LoadingSpinner size="sm" className="py-8" />}
             {!hasNext && !isLoadingMore && playlists.length > 0 && (
               <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">
                 {t("dashboard.endOfFeed")}
@@ -187,6 +179,8 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
             <Icon name="playlist_play" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("playlists.empty")}</p>
           </div>
+        )}
+          </>
         )}
       </div>
       <AuthPromptDialog open={showAuthPrompt} onClose={closeAuthPrompt} />

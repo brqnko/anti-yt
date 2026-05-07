@@ -6,7 +6,6 @@ import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { AuthPromptDialog } from "../../components/AuthPromptDialog";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
 import { getFeed } from "../../api/generated/feed";
 import { getChannel } from "../../api/generated/channel";
@@ -260,9 +259,7 @@ function DashboardContent() {
           </div>
         </div>
         )}
-        {isLoadingFeed ? (
-          <LoadingSpinner />
-        ) : feedRateLimited ? (
+        {isLoadingFeed ? null : feedRateLimited ? (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
             <Icon name="hourglass_top" class="text-5xl mb-4" />
             <p class="text-sm font-medium">{t("dashboard.rateLimitedTitle")}</p>
@@ -283,7 +280,6 @@ function DashboardContent() {
               ))}
             </div>
             <div ref={sentinelRef} class="h-1" />
-            {isLoadingMore && <LoadingSpinner size="sm" className="py-8" />}
             {!hasNext && !isLoadingMore && (
               <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">
                 🎉 {t("dashboard.endOfFeed")}

@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getChannel } from "../../api/generated/channel";
 import { formatSubscriberCount } from "../../utils/format";
 import type { GetChannelsSubscribed200ItemsItem } from "../../api/generated/antiYtApi.schemas";
@@ -162,9 +161,7 @@ function ChannelsContent() {
           <ExploreChannelsBanner />
 
           {/* Subscribed channels list */}
-          {isLoading ? (
-            <LoadingSpinner />
-          ) : error ? (
+          {isLoading ? null : error ? (
             <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
               <Icon name="error_outline" class="text-5xl mb-4" />
               <p class="text-lg font-medium">{t("channels.loadError")}</p>
@@ -222,7 +219,7 @@ function ChannelsContent() {
                   onClick={loadMore}
                   disabled={isLoadingMore}
                 >
-                  {isLoadingMore ? <LoadingSpinner /> : t("channels.loadMore")}
+                  {t("channels.loadMore")}
                 </button>
               )}
             </div>

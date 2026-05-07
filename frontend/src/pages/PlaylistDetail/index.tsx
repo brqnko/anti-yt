@@ -7,7 +7,6 @@ import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { AuthPromptDialog } from "../../components/AuthPromptDialog";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
 import { Dialog } from "../../components/Dialog";
 import { getPlaylist } from "../../api/generated/playlist";
@@ -537,7 +536,15 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <LoadingSpinner className="py-32" />
+        <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
+          <a
+            href="/playlists"
+            class="inline-flex items-center gap-1 text-sm text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline mb-6"
+          >
+            <Icon name="arrow_back" class="text-[18px]" />
+            {t("playlistDetail.backToPlaylists")}
+          </a>
+        </div>
       </DashboardLayout>
     );
   }
@@ -744,9 +751,6 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                 ))}
               </div>
               <div ref={sentinelRef} class="h-1" />
-              {isLoadingMore && (
-                <LoadingSpinner size="sm" className="py-8" />
-              )}
               {!hasNext && !isLoadingMore && videos.length > 0 && (
                 <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">
                   {t("playlistDetail.endOfList")}
