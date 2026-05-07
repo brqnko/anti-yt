@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
 import { getHistory } from "../../api/generated/history";
 import { isoToDateStr, toDateStr, today } from "../../utils/format";
@@ -107,7 +106,7 @@ export function HistoryTab() {
   const sentinelRef = useInfiniteScroll(loadMore);
 
   if (isLoading) {
-    return <LoadingSpinner />;
+    return null;
   }
 
   return (
@@ -155,7 +154,6 @@ export function HistoryTab() {
             ))}
           </div>
           {hasNext && <div ref={sentinelRef} class="h-1" />}
-          {isLoadingMore && <LoadingSpinner size="sm" className="py-8" />}
           {!hasNext && !isLoadingMore && (
             <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">
               🎉 {t("history.endOfHistory")}

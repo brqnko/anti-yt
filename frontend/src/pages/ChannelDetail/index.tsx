@@ -6,7 +6,6 @@ import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { AuthPromptDialog } from "../../components/AuthPromptDialog";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { ChannelInfoCard } from "../../components/ChannelInfoCard";
 import { getChannel } from "../../api/generated/channel";
 import { getHistory } from "../../api/generated/history";
@@ -187,7 +186,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <LoadingSpinner className="py-32" />
+        <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10" />
       </DashboardLayout>
     );
   }
@@ -292,9 +291,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
             </select>
           </div>
 
-          {isVideosLoading ? (
-            <LoadingSpinner size="sm" className="py-12" />
-          ) : videos.length > 0 ? (
+          {isVideosLoading ? null : videos.length > 0 ? (
             <>
               <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {videos.map((video) => (
@@ -308,7 +305,6 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
                 ))}
               </div>
               <div ref={sentinelRef} class="h-1" />
-              {isLoadingMore && <LoadingSpinner size="sm" className="py-8" />}
               {!hasNextVideos && !isLoadingMore && videos.length > 0 && (
                 <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">
                   {t("dashboard.endOfFeed")}

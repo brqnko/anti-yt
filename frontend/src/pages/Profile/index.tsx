@@ -352,9 +352,6 @@ function ProfileContent() {
                 disabled={isDeleting || deleteConfirmInput !== "Delete my account"}
                 class="px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg cursor-pointer border-none flex items-center gap-2"
               >
-                {isDeleting && (
-                  <Icon name="progress_activity" class="text-[18px] animate-spin" />
-                )}
                 {t("profile.deleteConfirm")}
               </button>
             </div>
