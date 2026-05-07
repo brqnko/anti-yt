@@ -53,17 +53,17 @@ func decodeErrorTitle(t *testing.T, w *httptest.ResponseRecorder) string {
 func TestAccessTokenMiddleware(t *testing.T) {
 	ctx := context.Background()
 
-	t.Run("operationID is in ignore list: skip validation and pass through", func(t *testing.T) {
+	t.Run("optional auth: no cookie passes through as anonymous", func(t *testing.T) {
 		// arrange
 		jtiRepo := &JtiBlacklistRepositoryMock{
 			IsJtiExistFunc: func(_ context.Context, _ uuid.UUID) (bool, error) {
-				t.Fatal("IsJtiExist should not be called for ignored operations")
+				t.Fatal("IsJtiExist should not be called when cookie is missing")
 				return false, nil
 			},
 		}
 		jwtMock := &ServiceMock{
 			VerifyUserAccessTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, time.Time, error) {
-				t.Fatal("VerifyUserAccessToken should not be called for ignored operations")
+				t.Fatal("VerifyUserAccessToken should not be called when cookie is missing")
 				return uuid.Nil, uuid.Nil, time.Time{}, nil
 			},
 		}
@@ -83,7 +83,102 @@ func TestAccessTokenMiddleware(t *testing.T) {
 		assert.True(t, spy.called)
 		_, uerr := hutil.UserIDFromContext(spy.ctx)
 		assert.ErrorIs(t, uerr, hutil.ErrUserIDNotFoundInContext,
-			"ignore list pass-through must not inject user_id into ctx")
+			"anonymous pass-through must not inject user_id into ctx")
+	})
+
+	t.Run("optional auth: valid cookie injects user_id", func(t *testing.T) {
+		// arrange
+		userID := uuid.Must(uuid.NewV7())
+		jti := uuid.Must(uuid.NewV7())
+		jtiRepo := &JtiBlacklistRepositoryMock{
+			IsJtiExistFunc: func(_ context.Context, gotJti uuid.UUID) (bool, error) {
+				assert.Equal(t, jti, gotJti)
+				return false, nil
+			},
+		}
+		jwtMock := &ServiceMock{
+			VerifyUserAccessTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, time.Time, error) {
+				return userID, jti, time.Now().Add(time.Hour), nil
+			},
+		}
+		spy := &spyHandler{}
+		mw := middleware_d.AccessTokenMiddleware(jwtMock, jtiRepo, map[string]struct{}{
+			"GetHealth": {},
+		})
+		wrapped := mw(spy.fn(), "GetHealth")
+
+		// action
+		w := httptest.NewRecorder()
+		resp, err := wrapped(ctx, w, newRequestWithAccessTokenCookie("valid-token"), nil)
+
+		// assert
+		require.NoError(t, err)
+		assert.Equal(t, "ok", resp)
+		assert.True(t, spy.called)
+		gotUserID, uerr := hutil.UserIDFromContext(spy.ctx)
+		require.NoError(t, uerr)
+		assert.Equal(t, userID, gotUserID)
+	})
+
+	t.Run("optional auth: invalid cookie returns 401 instead of anonymous fallback", func(t *testing.T) {
+		// arrange
+		jtiRepo := &JtiBlacklistRepositoryMock{
+			IsJtiExistFunc: func(_ context.Context, _ uuid.UUID) (bool, error) {
+				t.Fatal("IsJtiExist should not be called when token is invalid")
+				return false, nil
+			},
+		}
+		jwtMock := &ServiceMock{
+			VerifyUserAccessTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, time.Time, error) {
+				return uuid.Nil, uuid.Nil, time.Time{}, errors.New("expired")
+			},
+		}
+		spy := &spyHandler{}
+		mw := middleware_d.AccessTokenMiddleware(jwtMock, jtiRepo, map[string]struct{}{
+			"GetHealth": {},
+		})
+		wrapped := mw(spy.fn(), "GetHealth")
+
+		// action
+		w := httptest.NewRecorder()
+		_, err := wrapped(ctx, w, newRequestWithAccessTokenCookie("expired-token"), nil)
+
+		// assert
+		require.NoError(t, err)
+		assert.False(t, spy.called)
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, "unauthorized", decodeErrorTitle(t, w))
+	})
+
+	t.Run("optional auth: blacklisted jti returns 401", func(t *testing.T) {
+		// arrange
+		userID := uuid.Must(uuid.NewV7())
+		jti := uuid.Must(uuid.NewV7())
+		jtiRepo := &JtiBlacklistRepositoryMock{
+			IsJtiExistFunc: func(_ context.Context, _ uuid.UUID) (bool, error) {
+				return true, nil
+			},
+		}
+		jwtMock := &ServiceMock{
+			VerifyUserAccessTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, time.Time, error) {
+				return userID, jti, time.Now().Add(time.Hour), nil
+			},
+		}
+		spy := &spyHandler{}
+		mw := middleware_d.AccessTokenMiddleware(jwtMock, jtiRepo, map[string]struct{}{
+			"GetHealth": {},
+		})
+		wrapped := mw(spy.fn(), "GetHealth")
+
+		// action
+		w := httptest.NewRecorder()
+		_, err := wrapped(ctx, w, newRequestWithAccessTokenCookie("valid-token"), nil)
+
+		// assert
+		require.NoError(t, err)
+		assert.False(t, spy.called)
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, "unauthorized", decodeErrorTitle(t, w))
 	})
 
 	t.Run("success: jti not in blacklist", func(t *testing.T) {
