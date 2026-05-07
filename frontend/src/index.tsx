@@ -6,11 +6,19 @@ import {
   hydrate,
   prerender as ssr,
 } from "preact-iso";
-import { SWRConfig } from "swr";
+import { SWRConfig, type SWRConfiguration } from "swr";
 import { AuthProvider } from "./contexts/AuthContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { ScreenTimeGate } from "./components/ScreenTimeGate";
 import "./i18n";
+
+const swrConfig: SWRConfiguration = {
+  revalidateOnFocus: false,
+  revalidateOnReconnect: true,
+  dedupingInterval: 60_000,
+  keepPreviousData: true,
+  errorRetryCount: 1,
+};
 
 const Register = lazy(() => import("./pages/Register/index.jsx"));
 const Reactivation = lazy(() => import("./pages/Reactivation/index.jsx"));
@@ -62,16 +70,7 @@ function AppContent() {
 export function App() {
   return (
     <LocationProvider>
-      <SWRConfig
-        value={{
-          revalidateOnFocus: true,
-          revalidateOnReconnect: true,
-          dedupingInterval: 30_000,
-          focusThrottleInterval: 10_000,
-          keepPreviousData: true,
-          errorRetryCount: 1,
-        }}
-      >
+      <SWRConfig value={swrConfig}>
         <AuthProvider>
           <NotificationProvider>
             <ScreenTimeGate>
