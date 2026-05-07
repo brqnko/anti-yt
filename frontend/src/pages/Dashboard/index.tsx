@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "preact/hooks";
+import { useState, useEffect, useCallback, useMemo, useRef } from "preact/hooks";
+import { memo } from "preact/compat";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
@@ -17,6 +18,51 @@ import { Icon } from "../../components/Icon";
 import { AddPlaylistDialog } from "../../components/AddPlaylistDialog";
 import { ExploreChannelsBanner } from "../../components/ExploreChannelsBanner";
 import { getApiErrorCode } from "../../utils/api-error";
+
+const FeedVideoCard = memo(function FeedVideoCard({
+  video,
+  isSubscribed,
+  requireAuth,
+  onToggleSubscription,
+  onMarkWatched,
+}: {
+  video: GetFeed200ItemsItem;
+  isSubscribed: boolean;
+  requireAuth: (fn: () => void | Promise<void>) => Promise<void>;
+  onToggleSubscription: (channelId: string) => Promise<void>;
+  onMarkWatched: (videoId: string) => Promise<void>;
+}) {
+  const channelProp = useMemo(
+    () => ({
+      channelId: video.channel_id,
+      iconUrl: video.external_channel_icon_url,
+      displayName: video.external_channel_display_name,
+    }),
+    [video.channel_id, video.external_channel_icon_url, video.external_channel_display_name],
+  );
+  const handleToggle = useCallback(
+    () => requireAuth(() => onToggleSubscription(video.channel_id)),
+    [requireAuth, onToggleSubscription, video.channel_id],
+  );
+  const handleMark = useCallback(
+    () => requireAuth(() => onMarkWatched(video.video_id)),
+    [requireAuth, onMarkWatched, video.video_id],
+  );
+  return (
+    <VideoCard
+      videoId={video.video_id}
+      thumbnailUrl={video.external_video_thumbnail_url}
+      title={video.external_video_title}
+      lengthSeconds={video.external_video_length_seconds}
+      channel={channelProp}
+      dateStr={video.external_video_created_at}
+      watchedSeconds={video.last_watch_seconds}
+      isSubscribed={isSubscribed}
+      onToggleSubscription={handleToggle}
+      onMarkWatched={handleMark}
+    />
+  );
+});
 
 function DashboardContent() {
   const { t } = useTranslation();
@@ -76,8 +122,10 @@ function DashboardContent() {
     setFeedVideos((prev) => prev.filter((v) => v.video_id !== videoId));
   }, []);
 
+  const subscribedRef = useRef(subscribedChannelIds);
+  subscribedRef.current = subscribedChannelIds;
   const handleToggleSubscription = useCallback(async (channelId: string) => {
-    const isCurrentlySubscribed = subscribedChannelIds.has(channelId);
+    const isCurrentlySubscribed = subscribedRef.current.has(channelId);
     if (isCurrentlySubscribed) {
       await getChannel().deleteChannelsChannelIdSubscribe(channelId);
       setSubscribedChannelIds((prev) => {
@@ -89,7 +137,7 @@ function DashboardContent() {
       await getChannel().postChannelsSubscribe({ channel_id: channelId });
       setSubscribedChannelIds((prev) => new Set(prev).add(channelId));
     }
-  }, [subscribedChannelIds]);
+  }, []);
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasNext) return;
@@ -207,22 +255,13 @@ function DashboardContent() {
           <>
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {feedVideos.map((video) => (
-                <VideoCard
+                <FeedVideoCard
                   key={video.video_id}
-                  videoId={video.video_id}
-                  thumbnailUrl={video.external_video_thumbnail_url}
-                  title={video.external_video_title}
-                  lengthSeconds={video.external_video_length_seconds}
-                  channel={{
-                    channelId: video.channel_id,
-                    iconUrl: video.external_channel_icon_url,
-                    displayName: video.external_channel_display_name,
-                  }}
-                  dateStr={video.external_video_created_at}
-                  watchedSeconds={video.last_watch_seconds}
+                  video={video}
                   isSubscribed={subscribedChannelIds.has(video.channel_id)}
-                  onToggleSubscription={() => requireAuth(() => handleToggleSubscription(video.channel_id))}
-                  onMarkWatched={() => requireAuth(() => handleMarkWatched(video.video_id))}
+                  requireAuth={requireAuth}
+                  onToggleSubscription={handleToggleSubscription}
+                  onMarkWatched={handleMarkWatched}
                 />
               ))}
             </div>

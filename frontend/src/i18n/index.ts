@@ -1,8 +1,6 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import ja from "./locales/ja.json";
 import en from "./locales/en.json";
-import zh from "./locales/zh.json";
 
 function detectLanguage(): string {
   if (typeof window === "undefined") return "en";
@@ -14,22 +12,51 @@ function detectLanguage(): string {
   return "en";
 }
 
+const lng = detectLanguage();
+
 i18n.use(initReactI18next).init({
   resources: {
-    ja: { translation: ja },
     en: { translation: en },
-    zh: { translation: zh },
   },
-  lng: detectLanguage(),
+  lng,
   fallbackLng: "en",
   interpolation: {
     escapeValue: false,
   },
 });
 
+async function loadLocale(target: string): Promise<void> {
+  if (i18n.hasResourceBundle(target, "translation")) return;
+  let mod: { default: Record<string, unknown> } | null = null;
+  try {
+    if (target === "ja") {
+      mod = await import("./locales/ja.json");
+    } else if (target === "zh") {
+      mod = await import("./locales/zh.json");
+    }
+  } catch {
+    return;
+  }
+  if (mod) {
+    i18n.addResourceBundle(target, "translation", mod.default, true, true);
+  }
+}
+
+if (typeof window !== "undefined" && lng !== "en") {
+  void loadLocale(lng).then(() => {
+    void i18n.changeLanguage(lng);
+  });
+}
+
+if (typeof window !== "undefined") {
+  i18n.on("languageChanged", (next) => {
+    if (next !== "en") void loadLocale(next);
+  });
+}
+
 if (typeof document !== "undefined") {
-  const setLang = (lng: string) => {
-    document.documentElement.lang = lng;
+  const setLang = (next: string) => {
+    document.documentElement.lang = next;
   };
   setLang(i18n.language);
   i18n.on("languageChanged", setLang);

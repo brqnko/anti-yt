@@ -13,6 +13,21 @@ export default defineConfig({
     host: "0.0.0.0",
     allowedHosts: ["frontend"],
   },
+  build: {
+    target: "es2020",
+    cssCodeSplit: true,
+    reportCompressedSize: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-preact": ["preact", "preact-iso", "preact/hooks", "preact/compat"],
+          "vendor-swr": ["swr"],
+          "vendor-i18n": ["i18next", "react-i18next"],
+          "vendor-axios": ["axios"],
+        },
+      },
+    },
+  },
   plugins: [
     Icons({ compiler: "raw" }),
     tailwindcss(),

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "preact/hooks";
+import { memo } from "preact/compat";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
@@ -18,6 +19,35 @@ import type {
 } from "../../api/generated/antiYtApi.schemas";
 import { PAGE_SIZES } from "../../constants";
 import { Icon } from "../../components/Icon";
+
+const ChannelVideoCard = memo(function ChannelVideoCard({
+  video,
+  isWatched,
+  requireAuth,
+  onToggleWatched,
+}: {
+  video: GetChannelsChannelIdVideos200ItemsItem;
+  isWatched: boolean;
+  requireAuth: (fn: () => void | Promise<void>) => Promise<void>;
+  onToggleWatched: (videoId: string) => Promise<void>;
+}) {
+  const handleMark = useCallback(
+    () => requireAuth(() => onToggleWatched(video.video_id)),
+    [requireAuth, onToggleWatched, video.video_id],
+  );
+  return (
+    <VideoCard
+      videoId={video.video_id}
+      thumbnailUrl={video.external_video_thumbnail_url}
+      title={video.external_video_title}
+      lengthSeconds={video.external_video_length_seconds}
+      dateStr={video.external_video_created_at}
+      watchedSeconds={video.last_watch_seconds}
+      isWatched={isWatched}
+      onMarkWatched={handleMark}
+    />
+  );
+});
 
 function ChannelDetailContent({ channelId }: { channelId: string }) {
   const { t } = useTranslation();
@@ -117,8 +147,10 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
 
   const sentinelRef = useInfiniteScroll(loadMore);
 
+  const watchedRef = useRef(watchedVideoIds);
+  watchedRef.current = watchedVideoIds;
   const handleToggleWatched = useCallback(async (videoId: string) => {
-    const isCurrentlyWatched = watchedVideoIds.has(videoId);
+    const isCurrentlyWatched = watchedRef.current.has(videoId);
     if (isCurrentlyWatched) {
       await getHistory().deleteVideosVideoIdWatched(videoId);
       setWatchedVideoIds(prev => {
@@ -130,7 +162,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       await getHistory().postVideosVideoIdWatched(videoId);
       setWatchedVideoIds(prev => new Set(prev).add(videoId));
     }
-  }, [watchedVideoIds]);
+  }, []);
 
   const handleToggleSubscription = async () => {
     if (isToggling || !channelInfo) return;
@@ -266,16 +298,12 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
             <>
               <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {videos.map((video) => (
-                  <VideoCard
+                  <ChannelVideoCard
                     key={video.video_id}
-                    videoId={video.video_id}
-                    thumbnailUrl={video.external_video_thumbnail_url}
-                    title={video.external_video_title}
-                    lengthSeconds={video.external_video_length_seconds}
-                    dateStr={video.external_video_created_at}
-                    watchedSeconds={video.last_watch_seconds}
+                    video={video}
                     isWatched={watchedVideoIds.has(video.video_id)}
-                    onMarkWatched={() => requireAuth(() => handleToggleWatched(video.video_id))}
+                    requireAuth={requireAuth}
+                    onToggleWatched={handleToggleWatched}
                   />
                 ))}
               </div>

@@ -1,5 +1,5 @@
 import { createContext } from "preact";
-import { useState, useEffect, useCallback, useContext } from "preact/hooks";
+import { useState, useEffect, useCallback, useContext, useMemo } from "preact/hooks";
 import type { ComponentChildren } from "preact";
 import { AxiosError } from "axios";
 import { getUser } from "../api/generated/user";
@@ -106,22 +106,30 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
     checkAuth();
   }, [checkAuth]);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        isLoading,
-        isAuthenticated,
-        error,
-        screenTimeBlocked,
-        screenTimeBlockReason,
-        logout,
-        refreshAuth: checkAuth,
-        clearScreenTimeBlock,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      isLoading,
+      isAuthenticated,
+      error,
+      screenTimeBlocked,
+      screenTimeBlockReason,
+      logout,
+      refreshAuth: checkAuth,
+      clearScreenTimeBlock,
+    }),
+    [
+      isLoading,
+      isAuthenticated,
+      error,
+      screenTimeBlocked,
+      screenTimeBlockReason,
+      logout,
+      checkAuth,
+      clearScreenTimeBlock,
+    ],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthState {
