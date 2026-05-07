@@ -39,7 +39,7 @@ export function DashboardLayout({
   }, []);
 
   const navItemClass = (active: boolean) =>
-    `flex items-center gap-3 px-3 py-2 rounded-lg no-underline cursor-pointer transition-colors ${
+    `flex items-center gap-3 px-3 py-2 rounded-lg no-underline cursor-pointer ${
       active
         ? "bg-primary/10 text-primary font-bold"
         : "text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 hover:text-charcoal dark:hover:text-white font-medium"
@@ -115,23 +115,23 @@ export function DashboardLayout({
             </div>
             <div class="border-t border-border-light dark:border-border-dark mx-1 my-1" />
             <div class="px-3 pt-3 pb-2 flex flex-col gap-y-2">
-              <a href="/about" class="text-xs text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline transition-colors">
+              <a href="/about" class="text-xs text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline">
                 {t("dashboard.nav.aboutAntiYt")}
               </a>
               <a
                 href="https://github.com/brqnko/anti-yt"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-xs text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline transition-colors"
+                class="text-xs text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline"
               >
                 GitHub
               </a>
             </div>
             <div class="px-3 pb-3 flex flex-wrap gap-x-3 gap-y-2">
-              <a href="/terms" class="text-xs text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline transition-colors">
+              <a href="/terms" class="text-xs text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline">
                 {t("common.termsLink")}
               </a>
-              <a href="/privacy" class="text-xs text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline transition-colors">
+              <a href="/privacy" class="text-xs text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline">
                 {t("common.privacyPolicyLink")}
               </a>
             </div>
@@ -160,7 +160,7 @@ export function DashboardLayout({
               window.scrollTo({ top: 0, behavior: "smooth" });
             }
           }}
-          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors ${
+          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline ${
             url === "/"
               ? "text-primary font-bold"
               : "text-text-muted-light dark:text-text-muted-dark"
@@ -173,7 +173,7 @@ export function DashboardLayout({
         <a
           href={isAuthenticated ? "/channels" : undefined}
           onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
-          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors cursor-pointer ${
+          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline cursor-pointer ${
             url === "/channels" || url === "/channels/explore"
               ? "text-primary font-bold"
               : "text-text-muted-light dark:text-text-muted-dark"
@@ -186,7 +186,7 @@ export function DashboardLayout({
         <a
           href={isAuthenticated ? "/playlists" : undefined}
           onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
-          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors cursor-pointer ${
+          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline cursor-pointer ${
             url === "/playlists" || url.startsWith("/playlists/")
               ? "text-primary font-bold"
               : "text-text-muted-light dark:text-text-muted-dark"
@@ -199,7 +199,7 @@ export function DashboardLayout({
         <a
           href={isAuthenticated ? "/analytics" : undefined}
           onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
-          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors cursor-pointer ${
+          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline cursor-pointer ${
             url === "/analytics"
               ? "text-primary font-bold"
               : "text-text-muted-light dark:text-text-muted-dark"
@@ -217,7 +217,7 @@ export function DashboardLayout({
               window.scrollTo({ top: 0, behavior: "smooth" });
             }
           }}
-          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline transition-colors cursor-pointer ${
+          class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline cursor-pointer ${
             url === "/profile"
               ? "text-primary font-bold"
               : "text-text-muted-light dark:text-text-muted-dark"

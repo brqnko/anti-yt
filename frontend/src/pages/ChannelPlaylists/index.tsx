@@ -124,7 +124,7 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
         <div class="flex items-center gap-3 mb-6">
           <a
             href={`/channels/${channelId}`}
-            class="inline-flex items-center text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors no-underline"
+            class="inline-flex items-center text-text-muted-light dark:text-text-muted-dark hover:text-primary no-underline"
           >
             <Icon name="arrow_back" class="text-xl" />
           </a>
@@ -147,7 +147,7 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
                 <a
                   key={pl.playlist_id}
                   href={`/playlists/${pl.playlist_id}`}
-                  class="group flex flex-col bg-card-light dark:bg-card-dark rounded-xl border border-transparent hover:border-primary/20 transition-all duration-300 overflow-hidden no-underline"
+                  class="group flex flex-col bg-card-light dark:bg-card-dark rounded-xl border border-transparent hover:border-primary/20 overflow-hidden no-underline"
                 >
                   <div class="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
                     {pl.top_video_thumbnail_url ? (
@@ -164,7 +164,7 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
                     )}
                   </div>
                   <div class="p-5">
-                    <h3 class="text-xl font-bold text-charcoal dark:text-white leading-tight group-hover:text-primary transition-colors">
+                    <h3 class="text-xl font-bold text-charcoal dark:text-white leading-tight group-hover:text-primary">
                       {pl.playlist_title}
                     </h3>
                     <span class="text-xs text-text-muted-light dark:text-text-muted-dark mt-2 block">

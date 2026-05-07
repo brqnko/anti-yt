@@ -186,7 +186,7 @@ function GrassMowerGame() {
           </span>
         </div>
         <button
-          class="bg-card-light dark:bg-card-dark px-4 py-2 rounded-2xlborder border-border-light dark:border-border-dark flex items-center gap-2 hover:bg-border-light/50 dark:hover:bg-border-dark/50 transition-colors cursor-pointer"
+          class="bg-card-light dark:bg-card-dark px-4 py-2 rounded-2xlborder border-border-light dark:border-border-dark flex items-center gap-2 hover:bg-border-light/50 dark:hover:bg-border-dark/50 cursor-pointer"
           onClick={resetGame}
         >
           <Icon name="refresh" class="text-taupe text-sm" />
@@ -229,7 +229,7 @@ export default function ScreenTimeBlock({
       {/* Settings link */}
       <a
         href="/screen-time-settings"
-        class="mt-8 flex items-center gap-2 text-sm text-taupe dark:text-white/50 hover:text-charcoal dark:hover:text-white/80 transition-colors no-underline"
+        class="mt-8 flex items-center gap-2 text-sm text-taupe dark:text-white/50 hover:text-charcoal dark:hover:text-white/80 no-underline"
       >
         {t("screenTimeBlock.goToSettings")}
       </a>

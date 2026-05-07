@@ -77,7 +77,7 @@ function AddVideoDialog({
         <div class="relative">
           <button
             type="button"
-            class="absolute inset-y-0 left-0 flex items-center pl-3 pr-1 text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors bg-transparent border-none cursor-pointer"
+            class="absolute inset-y-0 left-0 flex items-center pl-3 pr-1 text-text-muted-light dark:text-text-muted-dark hover:text-primary bg-transparent border-none cursor-pointer"
             aria-label={t("playlistDetail.addVideoPaste")}
             onClick={async () => {
               try {
@@ -103,13 +103,13 @@ function AddVideoDialog({
         )}
         <div class="flex justify-end gap-3 pt-2">
           <button
-            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
             onClick={onClose}
           >
             {t("playlistDetail.addVideoCancel")}
           </button>
           <button
-            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors cursor-pointer border-none disabled:opacity-50"
+            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 cursor-pointer border-none disabled:opacity-50"
             onClick={handleSubmit}
             disabled={!text.trim() || isAdding}
           >
@@ -204,13 +204,13 @@ function EditPlaylistDialog({
         )}
         <div class="flex justify-end gap-3 pt-2">
           <button
-            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
             onClick={onClose}
           >
             {t("playlistDetail.editDialog.cancel")}
           </button>
           <button
-            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors cursor-pointer border-none disabled:opacity-50"
+            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 cursor-pointer border-none disabled:opacity-50"
             onClick={handleSave}
             disabled={!title.trim() || isSaving}
           >
@@ -710,7 +710,7 @@ function VideoPlayerContent() {
           <p class="text-lg font-medium">{t("videoPlayer.notFound")}</p>
           <a
             href="/"
-            class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
+            class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 no-underline"
           >
             {t("channelDetail.backToDashboard")}
           </a>
@@ -787,7 +787,7 @@ function VideoPlayerContent() {
                     />
                     <div
                       ref={progressKnobRef}
-                      class={`absolute top-1/2 size-4 bg-primary border-2 border-white rounded-full transition-transform -translate-x-1/2 -translate-y-1/2 ${isSeeking ? "scale-100" : "scale-0 group-hover/progress:scale-100"}`}
+                      class={`absolute top-1/2 size-4 bg-primary border-2 border-white rounded-full transition-transform -translate-x-1/2 -translate-y-1/2 ${isSeeking ? "scale-100" : "scale-0"}`}
                       style={{ left: `${duration > 0 ? Math.min(currentTime / duration, 1) * 100 : 0}%` }}
                     />
                   </div>
@@ -865,14 +865,14 @@ function VideoPlayerContent() {
                     <div>
                       <a
                         href={`/channels/${video.channel_id}`}
-                        class="font-bold text-lg no-underline text-charcoal dark:text-white hover:text-primary transition-colors"
+                        class="font-bold text-lg no-underline text-charcoal dark:text-white hover:text-primary"
                       >
                         {video.external_channel_display_name}
                       </a>
                       <p class="text-taupe text-sm">
                         <a
                           href={`/channels/${video.channel_id}`}
-                          class="no-underline text-taupe hover:text-primary transition-colors"
+                          class="no-underline text-taupe hover:text-primary"
                         >
                           {video.channel_custom_id}
                         </a>
@@ -885,7 +885,7 @@ function VideoPlayerContent() {
               </div>
               <div class="flex items-center gap-6 mt-3 pb-3 border-b border-border-light dark:border-border-dark">
                   <button
-                    class={`flex flex-col items-center gap-0.5 bg-transparent border-none transition-colors ${
+                    class={`flex flex-col items-center gap-0.5 bg-transparent border-none ${
                       markingWatchLater
                         ? "text-text-muted-light dark:text-text-muted-dark cursor-not-allowed opacity-50"
                         : markedWatchLater
@@ -913,7 +913,7 @@ function VideoPlayerContent() {
                     <span class="text-[10px] font-semibold">{t("videoPlayer.watchLater")}</span>
                   </button>
                   <button
-                    class={`flex flex-col items-center gap-0.5 bg-transparent border-none transition-colors ${
+                    class={`flex flex-col items-center gap-0.5 bg-transparent border-none ${
                       markingWatched
                         ? "text-text-muted-light dark:text-text-muted-dark cursor-not-allowed opacity-50"
                         : markedWatched
@@ -941,7 +941,7 @@ function VideoPlayerContent() {
                     <span class="text-[10px] font-semibold">{t("videoCard.markWatchedButton")}</span>
                   </button>
                   <button
-                    class={`flex flex-col items-center gap-0.5 bg-transparent border-none transition-colors cursor-pointer ${
+                    class={`flex flex-col items-center gap-0.5 bg-transparent border-none cursor-pointer ${
                       isLooping
                         ? "text-primary hover:text-primary/80"
                         : "text-charcoal dark:text-white hover:text-primary"
@@ -952,7 +952,7 @@ function VideoPlayerContent() {
                     <span class="text-[10px] font-semibold">{t("videoPlayer.loop")}</span>
                   </button>
                   <button
-                    class="flex flex-col items-center gap-0.5 bg-transparent border-none text-charcoal dark:text-white hover:text-primary transition-colors cursor-pointer"
+                    class="flex flex-col items-center gap-0.5 bg-transparent border-none text-charcoal dark:text-white hover:text-primary cursor-pointer"
                     onClick={() => requireAuth(openPlaylistDialog)}
                   >
                     <Icon name="playlist_add" class="text-lg" />
@@ -962,7 +962,7 @@ function VideoPlayerContent() {
                     href={`https://www.youtube.com/watch?v=${video.external_video_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="flex flex-col items-center gap-0.5 text-charcoal dark:text-white hover:text-primary transition-colors no-underline"
+                    class="flex flex-col items-center gap-0.5 text-charcoal dark:text-white hover:text-primary no-underline"
                   >
                     <Icon name="open_in_new" class="text-lg" />
                     <span class="text-[10px] font-semibold">{t("videoPlayer.openOnYouTube")}</span>
@@ -985,7 +985,7 @@ function VideoPlayerContent() {
                       </div>
                       {(descOverflows || isDescExpanded) && (
                         <button
-                          class="mt-3 text-sm font-semibold text-primary hover:text-primary/80 transition-colors bg-transparent border-none cursor-pointer p-0"
+                          class="mt-3 text-sm font-semibold text-primary hover:text-primary/80 bg-transparent border-none cursor-pointer p-0"
                           onClick={() => setIsDescExpanded((v) => !v)}
                         >
                           {isDescExpanded
@@ -1016,7 +1016,7 @@ function VideoPlayerContent() {
                   <a href={`/playlists/${playlistId}`} class="flex items-center gap-2 min-w-0 no-underline group/pl-title">
                     <Icon name="playlist_play" class="text-primary text-xl flex-shrink-0" />
                     <div class="min-w-0">
-                      <h2 class="font-bold text-sm tracking-tight truncate text-charcoal dark:text-white group-hover/pl-title:text-primary transition-colors">
+                      <h2 class="font-bold text-sm tracking-tight truncate text-charcoal dark:text-white group-hover/pl-title:text-primary">
                         {playlistInfo?.playlist_title ?? t("videoPlayer.curatedPlaylist")}
                       </h2>
                       <p class="text-[11px] text-text-muted-light dark:text-text-muted-dark">
@@ -1028,14 +1028,14 @@ function VideoPlayerContent() {
                   {playlistInfo?.playlist_type === "normal" && (
                     <div class="flex items-center gap-1 flex-shrink-0">
                       <button
-                        class="p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+                        class="p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
                         title={t("playlistDetail.addVideo")}
                         onClick={() => setShowImportVideo(true)}
                       >
                         <Icon name="add" class="text-[20px]" />
                       </button>
                       <button
-                        class="p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+                        class="p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
                         title={t("playlistDetail.edit")}
                         onClick={() => setShowEditPlaylist(true)}
                       >
@@ -1061,7 +1061,7 @@ function VideoPlayerContent() {
                       <div key={pv.video_id} class="group/pv relative">
                         <a
                           href={buildWatchUrl(pv.video_id, pv.last_watch_seconds, playlistId!)}
-                          class={`flex gap-3 p-3 pr-9 no-underline transition-colors ${
+                          class={`flex gap-3 p-3 pr-9 no-underline ${
                             isCurrent
                               ? "bg-primary/10 dark:bg-primary/20"
                               : "hover:bg-black/5 dark:hover:bg-white/5"
@@ -1110,7 +1110,7 @@ function VideoPlayerContent() {
                         </a>
                         {playlistInfo?.playlist_type === "normal" && (
                           <button
-                            class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer bg-transparent border-none hidden group-hover/pv:block focus:block"
+                            class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer bg-transparent border-none hidden group-hover/pv:block focus:block"
                             title={t("playlistDetail.removeVideo")}
                             disabled={removingVideoId === pv.video_id}
                             onClick={(e) => {
@@ -1156,7 +1156,7 @@ function VideoPlayerContent() {
                   return (
                     <button
                       key={pl.playlist_id}
-                      class={`flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left ${
+                      class={`flex items-center gap-3 p-3 rounded-xl border w-full text-left ${
                         alreadyAdded || addedToPlaylist === pl.playlist_id
                           ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-800 cursor-default opacity-70"
                           : failedToAddPlaylist === pl.playlist_id

@@ -41,7 +41,7 @@ function SessionMenu({ session, onRevoke }: { session: GetUsersMeSessions200Item
       <button
         ref={btnRef}
         onClick={handleOpen}
-        class="text-text-muted-light dark:text-text-muted-dark hover:text-foreground-light dark:hover:text-foreground-dark transition-colors cursor-pointer bg-transparent border-none p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5"
+        class="text-text-muted-light dark:text-text-muted-dark hover:text-foreground-light dark:hover:text-foreground-dark cursor-pointer bg-transparent border-none p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5"
         aria-label={t("security.revoke")}
       >
         <Icon name="more_vert" class="text-xl" />
@@ -172,7 +172,7 @@ export function SecurityTab() {
                 {sessions.map((session) => (
                   <tr
                     key={session.id}
-                    class="border-b border-border-light dark:border-border-dark last:border-0 hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors"
+                    class="border-b border-border-light dark:border-border-dark last:border-0 hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
                   >
                     <td class="px-4 py-3 font-bold leading-normal">{session.browser_name}</td>
                     <td class="px-4 py-3 text-text-muted-light dark:text-text-muted-dark max-w-[200px] truncate">
@@ -207,7 +207,7 @@ export function SecurityTab() {
           <button
             onClick={loadMore}
             disabled={isLoadingMore}
-            class="px-6 py-2.5 rounded-lg font-bold text-sm text-primary hover:bg-primary/10 transition-colors cursor-pointer bg-transparent border border-primary/30 disabled:opacity-50 flex items-center gap-2"
+            class="px-6 py-2.5 rounded-lg font-bold text-sm text-primary hover:bg-primary/10 cursor-pointer bg-transparent border border-primary/30 disabled:opacity-50 flex items-center gap-2"
           >
             {isLoadingMore && (
               <Icon name="progress_activity" class="text-[18px] animate-spin" />
@@ -246,14 +246,14 @@ export function SecurityTab() {
                 <button
                   onClick={() => setConfirmRevokeId(null)}
                   disabled={revokingId !== null}
-                  class="px-5 py-2.5 rounded-lg font-bold text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+                  class="px-5 py-2.5 rounded-lg font-bold text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
                 >
                   {t("security.cancel")}
                 </button>
                 <button
                   onClick={() => handleRevoke(confirmRevokeId)}
                   disabled={revokingId !== null}
-                  class="px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold rounded-lg transition-colors cursor-pointer border-none flex items-center gap-2"
+                  class="px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold rounded-lg cursor-pointer border-none flex items-center gap-2"
                 >
                   {revokingId === confirmRevokeId && (
                     <Icon name="progress_activity" class="text-[18px] animate-spin" />

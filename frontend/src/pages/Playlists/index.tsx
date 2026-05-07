@@ -18,7 +18,7 @@ function PlaylistCard({ playlist }: { playlist: GetPlaylists200ItemsItem }) {
   return (
     <a
       href={`/playlists/${playlist.playlist_id}`}
-      class="group relative flex flex-col bg-card-light dark:bg-card-dark rounded-xl border border-transparent hover:border-primary/20 transition-all duration-300 overflow-hidden no-underline"
+      class="group relative flex flex-col bg-card-light dark:bg-card-dark rounded-xl border border-transparent hover:border-primary/20 overflow-hidden no-underline"
     >
       <div class="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
         {playlist.top_video_thumbnail_url ? (
@@ -33,10 +33,10 @@ function PlaylistCard({ playlist }: { playlist: GetPlaylists200ItemsItem }) {
             <Icon name="playlist_play" class="text-5xl text-text-muted-light dark:text-text-muted-dark" />
           </div>
         )}
-        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0" />
       </div>
       <div class="flex flex-col flex-1 p-5 gap-3">
-        <h3 class="text-xl font-bold text-charcoal dark:text-white leading-tight group-hover:text-primary transition-colors">
+        <h3 class="text-xl font-bold text-charcoal dark:text-white leading-tight group-hover:text-primary">
           {playlist.playlist_title}
         </h3>
         {playlist.playlist_description && (
@@ -138,7 +138,7 @@ function PlaylistsContent() {
           </div>
           <div class="flex flex-wrap items-center gap-3">
             <button
-              class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-bold hover:-translate-y-px transition-all cursor-pointer border-none"
+              class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-bold cursor-pointer border-none"
               onClick={() => setShowAddPlaylist(true)}
             >
               <Icon name="add" class="text-lg" />

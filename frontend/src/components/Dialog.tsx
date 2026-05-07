@@ -44,7 +44,7 @@ export function Dialog({
       >
         {showCloseButton && (
           <button
-            class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer"
+            class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white bg-transparent border-none cursor-pointer"
             onClick={onClose}
             aria-label={closeButtonLabel}
           >

@@ -108,13 +108,13 @@ function EditPlaylistDialog({
         )}
         <div class="flex justify-end gap-3 pt-2">
           <button
-            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
             onClick={onClose}
           >
             {t("playlistDetail.editDialog.cancel")}
           </button>
           <button
-            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors cursor-pointer border-none disabled:opacity-50"
+            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 cursor-pointer border-none disabled:opacity-50"
             onClick={handleSave}
             disabled={!title.trim() || isSaving}
           >
@@ -150,13 +150,13 @@ function DeleteConfirmDialog({
         </p>
         <div class="flex justify-end gap-3 pt-2">
           <button
-            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
             onClick={onClose}
           >
             {t("playlistDetail.deleteDialog.cancel")}
           </button>
           <button
-            class="px-4 py-2 rounded-lg text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer border-none disabled:opacity-50"
+            class="px-4 py-2 rounded-lg text-sm font-bold bg-red-600 text-white hover:bg-red-700 cursor-pointer border-none disabled:opacity-50"
             onClick={onConfirm}
             disabled={isDeleting}
           >
@@ -201,13 +201,13 @@ function RemoveVideoDialog({
         )}
         <div class="flex justify-end gap-3 pt-2">
           <button
-            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
             onClick={onClose}
           >
             {t("playlistDetail.removeVideoDialog.cancel")}
           </button>
           <button
-            class="px-4 py-2 rounded-lg text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer border-none disabled:opacity-50"
+            class="px-4 py-2 rounded-lg text-sm font-bold bg-red-600 text-white hover:bg-red-700 cursor-pointer border-none disabled:opacity-50"
             onClick={onConfirm}
             disabled={isRemoving}
           >
@@ -270,7 +270,7 @@ function AddVideoDialog({
         <div class="relative">
           <button
             type="button"
-            class="absolute inset-y-0 left-0 flex items-center pl-3 pr-1 text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors bg-transparent border-none cursor-pointer"
+            class="absolute inset-y-0 left-0 flex items-center pl-3 pr-1 text-text-muted-light dark:text-text-muted-dark hover:text-primary bg-transparent border-none cursor-pointer"
             aria-label={t("playlistDetail.addVideoPaste")}
             onClick={async () => {
               try {
@@ -296,13 +296,13 @@ function AddVideoDialog({
         )}
         <div class="flex justify-end gap-3 pt-2">
           <button
-            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
             onClick={onClose}
           >
             {t("playlistDetail.addVideoCancel")}
           </button>
           <button
-            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors cursor-pointer border-none disabled:opacity-50"
+            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 cursor-pointer border-none disabled:opacity-50"
             onClick={handleSubmit}
             disabled={!text.trim() || isAdding}
           >
@@ -393,13 +393,13 @@ function CopyPlaylistDialog({
         )}
         <div class="flex justify-end gap-3 pt-2">
           <button
-            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
             onClick={onClose}
           >
             {t("playlistDetail.copyDialog.cancel")}
           </button>
           <button
-            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors cursor-pointer border-none disabled:opacity-50"
+            class="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 cursor-pointer border-none disabled:opacity-50"
             onClick={handleCopy}
             disabled={!title.trim() || isCopying}
           >
@@ -552,7 +552,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
               {t("playlistDetail.notFound")}
             </p>
 <a
-              class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
+              class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 no-underline"
               href="/playlists"
             >
               <Icon name="arrow_back" class="text-[18px]" />
@@ -591,7 +591,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
         {/* Back link */}
         <a
           href="/playlists"
-          class="inline-flex items-center gap-1 text-sm text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors no-underline mb-6"
+          class="inline-flex items-center gap-1 text-sm text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline mb-6"
         >
           <Icon name="arrow_back" class="text-[18px]" />
           {t("playlistDetail.backToPlaylists")}
@@ -617,8 +617,8 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                     <Icon name="playlist_play" class="text-5xl text-text-muted-light dark:text-text-muted-dark" />
                   </div>
                 )}
-                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300" />
-                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300 pointer-events-none">
+                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover/thumb:opacity-100" />
+                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 pointer-events-none">
                   <div class="size-12 rounded-full bg-primary/90 flex items-center justify-center text-white">
                     <Icon name="play_arrow" class="text-[28px] ml-1" />
                   </div>
@@ -665,21 +665,21 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
             {playlistInfo.playlist_type === "normal" ? (
               <div class="flex gap-2 flex-shrink-0">
                 <button
-                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors cursor-pointer border-none"
+                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 cursor-pointer border-none"
                   onClick={() => requireAuth(() => setShowAddVideo(true))}
                 >
                   <Icon name="add" class="text-[18px]" />
                   {t("playlistDetail.addVideo")}
                 </button>
                 <button
-                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-transparent border border-border-light dark:border-border-dark text-sm font-medium text-charcoal dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-transparent border border-border-light dark:border-border-dark text-sm font-medium text-charcoal dark:text-white hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
                   onClick={() => requireAuth(() => setShowEdit(true))}
                 >
                   <Icon name="edit" class="text-[18px]" />
                   {t("playlistDetail.edit")}
                 </button>
                 <button
-                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-transparent border border-red-300 dark:border-red-800 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-transparent border border-red-300 dark:border-red-800 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer"
                   onClick={() => requireAuth(() => setShowDelete(true))}
                 >
                   <Icon name="delete" class="text-[18px]" />
@@ -689,7 +689,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
             ) : (
               <div class="flex gap-2 flex-shrink-0">
                 <button
-                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors cursor-pointer border-none"
+                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 cursor-pointer border-none"
                   onClick={() => requireAuth(() => setShowCopy(true))}
                 >
                   <Icon name="content_copy" class="text-[18px]" />
@@ -733,7 +733,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                     </div>
                     {playlistInfo.playlist_type === "normal" && (
                       <button
-                        class="flex-shrink-0 p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer bg-transparent border-none opacity-100 lg:opacity-0 lg:group-hover/row:opacity-100 focus:opacity-100"
+                        class="flex-shrink-0 p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer bg-transparent border-none opacity-100 lg:opacity-0 lg:group-hover/row:opacity-100 focus:opacity-100"
                         onClick={() => setRemoveTarget(video)}
                         title={t("playlistDetail.removeVideo")}
                       >

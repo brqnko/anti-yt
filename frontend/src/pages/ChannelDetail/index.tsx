@@ -168,7 +168,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
             <Icon name="search_off" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("channelDetail.notFound")}</p>
             <a
-              class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors no-underline"
+              class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 no-underline"
               href="/"
             >
               <Icon name="arrow_back" class="text-[18px]" />
@@ -199,7 +199,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
               </h3>
               <a
                 href={`/channels/${channelId}/playlists`}
-                class="text-sm font-medium text-primary hover:text-primary/80 transition-colors no-underline"
+                class="text-sm font-medium text-primary hover:text-primary/80 no-underline"
               >
                 {t("channelDetail.showMore")}
               </a>
@@ -209,7 +209,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
                 <a
                   key={pl.playlist_id}
                   href={`/playlists/${pl.playlist_id}`}
-                  class="group flex-shrink-0 w-56 bg-card-light dark:bg-card-dark rounded-xl border border-transparent hover:border-primary/20 transition-all duration-300 overflow-hidden no-underline"
+                  class="group flex-shrink-0 w-56 bg-card-light dark:bg-card-dark rounded-xl border border-transparent hover:border-primary/20 overflow-hidden no-underline"
                 >
                   <div class="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
                     {pl.top_video_thumbnail_url ? (
@@ -226,7 +226,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
                     )}
                   </div>
                   <div class="p-3">
-                    <h4 class="text-sm font-bold text-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                    <h4 class="text-sm font-bold text-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-primary">
                       {pl.playlist_title}
                     </h4>
                     <span class="text-xs text-text-muted-light dark:text-text-muted-dark mt-1 block">

@@ -145,7 +145,7 @@ function DashboardContent() {
             </h3>
             <a
               href="/playlists"
-              class="text-sm font-medium text-primary hover:text-primary/80 transition-colors no-underline"
+              class="text-sm font-medium text-primary hover:text-primary/80 no-underline"
             >
               {t("dashboard.showAllPlaylists")}
             </a>
@@ -155,7 +155,7 @@ function DashboardContent() {
               <a
                 key={pl.playlist_id}
                 href={`/playlists/${pl.playlist_id}`}
-                class="group flex-shrink-0 w-72 bg-card-light dark:bg-card-dark rounded-xl border border-transparent hover:border-primary/20 transition-all duration-300 overflow-hidden no-underline"
+                class="group flex-shrink-0 w-72 bg-card-light dark:bg-card-dark rounded-xl border border-transparent hover:border-primary/20 overflow-hidden no-underline"
               >
                 <div class="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
                   {pl.top_video_thumbnail_url ? (
@@ -172,7 +172,7 @@ function DashboardContent() {
                   )}
                 </div>
                 <div class="p-3">
-                  <h4 class="text-sm font-bold text-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                  <h4 class="text-sm font-bold text-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-primary">
                     {pl.playlist_title}
                   </h4>
                   <span class="text-xs text-text-muted-light dark:text-text-muted-dark mt-1 block">
@@ -184,11 +184,11 @@ function DashboardContent() {
             {/* Create new playlist card */}
             <button
               type="button"
-              class="group flex-shrink-0 w-72 rounded-xl border border-dashed border-border-light dark:border-border-dark hover:border-primary hover:bg-primary/5 transition-all duration-300 overflow-hidden bg-transparent cursor-pointer flex flex-col items-center justify-center gap-3"
+              class="group flex-shrink-0 w-72 rounded-xl border border-dashed border-border-light dark:border-border-dark hover:border-primary hover:bg-primary/5 overflow-hidden bg-transparent cursor-pointer flex flex-col items-center justify-center gap-3"
               onClick={() => requireAuth(() => setShowAddPlaylist(true))}
             >
-              <Icon name="add" class="text-4xl text-text-muted-light dark:text-text-muted-dark group-hover:text-primary transition-all" />
-              <span class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark group-hover:text-primary transition-colors">
+              <Icon name="add" class="text-4xl text-text-muted-light dark:text-text-muted-dark group-hover:text-primary" />
+              <span class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark group-hover:text-primary">
                 {t("dashboard.addPlaylist")}
               </span>
             </button>

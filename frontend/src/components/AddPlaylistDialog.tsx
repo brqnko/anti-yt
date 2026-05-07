@@ -108,7 +108,7 @@ export function AddPlaylistDialog({
             <div class="relative">
               <button
                 type="button"
-                class="absolute inset-y-0 left-0 flex items-center pl-3 pr-1 text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors bg-transparent border-none cursor-pointer"
+                class="absolute inset-y-0 left-0 flex items-center pl-3 pr-1 text-text-muted-light dark:text-text-muted-dark hover:text-primary bg-transparent border-none cursor-pointer"
                 onClick={async () => {
                   try {
                     const text = await navigator.clipboard.readText();
@@ -137,13 +137,13 @@ export function AddPlaylistDialog({
 
         <div class="flex justify-end gap-3 mt-6">
           <button
-            class="px-4 py-2 rounded-xl text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer"
+            class="px-4 py-2 rounded-xl text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 bg-transparent border-none cursor-pointer"
             onClick={onClose}
           >
             {t("dashboard.addPlaylistDialog.cancel")}
           </button>
           <button
-            class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 transition-colors border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!title.trim() || isSubmitting}
             onClick={handleSubmit}
           >

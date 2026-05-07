@@ -109,7 +109,7 @@ function ExploreContent() {
                   return (
                     <button
                       key={cat.code}
-                      class={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap cursor-pointer border-none transition-colors ${
+                      class={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap cursor-pointer border-none ${
                         isActive
                           ? "bg-primary text-white"
                           : "bg-card-light dark:bg-card-dark text-charcoal dark:text-gray-300 hover:bg-primary/10"
@@ -134,7 +134,7 @@ function ExploreContent() {
                 <Icon name="error_outline" class="text-5xl mb-4" />
                 <p class="text-lg font-medium">{t("explore.loadError")}</p>
                 <button
-                  class="mt-4 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer border-none"
+                  class="mt-4 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 cursor-pointer border-none"
                   onClick={loadChannels}
                 >
                   {t("explore.retry")}
@@ -156,7 +156,7 @@ function ExploreContent() {
                       <a
                         key={ch.channel_id}
                         href={`/channels/${ch.channel_id}`}
-                        class="bg-card-light dark:bg-card-dark p-6 rounded-xl border border-border-light dark:border-border-dark hover:border-primary/50 dark:hover:border-primary/50 transition-colors flex flex-col gap-4 no-underline min-h-[240px]"
+                        class="bg-card-light dark:bg-card-dark p-6 rounded-xl border border-border-light dark:border-border-dark hover:border-primary/50 dark:hover:border-primary/50 flex flex-col gap-4 no-underline min-h-[240px]"
                       >
                         <div class="flex items-center gap-3">
                           <img
