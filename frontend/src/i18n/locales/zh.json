@@ -36,27 +36,36 @@
   "about": {
     "pageTitle": "关于",
     "hero": {
-      "title1": "按照您自己的方式",
-      "title2": "管理 YouTube 观看体验。",
-      "description": "一款免费界面，旨在消除算法推荐，让您掌控所关注的频道和观看时长。"
+      "title1": "告别",
+      "title2": "YouTube 依赖",
+      "description": "anti-yt 是一项免费服务，仅显示您订阅频道的视频，并让您自行管理屏幕使用时间。",
+      "feature1": "不显示推荐",
+      "feature2": "设置时间限制",
+      "feature3": "让 YouTube 更有益"
     },
     "statement": {
-      "heading": "对以参与度最大化为设计目标的回应",
-      "body1": "推荐算法的设计目的是最大化用户在平台上的停留时间，而非用户满意度。",
-      "body2": "本工具让您与这种设计保持物理距离。"
+      "heading": "YouTube 是否在占用您的时间？",
+      "body1": "我们认为推荐算法是让人沉迷 YouTube 的最大原因。我们只会推送您允许的频道的视频。",
+      "body2": "让 YouTube 更有意义地为您所用。"
     },
     "principles": {
       "feed": {
-        "title": "仅限您订阅的动态",
-        "body": "没有推荐，没有相关视频——只有您明确订阅的频道，按时间顺序排列。减少干扰，轻松选择。"
+        "title": "不被推荐左右",
+        "body": "只把您订阅的有价值的频道作为推荐显示。再也不会被无限滚动夺走时间。"
       },
       "time": {
-        "title": "明确的时间边界",
-        "body": "设置每日上限和允许观看的时间段，在系统层面强制执行。将您的时间视为需要有意分配的资源。"
+        "title": "限制每天的时间",
+        "body": "您可以限制可观看的时间段和每日上限。再也不会让休息时间超时。",
+        "mock": {
+          "title": "可观看时间",
+          "windowLabel": "时段",
+          "dailyLabel": "每日上限",
+          "remainingLabel": "剩余"
+        }
       },
       "analytics": {
-        "title": "量化观看数据",
-        "body": "通过清晰的图表可视化您的使用情况。积累的日志帮助您客观了解自己的使用规律。"
+        "title": "回顾您的使用时间",
+        "body": "可视化过去一周的观看数据。回顾过去的行为，反思自己。"
       }
     },
     "features": {
@@ -75,7 +84,7 @@
       }
     },
     "finalCta": {
-      "description": "开始按照您自己的方式设计的免费观看体验。"
+      "description": "按照您自己的方式设计的观看体验\n<b>免费</b>开始使用"
     }
   },
   "terms": {
@@ -196,8 +205,11 @@
     "showAllPlaylists": "显示全部",
     "noVideosDesc": "订阅频道后，最新视频将显示在这里。",
     "goToChannels": "前往频道",
-    "aboutBanner": "什么是 anti-yt？",
-    "aboutBannerDesc": "anti-yt 是一项免费服务，仅显示您订阅频道的视频，并让您自行管理屏幕使用时间。",
+    "aboutBanner": "告别\nYouTube 依赖",
+    "aboutBannerDesc": "anti-yt 是一项免费服务，仅显示您订阅频道的视频，\n并让您自行管理屏幕使用时间。",
+    "aboutBannerFeature1": "不显示推荐",
+    "aboutBannerFeature2": "设置时间限制",
+    "aboutBannerFeature3": "让 YouTube 更有益",
     "aboutBannerCta": "了解更多 →",
     "rateLimitedTitle": "请稍候",
     "rateLimitedDesc": "您已达到请求限制，请稍后再试。",

@@ -9,10 +9,10 @@
   --color-primary: #d0bb95;
   --color-surface-dark: #1a1a1a;
   --color-charcoal: #171511;
-  --color-taupe: #847862;
+  --color-taupe: #6b5f4d;
   --color-background-light: #fbfaf9;
   --color-background-dark: #1d1a15;
-  --color-text-muted-light: #847862;
+  --color-text-muted-light: #6b5f4d;
   --color-text-muted-dark: #9CA3AF;
   --color-card-light: #ffffff;
   --color-card-dark: #25221d;
@@ -28,6 +28,14 @@
 [data-theme="dark"] {
   --color-text: #ccc;
   --color-bg: #1a1a1a;
+}
+
+/* The brand primary (#d0bb95) doesn't meet WCAG AA on white backgrounds when
+   used as text. Override the text utility for the light theme only —
+   bg-primary / border-primary keep the original brand tone. */
+[data-theme="light"] .text-primary,
+:root:not([data-theme="dark"]) .text-primary {
+  color: #7a6745;
 }
 
 body {

@@ -1,9 +1,44 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import preact from "@preact/preset-vite";
 import tailwindcss from "@tailwindcss/vite";
 import Icons from "unplugin-icons/vite";
 import { VitePWA } from "vite-plugin-pwa";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
+
+/**
+ * Emit a .webp sibling for every PNG/JPEG that ends up in dist/.
+ * The original is kept (Open Graph / Twitter Card crawlers want PNG/JPEG),
+ * but app code can reference the .webp via <img src="/foo.webp">.
+ */
+function generateWebP(): Plugin {
+  return {
+    name: "generate-webp",
+    apply: "build",
+    enforce: "post",
+    async closeBundle() {
+      const [{ default: sharp }, fs, path] = await Promise.all([
+        import("sharp"),
+        import("node:fs/promises"),
+        import("node:path"),
+      ]);
+      const dir = "dist";
+      const entries = await fs.readdir(dir, { recursive: true, withFileTypes: true });
+      const targets = entries
+        .filter((e) => e.isFile() && /\.(png|jpe?g)$/i.test(e.name))
+        .map((e) => path.join(e.parentPath ?? dir, e.name));
+      await Promise.all(
+        targets.map(async (src) => {
+          const out = src.replace(/\.(png|jpe?g)$/i, ".webp");
+          try {
+            await sharp(src).webp({ quality: 82 }).toFile(out);
+          } catch {
+            // skip — image-optimizer-modified files may already be encoded
+          }
+        }),
+      );
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -32,6 +67,7 @@ export default defineConfig({
     Icons({ compiler: "raw" }),
     tailwindcss(),
     ViteImageOptimizer(),
+    generateWebP(),
     preact({
       prerender: {
         enabled: true,
@@ -74,7 +110,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
+        globPatterns: ["**/*.{js,css,html,svg,webp,woff2}"],
+        globIgnores: ["**/about-preview.png", "**/explore-banner.png"],
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {

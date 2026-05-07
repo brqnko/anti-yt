@@ -25,7 +25,7 @@ export function DashboardLayout({
 }) {
   const { t } = useTranslation();
   const { url } = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   const [sidebarOpen, setSidebarOpen] = useState(getStoredSidebarState);
@@ -73,8 +73,8 @@ export function DashboardLayout({
               </a>
               <a
                 class={navItemClass(url === "/analytics")}
-                href={isAuthenticated ? "/analytics" : undefined}
-                onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
+                href="/analytics"
+                onClick={(e) => { if (!isAuthLoading && !isAuthenticated) { e.preventDefault(); e.stopPropagation(); setShowAuthPrompt(true); } }}
                 aria-current={url === "/analytics" ? "page" : undefined}
               >
                 <Icon name="analytics" class="shrink-0 text-xl" />
@@ -82,8 +82,8 @@ export function DashboardLayout({
               </a>
               <a
                 class={navItemClass(url === "/channels" || url === "/channels/explore")}
-                href={isAuthenticated ? "/channels" : undefined}
-                onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
+                href="/channels"
+                onClick={(e) => { if (!isAuthLoading && !isAuthenticated) { e.preventDefault(); e.stopPropagation(); setShowAuthPrompt(true); } }}
                 aria-current={url === "/channels" || url === "/channels/explore" ? "page" : undefined}
               >
                 <Icon name="subscriptions" class="shrink-0 text-xl" />
@@ -91,8 +91,8 @@ export function DashboardLayout({
               </a>
               <a
                 class={navItemClass(url === "/playlists" || url.startsWith("/playlists/"))}
-                href={isAuthenticated ? "/playlists" : undefined}
-                onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
+                href="/playlists"
+                onClick={(e) => { if (!isAuthLoading && !isAuthenticated) { e.preventDefault(); e.stopPropagation(); setShowAuthPrompt(true); } }}
                 aria-current={url === "/playlists" || url.startsWith("/playlists/") ? "page" : undefined}
               >
                 <Icon name="playlist_play" class="shrink-0 text-xl" />
@@ -171,8 +171,8 @@ export function DashboardLayout({
           {t("dashboard.nav.bottomFeed")}
         </a>
         <a
-          href={isAuthenticated ? "/channels" : undefined}
-          onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
+          href="/channels"
+          onClick={(e) => { if (!isAuthLoading && !isAuthenticated) { e.preventDefault(); e.stopPropagation(); setShowAuthPrompt(true); } }}
           class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline cursor-pointer ${
             url === "/channels" || url === "/channels/explore"
               ? "text-primary font-bold"
@@ -184,8 +184,8 @@ export function DashboardLayout({
           {t("dashboard.nav.bottomChannels")}
         </a>
         <a
-          href={isAuthenticated ? "/playlists" : undefined}
-          onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
+          href="/playlists"
+          onClick={(e) => { if (!isAuthLoading && !isAuthenticated) { e.preventDefault(); e.stopPropagation(); setShowAuthPrompt(true); } }}
           class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline cursor-pointer ${
             url === "/playlists" || url.startsWith("/playlists/")
               ? "text-primary font-bold"
@@ -197,8 +197,8 @@ export function DashboardLayout({
           {t("dashboard.nav.bottomPlaylists")}
         </a>
         <a
-          href={isAuthenticated ? "/analytics" : undefined}
-          onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
+          href="/analytics"
+          onClick={(e) => { if (!isAuthLoading && !isAuthenticated) { e.preventDefault(); e.stopPropagation(); setShowAuthPrompt(true); } }}
           class={`flex flex-col items-center gap-0.5 py-2 px-3 text-[10px] no-underline cursor-pointer ${
             url === "/analytics"
               ? "text-primary font-bold"
@@ -210,9 +210,14 @@ export function DashboardLayout({
           {t("dashboard.nav.bottomAnalytics")}
         </a>
         <a
-          href={isAuthenticated ? "/profile" : undefined}
-          onClick={() => {
-            if (!isAuthenticated) { setShowAuthPrompt(true); return; }
+          href="/profile"
+          onClick={(e) => {
+            if (!isAuthLoading && !isAuthenticated) {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowAuthPrompt(true);
+              return;
+            }
             if (url === "/profile") {
               window.scrollTo({ top: 0, behavior: "smooth" });
             }

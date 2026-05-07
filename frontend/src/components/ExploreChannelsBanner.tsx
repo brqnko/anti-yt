@@ -11,7 +11,7 @@ export function ExploreChannelsBanner() {
     >
       <div
         class="absolute inset-0"
-        style={{ backgroundImage: "url('/explore-banner.png')", backgroundSize: "cover", backgroundPosition: "center 70%" }}
+        style={{ backgroundImage: "url('/explore-banner.webp')", backgroundSize: "cover", backgroundPosition: "center 70%" }}
       />
       <div class="absolute inset-0 bg-black/50" />
       <div class="flex-1 min-w-0 relative z-10">

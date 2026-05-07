@@ -40,7 +40,7 @@ export function DashboardHeader({
 }) {
   const { t } = useTranslation();
   const { url, route } = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const qs = url.split("?")[1] || "";
   const initialQuery = url.startsWith("/search")
@@ -57,6 +57,7 @@ export function DashboardHeader({
 
   const handleSearch = (e: Event) => {
     e.preventDefault();
+    if (isAuthLoading) return;
     if (!isAuthenticated) { setShowAuthPrompt(true); return; }
     (document.activeElement as HTMLElement | null)?.blur();
     const q = searchInput.trim();
@@ -140,8 +141,14 @@ export function DashboardHeader({
 
       <div class="hidden tablet:flex items-center gap-4 shrink-0">
         <a
-          href={isAuthenticated ? "/profile" : undefined}
-          onClick={() => { if (!isAuthenticated) setShowAuthPrompt(true); }}
+          href="/profile"
+          onClick={(e) => {
+            if (!isAuthLoading && !isAuthenticated) {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowAuthPrompt(true);
+            }
+          }}
           class="size-9 flex items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/20 cursor-pointer text-primary no-underline"
           aria-label={t("profile.pageTitle")}
         >
