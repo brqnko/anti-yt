@@ -63,10 +63,13 @@ function SearchContent() {
       return;
     }
 
+    const isQueryChange = currentQueryRef.current !== searchQuery;
     currentQueryRef.current = searchQuery;
     setIsLoading(true);
     setError(false);
-    setVideos([]);
+    if (isQueryChange) {
+      setVideos([]);
+    }
     cursorRef.current = undefined;
 
     const load = async () => {
@@ -114,7 +117,7 @@ function SearchContent() {
             <Icon name="search" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("search.placeholder")}</p>
           </div>
-        ) : isLoading ? (
+        ) : isLoading && videos.length === 0 ? (
           <LoadingSpinner />
         ) : error ? (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">

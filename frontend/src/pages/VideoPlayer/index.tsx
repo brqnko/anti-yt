@@ -404,6 +404,16 @@ function VideoPlayerContent() {
     }
   }, []);
 
+  const addedToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const failedToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (addedToastTimerRef.current) clearTimeout(addedToastTimerRef.current);
+      if (failedToastTimerRef.current) clearTimeout(failedToastTimerRef.current);
+    };
+  }, []);
+
   const handleAddToPlaylist = useCallback(
     async (plId: string) => {
       if (addingToPlaylist || !videoId || addedPlaylistIds.has(plId)) return;
@@ -415,15 +425,17 @@ function VideoPlayerContent() {
         });
         setAddedToPlaylist(plId);
         setAddedPlaylistIds((prev) => new Set(prev).add(plId));
-        setTimeout(() => setAddedToPlaylist(null), 2000);
+        if (addedToastTimerRef.current) clearTimeout(addedToastTimerRef.current);
+        addedToastTimerRef.current = setTimeout(() => setAddedToPlaylist(null), 2000);
       } catch {
         setFailedToAddPlaylist(plId);
-        setTimeout(() => setFailedToAddPlaylist(null), 2000);
+        if (failedToastTimerRef.current) clearTimeout(failedToastTimerRef.current);
+        failedToastTimerRef.current = setTimeout(() => setFailedToAddPlaylist(null), 2000);
       } finally {
         setAddingToPlaylist(null);
       }
     },
-    [addingToPlaylist, videoId],
+    [addingToPlaylist, videoId, addedPlaylistIds],
   );
 
   const reloadPlaylist = useCallback(async () => {

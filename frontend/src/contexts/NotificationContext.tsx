@@ -1,5 +1,5 @@
 import { createContext } from "preact";
-import { useState, useEffect, useCallback, useContext, useRef } from "preact/hooks";
+import { useState, useEffect, useCallback, useContext, useMemo, useRef } from "preact/hooks";
 import type { ComponentChildren } from "preact";
 import { NotificationHost } from "../components/NotificationHost";
 
@@ -100,8 +100,13 @@ export function NotificationProvider({ children }: { children: ComponentChildren
     };
   }, []);
 
+  const value = useMemo(
+    () => ({ notifications, show, dismiss }),
+    [notifications, show, dismiss],
+  );
+
   return (
-    <NotificationContext.Provider value={{ notifications, show, dismiss }}>
+    <NotificationContext.Provider value={value}>
       {children}
       <NotificationHost />
     </NotificationContext.Provider>

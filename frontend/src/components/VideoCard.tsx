@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "preact/hooks";
+import { memo } from "preact/compat";
 import { useTranslation } from "react-i18next";
 import { formatDuration, formatTimeAgo } from "../utils/format";
 import { buildWatchUrl } from "../utils/url";
@@ -27,7 +28,7 @@ export interface VideoCardProps {
   onMarkWatched?: () => Promise<void>;
 }
 
-function VideoThumbnail({
+const VideoThumbnail = memo(function VideoThumbnail({
   watchUrl,
   thumbnailUrl,
   title,
@@ -53,6 +54,9 @@ function VideoThumbnail({
         src={thumbnailUrl}
         alt={title}
         loading="lazy"
+        decoding="async"
+        width={480}
+        height={270}
         class="absolute inset-0 w-full h-full object-cover"
       />
       <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100" />
@@ -81,9 +85,9 @@ function VideoThumbnail({
       )}
     </a>
   );
-}
+});
 
-function VideoCardMenu({
+const VideoCardMenu = memo(function VideoCardMenu({
   isSubscribed,
   onToggleSubscription,
   isWatched,
@@ -184,9 +188,9 @@ function VideoCardMenu({
       </Dialog>
     </>
   );
-}
+});
 
-export function VideoCard({
+export const VideoCard = memo(function VideoCard({
   videoId,
   thumbnailUrl,
   title,
@@ -242,6 +246,9 @@ export function VideoCard({
                     src={channel.iconUrl}
                     alt={channel.displayName}
                     loading="lazy"
+                    decoding="async"
+                    width={20}
+                    height={20}
                     class="size-5 rounded-full object-cover"
                   />
                   <span class="truncate">{channel.displayName}</span>
@@ -276,6 +283,9 @@ export function VideoCard({
             <img
               alt={channel.displayName}
               loading="lazy"
+              decoding="async"
+              width={36}
+              height={36}
               class="w-full h-full object-cover"
               src={channel.iconUrl}
             />
@@ -317,4 +327,4 @@ export function VideoCard({
       </div>
     </article>
   );
-}
+});

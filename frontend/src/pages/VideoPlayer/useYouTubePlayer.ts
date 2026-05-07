@@ -322,6 +322,24 @@ export function useYouTubePlayer({
     }
   }, [videoId, isReady]);
 
+  // Pause the low-frequency sync interval while the tab is hidden so we don't
+  // burn CPU/battery firing heartbeats and time updates for an off-screen player.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const onVisibilityChange = () => {
+      const p = playerRef.current;
+      if (document.hidden) {
+        stopTimeSync();
+      } else if (p && typeof p.getPlayerState === "function") {
+        if (p.getPlayerState() === PlayerState.PLAYING) {
+          startTimeSync(highFreqRef.current);
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [startTimeSync, stopTimeSync]);
+
   const play = useCallback(() => playerRef.current?.playVideo(), []);
   const pause = useCallback(() => playerRef.current?.pauseVideo(), []);
   const togglePlay = useCallback(() => {
