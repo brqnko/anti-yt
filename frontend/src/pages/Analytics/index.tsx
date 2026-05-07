@@ -229,7 +229,7 @@ function AnalyticsContent() {
                         }}
                       >
                         <div
-                          class={`absolute bottom-full left-1/2 -translate-x-1/2 -translate-y-2 bg-gray-900 text-white text-xs py-1.5 px-2.5 rounded transition-opacity whitespace-nowrap flex flex-col items-center gap-0.5 pointer-events-none z-20 ${
+                          class={`absolute bottom-full left-1/2 -translate-x-1/2 -translate-y-2 bg-gray-900 text-white text-xs py-1.5 px-2.5 rounded whitespace-nowrap flex flex-col items-center gap-0.5 pointer-events-none z-20 ${
                             isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                           }`}
                           role="tooltip"

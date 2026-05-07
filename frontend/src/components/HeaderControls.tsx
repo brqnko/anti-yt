@@ -37,7 +37,7 @@ export function HeaderControls() {
     <div class="flex items-center gap-2">
       <button
         type="button"
-        class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-200/60 dark:bg-white/10 hover:bg-slate-300/60 dark:hover:bg-white/20 transition-colors cursor-pointer text-slate-600 dark:text-slate-300"
+        class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-200/60 dark:bg-white/10 hover:bg-slate-300/60 dark:hover:bg-white/20 cursor-pointer text-slate-600 dark:text-slate-300"
         onClick={cycleMode}
         title={t(`common.colorMode.${nextMode}`)}
         aria-label={`${t(`common.colorMode.${mode}`)} → ${t(`common.colorMode.${nextMode}`)}`}
@@ -47,7 +47,7 @@ export function HeaderControls() {
       <div class="relative" ref={langRef}>
         <button
           type="button"
-          class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-200/60 dark:bg-white/10 hover:bg-slate-300/60 dark:hover:bg-white/20 transition-colors cursor-pointer text-slate-600 dark:text-slate-300"
+          class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-200/60 dark:bg-white/10 hover:bg-slate-300/60 dark:hover:bg-white/20 cursor-pointer text-slate-600 dark:text-slate-300"
           onClick={() => setLangOpen(!langOpen)}
           aria-label={t("legal.languageSelect")}
           aria-expanded={langOpen}
@@ -65,7 +65,7 @@ export function HeaderControls() {
                 role="menuitem"
                 type="button"
                 key={lang.code}
-                class={`w-full flex items-center gap-2 px-4 py-2 text-left text-sm font-medium cursor-pointer transition-colors ${
+                class={`w-full flex items-center gap-2 px-4 py-2 text-left text-sm font-medium cursor-pointer ${
                   currentLang === lang.code
                     ? "text-primary"
                     : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
@@ -87,7 +87,7 @@ export function HeaderControls() {
         )}
       </div>
       <a
-        class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-200/60 dark:bg-white/10 hover:bg-slate-300/60 dark:hover:bg-white/20 transition-colors text-slate-600 dark:text-slate-300"
+        class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-200/60 dark:bg-white/10 hover:bg-slate-300/60 dark:hover:bg-white/20 text-slate-600 dark:text-slate-300"
         href="https://github.com/brqnko/anti-yt"
         target="_blank"
         rel="noopener noreferrer"

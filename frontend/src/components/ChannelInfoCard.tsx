@@ -30,7 +30,7 @@ function ExpandableDescription({ description }: { description: string }) {
       {clamped && (
         <button
           type="button"
-          class="text-sm font-medium text-primary hover:text-primary/80 transition-colors bg-transparent border-none cursor-pointer p-0 mt-2"
+          class="text-sm font-medium text-primary hover:text-primary/80 bg-transparent border-none cursor-pointer p-0 mt-2"
           onClick={() => setExpanded(!expanded)}
         >
           {expanded ? t("channelDetail.showLess") : t("channelDetail.showMore")}
@@ -85,7 +85,7 @@ export function ChannelInfoCard({
                 href={`https://www.youtube.com/${channelInfo.external_channel_custom_id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="inline-flex items-center gap-1 text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors no-underline"
+                class="inline-flex items-center gap-1 text-text-muted-light dark:text-text-muted-dark hover:text-primary no-underline"
               >
                 <Icon name="open_in_new" class="text-sm" />
                 {t("channelDetail.openOnYouTube")}

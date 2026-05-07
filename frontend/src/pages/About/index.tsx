@@ -40,7 +40,7 @@ function GoogleSignInButton({ label }: { label: string }) {
       onClick={() => {
         window.location.href = "/api/v1/auth/google";
       }}
-      class="flex items-center justify-center gap-3 rounded-xl bg-white dark:bg-[#242424] px-8 py-3 text-sm font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-primary/50 dark:hover:border-primary/50 transition-colors cursor-pointer"
+      class="flex items-center justify-center gap-3 rounded-xl bg-white dark:bg-[#242424] px-8 py-3 text-sm font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-primary/50 dark:hover:border-primary/50 cursor-pointer"
     >
       <GoogleIcon />
       {label}
@@ -200,7 +200,7 @@ export default function About() {
                   href="/terms"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="underline hover:text-charcoal dark:hover:text-white transition-colors"
+                  class="underline hover:text-charcoal dark:hover:text-white"
                 >
                   {t("common.termsLink")}
                 </a>
@@ -209,7 +209,7 @@ export default function About() {
                   href="/privacy"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="underline hover:text-charcoal dark:hover:text-white transition-colors"
+                  class="underline hover:text-charcoal dark:hover:text-white"
                 >
                   {t("common.privacyPolicyLink")}
                 </a>
@@ -225,13 +225,13 @@ export default function About() {
             <div class="flex items-center gap-6">
               <a
                 href="/terms"
-                class="font-medium no-underline text-inherit hover:text-primary transition-colors"
+                class="font-medium no-underline text-inherit hover:text-primary"
               >
                 {t("legal.navTerms")}
               </a>
               <a
                 href="/privacy"
-                class="font-medium no-underline text-inherit hover:text-primary transition-colors"
+                class="font-medium no-underline text-inherit hover:text-primary"
               >
                 {t("legal.navPrivacy")}
               </a>

@@ -26,7 +26,7 @@ export function LegalLayout({ children }: { children: ComponentChildren }) {
                 <a
                   key={link.href}
                   href={link.href}
-                  class={`text-sm font-bold no-underline transition-colors ${
+                  class={`text-sm font-bold no-underline ${
                     url === link.href
                       ? "text-primary"
                       : "text-[#847862] dark:text-[#a89d89] hover:text-primary"
@@ -51,7 +51,7 @@ export function LegalLayout({ children }: { children: ComponentChildren }) {
               <a
                 key={link.href}
                 href={link.href}
-                class={`font-medium no-underline transition-colors ${
+                class={`font-medium no-underline ${
                   url === link.href
                     ? "text-primary"
                     : "text-inherit hover:text-primary"

@@ -48,7 +48,7 @@ export function AuthPromptDialog({ open, onClose }: AuthPromptDialogProps) {
           {t("common.authRequired")}
         </p>
         <button
-          class="flex items-center justify-center gap-3 rounded-xl bg-white dark:bg-[#242424] px-8 py-3 text-sm font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-primary/50 dark:hover:border-primary/50 transition-colors cursor-pointer w-full"
+          class="flex items-center justify-center gap-3 rounded-xl bg-white dark:bg-[#242424] px-8 py-3 text-sm font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-primary/50 dark:hover:border-primary/50 cursor-pointer w-full"
           onClick={() => {
             window.location.href = "/api/v1/auth/google";
           }}
@@ -63,7 +63,7 @@ export function AuthPromptDialog({ open, onClose }: AuthPromptDialogProps) {
             href="/terms"
             target="_blank"
             rel="noopener noreferrer"
-            class="underline hover:text-charcoal dark:hover:text-white transition-colors"
+            class="underline hover:text-charcoal dark:hover:text-white"
           >
             {t("common.termsLink")}
           </a>
@@ -72,7 +72,7 @@ export function AuthPromptDialog({ open, onClose }: AuthPromptDialogProps) {
             href="/privacy"
             target="_blank"
             rel="noopener noreferrer"
-            class="underline hover:text-charcoal dark:hover:text-white transition-colors"
+            class="underline hover:text-charcoal dark:hover:text-white"
           >
             {t("common.privacyPolicyLink")}
           </a>

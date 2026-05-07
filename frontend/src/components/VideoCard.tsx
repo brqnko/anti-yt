@@ -55,11 +55,11 @@ function VideoThumbnail({
         loading="lazy"
         class="absolute inset-0 w-full h-full object-cover"
       />
-      <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300" />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100" />
       <span class="absolute bottom-2 right-2 bg-black/80 text-white text-xs font-bold px-1.5 py-0.5 rounded">
         {formatDuration(lengthSeconds)}
       </span>
-      <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-300 pointer-events-none">
+      <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 pointer-events-none">
         <div
           class={`rounded-full bg-primary/90 flex items-center justify-center text-white ${
             size === "card" ? "size-12" : "size-10"
@@ -130,7 +130,7 @@ function VideoCardMenu({
     <>
       <button
         type="button"
-        class="flex-shrink-0 p-0.5 -mr-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors bg-transparent border-none cursor-pointer text-text-muted-light dark:text-text-muted-dark"
+        class="flex-shrink-0 p-0.5 -mr-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 bg-transparent border-none cursor-pointer text-text-muted-light dark:text-text-muted-dark"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -167,7 +167,7 @@ function VideoCardMenu({
                   </span>
                 </div>
                 <button
-                  class={`flex-shrink-0 ml-3 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  class={`flex-shrink-0 ml-3 px-3 py-1.5 rounded-lg text-sm font-medium ${
                     marking
                       ? "bg-gray-200 dark:bg-gray-700 text-text-muted-light dark:text-text-muted-dark cursor-not-allowed"
                       : isWatched
@@ -227,7 +227,7 @@ export function VideoCard({
         <div class="flex flex-col gap-2 sm:gap-3 min-w-0 flex-1 sm:py-1">
           <a
             href={watchUrl}
-            class="text-base sm:text-lg font-bold text-charcoal dark:text-white leading-snug line-clamp-2 no-underline hover:text-primary transition-colors"
+            class="text-base sm:text-lg font-bold text-charcoal dark:text-white leading-snug line-clamp-2 no-underline hover:text-primary"
           >
             {title}
           </a>
@@ -236,7 +236,7 @@ export function VideoCard({
               <div class="flex items-center gap-2 text-sm text-text-muted-light dark:text-text-muted-dark">
                 <a
                   href={`/channels/${channel.channelId}`}
-                  class="flex items-center gap-1.5 min-w-0 overflow-hidden no-underline text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors"
+                  class="flex items-center gap-1.5 min-w-0 overflow-hidden no-underline text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white"
                 >
                   <img
                     src={channel.iconUrl}
@@ -285,7 +285,7 @@ export function VideoCard({
           <div class="flex items-start gap-1">
             <a
               href={watchUrl}
-              class="text-base font-bold text-charcoal dark:text-white leading-tight line-clamp-2 cursor-pointer no-underline hover:text-primary transition-colors flex-1 min-w-0"
+              class="text-base font-bold text-charcoal dark:text-white leading-tight line-clamp-2 cursor-pointer no-underline hover:text-primary flex-1 min-w-0"
             >
               {title}
             </a>

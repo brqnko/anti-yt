@@ -139,10 +139,10 @@ export function RestrictionsTab() {
                 </div>
                 <button
                   type="button"
-                  class="flex items-center justify-center gap-2 w-full py-3 border border-dashed border-border-light dark:border-border-dark rounded-lg text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 transition-all group cursor-pointer bg-transparent"
+                  class="flex items-center justify-center gap-2 w-full py-3 border border-dashed border-border-light dark:border-border-dark rounded-lg text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 group cursor-pointer bg-transparent"
                   onClick={addRange}
                 >
-                  <Icon name="add" class="group-hover:scale-110 transition-transform" />
+                  <Icon name="add" />
                   <span class="text-sm font-bold">
                     {t("restrictions.addTimeRange")}
                   </span>
@@ -227,7 +227,7 @@ export function RestrictionsTab() {
                 )}
                 <div class="flex items-center gap-3">
                   <button
-                    class="px-6 py-3 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors flex items-center gap-2 cursor-pointer border-none"
+                    class="px-6 py-3 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg flex items-center gap-2 cursor-pointer border-none"
                     disabled={isSaving || isTimeInvalid}
                     onClick={handleSave}
                   >
