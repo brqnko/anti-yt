@@ -3,8 +3,10 @@ package llm
 import (
 	"context"
 	"errors"
+	"net/http"
 
 	"github.com/brqnko/anti-yt/backend/internal/util"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"google.golang.org/genai"
 )
 
@@ -74,9 +76,13 @@ func (g *geminiImpl) ModelID() string {
 func NewGemini(ctx context.Context, apiKey, modelID string) (_ Service, err error) {
 	defer util.Wrap(&err, "llm.NewGemini")
 
+	httpClient := &http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	}
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
-		APIKey:  apiKey,
-		Backend: genai.BackendGeminiAPI,
+		APIKey:     apiKey,
+		Backend:    genai.BackendGeminiAPI,
+		HTTPClient: httpClient,
 	})
 	if err != nil {
 		return nil, err

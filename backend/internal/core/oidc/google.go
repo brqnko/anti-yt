@@ -3,12 +3,18 @@ package oidc
 import (
 	"context"
 	"errors"
+	"net/http"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/coreos/go-oidc/v3/oidc"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"golang.org/x/oauth2"
 )
+
+func otelHTTPClient() *http.Client {
+	return &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
+}
 
 var ErrIDTokenNotFound = core.NewDomainError("auth.id_token_not_found", "id token not found", core.StatusBadRequest)
 
@@ -29,6 +35,7 @@ func NewGoogleOIDCService(ctx context.Context, clientID, clientSecret, redirectU
 		return nil, errors.New("google client secret is empty")
 	}
 
+	ctx = context.WithValue(ctx, oauth2.HTTPClient, otelHTTPClient())
 	provider, err := oidc.NewProvider(ctx, "https://accounts.google.com")
 	if err != nil {
 		return nil, err
@@ -59,6 +66,7 @@ func (s *googleOIDCService) AuthCodeURL(state string) string {
 func (s *googleOIDCService) ExchangeAndVerify(ctx context.Context, code string) (_ string, err error) {
 	defer util.Wrap(&err, "oidc.(*googleOIDCService).ExchangeAndVerify")
 
+	ctx = context.WithValue(ctx, oauth2.HTTPClient, otelHTTPClient())
 	oauth2Token, err := s.oauth2Config.Exchange(ctx, code)
 	if err != nil {
 		return "", err
