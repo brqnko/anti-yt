@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getHistory } from "../../api/generated/history";
 import { getUser } from "../../api/generated/user";
 import { toDateStr, getLastNDays, isoToDateStr, formatDateLabel } from "../../utils/format";
@@ -103,28 +102,6 @@ function AnalyticsContent() {
   }, [dismissTooltip]);
 
 
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <LoadingSpinner />
-      </DashboardLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <DashboardLayout>
-        <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-          <Icon name="error_outline" class="text-5xl mb-4" />
-          <p class="text-lg font-medium">{t("analytics.loadError")}</p>
-          <button onClick={load} class="mt-4 text-sm text-primary hover:underline">
-            {t("analytics.retry")}
-          </button>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   return (
     <DashboardLayout>
       <div class="flex-grow w-full flex justify-center py-8 px-4 md:px-8 lg:px-20">
@@ -136,6 +113,16 @@ function AnalyticsContent() {
             </h1>
           </div>
 
+          {isLoading ? null : error ? (
+            <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
+              <Icon name="error_outline" class="text-5xl mb-4" />
+              <p class="text-lg font-medium">{t("analytics.loadError")}</p>
+              <button onClick={load} class="mt-4 text-sm text-primary hover:underline">
+                {t("analytics.retry")}
+              </button>
+            </div>
+          ) : (
+            <>
           {/* AI Summary */}
           {aiSummary && (
             <div class="rounded-xl p-6 bg-primary/10 dark:bg-[#2d2820] border border-primary/20 dark:border-primary/10 relative overflow-hidden">
@@ -251,7 +238,8 @@ function AnalyticsContent() {
               </div>
             </div>
           </div>
-
+            </>
+          )}
         </div>
       </div>
     </DashboardLayout>

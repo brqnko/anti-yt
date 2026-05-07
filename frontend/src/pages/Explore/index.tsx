@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getChannel } from "../../api/generated/channel";
 import type { GetFeedChannels200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
@@ -127,9 +126,7 @@ function ExploreContent() {
             </div>
 
             {/* Channel Grid */}
-            {isLoading ? (
-              <LoadingSpinner />
-            ) : error ? (
+            {isLoading ? null : error ? (
               <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
                 <Icon name="error_outline" class="text-5xl mb-4" />
                 <p class="text-lg font-medium">{t("explore.loadError")}</p>

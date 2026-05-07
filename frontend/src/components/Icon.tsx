@@ -46,7 +46,6 @@ import PlayArrow from "~icons/material-symbols/play-arrow-outline";
 import PlaylistAdd from "~icons/material-symbols/playlist-add";
 import PlaylistPlay from "~icons/material-symbols/playlist-play";
 import PlaylistRemove from "~icons/material-symbols/playlist-remove";
-import ProgressActivity from "~icons/material-symbols/progress-activity";
 import Recommend from "~icons/material-symbols/recommend-outline";
 import Smartphone from "~icons/material-symbols/smartphone";
 import Spa from "~icons/material-symbols/spa-outline";
@@ -122,7 +121,6 @@ const iconMap: Record<string, string> = {
   playlist_add: PlaylistAdd,
   playlist_play: PlaylistPlay,
   playlist_remove: PlaylistRemove,
-  progress_activity: ProgressActivity,
   recommend: Recommend,
   refresh: Refresh,
   repeat: Repeat,

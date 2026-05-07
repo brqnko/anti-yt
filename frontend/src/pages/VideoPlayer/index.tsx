@@ -5,7 +5,6 @@ import { useTitle } from "../../hooks/useTitle";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { AuthPromptDialog } from "../../components/AuthPromptDialog";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getVideo } from "../../api/generated/video";
 import { getHistory } from "../../api/generated/history";
 import { getPlaylist } from "../../api/generated/playlist";
@@ -709,7 +708,7 @@ function VideoPlayerContent() {
   if (isLoading && !video) {
     return (
       <DashboardLayout>
-        <LoadingSpinner className="flex-1" />
+        <div class="flex-1 overflow-y-auto" />
       </DashboardLayout>
     );
   }
@@ -1015,11 +1014,6 @@ function VideoPlayerContent() {
           {/* Sidebar */}
           {playlistId && <aside class="w-full xl:w-[420px] shrink-0 flex flex-col gap-8 px-4 sm:px-0">
             {/* Playlist sidebar */}
-            {playlistId && playlistLoading && (
-              <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark p-8">
-                <LoadingSpinner size="sm" />
-              </div>
-            )}
 
             {playlistId && !playlistLoading && playlistVideos.length > 0 && (
               <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden">
@@ -1136,7 +1130,6 @@ function VideoPlayerContent() {
                       </div>
                     );
                   })}
-                  {playlistLoadingMore && <LoadingSpinner size="sm" className="py-4" />}
                 </div>
               </div>
             )}
@@ -1156,9 +1149,7 @@ function VideoPlayerContent() {
               {t("videoPlayer.addToPlaylist")}
             </h2>
             <div class="flex flex-col gap-2 overflow-y-auto flex-1">
-              {playlistDialogLoading ? (
-                <LoadingSpinner size="sm" className="py-8" />
-              ) : userPlaylists.length === 0 ? (
+              {playlistDialogLoading ? null : userPlaylists.length === 0 ? (
                 <p class="text-sm text-text-muted-light dark:text-text-muted-dark text-center py-8">
                   {t("videoPlayer.noPlaylists")}
                 </p>
@@ -1193,8 +1184,6 @@ function VideoPlayerContent() {
                         <Icon name="check_circle" class="text-green-600 dark:text-green-400 text-xl" />
                       ) : failedToAddPlaylist === pl.playlist_id ? (
                         <Icon name="error" class="text-red-500 text-xl" />
-                      ) : addingToPlaylist === pl.playlist_id ? (
-                        <Icon name="progress_activity" class="animate-spin text-primary text-xl" />
                       ) : (
                         <Icon name="add" class="text-text-muted-light dark:text-text-muted-dark text-xl" />
                       )}

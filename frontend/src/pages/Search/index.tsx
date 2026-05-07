@@ -5,7 +5,6 @@ import { useTitle } from "../../hooks/useTitle";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { VideoCard } from "../../components/VideoCard";
 import { getFeed } from "../../api/generated/feed";
 import { PAGE_SIZES } from "../../constants";
@@ -117,9 +116,7 @@ function SearchContent() {
             <Icon name="search" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("search.placeholder")}</p>
           </div>
-        ) : isLoading && videos.length === 0 ? (
-          <LoadingSpinner />
-        ) : error ? (
+        ) : isLoading && videos.length === 0 ? null : error ? (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
             <Icon name="error_outline" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("search.loadError")}</p>
@@ -152,7 +149,6 @@ function SearchContent() {
               ))}
             </div>
             <div ref={sentinelRef} class="h-1" />
-            {isLoadingMore && <LoadingSpinner size="sm" className="py-8" />}
             {!hasNext && !isLoadingMore && (
               <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">
                 {t("search.endOfResults")}
