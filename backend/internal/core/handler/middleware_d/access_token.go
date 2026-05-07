@@ -15,37 +15,25 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
-// access_tokenヘッダのJWTを解析し、user_idをcontextに付与する
-// 引数のmapにマッチしたリクエストは解析を無視される
+// access_tokenクッキーのJWTを解析し、user_idをcontextに付与する。
+// ignoreOperationIDsに含まれるoperationIDは認証オプショナル扱いとなり、
+// クッキーが無い場合のみ匿名で通過させる。クッキーが存在する場合は
+// オプショナル/必須に関わらず必ず検証し、失敗時は401を返す
+// (フロントの自動リフレッシュ機構を起動させるため)。
 func AccessTokenMiddleware(
 	jwtService jwt_d.Service,
 	jtiBlacklistRepo database_d.JtiBlacklistRepository,
 	ignoreOperationIDs map[string]struct{},
 ) func(v1.StrictHandlerFunc, string) v1.StrictHandlerFunc {
 	return func(f v1.StrictHandlerFunc, operationID string) v1.StrictHandlerFunc {
-		if _, ok := ignoreOperationIDs[operationID]; ok {
-			// 認証をオプショナルにする: JWTがあればuser_idをcontextに付与するが、なくても続行する
-			return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (_ interface{}, err error) {
-				cookie, err := r.Cookie("access_token")
-				if err != nil {
-					return f(ctx, w, r, request)
-				}
-				userID, jti, _, err := jwtService.VerifyUserAccessToken(cookie.Value)
-				if err != nil {
-					return f(ctx, w, r, request)
-				}
-				blacklisted, err := jtiBlacklistRepo.IsJtiExist(ctx, jti)
-				if err != nil || blacklisted {
-					return f(ctx, w, r, request)
-				}
-				newCtx := hutil.WithUserID(ctx, userID)
-				return f(newCtx, w, r.WithContext(newCtx), request)
-			}
-		}
+		_, optional := ignoreOperationIDs[operationID]
 
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (_ interface{}, err error) {
 			cookie, err := r.Cookie("access_token")
 			if err != nil {
+				if optional {
+					return f(ctx, w, r, request)
+				}
 				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 			}
 			userID, jti, _, err := jwtService.VerifyUserAccessToken(cookie.Value)

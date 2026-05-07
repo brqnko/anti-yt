@@ -114,7 +114,7 @@ export function DashboardLayout({
               </a>
             </div>
             <div class="border-t border-border-light dark:border-border-dark mx-1 my-1" />
-            <div class="px-3 pt-2 pb-1 flex flex-wrap gap-x-3 gap-y-2">
+            <div class="px-3 pt-3 pb-2 flex flex-col gap-y-2">
               <a href="/about" class="text-xs text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline transition-colors">
                 {t("dashboard.nav.aboutAntiYt")}
               </a>
@@ -127,7 +127,7 @@ export function DashboardLayout({
                 GitHub
               </a>
             </div>
-            <div class="px-3 pb-2 flex flex-wrap gap-x-3 gap-y-2">
+            <div class="px-3 pb-3 flex flex-wrap gap-x-3 gap-y-2">
               <a href="/terms" class="text-xs text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline transition-colors">
                 {t("common.termsLink")}
               </a>
