@@ -121,7 +121,7 @@ function SearchContent() {
             <Icon name="error_outline" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("search.loadError")}</p>
             <button
-              class="mt-4 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer border-none"
+              class="mt-4 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 cursor-pointer border-none"
               onClick={() => window.location.reload()}
             >
               {t("search.retry")}

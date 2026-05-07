@@ -77,7 +77,7 @@ export function DashboardHeader({
       <div class="flex items-center gap-3 shrink-0">
         {onToggleSidebar && (
           <button
-            class="hidden tablet:inline-flex p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer text-charcoal dark:text-white"
+            class="hidden tablet:inline-flex p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 bg-transparent border-none cursor-pointer text-charcoal dark:text-white"
             onClick={onToggleSidebar}
             aria-label={t("dashboard.toggleSidebar")}
             aria-expanded={sidebarOpen}
@@ -108,7 +108,7 @@ export function DashboardHeader({
           {searchInput && (
             <button
               type="button"
-              class="shrink-0 p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer text-text-muted-light dark:text-text-muted-dark"
+              class="shrink-0 p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 bg-transparent border-none cursor-pointer text-text-muted-light dark:text-text-muted-dark"
               onClick={() => setSearchInput("")}
               aria-label={t("search.clear")}
             >
@@ -117,7 +117,7 @@ export function DashboardHeader({
           )}
           <button
             type="button"
-            class="relative shrink-0 p-1.5 mr-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer text-charcoal dark:text-white"
+            class="relative shrink-0 p-1.5 mr-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 bg-transparent border-none cursor-pointer text-charcoal dark:text-white"
             onClick={() => setFilterOpen(true)}
             aria-label={t("search.filters.title")}
           >

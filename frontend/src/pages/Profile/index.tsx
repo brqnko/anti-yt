@@ -102,7 +102,7 @@ function ProfileContent() {
         <nav class="flex items-center gap-1 bg-background-light dark:bg-background-dark p-1 rounded-full border border-border-light dark:border-border-dark overflow-x-auto">
           <button
             onClick={() => setActiveTab("profile")}
-            class={`flex-1 px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
+            class={`flex-1 px-4 py-1.5 rounded-full text-sm font-bold cursor-pointer border-none whitespace-nowrap ${
               activeTab === "profile"
                 ? "bg-card-light dark:bg-card-dark text-primary"
                 : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
@@ -112,7 +112,7 @@ function ProfileContent() {
           </button>
           <button
             onClick={() => setActiveTab("security")}
-            class={`flex-1 px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
+            class={`flex-1 px-4 py-1.5 rounded-full text-sm font-bold cursor-pointer border-none whitespace-nowrap ${
               activeTab === "security"
                 ? "bg-card-light dark:bg-card-dark text-primary"
                 : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
@@ -122,7 +122,7 @@ function ProfileContent() {
           </button>
           <button
             onClick={() => setActiveTab("history")}
-            class={`flex-1 px-4 py-1.5 rounded-full text-sm font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
+            class={`flex-1 px-4 py-1.5 rounded-full text-sm font-bold cursor-pointer border-none whitespace-nowrap ${
               activeTab === "history"
                 ? "bg-card-light dark:bg-card-dark text-primary"
                 : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
@@ -189,7 +189,7 @@ function ProfileContent() {
               <div class="px-6 py-4 border-t border-border-light dark:border-border-dark flex items-center">
                 <button
                   onClick={() => setShowImportDialog(true)}
-                  class="flex items-center justify-center gap-2.5 rounded-xl bg-white dark:bg-[#242424] px-5 py-2.5 text-sm font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-[#FF0000]/50 transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF0000] focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
+                  class="flex items-center justify-center gap-2.5 rounded-xl bg-white dark:bg-[#242424] px-5 py-2.5 text-sm font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-[#FF0000]/50 focus:outline-none focus:ring-2 focus:ring-[#FF0000] focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
                 >
                   <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z" fill="#FF0000"/>
@@ -212,7 +212,7 @@ function ProfileContent() {
                 <button
                   onClick={handleSave}
                   disabled={isSaving || !isNameValid}
-                  class="px-8 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors cursor-pointer border-none"
+                  class="px-8 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg cursor-pointer border-none"
                 >
                   {isSaving ? t("profile.saving") : t("profile.saveChanges")}
                 </button>
@@ -260,7 +260,7 @@ function ProfileContent() {
                   href={REPORT_FORM_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-all font-bold no-underline"
+                  class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white font-bold no-underline"
                 >
                   <Icon name="flag" />
                   {t("profile.nav.reportProblem")}
@@ -268,7 +268,7 @@ function ProfileContent() {
                 <div class="mt-4" />
                 <button
                   onClick={() => setShowLogoutConfirm(true)}
-                  class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-all font-bold cursor-pointer bg-transparent border-none"
+                  class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white font-bold cursor-pointer bg-transparent border-none"
                 >
                   <Icon name="logout" />
                   {t("profile.nav.signOut")}
@@ -276,7 +276,7 @@ function ProfileContent() {
                 <div class="mt-4" />
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 text-red-500 transition-all font-bold cursor-pointer bg-transparent border-none"
+                  class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 text-red-500 font-bold cursor-pointer bg-transparent border-none"
                 >
                   <Icon name="delete_forever" />
                   {t("profile.deleteAccount")}
@@ -301,13 +301,13 @@ function ProfileContent() {
             <div class="flex justify-end gap-3 mt-2">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
-                class="px-5 py-2.5 rounded-lg font-bold text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+                class="px-5 py-2.5 rounded-lg font-bold text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
               >
                 {t("profile.cancel")}
               </button>
               <button
                 onClick={() => logout()}
-                class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors cursor-pointer border-none"
+                class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg cursor-pointer border-none"
               >
                 {t("profile.nav.signOut")}
               </button>
@@ -343,14 +343,14 @@ function ProfileContent() {
               <button
                 onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmInput(""); }}
                 disabled={isDeleting}
-                class="px-5 py-2.5 rounded-lg font-bold text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+                class="px-5 py-2.5 rounded-lg font-bold text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
               >
                 {t("profile.cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={isDeleting || deleteConfirmInput !== "Delete my account"}
-                class="px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors cursor-pointer border-none flex items-center gap-2"
+                class="px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg cursor-pointer border-none flex items-center gap-2"
               >
                 {isDeleting && (
                   <Icon name="progress_activity" class="text-[18px] animate-spin" />
@@ -377,7 +377,7 @@ function ProfileContent() {
             </h3>
 
             <div class="flex flex-col gap-3">
-              <label class="flex items-start gap-3 p-3 rounded-lg border border-border-light dark:border-border-dark hover:border-primary/30 transition-colors cursor-pointer">
+              <label class="flex items-start gap-3 p-3 rounded-lg border border-border-light dark:border-border-dark hover:border-primary/30 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={importSubscriptions}
@@ -394,7 +394,7 @@ function ProfileContent() {
                 </div>
               </label>
 
-              <label class="flex items-start gap-3 p-3 rounded-lg border border-border-light dark:border-border-dark hover:border-primary/30 transition-colors cursor-pointer">
+              <label class="flex items-start gap-3 p-3 rounded-lg border border-border-light dark:border-border-dark hover:border-primary/30 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={importLikes}
@@ -421,7 +421,7 @@ function ProfileContent() {
             <div class="flex justify-end gap-3">
               <button
                 onClick={() => setShowImportDialog(false)}
-                class="px-5 py-2.5 rounded-lg font-bold text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-none"
+                class="px-5 py-2.5 rounded-lg font-bold text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
               >
                 {t("profile.youtubeImport.cancel")}
               </button>
@@ -433,7 +433,7 @@ function ProfileContent() {
                   if (importLikes) params.set("likes", "true");
                   window.location.href = `/api/v1/auth/oauth/youtube?${params.toString()}`;
                 }}
-                class="px-5 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors cursor-pointer border-none"
+                class="px-5 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg cursor-pointer border-none"
               >
                 {t("profile.youtubeImport.start")}
               </button>

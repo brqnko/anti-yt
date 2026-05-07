@@ -27,7 +27,7 @@ export function NotificationHost() {
             {t(n.messageKey)}
           </p>
           <button
-            class="text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white transition-colors bg-transparent border-none cursor-pointer p-0 shrink-0"
+            class="text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white bg-transparent border-none cursor-pointer p-0 shrink-0"
             onClick={() => dismiss(n.id)}
             aria-label={t("common.close")}
           >

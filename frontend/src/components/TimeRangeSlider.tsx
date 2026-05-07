@@ -58,14 +58,14 @@ export function TimeRangeSlider({
   const thumbs = (
     <>
       <div
-        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full cursor-grab z-10 hover:scale-110 active:scale-95 transition-transform touch-none`}
+        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full cursor-grab z-10 active:scale-95 transition-transform touch-none`}
         style={{ left: `${startPct}%` }}
         onPointerDown={handlePointerDown("start")}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
       />
       <div
-        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full cursor-grab z-10 hover:scale-110 active:scale-95 transition-transform touch-none`}
+        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full cursor-grab z-10 active:scale-95 transition-transform touch-none`}
         style={{ left: `${endPct}%` }}
         onPointerDown={handlePointerDown("end")}
         onPointerMove={handlePointerMove}
@@ -139,7 +139,7 @@ export function TimeRangeSlider({
 
         <button
           type="button"
-          class="mt-4 size-10 flex items-center justify-center text-taupe hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-900/30 cursor-pointer"
+          class="mt-4 size-10 flex items-center justify-center text-taupe hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl border border-transparent hover:border-red-100 dark:hover:border-red-900/30 cursor-pointer"
           title={t("register.restrictions.removeRange")}
           onClick={onDelete}
         >
@@ -161,7 +161,7 @@ export function TimeRangeSlider({
         <button
           type="button"
           aria-label={t("restrictions.removeRange")}
-          class="size-8 flex items-center justify-center text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all cursor-pointer bg-transparent border-none"
+          class="size-8 flex items-center justify-center text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg cursor-pointer bg-transparent border-none"
           onClick={onDelete}
         >
           <Icon name="delete" class="text-[18px]" />

@@ -158,7 +158,7 @@ export function SearchFilterDialog({
         {/* Actions */}
         <div class="flex justify-between mt-8">
           <button
-            class="px-4 py-2 rounded-xl text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            class="px-4 py-2 rounded-xl text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 bg-transparent border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             onClick={handleReset}
             disabled={!hasFilters}
           >
@@ -166,13 +166,13 @@ export function SearchFilterDialog({
           </button>
           <div class="flex gap-3">
             <button
-              class="px-4 py-2 rounded-xl text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer"
+              class="px-4 py-2 rounded-xl text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 bg-transparent border-none cursor-pointer"
               onClick={onClose}
             >
               {t("search.filters.cancel")}
             </button>
             <button
-              class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 transition-colors border-none cursor-pointer"
+              class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 border-none cursor-pointer"
               onClick={handleApply}
             >
               {t("search.filters.apply")}

@@ -78,13 +78,13 @@ function RemoveChannelDialog({
         )}
         <div class="flex justify-end gap-3">
           <button
-            class="px-4 py-2 rounded-xl text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors bg-transparent border-none cursor-pointer"
+            class="px-4 py-2 rounded-xl text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 bg-transparent border-none cursor-pointer"
             onClick={onClose}
           >
             {t("channels.unsubscribeDialog.cancel")}
           </button>
           <button
-            class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isRemoving}
             onClick={handleConfirm}
           >
@@ -169,7 +169,7 @@ function ChannelsContent() {
               <Icon name="error_outline" class="text-5xl mb-4" />
               <p class="text-lg font-medium">{t("channels.loadError")}</p>
               <button
-                class="mt-4 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer border-none"
+                class="mt-4 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 cursor-pointer border-none"
                 onClick={loadChannels}
               >
                 {t("channels.retry")}
@@ -184,7 +184,7 @@ function ChannelsContent() {
               {channels.map((ch) => (
                 <div
                   key={ch.channel_id}
-                  class="flex items-center gap-4 p-3 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark group hover:border-primary/50 transition-colors"
+                  class="flex items-center gap-4 p-3 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark group hover:border-primary/50"
                 >
                   <a
                     href={`/channels/${ch.channel_id}`}
@@ -209,7 +209,7 @@ function ChannelsContent() {
                     </div>
                   </a>
                   <button
-                    class="size-8 flex items-center justify-center rounded-full text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all cursor-pointer bg-transparent border-none shrink-0"
+                    class="size-8 flex items-center justify-center rounded-full text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer bg-transparent border-none shrink-0"
                     onClick={() => setRemoveTarget(ch)}
                   >
                     <Icon name="close" class="text-[20px]" />
@@ -218,7 +218,7 @@ function ChannelsContent() {
               ))}
               {hasNext && (
                 <button
-                  class="mt-4 self-center px-6 py-2.5 bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-lg text-sm font-medium text-charcoal dark:text-white hover:border-primary/30 transition-colors cursor-pointer"
+                  class="mt-4 self-center px-6 py-2.5 bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-lg text-sm font-medium text-charcoal dark:text-white hover:border-primary/30 cursor-pointer"
                   onClick={loadMore}
                   disabled={isLoadingMore}
                 >
