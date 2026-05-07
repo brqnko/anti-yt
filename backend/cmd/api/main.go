@@ -24,6 +24,7 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core/jwt_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/llm"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
+	"github.com/brqnko/anti-yt/backend/internal/core/otel_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/report"
 	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
@@ -31,6 +32,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
+	"github.com/riandyrn/otelchi"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 func main() {
@@ -103,6 +106,14 @@ func run(ctx context.Context) int {
 
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
+
+	otelShutdownCtx, otelCancel := context.WithTimeout(ctx, 10*time.Second)
+	defer otelCancel()
+	otelShutdown, err := otel_d.Setup(otelShutdownCtx, "anti-yt-backend", cfg.env)
+	if err != nil {
+		slog.Error("failed to setup otel", slog.Any("error", err))
+		return 1
+	}
 
 	initCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
@@ -206,6 +217,7 @@ func run(ctx context.Context) int {
 	r := chi.NewRouter()
 	// NOTE: RateLimit, gzip, loggerはLB(pingora, nginx等)で行う。各リクエストへのレートリミットはmiddlewareが行う
 	// r.Useは上に書いた順から実行される
+	r.Use(otelchi.Middleware("anti-yt-backend", otelchi.WithChiRoutes(r)))
 	r.Use(middleware.Recoverer)
 	r.Use(middleware_d.SecureHeaders)
 	if cfg.env != "production" {
@@ -280,7 +292,7 @@ func run(ctx context.Context) int {
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.port),
-		Handler: r,
+		Handler: otelhttp.NewHandler(r, "http.server"),
 	}
 
 	go func() {
@@ -304,6 +316,10 @@ func run(ctx context.Context) int {
 	}
 
 	scheduler.Stop()
+
+	if err := otelShutdown(shutdownCtx); err != nil {
+		slog.Error("failed to shutdown otel", slog.Any("error", err))
+	}
 
 	slog.Info("graceful shutdown ok")
 
