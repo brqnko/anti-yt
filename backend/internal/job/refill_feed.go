@@ -78,6 +78,6 @@ func NewRefillFeedJob(db *pgxpool.Pool, feedRepo database_d.FeedRepository) sche
 		db:       db,
 		feedRepo: feedRepo,
 		feedQS:   feed.NewFeedQueryService(db),
-		mx:       &sync.Mutex{},
+		mx:       new(sync.Mutex{}),
 	}
 }

@@ -12,10 +12,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func otelHTTPClient() *http.Client {
-	return &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
-}
-
 var ErrIDTokenNotFound = core.NewDomainError("auth.id_token_not_found", "id token not found", core.StatusBadRequest)
 
 type GoogleOIDCService interface {
@@ -35,23 +31,23 @@ func NewGoogleOIDCService(ctx context.Context, clientID, clientSecret, redirectU
 		return nil, errors.New("google client secret is empty")
 	}
 
-	ctx = context.WithValue(ctx, oauth2.HTTPClient, otelHTTPClient())
+	ctx = context.WithValue(ctx, oauth2.HTTPClient, new(http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}))
 	provider, err := oidc.NewProvider(ctx, "https://accounts.google.com")
 	if err != nil {
 		return nil, err
 	}
 
-	oauth2Config := &oauth2.Config{
+	oauth2Config := new(oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		RedirectURL:  redirectURL,
 		Scopes:       []string{oidc.ScopeOpenID},
 		Endpoint:     provider.Endpoint(),
-	}
-
-	verifier := provider.Verifier(&oidc.Config{
-		ClientID: clientID,
 	})
+
+	verifier := provider.Verifier(new(oidc.Config{
+		ClientID: clientID,
+	}))
 
 	return &googleOIDCService{
 		oauth2Config: oauth2Config,
@@ -66,7 +62,7 @@ func (s *googleOIDCService) AuthCodeURL(state string) string {
 func (s *googleOIDCService) ExchangeAndVerify(ctx context.Context, code string) (_ string, err error) {
 	defer util.Wrap(&err, "oidc.(*googleOIDCService).ExchangeAndVerify")
 
-	ctx = context.WithValue(ctx, oauth2.HTTPClient, otelHTTPClient())
+	ctx = context.WithValue(ctx, oauth2.HTTPClient, new(http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}))
 	oauth2Token, err := s.oauth2Config.Exchange(ctx, code)
 	if err != nil {
 		return "", err

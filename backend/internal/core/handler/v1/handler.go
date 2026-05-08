@@ -51,26 +51,27 @@ func NewAPIHandler(
 	oidcService oidc.GoogleOIDCService,
 	serverURL, frontendURL string,
 	jwtService jwt_d.Service,
+	accessTokenDuration time.Duration,
 	refreshTokenDuration time.Duration,
-	ytService youtube_d.Service,
+	youtubeClient youtube_d.Client,
 	rssFetchDuration time.Duration,
 	scheduler scheduler.Service,
 	jtiBlacklistRepo database_d.JtiBlacklistRepository,
 	feedRepo database_d.FeedRepository,
 ) *APIHandler {
 
-	return &APIHandler{
+	return new(APIHandler{
 		db: db,
 
-		channelService:  channel.NewService(db, ytService, feedRepo, rssFetchDuration),
+		channelService:  channel.NewService(db, youtubeClient, feedRepo, rssFetchDuration),
 		videoService:    video.NewService(db),
-		playlistService: playlist.NewService(db, ytService, feedRepo),
-		authService:     auth.NewService(db, oidcService, ytService, channel.NewService(db, ytService, feedRepo, rssFetchDuration), playlist.NewService(db, ytService, feedRepo), serverURL, jwtService, refreshTokenDuration, jtiBlacklistRepo),
-		userService:     user.NewService(db, jwtService, serverURL, jtiBlacklistRepo),
+		playlistService: playlist.NewService(db, youtubeClient, feedRepo),
+		authService:     auth.NewService(db, oidcService, youtubeClient, channel.NewService(db, youtubeClient, feedRepo, rssFetchDuration), playlist.NewService(db, youtubeClient, feedRepo), serverURL, jwtService, accessTokenDuration, refreshTokenDuration, jtiBlacklistRepo),
+		userService:     user.NewService(db, jwtService, serverURL, accessTokenDuration, jtiBlacklistRepo),
 		historyService:  history.NewService(db, feedRepo),
-		feedService:     feed.NewService(db, ytService, feedRepo, rssFetchDuration),
+		feedService:     feed.NewService(db, youtubeClient, feedRepo, rssFetchDuration),
 
 		serverURL:   serverURL,
 		frontendURL: frontendURL,
-	}
+	})
 }

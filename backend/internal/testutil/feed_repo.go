@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/google/uuid"
 )
@@ -15,10 +16,11 @@ import (
 type FakeFeedRepository struct {
 	mu    sync.Mutex
 	feeds map[uuid.UUID]map[uuid.UUID]float64
+	q     sqlc.Querier
 }
 
-func NewFakeFeedRepository() *FakeFeedRepository {
-	return &FakeFeedRepository{feeds: map[uuid.UUID]map[uuid.UUID]float64{}}
+func NewFakeFeedRepository(q sqlc.Querier) *FakeFeedRepository {
+	return new(FakeFeedRepository{feeds: map[uuid.UUID]map[uuid.UUID]float64{}, q: q})
 }
 
 func (f *FakeFeedRepository) getOrInit(userID uuid.UUID) map[uuid.UUID]float64 {
@@ -153,6 +155,22 @@ func (f *FakeFeedRepository) Has(userID, videoID uuid.UUID) bool {
 	}
 	_, ok = m[videoID]
 	return ok
+}
+
+func (f *FakeFeedRepository) FanOut(ctx context.Context, channelID, videoID uuid.UUID) (err error) {
+	defer util.Wrap(&err, "testutil.(*FakeFeedRepository).FanOut(videoID=%s)", videoID)
+
+	if f.q == nil {
+		return nil
+	}
+	subscribers, err := f.q.ListSubscribersByChannelPublicID(ctx, sqlc.ListSubscribersByChannelPublicIDParams{
+		ChannelPublicID: channelID,
+		VideoPublicID:   videoID,
+	})
+	if err != nil {
+		return err
+	}
+	return f.Push(ctx, subscribers, videoID)
 }
 
 var _ database_d.FeedRepository = (*FakeFeedRepository)(nil)

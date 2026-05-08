@@ -18,19 +18,19 @@ import (
 )
 
 type Service struct {
-	db         *pgxpool.Pool
-	ytService  youtube_d.Service
-	feedRepo   database_d.FeedRepository
-	playlistQS PlaylistQueryService
+	db            *pgxpool.Pool
+	youtubeClient youtube_d.Client
+	feedRepo      database_d.FeedRepository
+	playlistQS    PlaylistQueryService
 }
 
-func NewService(db *pgxpool.Pool, ytService youtube_d.Service, feedRepo database_d.FeedRepository) *Service {
-	return &Service{
-		db:         db,
-		ytService:  ytService,
-		feedRepo:   feedRepo,
-		playlistQS: NewPlaylistQueryService(db),
-	}
+func NewService(db *pgxpool.Pool, youtubeClient youtube_d.Client, feedRepo database_d.FeedRepository) *Service {
+	return new(Service{
+		db:            db,
+		youtubeClient: youtubeClient,
+		feedRepo:      feedRepo,
+		playlistQS:    NewPlaylistQueryService(db),
+	})
 }
 
 func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, description, visibilityStr, playlistTypeStr string, basePlaylistUrl *string) (_ *Playlist, err error) {
@@ -90,13 +90,13 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 	var nextPageToken string
 	for {
 		// プレイリストから動画IDのリストを取得
-		videoIDs, pageToken, err := s.ytService.FetchPlaylistVideoIDs(ctx, playlistID, nextPageToken)
+		videoIDs, pageToken, err := s.youtubeClient.FetchPlaylistVideoIDs(ctx, playlistID, nextPageToken)
 		if err != nil {
 			return nil, err
 		}
 
 		// 動画IDのリストから詳細を取得
-		videoDetails, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
+		videoDetails, err := s.youtubeClient.FetchVideoDetail(ctx, videoIDs)
 		if err != nil {
 			return nil, err
 		}
@@ -108,7 +108,7 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 			channelIDs[i] = vd.ChannelID
 			i++
 		}
-		channelDetails, err := s.ytService.FetchChannelDetail(ctx, channelIDs)
+		channelDetails, err := s.youtubeClient.FetchChannelDetail(ctx, channelIDs)
 		if err != nil {
 			return nil, err
 		}
@@ -153,7 +153,7 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(create playlist)", slog.Any("error", err))
 				continue
 			}
-			if err := video.FanOut(ctx, q, s.feedRepo, v); err != nil {
+			if err := s.feedRepo.FanOut(ctx, v.ChannelID, v.ID); err != nil {
 				util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(create playlist)", slog.Any("error", err))
 			}
 			videoIDToint64[v.Video.ID] = savedVideoID
@@ -193,8 +193,8 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 	return playlist, nil
 }
 
-func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid.UUID, title, description, visibilityStr, playlistTypeStr, accessToken, playlistID string) (_ *Playlist, err error) {
-	defer util.Wrap(&err, "playlist.(*Service).CreatePlaylistWithAccessToken(userID=%s)", userID)
+func (s *Service) CreatePlaylistWithOAuthClient(ctx context.Context, userID uuid.UUID, title, description, visibilityStr, playlistTypeStr string, oauthClient *youtube_d.OAuthClient, playlistID string) (_ *Playlist, err error) {
+	defer util.Wrap(&err, "playlist.(*Service).CreatePlaylistWithOAuthClient(userID=%s)", userID)
 
 	playlist, err := NewPlaylist(
 		userID,
@@ -234,13 +234,13 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 	var allVideoIDs []int64
 	var nextPageToken string
 	for {
-		videoIDs, pageToken, err := s.ytService.FetchPlaylistVideoIDsWithOAuth(ctx, accessToken, playlistID, nextPageToken)
+		videoIDs, pageToken, err := oauthClient.FetchPlaylistVideoIDs(ctx, playlistID, nextPageToken)
 		if err != nil {
 			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch playlist video ids(create playlist with access token)", slog.Any("error", err))
 			break
 		}
 
-		videoDetails, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
+		videoDetails, err := s.youtubeClient.FetchVideoDetail(ctx, videoIDs)
 		if err != nil {
 			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch video detail(create playlist with access token)", slog.Any("error", err))
 			break
@@ -250,7 +250,7 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 		for _, vd := range videoDetails {
 			channelIDs = append(channelIDs, vd.ChannelID)
 		}
-		channelDetails, err := s.ytService.FetchChannelDetail(ctx, channelIDs)
+		channelDetails, err := s.youtubeClient.FetchChannelDetail(ctx, channelIDs)
 		if err != nil {
 			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch channel detail(create playlist with access token)", slog.Any("error", err))
 			break
@@ -290,7 +290,7 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(create playlist with access token)", slog.Any("error", err))
 				continue
 			}
-			if err := video.FanOut(ctx, q, s.feedRepo, v); err != nil {
+			if err := s.feedRepo.FanOut(ctx, v.ChannelID, v.ID); err != nil {
 				util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(create playlist with access token)", slog.Any("error", err))
 			}
 			videoIDToInt64[v.Video.ID] = savedVideoID
@@ -513,7 +513,7 @@ func (s *Service) FetchAndInsertVideoIntoPlaylist(ctx context.Context, userID, p
 	}
 
 	// YouTube APIで動画の詳細を取得
-	videoDetails, err := s.ytService.FetchVideoDetail(ctx, []youtube_d.VideoID{vid})
+	videoDetails, err := s.youtubeClient.FetchVideoDetail(ctx, []youtube_d.VideoID{vid})
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -523,7 +523,7 @@ func (s *Service) FetchAndInsertVideoIntoPlaylist(ctx context.Context, userID, p
 	}
 
 	// YouTube APIでチャンネルの詳細を取得
-	channelDetails, err := s.ytService.FetchChannelDetail(ctx, []youtube_d.ChannelID{vd.ChannelID})
+	channelDetails, err := s.youtubeClient.FetchChannelDetail(ctx, []youtube_d.ChannelID{vd.ChannelID})
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -552,7 +552,7 @@ func (s *Service) FetchAndInsertVideoIntoPlaylist(ctx context.Context, userID, p
 	if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
 		return uuid.Nil, err
 	}
-	if err := video.FanOut(ctx, q, s.feedRepo, v); err != nil {
+	if err := s.feedRepo.FanOut(ctx, v.ChannelID, v.ID); err != nil {
 		util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(insert video by url)", slog.Any("error", err))
 	}
 

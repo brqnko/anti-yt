@@ -10,13 +10,13 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
-type Service interface {
+type Client interface {
 	SendWebhookMessage(ctx context.Context, message string) (err error)
 }
 
-var _ Service = (*discordClient)(nil)
+var _ Client = (*clientImpl)(nil)
 
-type discordClient struct {
+type clientImpl struct {
 	webhookURL string
 	httpClient *http.Client
 }
@@ -25,8 +25,8 @@ type webhookPayload struct {
 	Content string `json:"content"`
 }
 
-func (w *discordClient) SendWebhookMessage(ctx context.Context, message string) (err error) {
-	defer util.Wrap(&err, "discord_d.(*discordClient).SendWebhookMessage")
+func (w *clientImpl) SendWebhookMessage(ctx context.Context, message string) (err error) {
+	defer util.Wrap(&err, "discord_d.(*clientImpl).SendWebhookMessage")
 
 	payload, err := json.Marshal(webhookPayload{Content: message})
 	if err != nil {
@@ -52,9 +52,9 @@ func (w *discordClient) SendWebhookMessage(ctx context.Context, message string) 
 	return nil
 }
 
-func NewDiscordClient(webhookURL string) Service {
-	return &discordClient{
+func NewClient(webhookURL string) Client {
+	return &clientImpl{
 		webhookURL: webhookURL,
-		httpClient: &http.Client{},
+		httpClient: new(http.Client{}),
 	}
 }

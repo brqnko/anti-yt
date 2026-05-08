@@ -10,8 +10,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func HandleAdminEndpoints(m *chi.Mux, db *pgxpool.Pool, ytService youtube_d.Service, feedRepo database_d.FeedRepository, adminAPIKey string) {
-	h := newHandler(channel.NewService(db, ytService, feedRepo, 0))
+func HandleAdminEndpoints(m *chi.Mux, db *pgxpool.Pool, youtubeClient youtube_d.Client, feedRepo database_d.FeedRepository, adminAPIKey string) {
+	h := newHandler(channel.NewService(db, youtubeClient, feedRepo, 0))
 
 	m.Route("/api/admin", func(r chi.Router) {
 		r.Use(adminAPIKeyAuthMiddleware(adminAPIKey))
@@ -24,8 +24,7 @@ func HandleAdminEndpoints(m *chi.Mux, db *pgxpool.Pool, ytService youtube_d.Serv
 func adminAPIKeyAuthMiddleware(adminAPIKey string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			token := r.Header.Get("Authorization")
-			if token != "Bearer "+adminAPIKey {
+			if r.Header.Get("Authorization") != "Bearer "+adminAPIKey {
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}

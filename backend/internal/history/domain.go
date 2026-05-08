@@ -78,14 +78,14 @@ func NewHeartbeat(videoID, userID uuid.UUID, watchPositionSeconds int, opts ...H
 		return nil, err
 	}
 
-	h := &Heartbeat{
+	h := new(Heartbeat{
 		ID:                   id,
 		VideoID:              videoID,
 		WatchStartAt:         time.Now().UTC(),
 		WatchEndAt:           farFuture,
 		WatchPositionSeconds: secs,
 		UserID:               userID,
-	}
+	})
 
 	for _, opt := range opts {
 		opt(h)

@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
+	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/core/discord_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/admin"
 	"github.com/brqnko/anti-yt/backend/internal/core/handler/middleware_d"
@@ -90,15 +91,14 @@ func run(ctx context.Context) int {
 
 	var handler slog.Handler
 	if cfg.env == "production" {
-		// uuid.UUID型の属性値をbase64(RawURL)に変換して出力する
-		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		handler = slog.NewJSONHandler(os.Stdout, new(slog.HandlerOptions{
 			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 				if id, ok := a.Value.Any().(uuid.UUID); ok {
 					return slog.String(a.Key, base64.RawURLEncoding.EncodeToString(id[:]))
 				}
 				return a
 			},
-		})
+		}))
 	} else {
 		handler = slog.NewTextHandler(os.Stdout, nil)
 	}
@@ -107,15 +107,15 @@ func run(ctx context.Context) int {
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	otelShutdownCtx, otelCancel := context.WithTimeout(ctx, 10*time.Second)
-	defer otelCancel()
-	otelShutdown, err := otel_d.Setup(otelShutdownCtx, "anti-yt-backend", cfg.env)
+	initCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	otelShutdown, err := otel_d.Setup(initCtx, "anti-yt-backend", cfg.env)
 	if err != nil {
 		slog.Error("failed to setup otel", slog.Any("error", err))
 		return 1
 	}
 
-	initCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
+	initCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 	if err = database_d.RunMigration(initCtx, cfg.databaseURL); err != nil {
 		slog.Error("failed to run migration", slog.Any("error", err))
@@ -146,9 +146,9 @@ func run(ctx context.Context) int {
 	}()
 	jtiBlacklistRepo := database_d.NewInMemoryJtiBlacklistRepository()
 	ratelimitRepo := database_d.NewRatelimitRepository(redisClient, 24*time.Hour)
-	feedRepo := database_d.NewFeedRepository(redisClient, 1000)
+	feedRepo := database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db))
 
-	job.NewPurgeLeftUserJob(db, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL)).Run()
+	job.NewPurgeLeftUserJob(db, feedRepo, discord_d.NewClient(cfg.discordWebhookURL)).Run()
 	job.NewRefillFeedJob(db, feedRepo).Run()
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
@@ -159,13 +159,14 @@ func run(ctx context.Context) int {
 		return 1
 	}
 
-	jwtService := jwt_d.NewService(jwtPrivate, jwtPublic, 30*time.Minute, cfg.serverURL)
+	accessTokenDuration := 30 * time.Minute
+	jwtService := jwt_d.NewService(jwtPrivate, jwtPublic, accessTokenDuration, cfg.serverURL)
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	ytService, err := youtube_d.NewService(initCtx, cfg.youtubeDataAPIKey, cfg.oidcGoogleClientID, cfg.oidcGoogleClientSecret, fmt.Sprintf("%s/v1/auth/oauth/youtube/callback", cfg.serverURL))
+	youtubeClient, err := youtube_d.NewClient(initCtx, cfg.youtubeDataAPIKey, cfg.oidcGoogleClientID, cfg.oidcGoogleClientSecret, fmt.Sprintf("%s/v1/auth/oauth/youtube/callback", cfg.serverURL))
 	if err != nil {
-		slog.Error("failed to create youtube service", slog.Any("error", err))
+		slog.Error("failed to create youtube client", slog.Any("error", err))
 		return 1
 	}
 	slog.Info("youtube api ok")
@@ -181,24 +182,24 @@ func run(ctx context.Context) int {
 
 	var reportOpts []report.Option
 	if cfg.discordWebhookURL != "" {
-		reportOpts = append(reportOpts, report.WithDiscord(discord_d.NewDiscordClient(cfg.discordWebhookURL)))
+		reportOpts = append(reportOpts, report.WithDiscord(discord_d.NewClient(cfg.discordWebhookURL)))
 	}
 	reportService := report.NewService(reportOpts...)
 
 	scheduler := scheduler.NewService()
-	if err := scheduler.AddFunc("0 0 * * *", job.NewLLMSummaryJob(db, llmService, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
+	if err := scheduler.AddFunc("0 0 * * *", job.NewLLMSummaryJob(db, llmService, discord_d.NewClient(cfg.discordWebhookURL))); err != nil {
 		slog.Error("failed to setup llm summary job", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("0 0 * * *", job.NewPurgeLeftUserJob(db, feedRepo, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
+	if err := scheduler.AddFunc("0 0 * * *", job.NewPurgeLeftUserJob(db, feedRepo, discord_d.NewClient(cfg.discordWebhookURL))); err != nil {
 		slog.Error("failed to setup purge left user job", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("50 6 * * *", job.NewExhaustQuotaJob(db, ytService, feedRepo)); err != nil { // 夏
+	if err := scheduler.AddFunc("50 6 * * *", job.NewExhaustQuotaJob(db, youtubeClient, feedRepo)); err != nil { // 夏
 		slog.Error("failed to setup exhaust quota job (PDT)", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("50 7 * * *", job.NewExhaustQuotaJob(db, ytService, feedRepo)); err != nil { // 冬
+	if err := scheduler.AddFunc("50 7 * * *", job.NewExhaustQuotaJob(db, youtubeClient, feedRepo)); err != nil { // 冬
 		slog.Error("failed to setup exhaust quota job (PST)", slog.Any("error", err))
 		return 1
 	}
@@ -208,7 +209,7 @@ func run(ctx context.Context) int {
 	}
 
 	if cfg.discordWebhookURL != "" {
-		if err := scheduler.AddFunc("0 0 * * *", job.NewAuthorizationReportJob(db, discord_d.NewDiscordClient(cfg.discordWebhookURL))); err != nil {
+		if err := scheduler.AddFunc("0 0 * * *", job.NewAuthorizationReportJob(db, discord_d.NewClient(cfg.discordWebhookURL))); err != nil {
 			slog.Error("failed to setup authorization report job", slog.Any("error", err))
 			return 1
 		}
@@ -219,14 +220,12 @@ func run(ctx context.Context) int {
 	// r.Useは上に書いた順から実行される
 	r.Use(otelchi.Middleware("anti-yt-backend", otelchi.WithChiRoutes(r)))
 	r.Use(middleware.Recoverer)
-	r.Use(middleware_d.SecureHeaders)
 	if cfg.env != "production" {
-		r.Use(middleware_d.RandomLag)
 		r.Use(v1.SwaggerMiddleware())
 	}
-	admin.HandleAdminEndpoints(r, db, ytService, feedRepo, cfg.adminAPIKey)
+	admin.HandleAdminEndpoints(r, db, youtubeClient, feedRepo, cfg.adminAPIKey)
 	v1.HandlerFromMux(v1.NewStrictHandler(
-		v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, 30*24*time.Hour, ytService, 1*time.Hour, scheduler, jtiBlacklistRepo, feedRepo),
+		v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, accessTokenDuration, 30*24*time.Hour, youtubeClient, 1*time.Hour, scheduler, jtiBlacklistRepo, feedRepo),
 		// StrictMiddlewareは下に書いた順から実行される
 		[]v1.StrictMiddlewareFunc{
 			middleware_d.ResponseCookieMiddleware,
@@ -290,10 +289,10 @@ func run(ctx context.Context) int {
 			middleware_d.RequestIDMiddleware,
 		}), r)
 
-	srv := &http.Server{
+	srv := new(http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.port),
 		Handler: otelhttp.NewHandler(r, "http.server"),
-	}
+	})
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {

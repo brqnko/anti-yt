@@ -7,9 +7,6 @@ import (
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 )
 
-// double-submit cookieパターンでCSRFを検証する。
-// GET/HEAD/OPTIONS/TRACE等の安全メソッドは自動的にスキップされる。
-// ignoreOperationIDsに含まれるoperationIDも検証対象外。
 func CsrfMiddleware(
 	ignoreOperationIDs map[string]struct{},
 ) func(v1.StrictHandlerFunc, string) v1.StrictHandlerFunc {

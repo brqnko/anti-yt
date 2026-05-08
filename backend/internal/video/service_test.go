@@ -20,9 +20,8 @@ func TestService_GetVideoDetail(t *testing.T) {
 
 	t.Run("non-existent video returns not found", func(t *testing.T) {
 		db := testutil.NewTestPool(t)
-		svc := video.NewService(db)
 
-		_, err := svc.GetVideoDetail(ctx, uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()).String())
+		_, err := video.NewService(db).GetVideoDetail(ctx, uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()).String())
 
 		assert.ErrorIs(t, err, core.ErrNotFound)
 	})
@@ -31,29 +30,9 @@ func TestService_GetVideoDetail(t *testing.T) {
 		db := testutil.NewTestPool(t)
 		q := sqlc.New(db)
 
-		// ユーザーを作成
-		userPublicID := uuid.Must(uuid.NewV7())
-		authPublicID := uuid.Must(uuid.NewV7())
-		_, err := q.SaveAuthorization(ctx, sqlc.SaveAuthorizationParams{
-			Issuer:         "https://accounts.google.com",
-			Sub:            "test-sub",
-			LastLoggedInAt: time.Now(),
-			PublicID:       authPublicID,
-		})
-		require.NoError(t, err)
-		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-			DisplayName:               "Test User",
-			LanguageCode:              "ja",
-			DailyScreenTimeSeconds:    3600,
-			JoinedAt:                  time.Now(),
-			PublicID:                  userPublicID,
-			UserAuthorizationPublicID: authPublicID,
-		})
-		require.NoError(t, err)
-
 		// チャンネルを作成
 		channelPublicID := uuid.Must(uuid.NewV7())
-		_, err = q.UpsertChannel(ctx, sqlc.UpsertChannelParams{
+		_, err := q.UpsertChannel(ctx, sqlc.UpsertChannelParams{
 			ExternalID:                "UCxxxxxxxxxxxxxxxxxxxxxx",
 			ExternalDisplayName:       "Test Channel",
 			ExternalCustomID:          "@testchannel",
@@ -85,10 +64,8 @@ func TestService_GetVideoDetail(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		svc := video.NewService(db)
-
 		// action
-		detail, err := svc.GetVideoDetail(ctx, userPublicID, util.Base64UUID(videoPublicID).String())
+		detail, err := video.NewService(db).GetVideoDetail(ctx, uuid.Must(uuid.NewV7()), util.Base64UUID(videoPublicID).String())
 
 		// assert
 		require.NoError(t, err)

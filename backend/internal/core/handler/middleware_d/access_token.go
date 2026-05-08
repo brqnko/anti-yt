@@ -1,6 +1,3 @@
-//go:generate moq -out mock_jwt_service_test.go -pkg middleware_d_test ../../jwt_d Service
-//go:generate moq -out mock_jti_blacklist_repository_test.go -pkg middleware_d_test ../../database_d JtiBlacklistRepository
-
 package middleware_d
 
 import (
@@ -15,11 +12,6 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
-// access_tokenクッキーのJWTを解析し、user_idをcontextに付与する。
-// ignoreOperationIDsに含まれるoperationIDは認証オプショナル扱いとなり、
-// クッキーが無い場合のみ匿名で通過させる。クッキーが存在する場合は
-// オプショナル/必須に関わらず必ず検証し、失敗時は401を返す
-// (フロントの自動リフレッシュ機構を起動させるため)。
 func AccessTokenMiddleware(
 	jwtService jwt_d.Service,
 	jtiBlacklistRepo database_d.JtiBlacklistRepository,
@@ -50,8 +42,8 @@ func AccessTokenMiddleware(
 				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 			}
 
-			newCtx := hutil.WithUserID(ctx, userID)
-			return f(newCtx, w, r.WithContext(newCtx), request)
+			ctx = hutil.WithUserID(ctx, userID)
+			return f(ctx, w, r.WithContext(ctx), request)
 		}
 	}
 }

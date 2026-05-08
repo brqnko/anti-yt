@@ -121,7 +121,7 @@ func TestChannel_ShouldRSSFetchFeed(t *testing.T) {
 			t.Parallel()
 
 			// arrange
-			ch := &channel.Channel{RSSFetchedAt: c.arg.rssFetchedAt}
+			ch := new(channel.Channel{RSSFetchedAt: c.arg.rssFetchedAt})
 
 			// act
 			got := ch.ShouldFetchRSSFeed(c.arg.fetchDuration)

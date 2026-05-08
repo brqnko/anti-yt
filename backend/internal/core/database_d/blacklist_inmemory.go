@@ -48,8 +48,6 @@ func (j *jtiBlacklistRepositoryInMemory) InsertJTI(ctx context.Context, jti uuid
 	now := time.Now()
 	for j.queue.Len() > 0 && !j.queue[0].expiresAt.After(now) {
 		top := heap.Pop(&j.queue).(jtiEntry)
-		// 同じ jti が後から長い expiresAt で再投入されている場合に
-		// 古いエントリの pop で map を消さないようにする
 		if exp, ok := j.entries[top.jti]; ok && !exp.After(top.expiresAt) {
 			delete(j.entries, top.jti)
 		}

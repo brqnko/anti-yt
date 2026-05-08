@@ -17,7 +17,6 @@ type Prompt struct {
 
 type Option func(*genai.GenerateContentConfig)
 
-// WithJSONSchema は構造化出力を有効にし、レスポンスを指定したJSONスキーマに従わせる
 func WithJSONSchema(schema *genai.Schema) Option {
 	return func(c *genai.GenerateContentConfig) {
 		c.ResponseMIMEType = "application/json"
@@ -42,15 +41,15 @@ func (g *geminiImpl) Completion(ctx context.Context, prompts []Prompt, opts ...O
 
 	contents := make([]*genai.Content, len(prompts))
 	for i, p := range prompts {
-		contents[i] = &genai.Content{
+		contents[i] = new(genai.Content{
 			Role:  p.Role,
 			Parts: []*genai.Part{genai.NewPartFromText(p.Message)},
-		}
+		})
 	}
 
 	var config *genai.GenerateContentConfig
 	if len(opts) > 0 {
-		config = &genai.GenerateContentConfig{}
+		config = new(genai.GenerateContentConfig{})
 		for _, opt := range opts {
 			opt(config)
 		}
@@ -76,14 +75,14 @@ func (g *geminiImpl) ModelID() string {
 func NewGemini(ctx context.Context, apiKey, modelID string) (_ Service, err error) {
 	defer util.Wrap(&err, "llm.NewGemini")
 
-	httpClient := &http.Client{
+	httpClient := new(http.Client{
 		Transport: otelhttp.NewTransport(http.DefaultTransport),
-	}
-	client, err := genai.NewClient(ctx, &genai.ClientConfig{
+	})
+	client, err := genai.NewClient(ctx, new(genai.ClientConfig{
 		APIKey:     apiKey,
 		Backend:    genai.BackendGeminiAPI,
 		HTTPClient: httpClient,
-	})
+	}))
 	if err != nil {
 		return nil, err
 	}
