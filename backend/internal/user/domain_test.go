@@ -442,53 +442,53 @@ func TestDailyScreenTimeLimitRangeSet_ToLocalRanges(t *testing.T) {
 			want: nil,
 		},
 		"empty set": {
-			set:  &user.DailyScreenTimeLimitRangeSet{Ranges: nil},
+			set:  new(user.DailyScreenTimeLimitRangeSet{Ranges: nil}),
 			loc:  time.UTC,
 			want: nil,
 		},
 		"single range UTC": {
-			set:  &user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 3600, EndTimeSeconds: 7200}}},
+			set:  new(user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 3600, EndTimeSeconds: 7200}}}),
 			loc:  time.UTC,
 			want: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 3600, EndTimeSeconds: 7200}},
 		},
 		"full day UTC preserved": {
-			set:  &user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 86400}}},
+			set:  new(user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 86400}}}),
 			loc:  time.UTC,
 			want: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 86400}},
 		},
 		"full day JST preserved without shift": {
-			set:  &user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 86400}}},
+			set:  new(user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 86400}}}),
 			loc:  jst,
 			want: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 86400}},
 		},
 		"non-wrapping JST": {
 			// stored UTC 14:00-16:00 → JST 23:00-01:00 wraps midnight → split
-			set:  &user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 14 * 3600, EndTimeSeconds: 16 * 3600}}},
+			set:  new(user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 14 * 3600, EndTimeSeconds: 16 * 3600}}}),
 			loc:  jst,
 			want: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 1 * 3600}, {StartTimeSeconds: 23 * 3600, EndTimeSeconds: 86400}},
 		},
 		"midnight crossing PST": {
 			// stored UTC 06:00-10:00 → PST(-8h) 22:00-02:00 wraps midnight → split
-			set:  &user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 6 * 3600, EndTimeSeconds: 10 * 3600}}},
+			set:  new(user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 6 * 3600, EndTimeSeconds: 10 * 3600}}}),
 			loc:  pst,
 			want: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 0, EndTimeSeconds: 2 * 3600}, {StartTimeSeconds: 22 * 3600, EndTimeSeconds: 86400}},
 		},
 		"adjacent ranges merged after offset": {
 			// JST shift: stored UTC [00:00-01:00) and [01:00-02:00) → JST [09:00-10:00) and [10:00-11:00) merge
-			set: &user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{
+			set: new(user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{
 				{StartTimeSeconds: 0, EndTimeSeconds: 1 * 3600},
 				{StartTimeSeconds: 1 * 3600, EndTimeSeconds: 2 * 3600},
-			}},
+			}}),
 			loc:  jst,
 			want: []user.DailyScreenTimeLimitRange{{StartTimeSeconds: 9 * 3600, EndTimeSeconds: 11 * 3600}},
 		},
 		"two split ranges merge to single after wrap": {
 			// stored UTC [00:00, 06:00) and [15:00, 24:00) → JST [09:00, 15:00) and [00:00, 09:00)+[24:00 wrap]
 			// expected after sort+merge: full day-spanning two pieces that touch at 09:00 → merged into [00:00, 86400) pieces
-			set: &user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{
+			set: new(user.DailyScreenTimeLimitRangeSet{Ranges: []user.DailyScreenTimeLimitRange{
 				{StartTimeSeconds: 0, EndTimeSeconds: 6 * 3600},
 				{StartTimeSeconds: 15 * 3600, EndTimeSeconds: 24 * 3600},
-			}},
+			}}),
 			loc: jst,
 			// stored UTC [0,6h) → JST [9h,15h)
 			// stored UTC [15h,24h) → JST [0h,9h) and (none on the wrap side because 24h+9h % 86400 == 9h, 15h+9h=24h; localStart=24h%86400=0, localEnd=(24h+9h)%86400=9h → start<end, single piece [0,9h))
@@ -565,7 +565,7 @@ func TestDailyScreenTimeLimitRangeSet_BlockedUntil(t *testing.T) {
 	tomorrow := time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC)
 
 	rangeSet := func(ranges ...user.DailyScreenTimeLimitRange) *user.DailyScreenTimeLimitRangeSet {
-		return &user.DailyScreenTimeLimitRangeSet{Ranges: ranges}
+		return new(user.DailyScreenTimeLimitRangeSet{Ranges: ranges})
 	}
 	ptr := func(t time.Time) *time.Time { return &t }
 

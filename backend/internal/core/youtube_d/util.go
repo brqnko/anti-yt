@@ -3,6 +3,7 @@ package youtube_d
 import (
 	"net/url"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
 )
@@ -16,7 +17,7 @@ var (
 
 func ExtractChannelIDOrHandle(channelText string) (string, error) {
 	if strings.HasPrefix(channelText, "@") {
-		if len([]rune(channelText)) <= 3 {
+		if utf8.RuneCountInString(channelText) <= 3 {
 			return "", ErrInvalidChannelHandle
 		}
 
@@ -43,8 +44,7 @@ func ExtractChannelIDOrHandle(channelText string) (string, error) {
 		return "", ErrInvalidYouTubeURL
 	}
 
-	path := strings.Trim(u.Path, "/")
-	parts := strings.Split(path, "/")
+	parts := strings.Split(strings.Trim(u.Path, "/"), "/")
 
 	if len(parts) == 0 || parts[0] == "" {
 		return "", ErrInvalidYouTubeURL
@@ -100,8 +100,7 @@ func ExtractVideoID(videoText string) (string, error) {
 		return v, nil
 	}
 
-	path := strings.Trim(u.Path, "/")
-	parts := strings.Split(path, "/")
+	parts := strings.Split(strings.Trim(u.Path, "/"), "/")
 
 	// youtube.com/shorts/VIDEO_ID, youtube.com/embed/VIDEO_ID, youtube.com/v/VIDEO_ID
 	if len(parts) >= 2 && (parts[0] == "shorts" || parts[0] == "embed" || parts[0] == "v" || parts[0] == "live") {

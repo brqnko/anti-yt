@@ -25,22 +25,24 @@ var (
 )
 
 type Service struct {
-	db               *pgxpool.Pool
-	jwtService       jwt_d.Service
-	jtiBlacklistRepo database_d.JtiBlacklistRepository
-	serverURL        string
+	db                  *pgxpool.Pool
+	jwtService          jwt_d.Service
+	jtiBlacklistRepo    database_d.JtiBlacklistRepository
+	serverURL           string
+	accessTokenDuration time.Duration
 
 	userQS UserQueryService
 }
 
-func NewService(db *pgxpool.Pool, jwtService jwt_d.Service, serverURL string, jtiBlacklistRepo database_d.JtiBlacklistRepository) *Service {
-	return &Service{
-		db:               db,
-		jwtService:       jwtService,
-		jtiBlacklistRepo: jtiBlacklistRepo,
-		serverURL:        serverURL,
-		userQS:           NewUserQueryService(db),
-	}
+func NewService(db *pgxpool.Pool, jwtService jwt_d.Service, serverURL string, accessTokenDuration time.Duration, jtiBlacklistRepo database_d.JtiBlacklistRepository) *Service {
+	return new(Service{
+		db:                  db,
+		jwtService:          jwtService,
+		jtiBlacklistRepo:    jtiBlacklistRepo,
+		serverURL:           serverURL,
+		accessTokenDuration: accessTokenDuration,
+		userQS:              NewUserQueryService(db),
+	})
 }
 
 func (s *Service) CreateNewUser(
@@ -129,7 +131,7 @@ func (s *Service) CreateNewUser(
 	}
 
 	// 使用済みregisterトークンのJTIをブラックリストに追加
-	if err := s.jtiBlacklistRepo.InsertJTI(ctx, jti, time.Now().UTC().Add(s.jwtService.TokenDuration())); err != nil {
+	if err := s.jtiBlacklistRepo.InsertJTI(ctx, jti, time.Now().UTC().Add(s.accessTokenDuration)); err != nil {
 		return nil, nil, "", time.Time{}, err
 	}
 

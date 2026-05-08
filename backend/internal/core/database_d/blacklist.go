@@ -2,6 +2,7 @@ package database_d
 
 import (
 	"context"
+	"encoding/base64"
 	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -10,16 +11,16 @@ import (
 )
 
 type JtiBlacklistRepository interface {
-	IsJtiExist(ctx context.Context, jti uuid.UUID) (found bool, err error)
 	InsertJTI(ctx context.Context, jti uuid.UUID, expiresAt time.Time) (err error)
+	IsJtiExist(ctx context.Context, jti uuid.UUID) (found bool, err error)
+}
+
+func jtiBlacklistKey(jti uuid.UUID) string {
+	return "jti_blacklist:" + base64.RawURLEncoding.EncodeToString(jti[:])
 }
 
 type jtiBlacklistRepositoryImpl struct {
 	client redis.Cmdable
-}
-
-func jtiBlacklistKey(jti uuid.UUID) string {
-	return "jti:" + jti.String()
 }
 
 func (j *jtiBlacklistRepositoryImpl) InsertJTI(ctx context.Context, jti uuid.UUID, expiresAt time.Time) (err error) {

@@ -32,9 +32,6 @@ var _ jwt_d.Service = &ServiceMock{}
 //			SignYouTubeImportStateTokenFunc: func(userID uuid.UUID, importSubscriptions bool, importLikes bool, serverURL string) (string, error) {
 //				panic("mock out the SignYouTubeImportStateToken method")
 //			},
-//			TokenDurationFunc: func() time.Duration {
-//				panic("mock out the TokenDuration method")
-//			},
 //			VerifyOIDCStateTokenFunc: func(token string) (string, error) {
 //				panic("mock out the VerifyOIDCStateToken method")
 //			},
@@ -65,9 +62,6 @@ type ServiceMock struct {
 
 	// SignYouTubeImportStateTokenFunc mocks the SignYouTubeImportStateToken method.
 	SignYouTubeImportStateTokenFunc func(userID uuid.UUID, importSubscriptions bool, importLikes bool, serverURL string) (string, error)
-
-	// TokenDurationFunc mocks the TokenDuration method.
-	TokenDurationFunc func() time.Duration
 
 	// VerifyOIDCStateTokenFunc mocks the VerifyOIDCStateToken method.
 	VerifyOIDCStateTokenFunc func(token string) (string, error)
@@ -119,9 +113,6 @@ type ServiceMock struct {
 			// ServerURL is the serverURL argument value.
 			ServerURL string
 		}
-		// TokenDuration holds details about calls to the TokenDuration method.
-		TokenDuration []struct {
-		}
 		// VerifyOIDCStateToken holds details about calls to the VerifyOIDCStateToken method.
 		VerifyOIDCStateToken []struct {
 			// Token is the token argument value.
@@ -147,7 +138,6 @@ type ServiceMock struct {
 	lockSignRegisterToken             sync.RWMutex
 	lockSignUserAccessToken           sync.RWMutex
 	lockSignYouTubeImportStateToken   sync.RWMutex
-	lockTokenDuration                 sync.RWMutex
 	lockVerifyOIDCStateToken          sync.RWMutex
 	lockVerifyRegisterToken           sync.RWMutex
 	lockVerifyUserAccessToken         sync.RWMutex
@@ -311,33 +301,6 @@ func (mock *ServiceMock) SignYouTubeImportStateTokenCalls() []struct {
 	mock.lockSignYouTubeImportStateToken.RLock()
 	calls = mock.calls.SignYouTubeImportStateToken
 	mock.lockSignYouTubeImportStateToken.RUnlock()
-	return calls
-}
-
-// TokenDuration calls TokenDurationFunc.
-func (mock *ServiceMock) TokenDuration() time.Duration {
-	if mock.TokenDurationFunc == nil {
-		panic("ServiceMock.TokenDurationFunc: method is nil but Service.TokenDuration was just called")
-	}
-	callInfo := struct {
-	}{}
-	mock.lockTokenDuration.Lock()
-	mock.calls.TokenDuration = append(mock.calls.TokenDuration, callInfo)
-	mock.lockTokenDuration.Unlock()
-	return mock.TokenDurationFunc()
-}
-
-// TokenDurationCalls gets all the calls that were made to TokenDuration.
-// Check the length with:
-//
-//	len(mockedService.TokenDurationCalls())
-func (mock *ServiceMock) TokenDurationCalls() []struct {
-} {
-	var calls []struct {
-	}
-	mock.lockTokenDuration.RLock()
-	calls = mock.calls.TokenDuration
-	mock.lockTokenDuration.RUnlock()
 	return calls
 }
 

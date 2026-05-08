@@ -16,20 +16,11 @@ type Video struct {
 	Video youtube_d.Video
 }
 
-type VideoOption func(*Video)
-
-func WithVideoID(id uuid.UUID) VideoOption {
-	return func(v *Video) {
-		v.ID = id
-	}
-}
-
 func NewVideo(
 	channelID uuid.UUID,
 	fetchedAt time.Time,
 
 	video youtube_d.Video,
-	opts ...VideoOption,
 ) (_ *Video, err error) {
 	defer util.Wrap(&err, "video.NewVideo(channelID=%s)", channelID)
 
@@ -38,16 +29,10 @@ func NewVideo(
 		return nil, err
 	}
 
-	v := Video{
+	return new(Video{
 		ID:        id,
 		ChannelID: channelID,
 		Video:     video,
 		FetchedAt: fetchedAt,
-	}
-
-	for _, opt := range opts {
-		opt(&v)
-	}
-
-	return &v, nil
+	}), nil
 }

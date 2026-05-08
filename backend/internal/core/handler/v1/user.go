@@ -99,7 +99,7 @@ func (h *APIHandler) PostUsersMe(ctx context.Context, request PostUsersMeRequest
 	}
 
 	// RegisterTokenからUserAccessTokenに切り替え
-	hutil.AddResponseCookie(ctx, (&http.Cookie{
+	hutil.AddResponseCookie(ctx, (new(http.Cookie{
 		Name:     "access_token",
 		Value:    newAccessToken,
 		Path:     "/",
@@ -107,7 +107,7 @@ func (h *APIHandler) PostUsersMe(ctx context.Context, request PostUsersMeRequest
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
-	}).String())
+	})).String())
 
 	return PostUsersMe201JSONResponse{
 		DailyScreenSeconds: u.ScreenTimeLimit.ToIntPtr(),

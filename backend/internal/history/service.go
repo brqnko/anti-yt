@@ -25,11 +25,11 @@ type Service struct {
 }
 
 func NewService(db *pgxpool.Pool, feedRepo database_d.FeedRepository) *Service {
-	return &Service{
+	return new(Service{
 		db:        db,
 		feedRepo:  feedRepo,
 		historyQS: NewHistoryQueryService(db),
-	}
+	})
 }
 
 func (s *Service) Heartbeat(ctx context.Context, userID, videoID uuid.UUID, positionSeconds int, playlistID *uuid.UUID, loc *time.Location) (_ *int, err error) {

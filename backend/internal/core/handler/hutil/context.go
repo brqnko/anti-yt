@@ -14,7 +14,6 @@ type accessTokenKey struct{}
 type refreshTokenKey struct{}
 type userIDKey struct{}
 type requestIDKey struct{}
-type requestPathKey struct{}
 
 func WithAccessToken(ctx context.Context, token string) context.Context {
 	return context.WithValue(ctx, accessTokenKey{}, token)
@@ -53,15 +52,6 @@ func WithRequestID(ctx context.Context, requestID uuid.UUID) context.Context {
 func RequestIDFromContext(ctx context.Context) (uuid.UUID, bool) {
 	requestID, ok := ctx.Value(requestIDKey{}).(uuid.UUID)
 	return requestID, ok
-}
-
-func WithRequestPath(ctx context.Context, path string) context.Context {
-	return context.WithValue(ctx, requestPathKey{}, path)
-}
-
-func RequestPathFromContext(ctx context.Context) (string, bool) {
-	path, ok := ctx.Value(requestPathKey{}).(string)
-	return path, ok
 }
 
 type timezoneKey struct{}

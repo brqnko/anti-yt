@@ -4,6 +4,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -107,7 +108,7 @@ func NewDisplayName(s string) (_ DisplayName, err error) {
 
 	str := strings.TrimSpace(s)
 
-	length := len([]rune(str))
+	length := utf8.RuneCountInString(str)
 	if length < 1 {
 		return "", ErrDisplayNameTooShort
 	}
@@ -246,9 +247,9 @@ func NewDailyScreenTimeLimitRangeSet(screenLimits []struct{ Start, End int }, lo
 		}
 	}
 
-	return &DailyScreenTimeLimitRangeSet{
+	return new(DailyScreenTimeLimitRangeSet{
 		Ranges: merged,
-	}, nil
+	}), nil
 }
 
 // ToLocalRanges はUTC秒で保存された範囲群を、指定タイムゾーンのローカル秒に変換し、
@@ -437,13 +438,13 @@ func NewUser(displayName string, languageCode string, dailyScreenLimit *int, opt
 		return nil, err
 	}
 
-	u := &User{
+	u := new(User{
 		ID:              id,
 		DisplayName:     dn,
 		LanguageCode:    lc,
 		JoinedAt:        time.Now().UTC(),
 		ScreenTimeLimit: stl,
-	}
+	})
 
 	for _, opt := range opts {
 		opt(u)

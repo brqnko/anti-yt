@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/brqnko/anti-yt/backend/internal/channel"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
@@ -19,10 +20,10 @@ import (
 )
 
 type exhaustQuotaJob struct {
-	db        *pgxpool.Pool
-	ytService youtube_d.Service
-	feedRepo  database_d.FeedRepository
-	mx        *sync.Mutex
+	db            *pgxpool.Pool
+	youtubeClient youtube_d.Client
+	feedRepo      database_d.FeedRepository
+	mx            *sync.Mutex
 }
 
 func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
@@ -55,7 +56,7 @@ channelLoop:
 		fetchedAt := time.Now().UTC()
 		pageToken := ""
 		for {
-			videoIDs, nextPageToken, err := j.ytService.FetchPlaylistVideoIDs(ctx, string(c.Channel.UploadsPlaylistID), pageToken)
+			videoIDs, nextPageToken, err := j.youtubeClient.FetchPlaylistVideoIDs(ctx, string(c.Channel.UploadsPlaylistID), pageToken)
 			if err != nil {
 				util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to fetch uploads playlist video IDs(exhaust quota job)", slog.String("channel_id", c.ID.String()), slog.String("uploads_playlist_id", string(c.Channel.UploadsPlaylistID)), slog.Any("error", err))
 				if relErr := database_d.ReleaseAdLock(ctx, q, c.ID[:]); relErr != nil {
@@ -65,7 +66,7 @@ channelLoop:
 			}
 
 			if len(videoIDs) > 0 {
-				videoDetails, err := j.ytService.FetchVideoDetail(ctx, videoIDs)
+				videoDetails, err := j.youtubeClient.FetchVideoDetail(ctx, videoIDs)
 				if err != nil {
 					util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to fetch video detail", slog.Any("error", err))
 					continue
@@ -82,7 +83,7 @@ channelLoop:
 						util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(exhaust quota job)", slog.Any("error", err))
 						continue
 					}
-					if err := video.FanOut(ctx, q, j.feedRepo, v); err != nil {
+					if err := j.feedRepo.FanOut(ctx, v.ChannelID, v.ID); err != nil {
 						util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(exhaust quota job)", slog.Any("error", err))
 					}
 				}
@@ -99,7 +100,7 @@ channelLoop:
 		pageToken = ""
 		fetchPlaylistsFailed := false
 		for {
-			playlists, nextPageToken, err := j.ytService.FetchChannelPlaylists(ctx, c.Channel.ID, pageToken)
+			playlists, nextPageToken, err := j.youtubeClient.FetchChannelPlaylists(ctx, c.Channel.ID, pageToken)
 			if err != nil {
 				util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to fetch channel playlists(exhaust quota job)", slog.String("channel_id", c.ID.String()), slog.String("yt_channel_id", string(c.Channel.ID)), slog.Any("error", err))
 				fetchPlaylistsFailed = true
@@ -127,7 +128,7 @@ channelLoop:
 			var allVideoIDs []youtube_d.VideoID
 			videoPageToken := ""
 			for {
-				videoIDs, nextVideoPageToken, err := j.ytService.FetchPlaylistVideoIDs(ctx, ytPlaylist.ID, videoPageToken)
+				videoIDs, nextVideoPageToken, err := j.youtubeClient.FetchPlaylistVideoIDs(ctx, ytPlaylist.ID, videoPageToken)
 				if err != nil {
 					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch playlist video IDs", slog.Any("error", err))
 					break
@@ -149,7 +150,7 @@ channelLoop:
 				}
 				toRequestVideos = append(toRequestVideos, vid)
 				if len(toRequestVideos) >= 50 {
-					videoDetails, err := j.ytService.FetchVideoDetail(ctx, toRequestVideos)
+					videoDetails, err := j.youtubeClient.FetchVideoDetail(ctx, toRequestVideos)
 					if err != nil {
 						util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch video details", slog.Any("error", err))
 					} else {
@@ -161,7 +162,7 @@ channelLoop:
 				}
 			}
 			if len(toRequestVideos) > 0 {
-				videoDetails, err := j.ytService.FetchVideoDetail(ctx, toRequestVideos)
+				videoDetails, err := j.youtubeClient.FetchVideoDetail(ctx, toRequestVideos)
 				if err != nil {
 					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch video details", slog.Any("error", err))
 					continue
@@ -182,7 +183,7 @@ channelLoop:
 
 				toRequestChannels = append(toRequestChannels, vd.ChannelID)
 				if len(toRequestChannels) >= 50 {
-					channelDetails, err := j.ytService.FetchChannelDetail(ctx, toRequestChannels)
+					channelDetails, err := j.youtubeClient.FetchChannelDetail(ctx, toRequestChannels)
 					toRequestChannels = nil
 					if err != nil {
 						util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch channel details", slog.Any("error", err))
@@ -195,7 +196,7 @@ channelLoop:
 				}
 			}
 			if len(toRequestChannels) > 0 {
-				channelDetails, err := j.ytService.FetchChannelDetail(ctx, toRequestChannels)
+				channelDetails, err := j.youtubeClient.FetchChannelDetail(ctx, toRequestChannels)
 				if err != nil {
 					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to fetch channel details", slog.Any("error", err))
 					continue
@@ -241,7 +242,7 @@ channelLoop:
 					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(exhaust quota job)", slog.Any("error", err))
 					continue
 				}
-				if err := video.FanOut(ctx, q, j.feedRepo, v); err != nil {
+				if err := j.feedRepo.FanOut(ctx, v.ChannelID, v.ID); err != nil {
 					util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(exhaust quota job)", slog.Any("error", err))
 				}
 				savedVideos[v.Video.ID] = savedVideoID
@@ -249,7 +250,7 @@ channelLoop:
 
 			// プレイリストを作成して動画を挿入
 			description := ytPlaylist.Description
-			if len([]rune(description)) > 255 {
+			if utf8.RuneCountInString(description) > 255 {
 				description = string([]rune(description)[:255])
 			}
 			pl, err := playlist.NewPlaylist(
@@ -344,11 +345,11 @@ func (j *exhaustQuotaJob) Run() {
 	}
 }
 
-func NewExhaustQuotaJob(db *pgxpool.Pool, ytService youtube_d.Service, feedRepo database_d.FeedRepository) scheduler.Job {
+func NewExhaustQuotaJob(db *pgxpool.Pool, youtubeClient youtube_d.Client, feedRepo database_d.FeedRepository) scheduler.Job {
 	return &exhaustQuotaJob{
-		db:        db,
-		ytService: ytService,
-		feedRepo:  feedRepo,
-		mx:        &sync.Mutex{},
+		db:            db,
+		youtubeClient: youtubeClient,
+		feedRepo:      feedRepo,
+		mx:            new(sync.Mutex{}),
 	}
 }

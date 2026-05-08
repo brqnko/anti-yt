@@ -305,11 +305,11 @@ func (v *valuableChannelRepositoryImpl) FindForUpdate(ctx context.Context, chann
 	if err != nil {
 		return nil, err
 	}
-	return &ValuableChannel{
+	return new(ValuableChannel{
 		ChannelID:           row.ChannelPublicID,
 		ValuableReasonCode:  ValuableCategoryCode(row.CategoryCode),
 		ValuableDescription: ValuableDescription(row.ValuableDescription),
-	}, nil
+	}), nil
 }
 
 var _ ValuableChannelRepository = (*valuableChannelRepositoryImpl)(nil)

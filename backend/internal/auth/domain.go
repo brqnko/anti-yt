@@ -30,18 +30,6 @@ type RefreshToken struct {
 
 type RefreshTokenOption func(*RefreshToken)
 
-func WithRefreshTokenID(id uuid.UUID) RefreshTokenOption {
-	return func(rt *RefreshToken) {
-		rt.ID = id
-	}
-}
-
-func WithRefreshTokenActivatedAt(activatedAt time.Time) RefreshTokenOption {
-	return func(rt *RefreshToken) {
-		rt.ActivatedAt = activatedAt
-	}
-}
-
 func WithRefreshTokenHash(tokenHash string) RefreshTokenOption {
 	return func(rt *RefreshToken) {
 		rt.TokenHash = tokenHash
@@ -51,12 +39,6 @@ func WithRefreshTokenHash(tokenHash string) RefreshTokenOption {
 func WithRefreshTokenRaw(tokenRaw string) RefreshTokenOption {
 	return func(rt *RefreshToken) {
 		rt.TokenHash = util.Sha256Hex(tokenRaw)
-	}
-}
-
-func WithRefreshTokenLastLoggedInAt(lastLoggedInAt time.Time) RefreshTokenOption {
-	return func(rt *RefreshToken) {
-		rt.LastLoggedInAt = lastLoggedInAt
 	}
 }
 
@@ -85,7 +67,7 @@ func NewRefreshToken(
 	ua := user_agent.New(userAgent)
 	browserName, browserVersion := ua.Browser()
 
-	rt := &RefreshToken{
+	rt := new(RefreshToken{
 		ID:                id,
 		ActivatedAt:       now,
 		TokenHash:         "",
@@ -99,7 +81,7 @@ func NewRefreshToken(
 		ExpiresAt:         expiresAt,
 		AccessTokenJTI:    accessTokenJTI,
 		LastLoggedInAt:    now,
-	}
+	})
 	for _, opt := range opts {
 		opt(rt)
 	}
@@ -120,18 +102,6 @@ type Authorization struct {
 
 type AuthorizationOption func(*Authorization)
 
-func WithLastLoggedInAt(lastLoggedInAt time.Time) AuthorizationOption {
-	return func(a *Authorization) {
-		a.LastLoggedInAt = lastLoggedInAt
-	}
-}
-
-func WithAuthorizationID(id uuid.UUID) AuthorizationOption {
-	return func(a *Authorization) {
-		a.ID = id
-	}
-}
-
 func NewAuthorization(issuer, sub string, opts ...AuthorizationOption) (_ *Authorization, err error) {
 	defer util.Wrap(&err, "auth.NewAuthorization")
 
@@ -140,12 +110,12 @@ func NewAuthorization(issuer, sub string, opts ...AuthorizationOption) (_ *Autho
 		return nil, err
 	}
 
-	authorization := &Authorization{
+	authorization := new(Authorization{
 		ID:             id,
 		Issuer:         issuer,
 		Sub:            sub,
 		LastLoggedInAt: time.Now().UTC(),
-	}
+	})
 
 	for _, opt := range opts {
 		opt(authorization)

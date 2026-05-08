@@ -17,8 +17,7 @@ func RequestIDMiddleware(f v1.StrictHandlerFunc, operationID string) v1.StrictHa
 			return writeErrorJSON(w, http.StatusInternalServerError, "internal_server_error", "failed to generate request id")
 		}
 
-		newCtx := hutil.WithRequestID(ctx, requestID)
-		newCtx = hutil.WithRequestPath(newCtx, r.URL.Path)
-		return f(newCtx, w, r.WithContext(newCtx), request)
+		ctx = hutil.WithRequestID(ctx, requestID)
+		return f(ctx, w, r.WithContext(ctx), request)
 	}
 }

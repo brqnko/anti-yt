@@ -22,16 +22,6 @@ import (
 	"google.golang.org/api/youtube/v3"
 )
 
-func otelHTTPClient() *http.Client {
-	return &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
-}
-
-func newOAuthYouTubeClient(ctx context.Context, accessToken string) (*youtube.Service, error) {
-	ctx = context.WithValue(ctx, oauth2.HTTPClient, otelHTTPClient())
-	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}))
-	return youtube.NewService(ctx, option.WithHTTPClient(httpClient))
-}
-
 var iso8601DurationRe = regexp.MustCompile(`PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?`)
 
 var (
@@ -40,7 +30,7 @@ var (
 	ErrVideoIDsTooMuch = core.NewDomainError("youtube.video_ids_too_much", "video ids are too much", core.StatusBadRequest)
 )
 
-type Service interface {
+type Client interface {
 	FetchChannelDetail(ctx context.Context, channelIDs []ChannelID) (map[ChannelID]Channel, error)
 	FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (Channel, error)
 	FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (map[VideoID]Video, error)
@@ -48,10 +38,7 @@ type Service interface {
 	FetchChannelPlaylists(ctx context.Context, channelID ChannelID, pageToken string) (_ []Playlist, _ string, err error)
 	SearchVideoIDs(ctx context.Context, query string, pageToken string, opts SearchOptions) (_ []VideoID, _ string, err error)
 	OAuthAuthCodeURL(state string) string
-	OAuthExchange(ctx context.Context, code string) (accessToken string, err error)
-	FetchAllSubscriptions(ctx context.Context, accessToken string) (_ []Channel, err error)
-	FetchWatchHistory(ctx context.Context, accessToken string, pageToken string) (_ []WatchHistory, _ string, err error)
-	FetchPlaylistVideoIDsWithOAuth(ctx context.Context, accessToken string, playlistID string, pageToken string) (_ []VideoID, _ string, err error)
+	OAuthExchange(ctx context.Context, code string) (*OAuthClient, error)
 }
 
 type SearchOptions struct {
@@ -63,9 +50,9 @@ type SearchOptions struct {
 	RelevanceLanguage *string
 }
 
-var _ Service = (*serviceImpl)(nil)
+var _ Client = (*clientImpl)(nil)
 
-type serviceImpl struct {
+type clientImpl struct {
 	ytClient    *youtube.Service
 	oauthConfig *oauth2.Config
 
@@ -75,8 +62,9 @@ type serviceImpl struct {
 }
 
 // NOTE: 削除された動画などはAPIから返ってこず、また順番も保証されないのでmapで返す
-func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (_ map[VideoID]Video, err error) {
-	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchVideoDetail")
+func (s *clientImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (_ map[VideoID]Video, err error) {
+	defer util.Wrap(&err, "youtube_d.(*clientImpl).FetchVideoDetail")
+	defer s.markIfQuotaExceeded(&err)
 
 	if len(videoIDs) == 0 {
 		return map[VideoID]Video{}, nil
@@ -98,7 +86,6 @@ func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) 
 		Context(ctx).
 		Do()
 	if err != nil {
-		s.markIfQuotaExceeded(err)
 		return nil, err
 	}
 
@@ -162,8 +149,9 @@ func (s *serviceImpl) FetchVideoDetail(ctx context.Context, videoIDs []VideoID) 
 	return videos, nil
 }
 
-func (s *serviceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (_ Channel, err error) {
-	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchChannelDetailByIDOrHandle")
+func (s *clientImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (_ Channel, err error) {
+	defer util.Wrap(&err, "youtube_d.(*clientImpl).FetchChannelDetailByIDOrHandle")
+	defer s.markIfQuotaExceeded(&err)
 
 	if err := s.checkQuota(); err != nil {
 		return Channel{}, err
@@ -180,7 +168,6 @@ func (s *serviceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channe
 
 	res, err := q.Context(ctx).Do()
 	if err != nil {
-		s.markIfQuotaExceeded(err)
 		return Channel{}, err
 	}
 	if len(res.Items) == 0 {
@@ -200,7 +187,7 @@ func (s *serviceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channe
 	if found.Snippet.Thumbnails == nil {
 		return Channel{}, errors.New("found.Snippet.Thumbnails is nil")
 	}
-	iconURL := ""
+	var iconURL string
 	if found.Snippet.Thumbnails.Medium != nil {
 		iconURL = found.Snippet.Thumbnails.Medium.Url
 	} else if found.Snippet.Thumbnails.Default != nil {
@@ -220,7 +207,7 @@ func (s *serviceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channe
 		found.Id,
 		found.Snippet.Title,
 		found.Snippet.CustomUrl,
-		util.Truncate(found.Snippet.Description, 1024),
+		found.Snippet.Description,
 		iconURL,
 		found.Statistics.SubscriberCount,
 		found.ContentDetails.RelatedPlaylists.Uploads,
@@ -233,8 +220,9 @@ func (s *serviceImpl) FetchChannelDetailByIDOrHandle(ctx context.Context, channe
 	return channel, nil
 }
 
-func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []ChannelID) (_ map[ChannelID]Channel, err error) {
-	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchChannelDetail")
+func (s *clientImpl) FetchChannelDetail(ctx context.Context, channelIDs []ChannelID) (_ map[ChannelID]Channel, err error) {
+	defer util.Wrap(&err, "youtube_d.(*clientImpl).FetchChannelDetail")
+	defer s.markIfQuotaExceeded(&err)
 
 	if len(channelIDs) == 0 {
 		return map[ChannelID]Channel{}, nil
@@ -251,7 +239,6 @@ func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []Chann
 	}
 	res, err := s.ytClient.Channels.List([]string{"snippet", "statistics", "contentDetails"}).Id(ids...).Context(ctx).Do()
 	if err != nil {
-		s.markIfQuotaExceeded(err)
 		return nil, err
 	}
 
@@ -271,7 +258,7 @@ func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []Chann
 			util.LoggerFromContext(ctx).InfoContext(ctx, "found.Snippet.Thumbnails is nil(fetch channel detail)")
 			continue
 		}
-		iconURL := ""
+		var iconURL string
 		if found.Snippet.Thumbnails.Medium != nil {
 			iconURL = found.Snippet.Thumbnails.Medium.Url
 		} else if found.Snippet.Thumbnails.Default != nil {
@@ -295,7 +282,7 @@ func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []Chann
 			found.Id,
 			found.Snippet.Title,
 			found.Snippet.CustomUrl,
-			util.Truncate(found.Snippet.Description, 1024),
+			found.Snippet.Description,
 			iconURL,
 			found.Statistics.SubscriberCount,
 			found.ContentDetails.RelatedPlaylists.Uploads,
@@ -312,8 +299,9 @@ func (s *serviceImpl) FetchChannelDetail(ctx context.Context, channelIDs []Chann
 	return result, nil
 }
 
-func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error) {
-	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchPlaylistVideoIDs")
+func (s *clientImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error) {
+	defer util.Wrap(&err, "youtube_d.(*clientImpl).FetchPlaylistVideoIDs")
+	defer s.markIfQuotaExceeded(&err)
 
 	if err := s.checkQuota(); err != nil {
 		return nil, "", err
@@ -329,7 +317,6 @@ func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID stri
 
 	res, err := call.Do()
 	if err != nil {
-		s.markIfQuotaExceeded(err)
 		return nil, "", err
 	}
 
@@ -350,8 +337,9 @@ func (s *serviceImpl) FetchPlaylistVideoIDs(ctx context.Context, playlistID stri
 	return videoIDs, res.NextPageToken, nil
 }
 
-func (s *serviceImpl) FetchChannelPlaylists(ctx context.Context, channelID ChannelID, pageToken string) (_ []Playlist, _ string, err error) {
-	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchChannelPlaylists")
+func (s *clientImpl) FetchChannelPlaylists(ctx context.Context, channelID ChannelID, pageToken string) (_ []Playlist, _ string, err error) {
+	defer util.Wrap(&err, "youtube_d.(*clientImpl).FetchChannelPlaylists")
+	defer s.markIfQuotaExceeded(&err)
 
 	if err := s.checkQuota(); err != nil {
 		return nil, "", err
@@ -367,7 +355,6 @@ func (s *serviceImpl) FetchChannelPlaylists(ctx context.Context, channelID Chann
 
 	res, err := call.Do()
 	if err != nil {
-		s.markIfQuotaExceeded(err)
 		return nil, "", err
 	}
 
@@ -395,8 +382,9 @@ func (s *serviceImpl) FetchChannelPlaylists(ctx context.Context, channelID Chann
 	return playlists, res.NextPageToken, nil
 }
 
-func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToken string, opts SearchOptions) (_ []VideoID, _ string, err error) {
-	defer util.Wrap(&err, "youtube_d.(*serviceImpl).SearchVideoIDs")
+func (s *clientImpl) SearchVideoIDs(ctx context.Context, query string, pageToken string, opts SearchOptions) (_ []VideoID, _ string, err error) {
+	defer util.Wrap(&err, "youtube_d.(*clientImpl).SearchVideoIDs")
+	defer s.markIfQuotaExceeded(&err)
 
 	if err := s.checkQuota(); err != nil {
 		return nil, "", err
@@ -431,7 +419,6 @@ func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToke
 
 	res, err := call.Do()
 	if err != nil {
-		s.markIfQuotaExceeded(err)
 		return nil, "", err
 	}
 
@@ -452,11 +439,7 @@ func (s *serviceImpl) SearchVideoIDs(ctx context.Context, query string, pageToke
 	return videoIDs, res.NextPageToken, nil
 }
 
-var (
-	errDailyQuotaExceeded = errors.New("daily quota exceeded")
-)
-
-func (s *serviceImpl) checkQuota() error {
+func (s *clientImpl) checkQuota() error {
 	today := quotaDate()
 
 	s.mu.RLock()
@@ -464,7 +447,7 @@ func (s *serviceImpl) checkQuota() error {
 		exceeded := s.quotaExceeded
 		s.mu.RUnlock()
 		if exceeded {
-			return errDailyQuotaExceeded
+			return errors.New("daily quota exceeded")
 		}
 		return nil
 	}
@@ -477,17 +460,17 @@ func (s *serviceImpl) checkQuota() error {
 		s.lastCheckedDay = today
 	}
 	if s.quotaExceeded {
-		return errDailyQuotaExceeded
+		return errors.New("daily quota exceeded")
 	}
 	return nil
 }
 
-func (s *serviceImpl) markIfQuotaExceeded(err error) {
-	if err == nil {
+func (s *clientImpl) markIfQuotaExceeded(err *error) {
+	if err == nil || *err == nil {
 		return
 	}
 	var apiErr *googleapi.Error
-	if !errors.As(err, &apiErr) {
+	if !errors.As(*err, &apiErr) {
 		return
 	}
 	for _, e := range apiErr.Errors {
@@ -507,164 +490,56 @@ func (s *serviceImpl) markIfQuotaExceeded(err error) {
 	}
 }
 
-func NewService(ctx context.Context, apiKey, oauthClientID, oauthClientSecret, oauthRedirectURL string) (_ Service, err error) {
-	defer util.Wrap(&err, "youtube_d.NewService")
+func NewClient(ctx context.Context, apiKey, oauthClientID, oauthClientSecret, oauthRedirectURL string) (_ Client, err error) {
+	defer util.Wrap(&err, "youtube_d.NewClient")
 
 	baseTransport, err := htransport.NewTransport(ctx, http.DefaultTransport, option.WithAPIKey(apiKey))
 	if err != nil {
 		return nil, err
 	}
-	httpClient := &http.Client{Transport: otelhttp.NewTransport(baseTransport)}
-	ytClient, err := youtube.NewService(ctx, option.WithHTTPClient(httpClient))
+	ytClient, err := youtube.NewService(ctx, option.WithHTTPClient(new(http.Client{Transport: otelhttp.NewTransport(baseTransport)})))
 	if err != nil {
 		return nil, err
 	}
 
-	return &serviceImpl{
+	return &clientImpl{
 		ytClient: ytClient,
-		oauthConfig: &oauth2.Config{
+		oauthConfig: new(oauth2.Config{
 			ClientID:     oauthClientID,
 			ClientSecret: oauthClientSecret,
 			RedirectURL:  oauthRedirectURL,
 			Scopes:       []string{"https://www.googleapis.com/auth/youtube.readonly"},
 			Endpoint:     googleOAuth2.Endpoint,
-		},
+		}),
 		lastCheckedDay: quotaDate(),
 		quotaExceeded:  false,
 	}, nil
 }
 
-func (s *serviceImpl) OAuthAuthCodeURL(state string) string {
+func (s *clientImpl) OAuthAuthCodeURL(state string) string {
 	return s.oauthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline)
 }
 
-func (s *serviceImpl) OAuthExchange(ctx context.Context, code string) (_ string, err error) {
-	defer util.Wrap(&err, "youtube_d.(*serviceImpl).OAuthExchange")
+func (s *clientImpl) OAuthExchange(ctx context.Context, code string) (_ *OAuthClient, err error) {
+	defer util.Wrap(&err, "youtube_d.(*clientImpl).OAuthExchange")
 
 	token, err := s.oauthConfig.Exchange(ctx, code)
-	if err != nil {
-		return "", err
-	}
-	return token.AccessToken, nil
-}
-
-func (s *serviceImpl) FetchAllSubscriptions(ctx context.Context, accessToken string) (_ []Channel, err error) {
-	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchAllSubscriptions")
-
-	ytClient, err := newOAuthYouTubeClient(ctx, accessToken)
 	if err != nil {
 		return nil, err
 	}
 
-	var channels []Channel
-	pageToken := ""
-	for {
-		call := ytClient.Subscriptions.List([]string{"snippet"}).Mine(true).MaxResults(50)
-		if pageToken != "" {
-			call = call.PageToken(pageToken)
-		}
-		resp, err := call.Do()
-		if err != nil {
-			return nil, err
-		}
-		for _, item := range resp.Items {
-			channels = append(channels, Channel{
-				ID:          ChannelID(item.Snippet.ResourceId.ChannelId),
-				DisplayName: item.Snippet.Title,
-				IconURL:     item.Snippet.Thumbnails.Default.Url,
-			})
-		}
-		if resp.NextPageToken == "" {
-			break
-		}
-		pageToken = resp.NextPageToken
-	}
-	return channels, nil
-}
-
-
-func (s *serviceImpl) FetchPlaylistVideoIDsWithOAuth(ctx context.Context, accessToken string, playlistID string, pageToken string) (_ []VideoID, _ string, err error) {
-	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchPlaylistVideoIDsWithOAuth")
-
-	ytClient, err := newOAuthYouTubeClient(ctx, accessToken)
+	ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)})
+	yt, err := youtube.NewService(ctx, option.WithHTTPClient(oauth2.NewClient(ctx, s.oauthConfig.TokenSource(ctx, token))))
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
-	call := ytClient.PlaylistItems.List([]string{"contentDetails"}).
-		PlaylistId(playlistID).
-		MaxResults(50).
-		Context(ctx)
-	if pageToken != "" {
-		call = call.PageToken(pageToken)
-	}
-
-	res, err := call.Do()
-	if err != nil {
-		return nil, "", err
-	}
-
-	videoIDs := make([]VideoID, 0, len(res.Items))
-	for _, item := range res.Items {
-		if item.ContentDetails == nil || item.ContentDetails.VideoId == "" {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "item.ContentDetails is nil or VideoId is empty(fetch playlist video ids with oauth)")
-			continue
-		}
-		videoID, err := NewVideoID(item.ContentDetails.VideoId)
-		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video id(fetch playlist video ids with oauth)", slog.Any("error", err))
-			continue
-		}
-		videoIDs = append(videoIDs, videoID)
-	}
-
-	return videoIDs, res.NextPageToken, nil
-}
-
-func (s *serviceImpl) FetchWatchHistory(ctx context.Context, accessToken string, pageToken string) (_ []WatchHistory, _ string, err error) {
-	defer util.Wrap(&err, "youtube_d.(*serviceImpl).FetchWatchHistory")
-
-	ytClient, err := newOAuthYouTubeClient(ctx, accessToken)
-	if err != nil {
-		return nil, "", err
-	}
-
-	call := ytClient.PlaylistItems.List([]string{"snippet"}).
-		PlaylistId("HL").
-		MaxResults(50).
-		Context(ctx)
-	if pageToken != "" {
-		call = call.PageToken(pageToken)
-	}
-
-	res, err := call.Do()
-	if err != nil {
-		return nil, "", err
-	}
-
-	histories := make([]WatchHistory, 0, len(res.Items))
-	for _, item := range res.Items {
-		if item.Snippet == nil || item.Snippet.ResourceId == nil || item.Snippet.ResourceId.VideoId == "" {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "item.Snippet or ResourceId is nil or VideoId is empty(fetch watch history)")
-			continue
-		}
-		videoID, err := NewVideoID(item.Snippet.ResourceId.VideoId)
-		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video id(fetch watch history)", slog.Any("error", err))
-			continue
-		}
-		watchedAt, err := time.Parse(time.RFC3339, item.Snippet.PublishedAt)
-		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to parse published at(fetch watch history)", slog.Any("error", err))
-			continue
-		}
-		histories = append(histories, WatchHistory{
-			VideoID:   videoID,
-			WatchedAt: watchedAt,
-		})
-	}
-
-	return histories, res.NextPageToken, nil
+	return &OAuthClient{
+		AccessToken:  token.AccessToken,
+		RefreshToken: token.RefreshToken,
+		Expiry:       token.Expiry,
+		ytClient:     yt,
+	}, nil
 }
 
 func quotaDate() time.Time {

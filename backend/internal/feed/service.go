@@ -1,6 +1,6 @@
 package feed
 
-//go:generate moq -out mock_youtube_service_test.go -pkg feed_test ../core/youtube_d Service
+//go:generate moq -out mock_youtube_client_test.go -pkg feed_test ../core/youtube_d Client
 
 import (
 	"context"
@@ -20,22 +20,22 @@ import (
 )
 
 type Service struct {
-	db        *pgxpool.Pool
-	ytService youtube_d.Service
-	feedRepo  database_d.FeedRepository
-	feedQS    FeedQueryService
+	db            *pgxpool.Pool
+	youtubeClient youtube_d.Client
+	feedRepo      database_d.FeedRepository
+	feedQS        FeedQueryService
 
 	rssFetchDuration time.Duration
 }
 
-func NewService(db *pgxpool.Pool, ytService youtube_d.Service, feedRepo database_d.FeedRepository, rssFetchDuration time.Duration) *Service {
-	return &Service{
+func NewService(db *pgxpool.Pool, youtubeClient youtube_d.Client, feedRepo database_d.FeedRepository, rssFetchDuration time.Duration) *Service {
+	return new(Service{
 		db:               db,
-		ytService:        ytService,
+		youtubeClient:    youtubeClient,
 		feedRepo:         feedRepo,
 		feedQS:           NewFeedQueryService(db),
 		rssFetchDuration: rssFetchDuration,
-	}
+	})
 }
 
 func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, _ bool, err error) {
@@ -61,14 +61,14 @@ func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UU
 
 	for _, ch := range channels {
 		// PlaylistAPIから動画ID一覧を取得する
-		videoIDs, _, err := s.ytService.FetchPlaylistVideoIDs(ctx, string(ch.Channel.UploadsPlaylistID), "")
+		videoIDs, _, err := s.youtubeClient.FetchPlaylistVideoIDs(ctx, string(ch.Channel.UploadsPlaylistID), "")
 		if err != nil {
 			return nil, false, err
 		}
 
 		// 動画ID一覧から動画の詳細情報を取得する
 		// TODO: 現在はchannels分YouTube Data APIにリクエストを投げているが、一括で取得したい
-		videoDetailMap, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
+		videoDetailMap, err := s.youtubeClient.FetchVideoDetail(ctx, videoIDs)
 		if err != nil {
 			return nil, false, err
 		}
@@ -85,7 +85,7 @@ func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UU
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(get feed)", slog.Any("error", err))
 				continue
 			}
-			if err := video.FanOut(ctx, q, s.feedRepo, v); err != nil {
+			if err := s.feedRepo.FanOut(ctx, v.ChannelID, v.ID); err != nil {
 				util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(get feed)", slog.Any("error", err))
 			}
 		}
@@ -153,7 +153,7 @@ func (s *Service) Search(ctx context.Context, query string, limit int, cursor *s
 	}
 
 	// YouTube Search APIで動画IDを取得
-	videoIDs, nextPageToken, err := s.ytService.SearchVideoIDs(ctx, query, pageToken, opts)
+	videoIDs, nextPageToken, err := s.youtubeClient.SearchVideoIDs(ctx, query, pageToken, opts)
 	if err != nil {
 		return nil, false, nil, err
 	}
@@ -163,7 +163,7 @@ func (s *Service) Search(ctx context.Context, query string, limit int, cursor *s
 	}
 
 	// 動画の詳細を取得
-	videoDetails, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
+	videoDetails, err := s.youtubeClient.FetchVideoDetail(ctx, videoIDs)
 	if err != nil {
 		return nil, false, nil, err
 	}
@@ -175,7 +175,7 @@ func (s *Service) Search(ctx context.Context, query string, limit int, cursor *s
 	}
 
 	// チャンネルの詳細を取得
-	channelDetails, err := s.ytService.FetchChannelDetail(ctx, channelIDs)
+	channelDetails, err := s.youtubeClient.FetchChannelDetail(ctx, channelIDs)
 	if err != nil {
 		return nil, false, nil, err
 	}
@@ -223,7 +223,7 @@ func (s *Service) Search(ctx context.Context, query string, limit int, cursor *s
 			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(search)", slog.Any("error", err))
 			continue
 		}
-		if err := video.FanOut(ctx, q, s.feedRepo, v); err != nil {
+		if err := s.feedRepo.FanOut(ctx, v.ChannelID, v.ID); err != nil {
 			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(search)", slog.Any("error", err))
 		}
 

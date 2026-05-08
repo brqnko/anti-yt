@@ -42,7 +42,6 @@ type Service interface {
 	SignRegisterToken(authorizationID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error)
 	SignYouTubeImportStateToken(userID uuid.UUID, importSubscriptions, importLikes bool, serverURL string) (_ string, err error)
 	SignOIDCStateToken(platform, serverURL string) (_ string, err error)
-	TokenDuration() time.Duration
 	VerifyUserAccessToken(token string) (_, _ uuid.UUID, _ time.Time, err error)
 	VerifyRegisterToken(token string) (_, _ uuid.UUID, err error)
 	VerifyYouTubeImportStateToken(token string) (_ uuid.UUID, _ bool, _ bool, err error)
@@ -65,10 +64,6 @@ func NewService(privateKey ed25519.PrivateKey, publicKey ed25519.PublicKey, acce
 	}
 }
 
-func (s *serviceImpl) TokenDuration() time.Duration {
-	return s.accessTokenDuration
-}
-
 func (s *serviceImpl) SignUserAccessToken(userID, jti uuid.UUID, serverURL string) (_ string, _ time.Time, err error) {
 	defer util.Wrap(&err, "jwt_d.(*serviceImpl).SignUserAccessToken(userID=%s)", userID)
 
@@ -80,9 +75,9 @@ func (s *serviceImpl) SignUserAccessToken(userID, jti uuid.UUID, serverURL strin
 			Issuer:    serverURL,
 			Subject:   "user_access_token",
 			Audience:  []string{serverURL},
-			ExpiresAt: &jwt.NumericDate{Time: expiresAt},
-			NotBefore: &jwt.NumericDate{Time: now},
-			IssuedAt:  &jwt.NumericDate{Time: now},
+			ExpiresAt: new(jwt.NumericDate{Time: expiresAt}),
+			NotBefore: new(jwt.NumericDate{Time: now}),
+			IssuedAt:  new(jwt.NumericDate{Time: now}),
 			ID:        base64.URLEncoding.EncodeToString(jti[:]),
 		},
 	})
@@ -104,9 +99,9 @@ func (s *serviceImpl) SignRegisterToken(authorizationID, jti uuid.UUID, serverUR
 			Issuer:    serverURL,
 			Subject:   "authorization_token",
 			Audience:  []string{serverURL},
-			ExpiresAt: &jwt.NumericDate{Time: expiresAt},
-			NotBefore: &jwt.NumericDate{Time: now},
-			IssuedAt:  &jwt.NumericDate{Time: now},
+			ExpiresAt: new(jwt.NumericDate{Time: expiresAt}),
+			NotBefore: new(jwt.NumericDate{Time: now}),
+			IssuedAt:  new(jwt.NumericDate{Time: now}),
 			ID:        base64.URLEncoding.EncodeToString(jti[:]),
 		},
 	})
@@ -120,7 +115,7 @@ func (s *serviceImpl) SignRegisterToken(authorizationID, jti uuid.UUID, serverUR
 func (s *serviceImpl) VerifyRegisterToken(token string) (_ uuid.UUID, _ uuid.UUID, err error) {
 	defer util.Wrap(&err, "jwt_d.(*serviceImpl).VerifyRegisterToken")
 
-	claims := &RegisterClaims{}
+	claims := new(RegisterClaims{})
 
 	parsedToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodEd25519); !ok {
@@ -161,7 +156,7 @@ func (s *serviceImpl) VerifyRegisterToken(token string) (_ uuid.UUID, _ uuid.UUI
 func (s *serviceImpl) VerifyUserAccessToken(token string) (_ uuid.UUID, _ uuid.UUID, _ time.Time, err error) {
 	defer util.Wrap(&err, "jwt_d.(*serviceImpl).VerifyUserAccessToken")
 
-	claims := &UserClaims{}
+	claims := new(UserClaims{})
 
 	parsedToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodEd25519); !ok {
@@ -217,9 +212,9 @@ func (s *serviceImpl) SignOIDCStateToken(platform, serverURL string) (_ string, 
 			Issuer:    serverURL,
 			Subject:   "oidc_state",
 			Audience:  []string{serverURL},
-			ExpiresAt: &jwt.NumericDate{Time: now.Add(10 * time.Minute)},
-			NotBefore: &jwt.NumericDate{Time: now},
-			IssuedAt:  &jwt.NumericDate{Time: now},
+			ExpiresAt: new(jwt.NumericDate{Time: now.Add(10 * time.Minute)}),
+			NotBefore: new(jwt.NumericDate{Time: now}),
+			IssuedAt:  new(jwt.NumericDate{Time: now}),
 		},
 	})
 	signed, err := token.SignedString(s.privateKey)
@@ -232,7 +227,7 @@ func (s *serviceImpl) SignOIDCStateToken(platform, serverURL string) (_ string, 
 func (s *serviceImpl) VerifyOIDCStateToken(token string) (_ string, err error) {
 	defer util.Wrap(&err, "jwt_d.(*serviceImpl).VerifyOIDCStateToken")
 
-	claims := &OIDCStateClaims{}
+	claims := new(OIDCStateClaims{})
 	parsedToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodEd25519); !ok {
 			return nil, ErrInvalidToken
@@ -268,9 +263,9 @@ func (s *serviceImpl) SignYouTubeImportStateToken(userID uuid.UUID, importSubscr
 			Issuer:    serverURL,
 			Subject:   "youtube_import_state",
 			Audience:  []string{serverURL},
-			ExpiresAt: &jwt.NumericDate{Time: now.Add(10 * time.Minute)},
-			NotBefore: &jwt.NumericDate{Time: now},
-			IssuedAt:  &jwt.NumericDate{Time: now},
+			ExpiresAt: new(jwt.NumericDate{Time: now.Add(10 * time.Minute)}),
+			NotBefore: new(jwt.NumericDate{Time: now}),
+			IssuedAt:  new(jwt.NumericDate{Time: now}),
 		},
 	})
 	signed, err := token.SignedString(s.privateKey)
@@ -283,7 +278,7 @@ func (s *serviceImpl) SignYouTubeImportStateToken(userID uuid.UUID, importSubscr
 func (s *serviceImpl) VerifyYouTubeImportStateToken(token string) (_ uuid.UUID, _ bool, _ bool, err error) {
 	defer util.Wrap(&err, "jwt_d.(*serviceImpl).VerifyYouTubeImportStateToken")
 
-	claims := &YouTubeImportStateClaims{}
+	claims := new(YouTubeImportStateClaims{})
 	parsedToken, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodEd25519); !ok {
 			return nil, ErrInvalidToken

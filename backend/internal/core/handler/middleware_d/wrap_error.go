@@ -1,5 +1,3 @@
-//go:generate moq -out mock_discord_service_test.go -pkg middleware_d_test ../../discord_d Service:DiscordServiceMock
-
 package middleware_d
 
 import (
@@ -15,10 +13,6 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
-// writeErrorJSON はステータスコード・タイトル・詳細を {title, detail} 形式の
-// JSONとして ResponseWriter に直接書き込む。middleware内でエラーレスポンスを
-// 短絡的に返すときに使う。StrictHandlerFunc のシグネチャに合わせて (nil, nil)
-// を返し、呼び出し側には「自分で書き込んだので上層は何もしないで」と伝える。
 func writeErrorJSON(w http.ResponseWriter, statusCode int, title, detail string) (interface{}, error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)

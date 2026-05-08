@@ -17,7 +17,7 @@ import (
 type purgeLeftUserJob struct {
 	db             *pgxpool.Pool
 	feedRepo       database_d.FeedRepository
-	discordService discord_d.Service
+	discordClient discord_d.Client
 }
 
 func (j *purgeLeftUserJob) run(ctx context.Context) (err error) {
@@ -52,12 +52,12 @@ func (j *purgeLeftUserJob) Run() {
 
 	if err := j.run(ctx); err != nil {
 		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to run purge left user job", slog.Any("error", err))
-		if wErr := j.discordService.SendWebhookMessage(ctx, fmt.Sprintf("[Error] purge left user job: %v", err)); wErr != nil {
+		if wErr := j.discordClient.SendWebhookMessage(ctx, fmt.Sprintf("[Error] purge left user job: %v", err)); wErr != nil {
 			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to send discord webhook", slog.Any("error", wErr))
 		}
 	}
 }
 
-func NewPurgeLeftUserJob(db *pgxpool.Pool, feedRepo database_d.FeedRepository, discordService discord_d.Service) scheduler.Job {
-	return &purgeLeftUserJob{db: db, feedRepo: feedRepo, discordService: discordService}
+func NewPurgeLeftUserJob(db *pgxpool.Pool, feedRepo database_d.FeedRepository, discordClient discord_d.Client) scheduler.Job {
+	return &purgeLeftUserJob{db: db, feedRepo: feedRepo, discordClient: discordClient}
 }

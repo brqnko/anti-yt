@@ -21,7 +21,7 @@ func (h *APIHandler) GetAuthGoogle(ctx context.Context, request GetAuthGoogleReq
 		return nil, err
 	}
 
-	hutil.AddResponseCookie(ctx, (&http.Cookie{
+	hutil.AddResponseCookie(ctx, (new(http.Cookie{
 		Name:     "csrf",
 		Value:    csrf,
 		Path:     "/",
@@ -29,7 +29,7 @@ func (h *APIHandler) GetAuthGoogle(ctx context.Context, request GetAuthGoogleReq
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
-	}).String())
+	})).String())
 
 	return GetAuthGoogle302Response{
 		Headers: GetAuthGoogle302ResponseHeaders{
@@ -60,7 +60,7 @@ func (h *APIHandler) GetAuthGoogleCallback(ctx context.Context, request GetAuthG
 		}, nil
 	}
 
-	hutil.AddResponseCookie(ctx, (&http.Cookie{
+	hutil.AddResponseCookie(ctx, (new(http.Cookie{
 		Name:     "access_token",
 		Value:    resultAccessToken,
 		Path:     "/",
@@ -68,8 +68,8 @@ func (h *APIHandler) GetAuthGoogleCallback(ctx context.Context, request GetAuthG
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
-	}).String())
-	hutil.AddResponseCookie(ctx, (&http.Cookie{
+	})).String())
+	hutil.AddResponseCookie(ctx, (new(http.Cookie{
 		Name:     "refresh_token",
 		Value:    resultRefreshToken,
 		Path:     "/",
@@ -77,8 +77,8 @@ func (h *APIHandler) GetAuthGoogleCallback(ctx context.Context, request GetAuthG
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
-	}).String())
-	hutil.AddResponseCookie(ctx, (&http.Cookie{
+	})).String())
+	hutil.AddResponseCookie(ctx, (new(http.Cookie{
 		Name:     "csrf_token",
 		Value:    resultCSRFToken,
 		Path:     "/",
@@ -86,7 +86,7 @@ func (h *APIHandler) GetAuthGoogleCallback(ctx context.Context, request GetAuthG
 		HttpOnly: false,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
-	}).String())
+	})).String())
 
 	return GetAuthGoogleCallback302Response{
 		Headers: GetAuthGoogleCallback302ResponseHeaders{
@@ -161,7 +161,7 @@ func (h *APIHandler) PostAuthLogout(ctx context.Context, request PostAuthLogoutR
 		return nil, err
 	}
 
-	hutil.AddResponseCookie(ctx, (&http.Cookie{
+	hutil.AddResponseCookie(ctx, (new(http.Cookie{
 		Name:     "refresh_token",
 		Value:    "",
 		Path:     "/",
@@ -169,8 +169,8 @@ func (h *APIHandler) PostAuthLogout(ctx context.Context, request PostAuthLogoutR
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
-	}).String())
-	hutil.AddResponseCookie(ctx, (&http.Cookie{
+	})).String())
+	hutil.AddResponseCookie(ctx, (new(http.Cookie{
 		Name:     "csrf_token",
 		Value:    "",
 		Path:     "/",
@@ -178,8 +178,8 @@ func (h *APIHandler) PostAuthLogout(ctx context.Context, request PostAuthLogoutR
 		HttpOnly: false,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
-	}).String())
-	hutil.AddResponseCookie(ctx, (&http.Cookie{
+	})).String())
+	hutil.AddResponseCookie(ctx, (new(http.Cookie{
 		Name:     "access_token",
 		Value:    "",
 		Path:     "/",
@@ -187,7 +187,7 @@ func (h *APIHandler) PostAuthLogout(ctx context.Context, request PostAuthLogoutR
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
-	}).String())
+	})).String())
 
 	return PostAuthLogout200Response{}, nil
 }
@@ -208,7 +208,7 @@ func (h *APIHandler) PostAuthRefresh(ctx context.Context, request PostAuthRefres
 		return nil, err
 	}
 
-	hutil.AddResponseCookie(ctx, (&http.Cookie{
+	hutil.AddResponseCookie(ctx, (new(http.Cookie{
 		Name:     "access_token",
 		Value:    newAccessToken,
 		Path:     "/",
@@ -216,8 +216,8 @@ func (h *APIHandler) PostAuthRefresh(ctx context.Context, request PostAuthRefres
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
-	}).String())
-	hutil.AddResponseCookie(ctx, (&http.Cookie{
+	})).String())
+	hutil.AddResponseCookie(ctx, (new(http.Cookie{
 		Name:     "refresh_token",
 		Value:    newRefreshToken,
 		Path:     "/",
@@ -225,7 +225,7 @@ func (h *APIHandler) PostAuthRefresh(ctx context.Context, request PostAuthRefres
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
-	}).String())
+	})).String())
 
 	return PostAuthRefresh200Response{}, nil
 }

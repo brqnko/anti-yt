@@ -97,6 +97,18 @@ jobs:
           version: latest
           working-directory: backend
 
+      - name: Install deadcode
+        run: go install golang.org/x/tools/cmd/deadcode@latest
+
+      - name: Run deadcode
+        run: |
+          out=$(deadcode -test ./... | grep -v '^internal/core/database_d/blacklist.go:' || true)
+          if [ -n "$out" ]; then
+            echo "::error::deadcode found unreachable functions"
+            echo "$out"
+            exit 1
+          fi
+
       - run: go build -v -o server ./cmd/api
 
       - name: Run tests
