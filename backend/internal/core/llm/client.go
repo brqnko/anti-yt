@@ -24,20 +24,20 @@ func WithJSONSchema(schema *genai.Schema) Option {
 	}
 }
 
-type Service interface {
+type Client interface {
 	Completion(ctx context.Context, prompts []Prompt, opts ...Option) (_ string, err error)
 	ModelID() string
 }
 
-var _ Service = (*geminiImpl)(nil)
+var _ Client = (*geminiClient)(nil)
 
-type geminiImpl struct {
+type geminiClient struct {
 	client  *genai.Client
 	modelID string
 }
 
-func (g *geminiImpl) Completion(ctx context.Context, prompts []Prompt, opts ...Option) (_ string, err error) {
-	defer util.Wrap(&err, "llm.(*geminiImpl).Completion")
+func (g *geminiClient) Completion(ctx context.Context, prompts []Prompt, opts ...Option) (_ string, err error) {
+	defer util.Wrap(&err, "llm.(*geminiClient).Completion")
 
 	contents := make([]*genai.Content, len(prompts))
 	for i, p := range prompts {
@@ -68,11 +68,11 @@ func (g *geminiImpl) Completion(ctx context.Context, prompts []Prompt, opts ...O
 	return text, nil
 }
 
-func (g *geminiImpl) ModelID() string {
+func (g *geminiClient) ModelID() string {
 	return g.modelID
 }
 
-func NewGemini(ctx context.Context, apiKey, modelID string) (_ Service, err error) {
+func NewGemini(ctx context.Context, apiKey, modelID string) (_ Client, err error) {
 	defer util.Wrap(&err, "llm.NewGemini")
 
 	httpClient := new(http.Client{
@@ -87,7 +87,7 @@ func NewGemini(ctx context.Context, apiKey, modelID string) (_ Service, err erro
 		return nil, err
 	}
 
-	return &geminiImpl{
+	return &geminiClient{
 		client:  client,
 		modelID: modelID,
 	}, nil
