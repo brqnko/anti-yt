@@ -26,9 +26,9 @@ import (
 type llmSummaryJob struct {
 	db *pgxpool.Pool
 
-	llmService     llm.Service
+	llmClient     llm.Client
 	discordClient discord_d.Client
-	mx             *sync.Mutex
+	mx            *sync.Mutex
 }
 
 type summaryResponse struct {
@@ -142,7 +142,7 @@ func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 				Message: fmt.Sprintf(tmpl, titles),
 			},
 		}
-		resp, err := j.llmService.Completion(ctx, prompts, llm.WithJSONSchema(summarySchema))
+		resp, err := j.llmClient.Completion(ctx, prompts, llm.WithJSONSchema(summarySchema))
 		if err != nil {
 			util.LoggerFromContext(ctx).ErrorContext(ctx, "llm completion failed in summary job", slog.Int64("user_id", row.UserID), slog.Any("error", err))
 			continue
@@ -166,7 +166,7 @@ func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 			UserID:               row.UserID,
 			AiSummaryTitle:       summary.Title,
 			AiSummaryDescription: summary.Description,
-			AiModel:              j.llmService.ModelID(),
+			AiModel:              j.llmClient.ModelID(),
 			GeneratedAt:          startedAt,
 			TargetMonth:          targetMonth,
 		}); err != nil {
@@ -198,11 +198,11 @@ func (j *llmSummaryJob) Run() {
 	}
 }
 
-func NewLLMSummaryJob(db *pgxpool.Pool, llmService llm.Service, discordClient discord_d.Client) scheduler.Job {
+func NewLLMSummaryJob(db *pgxpool.Pool, llmClient llm.Client, discordClient discord_d.Client) scheduler.Job {
 	return &llmSummaryJob{
-		llmService:     llmService,
+		llmClient:     llmClient,
 		discordClient: discordClient,
-		db:             db,
-		mx:             new(sync.Mutex{}),
+		db:            db,
+		mx:            new(sync.Mutex{}),
 	}
 }

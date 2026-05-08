@@ -14,18 +14,18 @@ import (
 
 var ErrIDTokenNotFound = core.NewDomainError("auth.id_token_not_found", "id token not found", core.StatusBadRequest)
 
-type GoogleOIDCService interface {
+type GoogleClient interface {
 	AuthCodeURL(state string) string
 	ExchangeAndVerify(ctx context.Context, code string) (_ string, err error)
 }
 
-type googleOIDCService struct {
+type googleClient struct {
 	oauth2Config *oauth2.Config
 	verifier     *oidc.IDTokenVerifier
 }
 
-func NewGoogleOIDCService(ctx context.Context, clientID, clientSecret, redirectURL string) (_ GoogleOIDCService, err error) {
-	defer util.Wrap(&err, "oidc.NewGoogleOIDCService")
+func NewGoogleClient(ctx context.Context, clientID, clientSecret, redirectURL string) (_ GoogleClient, err error) {
+	defer util.Wrap(&err, "oidc.NewGoogleClient")
 
 	if clientSecret == "" {
 		return nil, errors.New("google client secret is empty")
@@ -49,18 +49,18 @@ func NewGoogleOIDCService(ctx context.Context, clientID, clientSecret, redirectU
 		ClientID: clientID,
 	}))
 
-	return &googleOIDCService{
+	return &googleClient{
 		oauth2Config: oauth2Config,
 		verifier:     verifier,
 	}, nil
 }
 
-func (s *googleOIDCService) AuthCodeURL(state string) string {
+func (s *googleClient) AuthCodeURL(state string) string {
 	return s.oauth2Config.AuthCodeURL(state)
 }
 
-func (s *googleOIDCService) ExchangeAndVerify(ctx context.Context, code string) (_ string, err error) {
-	defer util.Wrap(&err, "oidc.(*googleOIDCService).ExchangeAndVerify")
+func (s *googleClient) ExchangeAndVerify(ctx context.Context, code string) (_ string, err error) {
+	defer util.Wrap(&err, "oidc.(*googleClient).ExchangeAndVerify")
 
 	ctx = context.WithValue(ctx, oauth2.HTTPClient, new(http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}))
 	oauth2Token, err := s.oauth2Config.Exchange(ctx, code)

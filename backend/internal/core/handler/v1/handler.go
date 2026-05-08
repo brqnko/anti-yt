@@ -48,7 +48,7 @@ type APIHandler struct {
 
 func NewAPIHandler(
 	db *pgxpool.Pool,
-	oidcService oidc.GoogleOIDCService,
+	oidcClient oidc.GoogleClient,
 	serverURL, frontendURL string,
 	jwtService jwt_d.Service,
 	accessTokenDuration time.Duration,
@@ -66,7 +66,7 @@ func NewAPIHandler(
 		channelService:  channel.NewService(db, youtubeClient, feedRepo, rssFetchDuration),
 		videoService:    video.NewService(db),
 		playlistService: playlist.NewService(db, youtubeClient, feedRepo),
-		authService:     auth.NewService(db, oidcService, youtubeClient, channel.NewService(db, youtubeClient, feedRepo, rssFetchDuration), playlist.NewService(db, youtubeClient, feedRepo), serverURL, jwtService, accessTokenDuration, refreshTokenDuration, jtiBlacklistRepo),
+		authService:     auth.NewService(db, oidcClient, youtubeClient, channel.NewService(db, youtubeClient, feedRepo, rssFetchDuration), playlist.NewService(db, youtubeClient, feedRepo), serverURL, jwtService, accessTokenDuration, refreshTokenDuration, jtiBlacklistRepo),
 		userService:     user.NewService(db, jwtService, serverURL, accessTokenDuration, jtiBlacklistRepo),
 		historyService:  history.NewService(db, feedRepo),
 		feedService:     feed.NewService(db, youtubeClient, feedRepo, rssFetchDuration),
