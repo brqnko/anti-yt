@@ -68,6 +68,21 @@ func (q *Queries) CopyPlaylistVideos(ctx context.Context, arg CopyPlaylistVideos
 	return copied_count, err
 }
 
+const countUserPlaylists = `-- name: CountUserPlaylists :one
+SELECT COUNT(*)::int
+FROM m_playlist
+WHERE m_user_id = (
+    SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1
+)
+`
+
+func (q *Queries) CountUserPlaylists(ctx context.Context, userPublicID uuid.UUID) (int, error) {
+	row := q.db.QueryRow(ctx, countUserPlaylists, userPublicID)
+	var column_1 int
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const deletePlaylist = `-- name: DeletePlaylist :one
 WITH deleted AS (
     DELETE FROM

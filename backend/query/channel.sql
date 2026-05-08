@@ -69,16 +69,7 @@ RETURNING
 INSERT INTO
     m_user_subscribing_channel (m_user_id, m_channel_id, subscribed_at)
 SELECT
-    (
-        SELECT
-            m_user.m_user_id
-        FROM
-            m_user
-        WHERE
-            m_user.public_id = @user_public_id
-        LIMIT
-            1
-    ) AS m_user_id,
+    u.m_user_id,
     (
         SELECT
             m_channel.m_channel_id
@@ -90,6 +81,14 @@ SELECT
             1
     ),
     @subscribed_at
+FROM
+    m_user u
+WHERE
+    u.public_id = @user_public_id
+    AND (
+        SELECT COUNT(*) FROM m_user_subscribing_channel
+        WHERE m_user_subscribing_channel.m_user_id = u.m_user_id
+    ) < 20
 RETURNING
     m_user_subscribing_channel.m_user_subscribing_channel_id;
 

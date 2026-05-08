@@ -236,6 +236,9 @@ func (s *channelRepositoryImpl) SaveSubscription(ctx context.Context, subscribed
 		SubscribedAt: subscribedChannel.SubscribedAt,
 	})
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, ErrTooManySubscriptions
+		}
 		return 0, err
 	}
 

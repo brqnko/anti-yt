@@ -58,6 +58,14 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 	}()
 	q := sqlc.New(tx)
 
+	count, err := q.CountUserPlaylists(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if count >= 20 {
+		return nil, ErrTooManyPlaylists
+	}
+
 	// NOTE: insertした内容はcommitするまで他のトランザクションから見れない(repeatable read)ので、ロックなどをつける意味はない
 	row, err := NewPlaylistRepository(q).Save(ctx, playlist)
 	if err != nil {
@@ -209,6 +217,14 @@ func (s *Service) CreatePlaylistWithAccessToken(ctx context.Context, userID uuid
 		}
 	}()
 	q := sqlc.New(tx)
+
+	count, err := q.CountUserPlaylists(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if count >= 20 {
+		return nil, ErrTooManyPlaylists
+	}
 
 	row, err := NewPlaylistRepository(q).Save(ctx, playlist)
 	if err != nil {
@@ -462,6 +478,9 @@ func (s *Service) InsertVideoIntoPlaylist(ctx context.Context, userID, playlistI
 	if !playlist.IsModifiable() {
 		return ErrPlaylistNotModifiable
 	}
+	if playlist.VideoCount >= 128 {
+		return ErrTooManyPlaylistVideos
+	}
 
 	if err := NewPlaylistRepository(q).InsertVideo(ctx, userID, playlistID, videoID); err != nil {
 		return err
@@ -571,6 +590,14 @@ func (s *Service) CopyPlaylist(ctx context.Context, userID uuid.UUID, sourcePlay
 
 	q := sqlc.New(tx)
 	repo := NewPlaylistRepository(q)
+
+	count, err := q.CountUserPlaylists(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if count >= 20 {
+		return nil, ErrTooManyPlaylists
+	}
 
 	destInternalID, err := repo.Save(ctx, playlist)
 	if err != nil {

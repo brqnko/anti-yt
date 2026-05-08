@@ -13,7 +13,8 @@ var (
 	ErrInvalidPlaylistDescription = core.NewDomainError("playlist.invalid_description", "invalid playlist description: must be at most 255 characters", core.StatusBadRequest)
 	ErrInvalidVisibilityCode      = core.NewDomainError("playlist.invalid_visibility_code", "invalid visibility code", core.StatusBadRequest)
 	ErrInvalidPlaylistCode        = core.NewDomainError("playlist.invalid_playlist_code", "invalid playlist code", core.StatusBadRequest)
-	ErrPlaylistNotModifiable      = core.NewDomainError("playlist.not_modifiable", "this playlist cannot be modified", core.StatusForbidden)
+	ErrPlaylistNotModifiable = core.NewDomainError("playlist.not_modifiable", "this playlist cannot be modified", core.StatusForbidden)
+	ErrTooManyPlaylists      = core.NewDomainError("playlist.too_many_playlists", "playlist limit reached (max 20)", core.StatusBadRequest)
 )
 
 type VisibilityCode int
@@ -112,6 +113,7 @@ func (p *Playlist) SetDescription(s *string) (err error) {
 
 var ErrNegativeVideoCount = core.NewDomainError("playlist.negative_video_count", "video count must not be negative", core.StatusBadRequest)
 var ErrVideoCountUnderflow = core.NewDomainError("playlist.video_count_underflow", "video count is already 0", core.StatusBadRequest)
+var ErrTooManyPlaylistVideos = core.NewDomainError("playlist.too_many_videos", "playlist video limit reached (max 128)", core.StatusBadRequest)
 
 func (p *Playlist) SetVideoCount(count int) (err error) {
 	defer util.Wrap(&err, "playlist.(*Playlist).SetVideoCount")
