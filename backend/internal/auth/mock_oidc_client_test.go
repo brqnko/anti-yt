@@ -9,16 +9,16 @@ import (
 	"sync"
 )
 
-// Ensure, that GoogleOIDCServiceMock does implement oidc.GoogleOIDCService.
+// Ensure, that GoogleClientMock does implement oidc.GoogleClient.
 // If this is not the case, regenerate this file with moq.
-var _ oidc.GoogleOIDCService = &GoogleOIDCServiceMock{}
+var _ oidc.GoogleClient = &GoogleClientMock{}
 
-// GoogleOIDCServiceMock is a mock implementation of oidc.GoogleOIDCService.
+// GoogleClientMock is a mock implementation of oidc.GoogleClient.
 //
-//	func TestSomethingThatUsesGoogleOIDCService(t *testing.T) {
+//	func TestSomethingThatUsesGoogleClient(t *testing.T) {
 //
-//		// make and configure a mocked oidc.GoogleOIDCService
-//		mockedGoogleOIDCService := &GoogleOIDCServiceMock{
+//		// make and configure a mocked oidc.GoogleClient
+//		mockedGoogleClient := &GoogleClientMock{
 //			AuthCodeURLFunc: func(state string) string {
 //				panic("mock out the AuthCodeURL method")
 //			},
@@ -27,11 +27,11 @@ var _ oidc.GoogleOIDCService = &GoogleOIDCServiceMock{}
 //			},
 //		}
 //
-//		// use mockedGoogleOIDCService in code that requires oidc.GoogleOIDCService
+//		// use mockedGoogleClient in code that requires oidc.GoogleClient
 //		// and then make assertions.
 //
 //	}
-type GoogleOIDCServiceMock struct {
+type GoogleClientMock struct {
 	// AuthCodeURLFunc mocks the AuthCodeURL method.
 	AuthCodeURLFunc func(state string) string
 
@@ -58,9 +58,9 @@ type GoogleOIDCServiceMock struct {
 }
 
 // AuthCodeURL calls AuthCodeURLFunc.
-func (mock *GoogleOIDCServiceMock) AuthCodeURL(state string) string {
+func (mock *GoogleClientMock) AuthCodeURL(state string) string {
 	if mock.AuthCodeURLFunc == nil {
-		panic("GoogleOIDCServiceMock.AuthCodeURLFunc: method is nil but GoogleOIDCService.AuthCodeURL was just called")
+		panic("GoogleClientMock.AuthCodeURLFunc: method is nil but GoogleClient.AuthCodeURL was just called")
 	}
 	callInfo := struct {
 		State string
@@ -76,8 +76,8 @@ func (mock *GoogleOIDCServiceMock) AuthCodeURL(state string) string {
 // AuthCodeURLCalls gets all the calls that were made to AuthCodeURL.
 // Check the length with:
 //
-//	len(mockedGoogleOIDCService.AuthCodeURLCalls())
-func (mock *GoogleOIDCServiceMock) AuthCodeURLCalls() []struct {
+//	len(mockedGoogleClient.AuthCodeURLCalls())
+func (mock *GoogleClientMock) AuthCodeURLCalls() []struct {
 	State string
 } {
 	var calls []struct {
@@ -90,9 +90,9 @@ func (mock *GoogleOIDCServiceMock) AuthCodeURLCalls() []struct {
 }
 
 // ExchangeAndVerify calls ExchangeAndVerifyFunc.
-func (mock *GoogleOIDCServiceMock) ExchangeAndVerify(ctx context.Context, code string) (string, error) {
+func (mock *GoogleClientMock) ExchangeAndVerify(ctx context.Context, code string) (string, error) {
 	if mock.ExchangeAndVerifyFunc == nil {
-		panic("GoogleOIDCServiceMock.ExchangeAndVerifyFunc: method is nil but GoogleOIDCService.ExchangeAndVerify was just called")
+		panic("GoogleClientMock.ExchangeAndVerifyFunc: method is nil but GoogleClient.ExchangeAndVerify was just called")
 	}
 	callInfo := struct {
 		Ctx  context.Context
@@ -110,8 +110,8 @@ func (mock *GoogleOIDCServiceMock) ExchangeAndVerify(ctx context.Context, code s
 // ExchangeAndVerifyCalls gets all the calls that were made to ExchangeAndVerify.
 // Check the length with:
 //
-//	len(mockedGoogleOIDCService.ExchangeAndVerifyCalls())
-func (mock *GoogleOIDCServiceMock) ExchangeAndVerifyCalls() []struct {
+//	len(mockedGoogleClient.ExchangeAndVerifyCalls())
+func (mock *GoogleClientMock) ExchangeAndVerifyCalls() []struct {
 	Ctx  context.Context
 	Code string
 } {

@@ -145,17 +145,12 @@ func run(ctx context.Context) int {
 		}
 	}()
 	jtiBlacklistRepo := database_d.NewInMemoryJtiBlacklistRepository()
-	ratelimitRepo := database_d.NewRatelimitRepository(redisClient, 24*time.Hour)
-	feedRepo := database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db))
-
-	job.NewPurgeLeftUserJob(db, feedRepo, discord_d.NewClient(cfg.discordWebhookURL)).Run()
-	job.NewRefillFeedJob(db, feedRepo).Run()
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
-	oidcService, err := oidc.NewGoogleOIDCService(initCtx, cfg.oidcGoogleClientID, cfg.oidcGoogleClientSecret, fmt.Sprintf("%s/v1/auth/google/callback", cfg.serverURL))
+	oidcClient, err := oidc.NewGoogleClient(initCtx, cfg.oidcGoogleClientID, cfg.oidcGoogleClientSecret, fmt.Sprintf("%s/v1/auth/google/callback", cfg.serverURL))
 	if err != nil {
-		slog.Error("failed to create oidc service", slog.Any("error", err))
+		slog.Error("failed to create oidc client", slog.Any("error", err))
 		return 1
 	}
 
@@ -173,9 +168,9 @@ func run(ctx context.Context) int {
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	llmService, err := llm.NewGemini(initCtx, cfg.geminiAPIKey, "gemini-2.5-flash-lite")
+	llmClient, err := llm.NewGemini(initCtx, cfg.geminiAPIKey, "gemini-2.5-flash-lite")
 	if err != nil {
-		slog.Error("failed to create llm service", slog.Any("error", err))
+		slog.Error("failed to create llm client", slog.Any("error", err))
 		return 1
 	}
 	slog.Info("gemini api ok")
@@ -187,23 +182,23 @@ func run(ctx context.Context) int {
 	reportService := report.NewService(reportOpts...)
 
 	scheduler := scheduler.NewService()
-	if err := scheduler.AddFunc("0 0 * * *", job.NewLLMSummaryJob(db, llmService, discord_d.NewClient(cfg.discordWebhookURL))); err != nil {
+	if err := scheduler.AddFunc("0 0 * * *", job.NewLLMSummaryJob(db, llmClient, discord_d.NewClient(cfg.discordWebhookURL))); err != nil {
 		slog.Error("failed to setup llm summary job", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("0 0 * * *", job.NewPurgeLeftUserJob(db, feedRepo, discord_d.NewClient(cfg.discordWebhookURL))); err != nil {
+	if err := scheduler.AddFunc("0 0 * * *", job.NewPurgeLeftUserJob(db, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)), discord_d.NewClient(cfg.discordWebhookURL))); err != nil {
 		slog.Error("failed to setup purge left user job", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("50 6 * * *", job.NewExhaustQuotaJob(db, youtubeClient, feedRepo)); err != nil { // 夏
+	if err := scheduler.AddFunc("50 6 * * *", job.NewExhaustQuotaJob(db, youtubeClient, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)))); err != nil { // 夏
 		slog.Error("failed to setup exhaust quota job (PDT)", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("50 7 * * *", job.NewExhaustQuotaJob(db, youtubeClient, feedRepo)); err != nil { // 冬
+	if err := scheduler.AddFunc("50 7 * * *", job.NewExhaustQuotaJob(db, youtubeClient, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)))); err != nil { // 冬
 		slog.Error("failed to setup exhaust quota job (PST)", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("0 * * * *", job.NewRefillFeedJob(db, feedRepo)); err != nil {
+	if err := scheduler.AddFunc("0 * * * *", job.NewRefillFeedJob(db, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)))); err != nil {
 		slog.Error("failed to setup refill feed job", slog.Any("error", err))
 		return 1
 	}
@@ -223,9 +218,9 @@ func run(ctx context.Context) int {
 	if cfg.env != "production" {
 		r.Use(v1.SwaggerMiddleware())
 	}
-	admin.HandleAdminEndpoints(r, db, youtubeClient, feedRepo, cfg.adminAPIKey)
+	admin.HandleAdminEndpoints(r, db, youtubeClient, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)), cfg.adminAPIKey)
 	v1.HandlerFromMux(v1.NewStrictHandler(
-		v1.NewAPIHandler(db, oidcService, cfg.serverURL, cfg.frontendURL, jwtService, accessTokenDuration, 30*24*time.Hour, youtubeClient, 1*time.Hour, scheduler, jtiBlacklistRepo, feedRepo),
+		v1.NewAPIHandler(db, oidcClient, cfg.serverURL, cfg.frontendURL, jwtService, accessTokenDuration, 30*24*time.Hour, youtubeClient, 1*time.Hour, scheduler, jtiBlacklistRepo, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db))),
 		// StrictMiddlewareは下に書いた順から実行される
 		[]v1.StrictMiddlewareFunc{
 			middleware_d.ResponseCookieMiddleware,
@@ -253,7 +248,7 @@ func run(ctx context.Context) int {
 				"PostAuthReactivate": {},
 				"PostUsersMe":        {},
 			}),
-			middleware_d.UserRatelimitMiddleware(ratelimitRepo, 2000, map[string]int{
+			middleware_d.UserRatelimitMiddleware(database_d.NewRatelimitRepository(redisClient, 24*time.Hour), 2000, map[string]int{
 				"PostChannelsSubscribe":         3,
 				"GetSearch":                     100,
 				"PostPlaylists":                 100,

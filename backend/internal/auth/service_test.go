@@ -26,7 +26,7 @@ func TestService_CreateAuthCode(t *testing.T) {
 		// arrange
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			new(GoogleOIDCServiceMock{
+			new(GoogleClientMock{
 				AuthCodeURLFunc: func(state string) string {
 					return "https://accounts.google.com/o/oauth2/auth?state=" + state
 				},
@@ -58,7 +58,7 @@ func TestService_CreateAuthCode(t *testing.T) {
 		var capturedPlatform string
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			new(GoogleOIDCServiceMock{
+			new(GoogleClientMock{
 				AuthCodeURLFunc: func(state string) string { return "https://example.com" },
 			}),
 			nil,
@@ -88,7 +88,7 @@ func TestService_CreateAuthCode(t *testing.T) {
 		signErr := errors.New("sign failed")
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -118,7 +118,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		// arrange
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -141,7 +141,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		// arrange
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -164,7 +164,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		// arrange
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -192,7 +192,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		exchangeErr := errors.New("invalid code")
 		svc := auth.NewService(
 			testutil.NewTestPool(t),
-			new(GoogleOIDCServiceMock{
+			new(GoogleClientMock{
 				ExchangeAndVerifyFunc: func(_ context.Context, _ string) (string, error) {
 					return "", exchangeErr
 				},
@@ -221,7 +221,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		// arrange
 		svc := auth.NewService(
 			testutil.NewTestPool(t),
-			new(GoogleOIDCServiceMock{
+			new(GoogleClientMock{
 				ExchangeAndVerifyFunc: func(_ context.Context, _ string) (string, error) { return sub, nil },
 			}),
 			nil,
@@ -272,7 +272,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			new(GoogleOIDCServiceMock{
+			new(GoogleClientMock{
 				ExchangeAndVerifyFunc: func(_ context.Context, _ string) (string, error) { return sub, nil },
 			}),
 			nil,
@@ -323,7 +323,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			new(GoogleOIDCServiceMock{
+			new(GoogleClientMock{
 				ExchangeAndVerifyFunc: func(_ context.Context, _ string) (string, error) { return sub, nil },
 			}),
 			nil,
@@ -378,7 +378,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			new(GoogleOIDCServiceMock{
+			new(GoogleClientMock{
 				ExchangeAndVerifyFunc: func(_ context.Context, _ string) (string, error) { return sub, nil },
 			}),
 			nil,
@@ -453,7 +453,7 @@ func TestService_Logout(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -502,7 +502,7 @@ func TestService_Logout(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -576,7 +576,7 @@ func TestService_RefreshToken(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -606,7 +606,7 @@ func TestService_RefreshToken(t *testing.T) {
 		db := testutil.NewTestPool(t)
 		svc := auth.NewService(
 			db,
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -674,7 +674,7 @@ func TestService_GetSessions(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -737,7 +737,7 @@ func TestService_GetSessions(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -780,7 +780,7 @@ func TestService_GetSessions(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -852,7 +852,7 @@ func TestService_RemoveSession(t *testing.T) {
 		})
 		svc := auth.NewService(
 			db,
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -899,7 +899,7 @@ func TestService_RemoveSession(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -926,7 +926,7 @@ func TestService_CreateYouTubeAuthCode(t *testing.T) {
 		userID := uuid.Must(uuid.NewV7())
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			new(YouTubeClientMock{
 				OAuthAuthCodeURLFunc: func(state string) string {
 					return "https://youtube.com/oauth?state=" + state
@@ -958,7 +958,7 @@ func TestService_CreateYouTubeAuthCode(t *testing.T) {
 		// arrange
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -1009,7 +1009,7 @@ func TestService_ReactivateAccount(t *testing.T) {
 		jti := uuid.Must(uuid.NewV7())
 		svc := auth.NewService(
 			db,
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -1042,7 +1042,7 @@ func TestService_ReactivateAccount(t *testing.T) {
 		tokenErr := errors.New("invalid token")
 		svc := auth.NewService(
 			testutil.NewTestPool(t),
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
@@ -1080,7 +1080,7 @@ func TestService_ReactivateAccount(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			new(GoogleOIDCServiceMock{}),
+			new(GoogleClientMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),

@@ -1,6 +1,6 @@
 package auth
 
-//go:generate moq -out mock_oidc_service_test.go -pkg auth_test ../core/oidc GoogleOIDCService
+//go:generate moq -out mock_oidc_client_test.go -pkg auth_test ../core/oidc GoogleClient
 //go:generate moq -out mock_jwt_service_test.go -pkg auth_test ../core/jwt_d Service
 //go:generate moq -out mock_youtube_client_test.go -pkg auth_test ../core/youtube_d Client:YouTubeClientMock
 //go:generate moq -out mock_jti_blacklist_repository_test.go -pkg auth_test ../core/database_d JtiBlacklistRepository
@@ -36,7 +36,7 @@ var (
 type Service struct {
 	db *pgxpool.Pool
 
-	oidcService     oidc.GoogleOIDCService
+	oidcClient      oidc.GoogleClient
 	channelService  *channel.Service
 	playlistService *playlist.Service
 	youtubeClient   youtube_d.Client
@@ -55,7 +55,7 @@ type Service struct {
 
 func NewService(
 	db *pgxpool.Pool,
-	oidcService oidc.GoogleOIDCService,
+	oidcClient oidc.GoogleClient,
 	youtubeClient youtube_d.Client,
 	channelService *channel.Service,
 	playlistService *playlist.Service,
@@ -67,7 +67,7 @@ func NewService(
 ) *Service {
 	return new(Service{
 		db:                   db,
-		oidcService:          oidcService,
+		oidcClient:           oidcClient,
 		youtubeClient:        youtubeClient,
 		jwtService:           jwtService,
 		jtiBlacklistRepo:     jtiBlacklistRepo,
@@ -94,7 +94,7 @@ func (s *Service) CreateAuthCode(ctx context.Context, platform string) (_, _ str
 		return "", "", err
 	}
 
-	return s.oidcService.AuthCodeURL(stateToken), stateToken, nil
+	return s.oidcClient.AuthCodeURL(stateToken), stateToken, nil
 }
 
 func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipAddress, countryCode, deviceFingerprint, userAgent string) (
@@ -121,7 +121,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 		return "", "", "", "", "", time.Time{}, time.Time{}, ErrInvalidCSRFOrState
 	}
 
-	sub, err := s.oidcService.ExchangeAndVerify(ctx, code)
+	sub, err := s.oidcClient.ExchangeAndVerify(ctx, code)
 	if err != nil {
 		return "", "", "", "", "", time.Time{}, time.Time{}, err
 	}
