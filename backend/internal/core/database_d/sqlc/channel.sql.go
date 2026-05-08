@@ -246,39 +246,38 @@ const insertSubscription = `-- name: InsertSubscription :one
 INSERT INTO
     m_user_subscribing_channel (m_user_id, m_channel_id, subscribed_at)
 SELECT
-    (
-        SELECT
-            m_user.m_user_id
-        FROM
-            m_user
-        WHERE
-            m_user.public_id = $1
-        LIMIT
-            1
-    ) AS m_user_id,
+    u.m_user_id,
     (
         SELECT
             m_channel.m_channel_id
         FROM
             m_channel
         WHERE
-            m_channel.public_id = $2
+            m_channel.public_id = $1
         LIMIT
             1
     ),
-    $3
+    $2
+FROM
+    m_user u
+WHERE
+    u.public_id = $3
+    AND (
+        SELECT COUNT(*) FROM m_user_subscribing_channel
+        WHERE m_user_subscribing_channel.m_user_id = u.m_user_id
+    ) < 20
 RETURNING
     m_user_subscribing_channel.m_user_subscribing_channel_id
 `
 
 type InsertSubscriptionParams struct {
-	UserPublicID uuid.UUID
 	ChannelID    uuid.UUID
 	SubscribedAt time.Time
+	UserPublicID uuid.UUID
 }
 
 func (q *Queries) InsertSubscription(ctx context.Context, arg InsertSubscriptionParams) (int64, error) {
-	row := q.db.QueryRow(ctx, insertSubscription, arg.UserPublicID, arg.ChannelID, arg.SubscribedAt)
+	row := q.db.QueryRow(ctx, insertSubscription, arg.ChannelID, arg.SubscribedAt, arg.UserPublicID)
 	var m_user_subscribing_channel_id int64
 	err := row.Scan(&m_user_subscribing_channel_id)
 	return m_user_subscribing_channel_id, err

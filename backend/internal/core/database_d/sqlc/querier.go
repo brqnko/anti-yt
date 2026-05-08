@@ -59,6 +59,7 @@ type Querier interface {
 	InsertHeartbeat(ctx context.Context, arg InsertHeartbeatParams) error
 	InsertPlaylistVideo(ctx context.Context, arg InsertPlaylistVideoParams) error
 	// リフレッシュトークンをテーブルに保存する。
+	// 同一m_user_authorization_idのトークンが20件を超える場合、古いものから削除する。
 	// m_refresh_token_idが返される。
 	InsertRefreshToken(ctx context.Context, arg InsertRefreshTokenParams) (int64, error)
 	InsertSubscription(ctx context.Context, arg InsertSubscriptionParams) (int64, error)

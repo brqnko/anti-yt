@@ -13,6 +13,18 @@ import (
 )
 
 const insertRefreshToken = `-- name: InsertRefreshToken :one
+WITH evicted AS (
+    DELETE FROM m_refresh_token
+    WHERE m_refresh_token_id IN (
+        SELECT m_refresh_token_id
+        FROM m_refresh_token
+        WHERE m_user_authorization_id = $1
+        ORDER BY created_at ASC
+        LIMIT GREATEST(0, (
+            SELECT COUNT(*) FROM m_refresh_token WHERE m_user_authorization_id = $1
+        ) - 19)
+    )
+)
 INSERT INTO
     m_refresh_token (
         m_user_authorization_id,
@@ -56,6 +68,7 @@ type InsertRefreshTokenParams struct {
 }
 
 // リフレッシュトークンをテーブルに保存する。
+// 同一m_user_authorization_idのトークンが20件を超える場合、古いものから削除する。
 // m_refresh_token_idが返される。
 func (q *Queries) InsertRefreshToken(ctx context.Context, arg InsertRefreshTokenParams) (int64, error) {
 	row := q.db.QueryRow(ctx, insertRefreshToken,
