@@ -660,5 +660,5 @@ RETURNING
 SELECT COUNT(*)::int
 FROM m_playlist
 WHERE m_user_id = (
-    SELECT m_user_id FROM m_user WHERE public_id = @user_public_id LIMIT 1
+    SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_public_id LIMIT 1
 );
