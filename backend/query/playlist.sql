@@ -655,3 +655,10 @@ ON CONFLICT (public_id) DO UPDATE SET
     updated_at = CURRENT_TIMESTAMP
 RETURNING
     m_playlist.m_playlist_id;
+
+-- name: CountUserPlaylists :one
+SELECT COUNT(*)::int
+FROM m_playlist
+WHERE m_user_id = (
+    SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_public_id LIMIT 1
+);

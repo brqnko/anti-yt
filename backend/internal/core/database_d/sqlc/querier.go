@@ -22,6 +22,7 @@ type Querier interface {
 	CopyPlaylistVideos(ctx context.Context, arg CopyPlaylistVideosParams) (int, error)
 	// m_user_authorizationの件数を取得する（日次レポート用）
 	CountAuthorizations(ctx context.Context) (int64, error)
+	CountUserPlaylists(ctx context.Context, userPublicID uuid.UUID) (int, error)
 	// m_user_authorization_idに紐づくh_userとm_userの数を数える
 	CountUsersByAuthorization(ctx context.Context, publicID uuid.UUID) (int32, error)
 	// authorization_public_idに紐づく退会済みユーザーを削除する
@@ -59,6 +60,7 @@ type Querier interface {
 	InsertHeartbeat(ctx context.Context, arg InsertHeartbeatParams) error
 	InsertPlaylistVideo(ctx context.Context, arg InsertPlaylistVideoParams) error
 	// リフレッシュトークンをテーブルに保存する。
+	// 同一m_user_authorization_idのトークンが20件を超える場合、古いものから削除する。
 	// m_refresh_token_idが返される。
 	InsertRefreshToken(ctx context.Context, arg InsertRefreshTokenParams) (int64, error)
 	InsertSubscription(ctx context.Context, arg InsertSubscriptionParams) (int64, error)
