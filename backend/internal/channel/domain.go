@@ -2,6 +2,7 @@ package channel
 
 import (
 	"time"
+	"unicode/utf8"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
@@ -21,20 +22,14 @@ type SubscribedChannel struct {
 
 type SubscribedChannelOption func(*SubscribedChannel)
 
-func WithSubscribedChannelSubscribedAt(subscribedAt time.Time) SubscribedChannelOption {
-	return func(sc *SubscribedChannel) {
-		sc.SubscribedAt = subscribedAt
-	}
-}
-
 func NewSubscribedChannel(channelID, subscriberID uuid.UUID, opts ...SubscribedChannelOption) (_ *SubscribedChannel, err error) {
 	defer util.Wrap(&err, "channel.NewSubscribedChannel")
 
-	sc := &SubscribedChannel{
+	sc := new(SubscribedChannel{
 		SubscribedAt: time.Now().UTC(),
 		ChannelID:    channelID,
 		SubscriberID: subscriberID,
-	}
+	})
 
 	for _, opt := range opts {
 		opt(sc)
@@ -73,13 +68,13 @@ func NewChannel(fetchedAt, rssFetchedAt time.Time, channel youtube_d.Channel, op
 		return nil, err
 	}
 
-	c := &Channel{
+	c := new(Channel{
 		ID:            id,
 		FetchedAt:     fetchedAt,
 		RSSFetchedAt:  rssFetchedAt,
 		BulkFetchedAt: time.Now().UTC().AddDate(-1, 0, 0),
 		Channel:       channel,
-	}
+	})
 
 	for _, opt := range opts {
 		opt(c)
@@ -105,7 +100,7 @@ type ValuableDescription string
 func NewValuableDescription(description string) (_ ValuableDescription, err error) {
 	defer util.Wrap(&err, "channel.NewValuableDescription")
 
-	if len([]rune(description)) >= 256 {
+	if utf8.RuneCountInString(description) >= 256 {
 		return "", ErrInvalidValuableDescription
 	}
 
@@ -202,11 +197,11 @@ func NewValuableChannel(channelID uuid.UUID, reasonCode, valuableDescription str
 		return nil, err
 	}
 
-	return &ValuableChannel{
+	return new(ValuableChannel{
 		ChannelID:           channelID,
 		ValuableReasonCode:  rc,
 		ValuableDescription: description,
-	}, nil
+	}), nil
 }
 
 func (vc *ValuableChannel) SetReasonCode(reasonCode *string) (err error) {

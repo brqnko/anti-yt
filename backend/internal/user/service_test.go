@@ -57,24 +57,24 @@ func TestService_CreateNewUser(t *testing.T) {
 		jti := uuid.Must(uuid.NewV7())
 		svc := user.NewService(
 			db,
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyRegisterTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, error) {
 					return authPublicID, jti, nil
 				},
 				SignUserAccessTokenFunc: func(_, _ uuid.UUID, _ string) (string, time.Time, error) {
 					return "access-token", time.Now().Add(time.Hour), nil
 				},
-				TokenDurationFunc: func() time.Duration { return 15 * time.Minute },
-			},
+			}),
 			"http://localhost",
-			&JtiBlacklistRepositoryMock{
+			15*time.Minute,
+			new(JtiBlacklistRepositoryMock{
 				IsJtiExistFunc: func(_ context.Context, _ uuid.UUID) (bool, error) {
 					return false, nil
 				},
 				InsertJTIFunc: func(_ context.Context, _ uuid.UUID, _ time.Time) error {
 					return nil
 				},
-			},
+			}),
 		)
 
 		screenLimit := 3600
@@ -113,24 +113,24 @@ func TestService_CreateNewUser(t *testing.T) {
 		jti := uuid.Must(uuid.NewV7())
 		svc := user.NewService(
 			db,
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyRegisterTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, error) {
 					return authPublicID, jti, nil
 				},
 				SignUserAccessTokenFunc: func(_, _ uuid.UUID, _ string) (string, time.Time, error) {
 					return "access-token", time.Now().Add(time.Hour), nil
 				},
-				TokenDurationFunc: func() time.Duration { return 15 * time.Minute },
-			},
+			}),
 			"http://localhost",
-			&JtiBlacklistRepositoryMock{
+			15*time.Minute,
+			new(JtiBlacklistRepositoryMock{
 				IsJtiExistFunc: func(_ context.Context, _ uuid.UUID) (bool, error) {
 					return false, nil
 				},
 				InsertJTIFunc: func(_ context.Context, _ uuid.UUID, _ time.Time) error {
 					return nil
 				},
-			},
+			}),
 		)
 
 		screenLimit := 7200
@@ -171,24 +171,24 @@ func TestService_CreateNewUser(t *testing.T) {
 		jti := uuid.Must(uuid.NewV7())
 		svc := user.NewService(
 			db,
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyRegisterTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, error) {
 					return authPublicID, jti, nil
 				},
 				SignUserAccessTokenFunc: func(_, _ uuid.UUID, _ string) (string, time.Time, error) {
 					return "access-token", time.Now().Add(time.Hour), nil
 				},
-				TokenDurationFunc: func() time.Duration { return 15 * time.Minute },
-			},
+			}),
 			"http://localhost",
-			&JtiBlacklistRepositoryMock{
+			15*time.Minute,
+			new(JtiBlacklistRepositoryMock{
 				IsJtiExistFunc: func(_ context.Context, _ uuid.UUID) (bool, error) {
 					return false, nil
 				},
 				InsertJTIFunc: func(_ context.Context, _ uuid.UUID, _ time.Time) error {
 					return nil
 				},
-			},
+			}),
 		)
 
 		// action
@@ -206,13 +206,14 @@ func TestService_CreateNewUser(t *testing.T) {
 		tokenErr := errors.New("invalid token")
 		svc := user.NewService(
 			testutil.NewTestPool(t),
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyRegisterTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, error) {
 					return uuid.Nil, uuid.Nil, tokenErr
 				},
-			},
+			}),
 			"http://localhost",
-			&JtiBlacklistRepositoryMock{},
+			15*time.Minute,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -228,13 +229,14 @@ func TestService_CreateNewUser(t *testing.T) {
 		// arrange
 		svc := user.NewService(
 			testutil.NewTestPool(t),
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyRegisterTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, error) {
 					return uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), nil
 				},
-			},
+			}),
 			"http://localhost",
-			&JtiBlacklistRepositoryMock{},
+			15*time.Minute,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -250,13 +252,14 @@ func TestService_CreateNewUser(t *testing.T) {
 		// arrange
 		svc := user.NewService(
 			testutil.NewTestPool(t),
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyRegisterTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, error) {
 					return uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), nil
 				},
-			},
+			}),
 			"http://localhost",
-			&JtiBlacklistRepositoryMock{},
+			15*time.Minute,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -277,17 +280,18 @@ func TestService_CreateNewUser(t *testing.T) {
 		jti := uuid.Must(uuid.NewV7())
 		svc := user.NewService(
 			db,
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyRegisterTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, error) {
 					return authPublicID, jti, nil
 				},
-			},
+			}),
 			"http://localhost",
-			&JtiBlacklistRepositoryMock{
+			15*time.Minute,
+			new(JtiBlacklistRepositoryMock{
 				IsJtiExistFunc: func(_ context.Context, _ uuid.UUID) (bool, error) {
 					return false, nil
 				},
-			},
+			}),
 		)
 
 		// action
@@ -316,18 +320,19 @@ func TestService_CreateNewUser(t *testing.T) {
 
 		svc := user.NewService(
 			db,
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyRegisterTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, error) {
 					return authPublicID, jti, nil
 				},
-			},
+			}),
 			"http://localhost",
-			&JtiBlacklistRepositoryMock{
+			15*time.Minute,
+			new(JtiBlacklistRepositoryMock{
 				IsJtiExistFunc: func(_ context.Context, gotJti uuid.UUID) (bool, error) {
 					assert.Equal(t, jti, gotJti)
 					return true, nil
 				},
-			},
+			}),
 		)
 
 		// action
@@ -349,7 +354,7 @@ func TestService_EditUser(t *testing.T) {
 		q := sqlc.New(db)
 		_, userPublicID := setupUser(t, ctx, q)
 
-		svc := user.NewService(db, &ServiceMock{}, "http://localhost", &JtiBlacklistRepositoryMock{})
+		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
 
 		newName := "Updated Name"
 
@@ -367,7 +372,7 @@ func TestService_EditUser(t *testing.T) {
 		q := sqlc.New(db)
 		_, userPublicID := setupUser(t, ctx, q)
 
-		svc := user.NewService(db, &ServiceMock{}, "http://localhost", &JtiBlacklistRepositoryMock{})
+		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
 
 		newLang := "en"
 
@@ -385,7 +390,7 @@ func TestService_EditUser(t *testing.T) {
 		q := sqlc.New(db)
 		_, userPublicID := setupUser(t, ctx, q)
 
-		svc := user.NewService(db, &ServiceMock{}, "http://localhost", &JtiBlacklistRepositoryMock{})
+		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
 
 		newLimit := 7200
 
@@ -403,7 +408,7 @@ func TestService_EditUser(t *testing.T) {
 		q := sqlc.New(db)
 		_, userPublicID := setupUser(t, ctx, q)
 
-		svc := user.NewService(db, &ServiceMock{}, "http://localhost", &JtiBlacklistRepositoryMock{})
+		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
 
 		newRanges := []struct{ Start, End int }{
 			{Start: 0, End: 3600},
@@ -428,7 +433,7 @@ func TestService_EditUser(t *testing.T) {
 		q := sqlc.New(db)
 		_, userPublicID := setupUser(t, ctx, q)
 
-		svc := user.NewService(db, &ServiceMock{}, "http://localhost", &JtiBlacklistRepositoryMock{})
+		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
 
 		newName := "New Name"
 		newLang := "en"
@@ -450,7 +455,7 @@ func TestService_EditUser(t *testing.T) {
 	t.Run("nonexistent user returns error", func(t *testing.T) {
 		// arrange
 		db := testutil.NewTestPool(t)
-		svc := user.NewService(db, &ServiceMock{}, "http://localhost", &JtiBlacklistRepositoryMock{})
+		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
 
 		newName := "Updated Name"
 
@@ -467,7 +472,7 @@ func TestService_EditUser(t *testing.T) {
 		q := sqlc.New(db)
 		_, userPublicID := setupUser(t, ctx, q)
 
-		svc := user.NewService(db, &ServiceMock{}, "http://localhost", &JtiBlacklistRepositoryMock{})
+		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
 
 		emptyName := ""
 
@@ -484,7 +489,7 @@ func TestService_EditUser(t *testing.T) {
 		q := sqlc.New(db)
 		_, userPublicID := setupUser(t, ctx, q)
 
-		svc := user.NewService(db, &ServiceMock{}, "http://localhost", &JtiBlacklistRepositoryMock{})
+		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
 
 		invalidLang := "xx"
 
@@ -505,7 +510,7 @@ func TestService_GetUserStatus(t *testing.T) {
 		q := sqlc.New(db)
 		_, userPublicID := setupUser(t, ctx, q)
 
-		svc := user.NewService(db, &ServiceMock{}, "http://localhost", &JtiBlacklistRepositoryMock{})
+		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
 
 		// action
 		view, err := svc.GetUserStatus(ctx, userPublicID)
@@ -522,7 +527,7 @@ func TestService_GetUserStatus(t *testing.T) {
 	t.Run("nonexistent user returns error", func(t *testing.T) {
 		// arrange
 		db := testutil.NewTestPool(t)
-		svc := user.NewService(db, &ServiceMock{}, "http://localhost", &JtiBlacklistRepositoryMock{})
+		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
 
 		// action
 		_, err := svc.GetUserStatus(ctx, uuid.Must(uuid.NewV7()))
@@ -541,7 +546,7 @@ func TestService_RemoveUser(t *testing.T) {
 		q := sqlc.New(db)
 		_, userPublicID := setupUser(t, ctx, q)
 
-		svc := user.NewService(db, &ServiceMock{}, "http://localhost", &JtiBlacklistRepositoryMock{})
+		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
 
 		// action
 		err := svc.RemoveUser(ctx, userPublicID)
@@ -557,7 +562,7 @@ func TestService_RemoveUser(t *testing.T) {
 	t.Run("nonexistent user succeeds silently", func(t *testing.T) {
 		// arrange
 		db := testutil.NewTestPool(t)
-		svc := user.NewService(db, &ServiceMock{}, "http://localhost", &JtiBlacklistRepositoryMock{})
+		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
 
 		// action
 		err := svc.RemoveUser(ctx, uuid.Must(uuid.NewV7()))

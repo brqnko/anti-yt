@@ -10,11 +10,14 @@ func IntToHHmm(minutes int) (string, error) {
 }
 
 func Truncate(s string, maxLen int) string {
-	r := []rune(s)
-	if len(r) <= maxLen {
-		return s
+	count := 0
+	for i := range s {
+		if count == maxLen {
+			return s[:i]
+		}
+		count++
 	}
-	return string(r[:maxLen])
+	return s
 }
 
 func HHmmToInt(s string) (int, error) {

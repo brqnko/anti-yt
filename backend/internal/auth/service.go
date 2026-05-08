@@ -2,7 +2,7 @@ package auth
 
 //go:generate moq -out mock_oidc_service_test.go -pkg auth_test ../core/oidc GoogleOIDCService
 //go:generate moq -out mock_jwt_service_test.go -pkg auth_test ../core/jwt_d Service
-//go:generate moq -out mock_youtube_service_test.go -pkg auth_test ../core/youtube_d Service:YouTubeServiceMock
+//go:generate moq -out mock_youtube_client_test.go -pkg auth_test ../core/youtube_d Client:YouTubeClientMock
 //go:generate moq -out mock_jti_blacklist_repository_test.go -pkg auth_test ../core/database_d JtiBlacklistRepository
 
 import (
@@ -39,12 +39,13 @@ type Service struct {
 	oidcService     oidc.GoogleOIDCService
 	channelService  *channel.Service
 	playlistService *playlist.Service
-	ytService       youtube_d.Service
+	youtubeClient   youtube_d.Client
 
 	jwtService       jwt_d.Service
 	jtiBlacklistRepo database_d.JtiBlacklistRepository
 
 	serverURL            string
+	accessTokenDuration  time.Duration
 	refreshTokenDuration time.Duration
 
 	refreshTokenQS  RefreshTokenQueryService
@@ -55,28 +56,30 @@ type Service struct {
 func NewService(
 	db *pgxpool.Pool,
 	oidcService oidc.GoogleOIDCService,
-	youtubeService youtube_d.Service,
+	youtubeClient youtube_d.Client,
 	channelService *channel.Service,
 	playlistService *playlist.Service,
 	serverURL string,
 	jwtService jwt_d.Service,
+	accessTokenDuration time.Duration,
 	refreshTokenDuration time.Duration,
 	jtiBlacklistRepo database_d.JtiBlacklistRepository,
 ) *Service {
-	return &Service{
+	return new(Service{
 		db:                   db,
 		oidcService:          oidcService,
-		ytService:            youtubeService,
+		youtubeClient:        youtubeClient,
 		jwtService:           jwtService,
 		jtiBlacklistRepo:     jtiBlacklistRepo,
 		serverURL:            serverURL,
+		accessTokenDuration:  accessTokenDuration,
 		refreshTokenDuration: refreshTokenDuration,
 		refreshTokenQS:       NewRefreshTokenQueryService(db),
 		authorizationQS:      NewAuthorizationQueryService(db),
 		userQS:               user.NewUserQueryService(db),
 		channelService:       channelService,
 		playlistService:      playlistService,
-	}
+	})
 }
 
 func (s *Service) CreateAuthCode(ctx context.Context, platform string) (_, _ string, err error) {
@@ -271,7 +274,7 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 	}()
 	q := sqlc.New(tx)
 
-	userID, err := NewRefreshTokenRepository(q).RotateRefreshToken(ctx, newRefreshToken, tokenHash, time.Now().UTC().Add(-s.jwtService.TokenDuration()).UTC())
+	userID, err := NewRefreshTokenRepository(q).RotateRefreshToken(ctx, newRefreshToken, tokenHash, time.Now().UTC().Add(-s.accessTokenDuration).UTC())
 	if err != nil { // 条件を満たさない、あるいはDBエラー
 		return "", "", time.Time{}, time.Time{}, err
 	}
@@ -312,8 +315,8 @@ func (s *Service) RemoveSession(ctx context.Context, userID, sessionID uuid.UUID
 
 	// 削除されたセッションに紐づく access token の jti をブラックリスト入りさせる。
 	// access token の残り有効期限分だけ TTL を持たせれば十分だが、ここでは sessionID から
-	// 取得できないので jwtService.TokenDuration() を上限としてセットする。
-	if err := s.jtiBlacklistRepo.InsertJTI(ctx, accessTokenJTI, time.Now().UTC().Add(s.jwtService.TokenDuration())); err != nil {
+	// 取得できないので accessTokenDuration を上限としてセットする。
+	if err := s.jtiBlacklistRepo.InsertJTI(ctx, accessTokenJTI, time.Now().UTC().Add(s.accessTokenDuration)); err != nil {
 		return uuid.Nil, err
 	}
 
@@ -332,7 +335,7 @@ func (s *Service) CreateYouTubeAuthCode(_ context.Context, userID uuid.UUID, imp
 		return "", err
 	}
 
-	return s.ytService.OAuthAuthCodeURL(state), nil
+	return s.youtubeClient.OAuthAuthCodeURL(state), nil
 }
 
 func (s *Service) YouTubeOAuthCallback(ctx context.Context, state, code string) (err error) {
@@ -343,14 +346,14 @@ func (s *Service) YouTubeOAuthCallback(ctx context.Context, state, code string) 
 		return ErrInvalidCSRFOrState
 	}
 
-	ytAccessToken, err := s.ytService.OAuthExchange(ctx, code)
+	oauthClient, err := s.youtubeClient.OAuthExchange(ctx, code)
 	if err != nil {
 		return err
 	}
 
 	// 登録してるチャンネルを取得
 	if importSubscriptions {
-		channels, err := s.ytService.FetchAllSubscriptions(ctx, ytAccessToken)
+		channels, err := oauthClient.FetchAllSubscriptions(ctx)
 		if err != nil {
 			return err
 		}
@@ -366,7 +369,7 @@ func (s *Service) YouTubeOAuthCallback(ctx context.Context, state, code string) 
 
 	// 高評価プレイリストをimport
 	if importLikes {
-		if _, err := s.playlistService.CreatePlaylistWithAccessToken(ctx, userID, "高評価した動画", "", "private", "normal", ytAccessToken, "LL"); err != nil {
+		if _, err := s.playlistService.CreatePlaylistWithOAuthClient(ctx, userID, "高評価した動画", "", "private", "normal", oauthClient, "LL"); err != nil {
 			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to import liked playlist(youtube oauth callback)", slog.Any("error", err))
 		}
 	}
@@ -413,7 +416,7 @@ func (s *Service) ReactivateAccount(ctx context.Context, registerAccessToken str
 	}
 
 	// 使用済みregisterトークンのJTIをブラックリストに追加
-	if err := s.jtiBlacklistRepo.InsertJTI(ctx, jti, time.Now().UTC().Add(s.jwtService.TokenDuration())); err != nil {
+	if err := s.jtiBlacklistRepo.InsertJTI(ctx, jti, time.Now().UTC().Add(s.accessTokenDuration)); err != nil {
 		return err
 	}
 

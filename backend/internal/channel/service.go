@@ -1,6 +1,6 @@
 package channel
 
-//go:generate moq -out mock_youtube_service_test.go -pkg channel_test ../core/youtube_d Service
+//go:generate moq -out mock_youtube_client_test.go -pkg channel_test ../core/youtube_d Client
 
 import (
 	"context"
@@ -20,9 +20,9 @@ import (
 )
 
 type Service struct {
-	db        *pgxpool.Pool
-	ytService youtube_d.Service
-	feedRepo  database_d.FeedRepository
+	db            *pgxpool.Pool
+	youtubeClient youtube_d.Client
+	feedRepo      database_d.FeedRepository
 
 	channelQS         ChannelQueryService
 	valuableChannelQS ValuableChannelQueryService
@@ -38,18 +38,18 @@ var (
 
 func NewService(
 	db *pgxpool.Pool,
-	ytService youtube_d.Service,
+	youtubeClient youtube_d.Client,
 	feedRepo database_d.FeedRepository,
 	rssFetchDuration time.Duration,
 ) *Service {
-	return &Service{
+	return new(Service{
 		db:                db,
-		ytService:         ytService,
+		youtubeClient:     youtubeClient,
 		feedRepo:          feedRepo,
 		rssFetchDuration:  rssFetchDuration,
 		channelQS:         NewChannelQueryService(db),
 		valuableChannelQS: NewValuableChannelQueryService(db),
-	}
+	})
 }
 
 func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channelText string) (_ *Channel, err error) {
@@ -84,7 +84,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 	}
 	if errors.Is(err, core.ErrNotFound) { // 保存されてない場合
 		// YouTubeからチャンネル情報を取得
-		channelDetail, err := s.ytService.FetchChannelDetailByIDOrHandle(ctx, channelIDOrHandle)
+		channelDetail, err := s.youtubeClient.FetchChannelDetailByIDOrHandle(ctx, channelIDOrHandle)
 		fetchedAt := time.Now().UTC()
 		if err != nil {
 			return nil, err
@@ -107,13 +107,13 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 		// NOTE: 新しいチャンネルは、新規ユーザーによる可能性が高い. 新規ユーザーは貴重なため、RSS Feedより確実なYouTube Data APIで動画を取得しておく
 		// ちなみにYouTubeのPlaylistのIDには種類がある(ユーザーのアップロードしたリストや普通のプレイリスト、自動生成されたプレイリストなど)
 		// FetchPlaylistVideoIDsは汎用的なメソッドのためstirngを受け取っている
-		uploadIDs, _, err := s.ytService.FetchPlaylistVideoIDs(ctx, string(channel.Channel.UploadsPlaylistID), "")
+		uploadIDs, _, err := s.youtubeClient.FetchPlaylistVideoIDs(ctx, string(channel.Channel.UploadsPlaylistID), "")
 		if err != nil {
 			return nil, err
 		}
 
 		// チャンネルの投稿動画IDリストから、それぞれの動画情報を取得する
-		videoDetails, err := s.ytService.FetchVideoDetail(ctx, uploadIDs)
+		videoDetails, err := s.youtubeClient.FetchVideoDetail(ctx, uploadIDs)
 		if err != nil {
 			return nil, err
 		}
@@ -225,13 +225,13 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 	}
 	if lockedChannel.ShouldFetchRSSFeed(s.rssFetchDuration) {
 		// PlaylistAPIから動画ID一覧を取得する
-		videoIDs, _, err := s.ytService.FetchPlaylistVideoIDs(ctx, string(lockedChannel.Channel.UploadsPlaylistID), "")
+		videoIDs, _, err := s.youtubeClient.FetchPlaylistVideoIDs(ctx, string(lockedChannel.Channel.UploadsPlaylistID), "")
 		if err != nil {
 			return nil, false, err
 		}
 
 		// 動画ID一覧から動画の詳細情報を取得する
-		videoDetailMap, err := s.ytService.FetchVideoDetail(ctx, videoIDs)
+		videoDetailMap, err := s.youtubeClient.FetchVideoDetail(ctx, videoIDs)
 		if err != nil {
 			return nil, false, err
 		}
@@ -248,7 +248,7 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(get channel uploads)", slog.Any("error", err))
 				continue
 			}
-			if err := video.FanOut(ctx, q, s.feedRepo, v); err != nil {
+			if err := s.feedRepo.FanOut(ctx, v.ChannelID, v.ID); err != nil {
 				util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(get channel uploads)", slog.Any("error", err))
 			}
 		}
@@ -297,7 +297,7 @@ func (s *Service) GetChannelDetail(ctx context.Context, userID uuid.UUID, rawID 
 	}
 
 	// 外部IDまたはハンドルで見つからない場合は YouTube からフェッチして保存
-	ytChannel, err := s.ytService.FetchChannelDetailByIDOrHandle(ctx, *externalChannelID)
+	ytChannel, err := s.youtubeClient.FetchChannelDetailByIDOrHandle(ctx, *externalChannelID)
 	if err != nil {
 		return GetChannelDetailView{}, err
 	}
@@ -313,11 +313,11 @@ func (s *Service) GetChannelDetail(ctx context.Context, userID uuid.UUID, rawID 
 	}
 
 	// チャンネルの投稿動画(IDのみ)をAPIから取得する。1ページで最大50件。
-	uploadIDs, _, err := s.ytService.FetchPlaylistVideoIDs(ctx, string(ch.Channel.UploadsPlaylistID), "")
+	uploadIDs, _, err := s.youtubeClient.FetchPlaylistVideoIDs(ctx, string(ch.Channel.UploadsPlaylistID), "")
 	if err != nil {
 		util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fetch playlist video ids(get channel detail)", slog.Any("error", err))
 	} else {
-		videoDetails, err := s.ytService.FetchVideoDetail(ctx, uploadIDs)
+		videoDetails, err := s.youtubeClient.FetchVideoDetail(ctx, uploadIDs)
 		if err != nil {
 			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fetch video detail(get channel detail)", slog.Any("error", err))
 		} else {
@@ -388,7 +388,7 @@ func (s *Service) CreateNewValuableChannel(ctx context.Context, externalChannelI
 	}
 	if errors.Is(err, core.ErrNotFound) {
 		// YouTubeからチャンネル情報を取得
-		channelDetail, err := s.ytService.FetchChannelDetailByIDOrHandle(ctx, channelIDOrHandle)
+		channelDetail, err := s.youtubeClient.FetchChannelDetailByIDOrHandle(ctx, channelIDOrHandle)
 		fetchedAt := time.Now().UTC()
 		if err != nil {
 			return nil, err
@@ -406,13 +406,13 @@ func (s *Service) CreateNewValuableChannel(ctx context.Context, externalChannelI
 		}
 
 		// チャンネルの投稿動画(IDのみ)をAPIから取得する
-		uploadIDs, _, err := s.ytService.FetchPlaylistVideoIDs(ctx, string(ch.Channel.UploadsPlaylistID), "")
+		uploadIDs, _, err := s.youtubeClient.FetchPlaylistVideoIDs(ctx, string(ch.Channel.UploadsPlaylistID), "")
 		if err != nil {
 			return nil, err
 		}
 
 		// チャンネルの投稿動画IDリストから、それぞれの動画情報を取得する
-		videoDetails, err := s.ytService.FetchVideoDetail(ctx, uploadIDs)
+		videoDetails, err := s.youtubeClient.FetchVideoDetail(ctx, uploadIDs)
 		if err != nil {
 			return nil, err
 		}
@@ -430,7 +430,7 @@ func (s *Service) CreateNewValuableChannel(ctx context.Context, externalChannelI
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(create valuable channel)", slog.Any("error", err))
 				continue
 			}
-			if err := video.FanOut(ctx, q, s.feedRepo, v); err != nil {
+			if err := s.feedRepo.FanOut(ctx, v.ChannelID, v.ID); err != nil {
 				util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(create valuable channel)", slog.Any("error", err))
 			}
 		}

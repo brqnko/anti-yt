@@ -72,7 +72,7 @@ func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (_ Us
 		LanguageCode:         first.LanguageCode,
 		JoinedAt:             first.JoinedAt.UTC(),
 		DailyScreenSeconds:   dailyScreenSeconds,
-		ScreenTimeLimitRange: &DailyScreenTimeLimitRangeSet{Ranges: ranges},
+		ScreenTimeLimitRange: new(DailyScreenTimeLimitRangeSet{Ranges: ranges}),
 	}, nil
 }
 

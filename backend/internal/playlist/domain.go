@@ -2,6 +2,7 @@ package playlist
 
 import (
 	"time"
+	"unicode/utf8"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -13,8 +14,8 @@ var (
 	ErrInvalidPlaylistDescription = core.NewDomainError("playlist.invalid_description", "invalid playlist description: must be at most 255 characters", core.StatusBadRequest)
 	ErrInvalidVisibilityCode      = core.NewDomainError("playlist.invalid_visibility_code", "invalid visibility code", core.StatusBadRequest)
 	ErrInvalidPlaylistCode        = core.NewDomainError("playlist.invalid_playlist_code", "invalid playlist code", core.StatusBadRequest)
-	ErrPlaylistNotModifiable = core.NewDomainError("playlist.not_modifiable", "this playlist cannot be modified", core.StatusForbidden)
-	ErrTooManyPlaylists      = core.NewDomainError("playlist.too_many_playlists", "playlist limit reached (max 20)", core.StatusBadRequest)
+	ErrPlaylistNotModifiable      = core.NewDomainError("playlist.not_modifiable", "this playlist cannot be modified", core.StatusForbidden)
+	ErrTooManyPlaylists           = core.NewDomainError("playlist.too_many_playlists", "playlist limit reached (max 20)", core.StatusBadRequest)
 )
 
 type VisibilityCode int
@@ -54,7 +55,8 @@ type PlaylistTitle string
 func NewPlaylistTitle(s string) (_ PlaylistTitle, err error) {
 	defer util.Wrap(&err, "playlist.NewPlaylistTitle")
 
-	if len([]rune(s)) == 0 || len([]rune(s)) > 128 {
+	length := utf8.RuneCountInString(s)
+	if length == 0 || length > 128 {
 		return "", ErrInvalidPlaylistTitle
 	}
 	return PlaylistTitle(s), nil
@@ -69,7 +71,7 @@ type PlaylistDescription string
 func NewPlaylistDescription(s string) (_ PlaylistDescription, err error) {
 	defer util.Wrap(&err, "playlist.NewPlaylistDescription")
 
-	if len([]rune(s)) >= 256 {
+	if utf8.RuneCountInString(s) >= 256 {
 		return "", ErrInvalidPlaylistDescription
 	}
 	return PlaylistDescription(s), nil
@@ -243,7 +245,7 @@ func NewPlaylist(
 		return nil, err
 	}
 
-	pl := &Playlist{
+	pl := new(Playlist{
 		ID:             id,
 		UserID:         userID,
 		Title:          t,
@@ -252,7 +254,7 @@ func NewPlaylist(
 		PlaylistCode:   pc,
 		VideoCount:     0,
 		RegisteredAt:   time.Now().UTC(),
-	}
+	})
 
 	for _, opt := range opts {
 		opt(pl)

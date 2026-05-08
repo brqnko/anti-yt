@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
@@ -26,7 +27,7 @@ type llmSummaryJob struct {
 	db *pgxpool.Pool
 
 	llmService     llm.Service
-	discordService discord_d.Service
+	discordClient discord_d.Client
 	mx             *sync.Mutex
 }
 
@@ -35,14 +36,14 @@ type summaryResponse struct {
 	Description string `json:"description"`
 }
 
-var summarySchema = &genai.Schema{
+var summarySchema = new(genai.Schema{
 	Type: genai.TypeObject,
 	Properties: map[string]*genai.Schema{
 		"title":       {Type: genai.TypeString, Description: "short summary title (max 50 characters)"},
 		"description": {Type: genai.TypeString, Description: "detailed description of viewing patterns and interests (max 500 characters)"},
 	},
 	Required: []string{"title", "description"},
-}
+})
 
 var summaryPromptTemplates = map[string]string{
 	"ja": `あなたはユーザーの友達のように話すYouTube視聴履歴アナリストです。
@@ -154,11 +155,11 @@ func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 		}
 
 		// VARCHAR(128) / VARCHAR(4096) はcharacter数なのでruneで切る
-		if runes := []rune(summary.Title); len(runes) > 128 {
-			summary.Title = string(runes[:128])
+		if utf8.RuneCountInString(summary.Title) > 128 {
+			summary.Title = string([]rune(summary.Title)[:128])
 		}
-		if runes := []rune(summary.Description); len(runes) > 4096 {
-			summary.Description = string(runes[:4096])
+		if utf8.RuneCountInString(summary.Description) > 4096 {
+			summary.Description = string([]rune(summary.Description)[:4096])
 		}
 
 		if err := q.UpsertMonthlyVideoWatchSummary(ctx, sqlc.UpsertMonthlyVideoWatchSummaryParams{
@@ -191,17 +192,17 @@ func (j *llmSummaryJob) Run() {
 
 	if err := j.run(ctx); err != nil {
 		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to run llm summary job", slog.Any("error", err))
-		if wErr := j.discordService.SendWebhookMessage(ctx, fmt.Sprintf("[Error] llm summary job: %v", err)); wErr != nil {
+		if wErr := j.discordClient.SendWebhookMessage(ctx, fmt.Sprintf("[Error] llm summary job: %v", err)); wErr != nil {
 			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to send discord webhook", slog.Any("error", wErr))
 		}
 	}
 }
 
-func NewLLMSummaryJob(db *pgxpool.Pool, llmService llm.Service, discordService discord_d.Service) scheduler.Job {
+func NewLLMSummaryJob(db *pgxpool.Pool, llmService llm.Service, discordClient discord_d.Client) scheduler.Job {
 	return &llmSummaryJob{
 		llmService:     llmService,
-		discordService: discordService,
+		discordClient: discordClient,
 		db:             db,
-		mx:             &sync.Mutex{},
+		mx:             new(sync.Mutex{}),
 	}
 }

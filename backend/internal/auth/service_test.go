@@ -26,22 +26,22 @@ func TestService_CreateAuthCode(t *testing.T) {
 		// arrange
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			&GoogleOIDCServiceMock{
+			new(GoogleOIDCServiceMock{
 				AuthCodeURLFunc: func(state string) string {
 					return "https://accounts.google.com/o/oauth2/auth?state=" + state
 				},
-			},
+			}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
+			new(ServiceMock{
 				SignOIDCStateTokenFunc: func(platform, _ string) (string, error) {
 					return "state-token-" + platform, nil
 				},
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -58,21 +58,21 @@ func TestService_CreateAuthCode(t *testing.T) {
 		var capturedPlatform string
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			&GoogleOIDCServiceMock{
+			new(GoogleOIDCServiceMock{
 				AuthCodeURLFunc: func(state string) string { return "https://example.com" },
-			},
+			}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
+			new(ServiceMock{
 				SignOIDCStateTokenFunc: func(platform, _ string) (string, error) {
 					capturedPlatform = platform
 					return "state-token", nil
 				},
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -88,18 +88,18 @@ func TestService_CreateAuthCode(t *testing.T) {
 		signErr := errors.New("sign failed")
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
+			new(ServiceMock{
 				SignOIDCStateTokenFunc: func(_, _ string) (string, error) {
 					return "", signErr
 				},
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -118,14 +118,14 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		// arrange
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			new(ServiceMock{}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -141,14 +141,14 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		// arrange
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			new(ServiceMock{}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -164,18 +164,18 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		// arrange
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyOIDCStateTokenFunc: func(_ string) (string, error) {
 					return "", auth.ErrInvalidCSRFOrState
 				},
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -192,20 +192,20 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		exchangeErr := errors.New("invalid code")
 		svc := auth.NewService(
 			testutil.NewTestPool(t),
-			&GoogleOIDCServiceMock{
+			new(GoogleOIDCServiceMock{
 				ExchangeAndVerifyFunc: func(_ context.Context, _ string) (string, error) {
 					return "", exchangeErr
 				},
-			},
+			}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyOIDCStateTokenFunc: func(_ string) (string, error) { return "web", nil },
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -221,21 +221,21 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		// arrange
 		svc := auth.NewService(
 			testutil.NewTestPool(t),
-			&GoogleOIDCServiceMock{
+			new(GoogleOIDCServiceMock{
 				ExchangeAndVerifyFunc: func(_ context.Context, _ string) (string, error) { return sub, nil },
-			},
+			}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyOIDCStateTokenFunc: func(_ string) (string, error) { return "web", nil },
 				SignRegisterTokenFunc: func(_, _ uuid.UUID, _ string) (string, time.Time, error) {
 					return "register-token", time.Now().Add(time.Hour), nil
 				},
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -272,21 +272,21 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			&GoogleOIDCServiceMock{
+			new(GoogleOIDCServiceMock{
 				ExchangeAndVerifyFunc: func(_ context.Context, _ string) (string, error) { return sub, nil },
-			},
+			}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyOIDCStateTokenFunc: func(_ string) (string, error) { return "web", nil },
 				SignUserAccessTokenFunc: func(_, _ uuid.UUID, _ string) (string, time.Time, error) {
 					return "access-token", time.Now().Add(time.Hour), nil
 				},
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -323,21 +323,21 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			&GoogleOIDCServiceMock{
+			new(GoogleOIDCServiceMock{
 				ExchangeAndVerifyFunc: func(_ context.Context, _ string) (string, error) { return sub, nil },
-			},
+			}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyOIDCStateTokenFunc: func(_ string) (string, error) { return "web", nil },
 				SignUserAccessTokenFunc: func(_, _ uuid.UUID, _ string) (string, time.Time, error) {
 					return "access-token", time.Now().Add(time.Hour), nil
 				},
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action & assert
@@ -378,21 +378,21 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			&GoogleOIDCServiceMock{
+			new(GoogleOIDCServiceMock{
 				ExchangeAndVerifyFunc: func(_ context.Context, _ string) (string, error) { return sub, nil },
-			},
+			}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyOIDCStateTokenFunc: func(_ string) (string, error) { return "web", nil },
 				SignRegisterTokenFunc: func(_, _ uuid.UUID, _ string) (string, time.Time, error) {
 					return "register-token", time.Now().Add(time.Hour), nil
 				},
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -453,22 +453,22 @@ func TestService_Logout(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyUserAccessTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, time.Time, error) {
 					return userPublicID, uuid.Nil, time.Time{}, nil
 				},
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{
 				InsertJTIFunc: func(_ context.Context, _ uuid.UUID, _ time.Time) error {
 					return nil
 				},
-			},
+			}),
 		)
 
 		// action
@@ -502,18 +502,18 @@ func TestService_Logout(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyUserAccessTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, time.Time, error) {
 					return userPublicID, uuid.Nil, time.Time{}, nil
 				},
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -576,19 +576,18 @@ func TestService_RefreshToken(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
-				TokenDurationFunc: func() time.Duration { return 15 * time.Minute },
+			new(ServiceMock{
 				SignUserAccessTokenFunc: func(_, _ uuid.UUID, _ string) (string, time.Time, error) {
 					return "new-access-token", time.Now().Add(15 * time.Minute), nil
 				},
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -607,16 +606,15 @@ func TestService_RefreshToken(t *testing.T) {
 		db := testutil.NewTestPool(t)
 		svc := auth.NewService(
 			db,
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
-				TokenDurationFunc: func() time.Duration { return 15 * time.Minute },
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			new(ServiceMock{
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -676,14 +674,14 @@ func TestService_GetSessions(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			new(ServiceMock{}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -739,14 +737,14 @@ func TestService_GetSessions(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			new(ServiceMock{}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -782,14 +780,14 @@ func TestService_GetSessions(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			new(ServiceMock{}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -847,22 +845,21 @@ func TestService_RemoveSession(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		jtiRepo := &JtiBlacklistRepositoryMock{
+		jtiRepo := new(JtiBlacklistRepositoryMock{
 			InsertJTIFunc: func(_ context.Context, _ uuid.UUID, _ time.Time) error {
 				return nil
 			},
-		}
+		})
 		svc := auth.NewService(
 			db,
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
-				TokenDurationFunc: func() time.Duration { return 15 * time.Minute },
-			},
-			7*24*time.Hour,
+			new(ServiceMock{
+			}),
+			15*time.Minute, 7*24*time.Hour,
 			jtiRepo,
 		)
 
@@ -902,16 +899,15 @@ func TestService_RemoveSession(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
-				TokenDurationFunc: func() time.Duration { return 15 * time.Minute },
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			new(ServiceMock{
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -930,24 +926,24 @@ func TestService_CreateYouTubeAuthCode(t *testing.T) {
 		userID := uuid.Must(uuid.NewV7())
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			&GoogleOIDCServiceMock{},
-			&YouTubeServiceMock{
+			new(GoogleOIDCServiceMock{}),
+			new(YouTubeClientMock{
 				OAuthAuthCodeURLFunc: func(state string) string {
 					return "https://youtube.com/oauth?state=" + state
 				},
-			},
+			}),
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
+			new(ServiceMock{
 				SignYouTubeImportStateTokenFunc: func(_ uuid.UUID, importSubs, importLikes bool, _ string) (string, error) {
 					assert.True(t, importSubs)
 					assert.False(t, importLikes)
 					return "yt-state-token", nil
 				},
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -962,14 +958,14 @@ func TestService_CreateYouTubeAuthCode(t *testing.T) {
 		// arrange
 		svc := auth.NewService(
 			(*pgxpool.Pool)(nil),
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			new(ServiceMock{}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -1013,26 +1009,25 @@ func TestService_ReactivateAccount(t *testing.T) {
 		jti := uuid.Must(uuid.NewV7())
 		svc := auth.NewService(
 			db,
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyRegisterTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, error) {
 					return authPublicID, jti, nil
 				},
-				TokenDurationFunc: func() time.Duration { return 15 * time.Minute },
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{
 				IsJtiExistFunc: func(_ context.Context, _ uuid.UUID) (bool, error) {
 					return false, nil
 				},
 				InsertJTIFunc: func(_ context.Context, _ uuid.UUID, _ time.Time) error {
 					return nil
 				},
-			},
+			}),
 		)
 
 		// action
@@ -1047,18 +1042,18 @@ func TestService_ReactivateAccount(t *testing.T) {
 		tokenErr := errors.New("invalid token")
 		svc := auth.NewService(
 			testutil.NewTestPool(t),
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyRegisterTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, error) {
 					return uuid.Nil, uuid.Nil, tokenErr
 				},
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{},
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
@@ -1085,23 +1080,23 @@ func TestService_ReactivateAccount(t *testing.T) {
 
 		svc := auth.NewService(
 			db,
-			&GoogleOIDCServiceMock{},
+			new(GoogleOIDCServiceMock{}),
 			nil,
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			&ServiceMock{
+			new(ServiceMock{
 				VerifyRegisterTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, error) {
 					return authPublicID, jti, nil
 				},
-			},
-			7*24*time.Hour,
-			&JtiBlacklistRepositoryMock{
+			}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{
 				IsJtiExistFunc: func(_ context.Context, gotJti uuid.UUID) (bool, error) {
 					assert.Equal(t, jti, gotJti)
 					return true, nil
 				},
-			},
+			}),
 		)
 
 		// action

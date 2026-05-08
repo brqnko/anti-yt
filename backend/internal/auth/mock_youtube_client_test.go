@@ -9,19 +9,16 @@ import (
 	"sync"
 )
 
-// Ensure, that YouTubeServiceMock does implement youtube_d.Service.
+// Ensure, that YouTubeClientMock does implement youtube_d.Client.
 // If this is not the case, regenerate this file with moq.
-var _ youtube_d.Service = &YouTubeServiceMock{}
+var _ youtube_d.Client = &YouTubeClientMock{}
 
-// YouTubeServiceMock is a mock implementation of youtube_d.Service.
+// YouTubeClientMock is a mock implementation of youtube_d.Client.
 //
-//	func TestSomethingThatUsesService(t *testing.T) {
+//	func TestSomethingThatUsesClient(t *testing.T) {
 //
-//		// make and configure a mocked youtube_d.Service
-//		mockedService := &YouTubeServiceMock{
-//			FetchAllSubscriptionsFunc: func(ctx context.Context, accessToken string) ([]youtube_d.Channel, error) {
-//				panic("mock out the FetchAllSubscriptions method")
-//			},
+//		// make and configure a mocked youtube_d.Client
+//		mockedClient := &YouTubeClientMock{
 //			FetchChannelDetailFunc: func(ctx context.Context, channelIDs []youtube_d.ChannelID) (map[youtube_d.ChannelID]youtube_d.Channel, error) {
 //				panic("mock out the FetchChannelDetail method")
 //			},
@@ -34,19 +31,13 @@ var _ youtube_d.Service = &YouTubeServiceMock{}
 //			FetchPlaylistVideoIDsFunc: func(ctx context.Context, playlistID string, pageToken string) ([]youtube_d.VideoID, string, error) {
 //				panic("mock out the FetchPlaylistVideoIDs method")
 //			},
-//			FetchPlaylistVideoIDsWithOAuthFunc: func(ctx context.Context, accessToken string, playlistID string, pageToken string) ([]youtube_d.VideoID, string, error) {
-//				panic("mock out the FetchPlaylistVideoIDsWithOAuth method")
-//			},
 //			FetchVideoDetailFunc: func(ctx context.Context, videoIDs []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
 //				panic("mock out the FetchVideoDetail method")
-//			},
-//			FetchWatchHistoryFunc: func(ctx context.Context, accessToken string, pageToken string) ([]youtube_d.WatchHistory, string, error) {
-//				panic("mock out the FetchWatchHistory method")
 //			},
 //			OAuthAuthCodeURLFunc: func(state string) string {
 //				panic("mock out the OAuthAuthCodeURL method")
 //			},
-//			OAuthExchangeFunc: func(ctx context.Context, code string) (string, error) {
+//			OAuthExchangeFunc: func(ctx context.Context, code string) (*youtube_d.OAuthClient, error) {
 //				panic("mock out the OAuthExchange method")
 //			},
 //			SearchVideoIDsFunc: func(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
@@ -54,14 +45,11 @@ var _ youtube_d.Service = &YouTubeServiceMock{}
 //			},
 //		}
 //
-//		// use mockedService in code that requires youtube_d.Service
+//		// use mockedClient in code that requires youtube_d.Client
 //		// and then make assertions.
 //
 //	}
-type YouTubeServiceMock struct {
-	// FetchAllSubscriptionsFunc mocks the FetchAllSubscriptions method.
-	FetchAllSubscriptionsFunc func(ctx context.Context, accessToken string) ([]youtube_d.Channel, error)
-
+type YouTubeClientMock struct {
 	// FetchChannelDetailFunc mocks the FetchChannelDetail method.
 	FetchChannelDetailFunc func(ctx context.Context, channelIDs []youtube_d.ChannelID) (map[youtube_d.ChannelID]youtube_d.Channel, error)
 
@@ -74,33 +62,20 @@ type YouTubeServiceMock struct {
 	// FetchPlaylistVideoIDsFunc mocks the FetchPlaylistVideoIDs method.
 	FetchPlaylistVideoIDsFunc func(ctx context.Context, playlistID string, pageToken string) ([]youtube_d.VideoID, string, error)
 
-	// FetchPlaylistVideoIDsWithOAuthFunc mocks the FetchPlaylistVideoIDsWithOAuth method.
-	FetchPlaylistVideoIDsWithOAuthFunc func(ctx context.Context, accessToken string, playlistID string, pageToken string) ([]youtube_d.VideoID, string, error)
-
 	// FetchVideoDetailFunc mocks the FetchVideoDetail method.
 	FetchVideoDetailFunc func(ctx context.Context, videoIDs []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error)
-
-	// FetchWatchHistoryFunc mocks the FetchWatchHistory method.
-	FetchWatchHistoryFunc func(ctx context.Context, accessToken string, pageToken string) ([]youtube_d.WatchHistory, string, error)
 
 	// OAuthAuthCodeURLFunc mocks the OAuthAuthCodeURL method.
 	OAuthAuthCodeURLFunc func(state string) string
 
 	// OAuthExchangeFunc mocks the OAuthExchange method.
-	OAuthExchangeFunc func(ctx context.Context, code string) (string, error)
+	OAuthExchangeFunc func(ctx context.Context, code string) (*youtube_d.OAuthClient, error)
 
 	// SearchVideoIDsFunc mocks the SearchVideoIDs method.
 	SearchVideoIDsFunc func(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
-		// FetchAllSubscriptions holds details about calls to the FetchAllSubscriptions method.
-		FetchAllSubscriptions []struct {
-			// Ctx is the ctx argument value.
-			Ctx context.Context
-			// AccessToken is the accessToken argument value.
-			AccessToken string
-		}
 		// FetchChannelDetail holds details about calls to the FetchChannelDetail method.
 		FetchChannelDetail []struct {
 			// Ctx is the ctx argument value.
@@ -133,32 +108,12 @@ type YouTubeServiceMock struct {
 			// PageToken is the pageToken argument value.
 			PageToken string
 		}
-		// FetchPlaylistVideoIDsWithOAuth holds details about calls to the FetchPlaylistVideoIDsWithOAuth method.
-		FetchPlaylistVideoIDsWithOAuth []struct {
-			// Ctx is the ctx argument value.
-			Ctx context.Context
-			// AccessToken is the accessToken argument value.
-			AccessToken string
-			// PlaylistID is the playlistID argument value.
-			PlaylistID string
-			// PageToken is the pageToken argument value.
-			PageToken string
-		}
 		// FetchVideoDetail holds details about calls to the FetchVideoDetail method.
 		FetchVideoDetail []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
 			// VideoIDs is the videoIDs argument value.
 			VideoIDs []youtube_d.VideoID
-		}
-		// FetchWatchHistory holds details about calls to the FetchWatchHistory method.
-		FetchWatchHistory []struct {
-			// Ctx is the ctx argument value.
-			Ctx context.Context
-			// AccessToken is the accessToken argument value.
-			AccessToken string
-			// PageToken is the pageToken argument value.
-			PageToken string
 		}
 		// OAuthAuthCodeURL holds details about calls to the OAuthAuthCodeURL method.
 		OAuthAuthCodeURL []struct {
@@ -184,59 +139,20 @@ type YouTubeServiceMock struct {
 			Opts youtube_d.SearchOptions
 		}
 	}
-	lockFetchAllSubscriptions          sync.RWMutex
 	lockFetchChannelDetail             sync.RWMutex
 	lockFetchChannelDetailByIDOrHandle sync.RWMutex
 	lockFetchChannelPlaylists          sync.RWMutex
 	lockFetchPlaylistVideoIDs          sync.RWMutex
-	lockFetchPlaylistVideoIDsWithOAuth sync.RWMutex
 	lockFetchVideoDetail               sync.RWMutex
-	lockFetchWatchHistory              sync.RWMutex
 	lockOAuthAuthCodeURL               sync.RWMutex
 	lockOAuthExchange                  sync.RWMutex
 	lockSearchVideoIDs                 sync.RWMutex
 }
 
-// FetchAllSubscriptions calls FetchAllSubscriptionsFunc.
-func (mock *YouTubeServiceMock) FetchAllSubscriptions(ctx context.Context, accessToken string) ([]youtube_d.Channel, error) {
-	if mock.FetchAllSubscriptionsFunc == nil {
-		panic("YouTubeServiceMock.FetchAllSubscriptionsFunc: method is nil but Service.FetchAllSubscriptions was just called")
-	}
-	callInfo := struct {
-		Ctx         context.Context
-		AccessToken string
-	}{
-		Ctx:         ctx,
-		AccessToken: accessToken,
-	}
-	mock.lockFetchAllSubscriptions.Lock()
-	mock.calls.FetchAllSubscriptions = append(mock.calls.FetchAllSubscriptions, callInfo)
-	mock.lockFetchAllSubscriptions.Unlock()
-	return mock.FetchAllSubscriptionsFunc(ctx, accessToken)
-}
-
-// FetchAllSubscriptionsCalls gets all the calls that were made to FetchAllSubscriptions.
-// Check the length with:
-//
-//	len(mockedService.FetchAllSubscriptionsCalls())
-func (mock *YouTubeServiceMock) FetchAllSubscriptionsCalls() []struct {
-	Ctx         context.Context
-	AccessToken string
-} {
-	var calls []struct {
-		Ctx         context.Context
-		AccessToken string
-	}
-	mock.lockFetchAllSubscriptions.RLock()
-	calls = mock.calls.FetchAllSubscriptions
-	mock.lockFetchAllSubscriptions.RUnlock()
-	return calls
-}
-
 // FetchChannelDetail calls FetchChannelDetailFunc.
-func (mock *YouTubeServiceMock) FetchChannelDetail(ctx context.Context, channelIDs []youtube_d.ChannelID) (map[youtube_d.ChannelID]youtube_d.Channel, error) {
+func (mock *YouTubeClientMock) FetchChannelDetail(ctx context.Context, channelIDs []youtube_d.ChannelID) (map[youtube_d.ChannelID]youtube_d.Channel, error) {
 	if mock.FetchChannelDetailFunc == nil {
-		panic("YouTubeServiceMock.FetchChannelDetailFunc: method is nil but Service.FetchChannelDetail was just called")
+		panic("YouTubeClientMock.FetchChannelDetailFunc: method is nil but Client.FetchChannelDetail was just called")
 	}
 	callInfo := struct {
 		Ctx        context.Context
@@ -254,8 +170,8 @@ func (mock *YouTubeServiceMock) FetchChannelDetail(ctx context.Context, channelI
 // FetchChannelDetailCalls gets all the calls that were made to FetchChannelDetail.
 // Check the length with:
 //
-//	len(mockedService.FetchChannelDetailCalls())
-func (mock *YouTubeServiceMock) FetchChannelDetailCalls() []struct {
+//	len(mockedClient.FetchChannelDetailCalls())
+func (mock *YouTubeClientMock) FetchChannelDetailCalls() []struct {
 	Ctx        context.Context
 	ChannelIDs []youtube_d.ChannelID
 } {
@@ -270,9 +186,9 @@ func (mock *YouTubeServiceMock) FetchChannelDetailCalls() []struct {
 }
 
 // FetchChannelDetailByIDOrHandle calls FetchChannelDetailByIDOrHandleFunc.
-func (mock *YouTubeServiceMock) FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (youtube_d.Channel, error) {
+func (mock *YouTubeClientMock) FetchChannelDetailByIDOrHandle(ctx context.Context, channelID string) (youtube_d.Channel, error) {
 	if mock.FetchChannelDetailByIDOrHandleFunc == nil {
-		panic("YouTubeServiceMock.FetchChannelDetailByIDOrHandleFunc: method is nil but Service.FetchChannelDetailByIDOrHandle was just called")
+		panic("YouTubeClientMock.FetchChannelDetailByIDOrHandleFunc: method is nil but Client.FetchChannelDetailByIDOrHandle was just called")
 	}
 	callInfo := struct {
 		Ctx       context.Context
@@ -290,8 +206,8 @@ func (mock *YouTubeServiceMock) FetchChannelDetailByIDOrHandle(ctx context.Conte
 // FetchChannelDetailByIDOrHandleCalls gets all the calls that were made to FetchChannelDetailByIDOrHandle.
 // Check the length with:
 //
-//	len(mockedService.FetchChannelDetailByIDOrHandleCalls())
-func (mock *YouTubeServiceMock) FetchChannelDetailByIDOrHandleCalls() []struct {
+//	len(mockedClient.FetchChannelDetailByIDOrHandleCalls())
+func (mock *YouTubeClientMock) FetchChannelDetailByIDOrHandleCalls() []struct {
 	Ctx       context.Context
 	ChannelID string
 } {
@@ -306,9 +222,9 @@ func (mock *YouTubeServiceMock) FetchChannelDetailByIDOrHandleCalls() []struct {
 }
 
 // FetchChannelPlaylists calls FetchChannelPlaylistsFunc.
-func (mock *YouTubeServiceMock) FetchChannelPlaylists(ctx context.Context, channelID youtube_d.ChannelID, pageToken string) ([]youtube_d.Playlist, string, error) {
+func (mock *YouTubeClientMock) FetchChannelPlaylists(ctx context.Context, channelID youtube_d.ChannelID, pageToken string) ([]youtube_d.Playlist, string, error) {
 	if mock.FetchChannelPlaylistsFunc == nil {
-		panic("YouTubeServiceMock.FetchChannelPlaylistsFunc: method is nil but Service.FetchChannelPlaylists was just called")
+		panic("YouTubeClientMock.FetchChannelPlaylistsFunc: method is nil but Client.FetchChannelPlaylists was just called")
 	}
 	callInfo := struct {
 		Ctx       context.Context
@@ -328,8 +244,8 @@ func (mock *YouTubeServiceMock) FetchChannelPlaylists(ctx context.Context, chann
 // FetchChannelPlaylistsCalls gets all the calls that were made to FetchChannelPlaylists.
 // Check the length with:
 //
-//	len(mockedService.FetchChannelPlaylistsCalls())
-func (mock *YouTubeServiceMock) FetchChannelPlaylistsCalls() []struct {
+//	len(mockedClient.FetchChannelPlaylistsCalls())
+func (mock *YouTubeClientMock) FetchChannelPlaylistsCalls() []struct {
 	Ctx       context.Context
 	ChannelID youtube_d.ChannelID
 	PageToken string
@@ -346,9 +262,9 @@ func (mock *YouTubeServiceMock) FetchChannelPlaylistsCalls() []struct {
 }
 
 // FetchPlaylistVideoIDs calls FetchPlaylistVideoIDsFunc.
-func (mock *YouTubeServiceMock) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) ([]youtube_d.VideoID, string, error) {
+func (mock *YouTubeClientMock) FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) ([]youtube_d.VideoID, string, error) {
 	if mock.FetchPlaylistVideoIDsFunc == nil {
-		panic("YouTubeServiceMock.FetchPlaylistVideoIDsFunc: method is nil but Service.FetchPlaylistVideoIDs was just called")
+		panic("YouTubeClientMock.FetchPlaylistVideoIDsFunc: method is nil but Client.FetchPlaylistVideoIDs was just called")
 	}
 	callInfo := struct {
 		Ctx        context.Context
@@ -368,8 +284,8 @@ func (mock *YouTubeServiceMock) FetchPlaylistVideoIDs(ctx context.Context, playl
 // FetchPlaylistVideoIDsCalls gets all the calls that were made to FetchPlaylistVideoIDs.
 // Check the length with:
 //
-//	len(mockedService.FetchPlaylistVideoIDsCalls())
-func (mock *YouTubeServiceMock) FetchPlaylistVideoIDsCalls() []struct {
+//	len(mockedClient.FetchPlaylistVideoIDsCalls())
+func (mock *YouTubeClientMock) FetchPlaylistVideoIDsCalls() []struct {
 	Ctx        context.Context
 	PlaylistID string
 	PageToken  string
@@ -385,54 +301,10 @@ func (mock *YouTubeServiceMock) FetchPlaylistVideoIDsCalls() []struct {
 	return calls
 }
 
-// FetchPlaylistVideoIDsWithOAuth calls FetchPlaylistVideoIDsWithOAuthFunc.
-func (mock *YouTubeServiceMock) FetchPlaylistVideoIDsWithOAuth(ctx context.Context, accessToken string, playlistID string, pageToken string) ([]youtube_d.VideoID, string, error) {
-	if mock.FetchPlaylistVideoIDsWithOAuthFunc == nil {
-		panic("YouTubeServiceMock.FetchPlaylistVideoIDsWithOAuthFunc: method is nil but Service.FetchPlaylistVideoIDsWithOAuth was just called")
-	}
-	callInfo := struct {
-		Ctx         context.Context
-		AccessToken string
-		PlaylistID  string
-		PageToken   string
-	}{
-		Ctx:         ctx,
-		AccessToken: accessToken,
-		PlaylistID:  playlistID,
-		PageToken:   pageToken,
-	}
-	mock.lockFetchPlaylistVideoIDsWithOAuth.Lock()
-	mock.calls.FetchPlaylistVideoIDsWithOAuth = append(mock.calls.FetchPlaylistVideoIDsWithOAuth, callInfo)
-	mock.lockFetchPlaylistVideoIDsWithOAuth.Unlock()
-	return mock.FetchPlaylistVideoIDsWithOAuthFunc(ctx, accessToken, playlistID, pageToken)
-}
-
-// FetchPlaylistVideoIDsWithOAuthCalls gets all the calls that were made to FetchPlaylistVideoIDsWithOAuth.
-// Check the length with:
-//
-//	len(mockedService.FetchPlaylistVideoIDsWithOAuthCalls())
-func (mock *YouTubeServiceMock) FetchPlaylistVideoIDsWithOAuthCalls() []struct {
-	Ctx         context.Context
-	AccessToken string
-	PlaylistID  string
-	PageToken   string
-} {
-	var calls []struct {
-		Ctx         context.Context
-		AccessToken string
-		PlaylistID  string
-		PageToken   string
-	}
-	mock.lockFetchPlaylistVideoIDsWithOAuth.RLock()
-	calls = mock.calls.FetchPlaylistVideoIDsWithOAuth
-	mock.lockFetchPlaylistVideoIDsWithOAuth.RUnlock()
-	return calls
-}
-
 // FetchVideoDetail calls FetchVideoDetailFunc.
-func (mock *YouTubeServiceMock) FetchVideoDetail(ctx context.Context, videoIDs []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
+func (mock *YouTubeClientMock) FetchVideoDetail(ctx context.Context, videoIDs []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
 	if mock.FetchVideoDetailFunc == nil {
-		panic("YouTubeServiceMock.FetchVideoDetailFunc: method is nil but Service.FetchVideoDetail was just called")
+		panic("YouTubeClientMock.FetchVideoDetailFunc: method is nil but Client.FetchVideoDetail was just called")
 	}
 	callInfo := struct {
 		Ctx      context.Context
@@ -450,8 +322,8 @@ func (mock *YouTubeServiceMock) FetchVideoDetail(ctx context.Context, videoIDs [
 // FetchVideoDetailCalls gets all the calls that were made to FetchVideoDetail.
 // Check the length with:
 //
-//	len(mockedService.FetchVideoDetailCalls())
-func (mock *YouTubeServiceMock) FetchVideoDetailCalls() []struct {
+//	len(mockedClient.FetchVideoDetailCalls())
+func (mock *YouTubeClientMock) FetchVideoDetailCalls() []struct {
 	Ctx      context.Context
 	VideoIDs []youtube_d.VideoID
 } {
@@ -465,50 +337,10 @@ func (mock *YouTubeServiceMock) FetchVideoDetailCalls() []struct {
 	return calls
 }
 
-// FetchWatchHistory calls FetchWatchHistoryFunc.
-func (mock *YouTubeServiceMock) FetchWatchHistory(ctx context.Context, accessToken string, pageToken string) ([]youtube_d.WatchHistory, string, error) {
-	if mock.FetchWatchHistoryFunc == nil {
-		panic("YouTubeServiceMock.FetchWatchHistoryFunc: method is nil but Service.FetchWatchHistory was just called")
-	}
-	callInfo := struct {
-		Ctx         context.Context
-		AccessToken string
-		PageToken   string
-	}{
-		Ctx:         ctx,
-		AccessToken: accessToken,
-		PageToken:   pageToken,
-	}
-	mock.lockFetchWatchHistory.Lock()
-	mock.calls.FetchWatchHistory = append(mock.calls.FetchWatchHistory, callInfo)
-	mock.lockFetchWatchHistory.Unlock()
-	return mock.FetchWatchHistoryFunc(ctx, accessToken, pageToken)
-}
-
-// FetchWatchHistoryCalls gets all the calls that were made to FetchWatchHistory.
-// Check the length with:
-//
-//	len(mockedService.FetchWatchHistoryCalls())
-func (mock *YouTubeServiceMock) FetchWatchHistoryCalls() []struct {
-	Ctx         context.Context
-	AccessToken string
-	PageToken   string
-} {
-	var calls []struct {
-		Ctx         context.Context
-		AccessToken string
-		PageToken   string
-	}
-	mock.lockFetchWatchHistory.RLock()
-	calls = mock.calls.FetchWatchHistory
-	mock.lockFetchWatchHistory.RUnlock()
-	return calls
-}
-
 // OAuthAuthCodeURL calls OAuthAuthCodeURLFunc.
-func (mock *YouTubeServiceMock) OAuthAuthCodeURL(state string) string {
+func (mock *YouTubeClientMock) OAuthAuthCodeURL(state string) string {
 	if mock.OAuthAuthCodeURLFunc == nil {
-		panic("YouTubeServiceMock.OAuthAuthCodeURLFunc: method is nil but Service.OAuthAuthCodeURL was just called")
+		panic("YouTubeClientMock.OAuthAuthCodeURLFunc: method is nil but Client.OAuthAuthCodeURL was just called")
 	}
 	callInfo := struct {
 		State string
@@ -524,8 +356,8 @@ func (mock *YouTubeServiceMock) OAuthAuthCodeURL(state string) string {
 // OAuthAuthCodeURLCalls gets all the calls that were made to OAuthAuthCodeURL.
 // Check the length with:
 //
-//	len(mockedService.OAuthAuthCodeURLCalls())
-func (mock *YouTubeServiceMock) OAuthAuthCodeURLCalls() []struct {
+//	len(mockedClient.OAuthAuthCodeURLCalls())
+func (mock *YouTubeClientMock) OAuthAuthCodeURLCalls() []struct {
 	State string
 } {
 	var calls []struct {
@@ -538,9 +370,9 @@ func (mock *YouTubeServiceMock) OAuthAuthCodeURLCalls() []struct {
 }
 
 // OAuthExchange calls OAuthExchangeFunc.
-func (mock *YouTubeServiceMock) OAuthExchange(ctx context.Context, code string) (string, error) {
+func (mock *YouTubeClientMock) OAuthExchange(ctx context.Context, code string) (*youtube_d.OAuthClient, error) {
 	if mock.OAuthExchangeFunc == nil {
-		panic("YouTubeServiceMock.OAuthExchangeFunc: method is nil but Service.OAuthExchange was just called")
+		panic("YouTubeClientMock.OAuthExchangeFunc: method is nil but Client.OAuthExchange was just called")
 	}
 	callInfo := struct {
 		Ctx  context.Context
@@ -558,8 +390,8 @@ func (mock *YouTubeServiceMock) OAuthExchange(ctx context.Context, code string) 
 // OAuthExchangeCalls gets all the calls that were made to OAuthExchange.
 // Check the length with:
 //
-//	len(mockedService.OAuthExchangeCalls())
-func (mock *YouTubeServiceMock) OAuthExchangeCalls() []struct {
+//	len(mockedClient.OAuthExchangeCalls())
+func (mock *YouTubeClientMock) OAuthExchangeCalls() []struct {
 	Ctx  context.Context
 	Code string
 } {
@@ -574,9 +406,9 @@ func (mock *YouTubeServiceMock) OAuthExchangeCalls() []struct {
 }
 
 // SearchVideoIDs calls SearchVideoIDsFunc.
-func (mock *YouTubeServiceMock) SearchVideoIDs(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
+func (mock *YouTubeClientMock) SearchVideoIDs(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
 	if mock.SearchVideoIDsFunc == nil {
-		panic("YouTubeServiceMock.SearchVideoIDsFunc: method is nil but Service.SearchVideoIDs was just called")
+		panic("YouTubeClientMock.SearchVideoIDsFunc: method is nil but Client.SearchVideoIDs was just called")
 	}
 	callInfo := struct {
 		Ctx       context.Context
@@ -598,8 +430,8 @@ func (mock *YouTubeServiceMock) SearchVideoIDs(ctx context.Context, query string
 // SearchVideoIDsCalls gets all the calls that were made to SearchVideoIDs.
 // Check the length with:
 //
-//	len(mockedService.SearchVideoIDsCalls())
-func (mock *YouTubeServiceMock) SearchVideoIDsCalls() []struct {
+//	len(mockedClient.SearchVideoIDsCalls())
+func (mock *YouTubeClientMock) SearchVideoIDsCalls() []struct {
 	Ctx       context.Context
 	Query     string
 	PageToken string

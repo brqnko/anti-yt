@@ -73,7 +73,7 @@ func (r *userRepositoryImpl) FindScreenTimeRanges(ctx context.Context, userID uu
 		}
 		ranges[i] = r
 	}
-	return &DailyScreenTimeLimitRangeSet{Ranges: ranges}, nil
+	return new(DailyScreenTimeLimitRangeSet{Ranges: ranges}), nil
 }
 
 func (r *userRepositoryImpl) Save(ctx context.Context, u *User, authorizationID uuid.UUID) (_ int64, err error) {

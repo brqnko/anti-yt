@@ -10,8 +10,6 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
-// HTTPリクエスト情報,request_id, user_idの情報をもったslogをcontextに付与する
-// uuid.UUID型の値はhandlerのReplaceAttrで自動的にbase64形式に変換される
 func SlogMiddleware(f v1.StrictHandlerFunc, operationID string) v1.StrictHandlerFunc {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
 		attrs := []any{
@@ -28,8 +26,7 @@ func SlogMiddleware(f v1.StrictHandlerFunc, operationID string) v1.StrictHandler
 			attrs = append(attrs, slog.Any("user_id", userID))
 		}
 
-		logger := slog.Default().With(attrs...)
-		newCtx := util.WithLogger(ctx, logger)
-		return f(newCtx, w, r.WithContext(newCtx), request)
+		ctx = util.WithLogger(ctx, slog.Default().With(attrs...))
+		return f(ctx, w, r.WithContext(ctx), request)
 	}
 }

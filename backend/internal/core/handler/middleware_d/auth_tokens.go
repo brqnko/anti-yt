@@ -8,8 +8,6 @@ import (
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
 )
 
-// requireOperationIDsに含まれるoperationIDのときのみ、
-// access_token / refresh_token cookieをcontextに付与する。
 func AuthTokensMiddleware(
 	requireOperationIDs map[string]struct{},
 ) func(v1.StrictHandlerFunc, string) v1.StrictHandlerFunc {
@@ -19,14 +17,13 @@ func AuthTokensMiddleware(
 		}
 
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (_ interface{}, err error) {
-			newCtx := ctx
 			if cookie, err := r.Cookie("access_token"); err == nil {
-				newCtx = hutil.WithAccessToken(newCtx, cookie.Value)
+				ctx = hutil.WithAccessToken(ctx, cookie.Value)
 			}
 			if cookie, err := r.Cookie("refresh_token"); err == nil {
-				newCtx = hutil.WithRefreshToken(newCtx, cookie.Value)
+				ctx = hutil.WithRefreshToken(ctx, cookie.Value)
 			}
-			return f(newCtx, w, r.WithContext(newCtx), request)
+			return f(ctx, w, r.WithContext(ctx), request)
 		}
 	}
 }

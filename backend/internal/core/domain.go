@@ -32,7 +32,7 @@ type DomainError struct {
 }
 
 func NewDomainError(code, msg string, statusCode HTTPErrorStatusCode) *DomainError {
-	return &DomainError{code: code, msg: msg, statusCode: statusCode}
+	return new(DomainError{code: code, msg: msg, statusCode: statusCode})
 }
 
 func (e *DomainError) Code() string {

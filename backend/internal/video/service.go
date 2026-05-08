@@ -13,9 +13,9 @@ type Service struct {
 }
 
 func NewService(db *pgxpool.Pool) *Service {
-	return &Service{
+	return new(Service{
 		videoQS: NewVideoQueryService(db),
-	}
+	})
 }
 
 func (s *Service) GetVideoDetail(ctx context.Context, userID uuid.UUID, rawID string) (_ GetVideoDetailView, err error) {
@@ -31,7 +31,5 @@ func (s *Service) GetVideoDetail(ctx context.Context, userID uuid.UUID, rawID st
 		externalVideoID = &rawID
 	}
 
-	// TODO: DBに存在せず、外部IDが指定され、かつ userID != uuid.Nil の場合はYouTube APIからチャンネルと動画詳細をフェッチして保存する
-	// NOTE: channel パッケージが video パッケージをインポートしているため循環依存が発生し、channel.ChannelRepository を直接利用できない
 	return s.videoQS.FindByIDOrExternalID(ctx, userID, videoID, externalVideoID)
 }

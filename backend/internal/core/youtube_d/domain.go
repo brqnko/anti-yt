@@ -84,7 +84,7 @@ func NewChannel(id, displayName, customID, description, iconURL string, subscrib
 		ID:                channelID,
 		DisplayName:       displayName,
 		CustomID:          customID,
-		Description:       description,
+		Description:       util.Truncate(description, 1024),
 		IconURL:           iconURL,
 		SubscribersCount:  subscribersCount,
 		UploadsPlaylistID: channelUploadsPlaylistID,
@@ -97,11 +97,6 @@ type Playlist struct {
 	Title       string
 	Description string
 	CreatedAt   time.Time
-}
-
-type WatchHistory struct {
-	VideoID     VideoID
-	WatchedAt   time.Time
 }
 
 type VideoID string

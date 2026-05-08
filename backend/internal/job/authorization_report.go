@@ -14,8 +14,8 @@ import (
 )
 
 type authorizationReportJob struct {
-	authQS  auth.AuthorizationQueryService
-	discord discord_d.Service
+	authQS        auth.AuthorizationQueryService
+	discordClient discord_d.Client
 }
 
 func (j *authorizationReportJob) run(ctx context.Context) (err error) {
@@ -26,8 +26,7 @@ func (j *authorizationReportJob) run(ctx context.Context) (err error) {
 		return err
 	}
 
-	message := fmt.Sprintf("**[Daily Report]** `m_user_authorization`\nTotal: **%d**", count)
-	return j.discord.SendWebhookMessage(ctx, message)
+	return j.discordClient.SendWebhookMessage(ctx, fmt.Sprintf("**[Daily Report]** `m_user_authorization`\nTotal: **%d**", count))
 }
 
 func (j *authorizationReportJob) Run() {
@@ -36,15 +35,15 @@ func (j *authorizationReportJob) Run() {
 
 	if err := j.run(ctx); err != nil {
 		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to run authorization report job", slog.Any("error", err))
-		if wErr := j.discord.SendWebhookMessage(ctx, fmt.Sprintf("[Error] authorization report job: %v", err)); wErr != nil {
+		if wErr := j.discordClient.SendWebhookMessage(ctx, fmt.Sprintf("[Error] authorization report job: %v", err)); wErr != nil {
 			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to send discord webhook", slog.Any("error", wErr))
 		}
 	}
 }
 
-func NewAuthorizationReportJob(db *pgxpool.Pool, discord discord_d.Service) scheduler.Job {
+func NewAuthorizationReportJob(db *pgxpool.Pool, discordClient discord_d.Client) scheduler.Job {
 	return &authorizationReportJob{
-		authQS:  auth.NewAuthorizationQueryService(db),
-		discord: discord,
+		authQS:        auth.NewAuthorizationQueryService(db),
+		discordClient: discordClient,
 	}
 }
