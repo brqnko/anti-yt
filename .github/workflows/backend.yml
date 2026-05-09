@@ -19,26 +19,36 @@ jobs:
       run:
         working-directory: backend
 
-    services:
-      postgres:
-        image: postgres:18.1-alpine3.23
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: anti_yt_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     permissions:
       contents: read
 
     steps:
       - uses: actions/checkout@v6
+
+      - name: Start Postgres
+        run: |
+          docker run -d --name pg \
+            --tmpfs /var/lib/postgresql/data:rw \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=postgres \
+            -e POSTGRES_DB=anti_yt_test \
+            -p 5432:5432 \
+            postgres:18.1-alpine3.23 \
+            postgres \
+              -c fsync=off \
+              -c synchronous_commit=off \
+              -c full_page_writes=off \
+              -c max_connections=200
+          for i in $(seq 1 30); do
+            if docker exec pg pg_isready -U postgres >/dev/null 2>&1; then
+              echo "postgres ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "postgres failed to become ready" >&2
+          docker logs pg
+          exit 1
 
       - uses: actions/setup-go@v6
         with:

@@ -153,7 +153,6 @@ function ScreenTimeMock({ t }: { t: (key: string) => string }) {
       class="rounded-2xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark shadow-xl overflow-hidden select-none"
       aria-hidden="true"
     >
-      {/* Window chrome */}
       <div class="flex items-center gap-3 px-4 py-3 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark">
         <div class="flex items-center gap-1.5">
           <span class="size-3 rounded-full bg-red-400" />
@@ -167,7 +166,6 @@ function ScreenTimeMock({ t }: { t: (key: string) => string }) {
           {t("restrictions.timeConstraints")}
         </h3>
 
-      {/* Permitted Hours card */}
       <div class="rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
         <div class="p-5 flex flex-col gap-5">
           <div class="flex justify-between items-center flex-wrap gap-2">
@@ -232,7 +230,6 @@ function ScreenTimeMock({ t }: { t: (key: string) => string }) {
         </div>
       </div>
 
-      {/* Daily Cap card */}
       <div class="rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
         <div class="p-5 flex flex-col gap-4">
           <label class="text-base font-semibold text-charcoal dark:text-white">
@@ -332,7 +329,6 @@ export default function About() {
       </header>
 
       <main class="pt-8 md:pt-10">
-        {/* Hero */}
         <section class="max-w-7xl mx-auto px-6 md:px-8 mb-14 md:mb-20">
           <div class="grid lg:grid-cols-[1.05fr_1fr] items-center gap-12 lg:gap-20">
             <Reveal class="flex flex-col gap-6 md:gap-8 lg:pl-16 xl:pl-24">
@@ -357,7 +353,6 @@ export default function About() {
           </div>
         </section>
 
-        {/* Editorial statement */}
         <section class="max-w-7xl mx-auto px-6 md:px-8 mb-14 md:mb-20">
           <div class="lg:pl-16 xl:pl-24">
             <Reveal class="max-w-2xl border-l-4 border-primary pl-6 md:pl-10 py-4 md:py-6">
@@ -374,7 +369,6 @@ export default function About() {
           </div>
         </section>
 
-        {/* Principles */}
         <section class="max-w-7xl mx-auto px-6 md:px-8 overflow-x-clip mb-14 md:mb-20 pb-16 md:pb-32">
           <div class="lg:pl-16 xl:pl-24 flex flex-col gap-12 md:gap-20">
             {principles.map((key, idx) => {
@@ -467,7 +461,6 @@ export default function About() {
           </div>
         </section>
 
-        {/* Final CTA */}
         <section class="bg-card-light dark:bg-card-dark px-6 md:px-8 py-14 md:py-20">
           <div class="text-center max-w-5xl mx-auto">
           <div class="space-y-8 md:space-y-10">
@@ -506,7 +499,6 @@ export default function About() {
           </div>
         </section>
 
-        {/* Footer */}
         <footer class="border-t border-border-light dark:border-border-dark">
           <div class="max-w-7xl mx-auto px-6 md:px-8 py-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-taupe dark:text-text-muted-dark">
             <div class="flex items-center gap-6">

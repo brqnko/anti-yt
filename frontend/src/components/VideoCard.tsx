@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 import { memo } from "preact/compat";
 import { useTranslation } from "react-i18next";
 import { formatDuration, formatTimeAgo } from "../utils/format";

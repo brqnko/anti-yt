@@ -9,7 +9,7 @@ import { getVideo } from "../../api/generated/video";
 import { getHistory } from "../../api/generated/history";
 import { getPlaylist } from "../../api/generated/playlist";
 import { Dialog } from "../../components/Dialog";
-import { formatDuration, formatSubscriberCount, formatTimeAgo } from "../../utils/format";
+import { formatDuration, formatSubscriberCount } from "../../utils/format";
 import { buildWatchUrl } from "../../utils/url";
 import { getApiErrorCode } from "../../utils/api-error";
 import { PAGE_SIZES } from "../../constants";
@@ -246,7 +246,6 @@ function VideoPlayerContent() {
   const [controlsVisible, setControlsVisible] = useState(false);
   const [isSeeking, setIsSeeking] = useState(false);
 
-  const [playerHeight, setPlayerHeight] = useState<number | null>(null);
   const playerWrapperRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const progressFillRef = useRef<HTMLDivElement>(null);
@@ -257,7 +256,6 @@ function VideoPlayerContent() {
   const [descOverflows, setDescOverflows] = useState(false);
   const lastPointerTypeRef = useRef<string>("mouse");
 
-  // Playlist sidebar state
   const [playlistId] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
     return new URLSearchParams(window.location.search).get("playlist");
@@ -265,8 +263,6 @@ function VideoPlayerContent() {
   const [playlistInfo, setPlaylistInfo] = useState<GetPlaylistsPlaylistId200 | null>(null);
   const [playlistVideos, setPlaylistVideos] = useState<GetPlaylistsPlaylistIdVideos200ItemsItem[]>([]);
   const [playlistLoading, setPlaylistLoading] = useState(false);
-  const [playlistHasNext, setPlaylistHasNext] = useState(false);
-  const [playlistLoadingMore, setPlaylistLoadingMore] = useState(false);
   const playlistCursorRef = useRef<string | undefined>(undefined);
   const playlistLoadingMoreRef = useRef(false);
   const playlistHasNextRef = useRef(false);
@@ -290,23 +286,12 @@ function VideoPlayerContent() {
   const volumeRef = useRef(100);
   const heartbeatTickRef = useRef<(() => void) | null>(null);
 
-  // Refs for auto-play next video in playlist
   const playlistVideosRef = useRef(playlistVideos);
   playlistVideosRef.current = playlistVideos;
   const playlistIdRef = useRef(playlistId);
   playlistIdRef.current = playlistId;
 
   useTitle(video?.external_video_title ?? t("videoPlayer.pageTitle"));
-
-  useEffect(() => {
-    const el = playerWrapperRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      setPlayerHeight(entries[0].contentRect.height);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   useEffect(() => {
     if (!videoId) return;
@@ -325,7 +310,6 @@ function VideoPlayerContent() {
       .finally(() => setIsLoading(false));
   }, [videoId]);
 
-  // Fetch playlist data when in playlist context
   useEffect(() => {
     if (!playlistId) return;
     setPlaylistLoading(true);
@@ -338,7 +322,6 @@ function VideoPlayerContent() {
       }
       if (videosRes.status === "fulfilled") {
         setPlaylistVideos(videosRes.value.items);
-        setPlaylistHasNext(videosRes.value.has_next);
         playlistHasNextRef.current = videosRes.value.has_next;
         const lastItem = videosRes.value.items[videosRes.value.items.length - 1];
         playlistCursorRef.current = lastItem?.video_id;
@@ -349,23 +332,19 @@ function VideoPlayerContent() {
   const loadMorePlaylistVideos = useCallback(async () => {
     if (playlistLoadingMoreRef.current || !playlistHasNextRef.current || !playlistId) return;
     playlistLoadingMoreRef.current = true;
-    setPlaylistLoadingMore(true);
     try {
       const res = await getPlaylist().getPlaylistsPlaylistIdVideos(playlistId, {
         limit: PAGE_SIZES.PLAYLIST_VIDEOS,
         cursor: playlistCursorRef.current,
       });
       setPlaylistVideos((prev) => [...prev, ...res.items]);
-      setPlaylistHasNext(res.has_next);
       playlistHasNextRef.current = res.has_next;
       const lastItem = res.items[res.items.length - 1];
       playlistCursorRef.current = lastItem?.video_id;
     } catch {
       playlistHasNextRef.current = false;
-      setPlaylistHasNext(false);
     } finally {
       playlistLoadingMoreRef.current = false;
-      setPlaylistLoadingMore(false);
     }
   }, [playlistId]);
 
@@ -382,7 +361,6 @@ function VideoPlayerContent() {
           prev ? { ...prev, playlist_video_count: Math.max(0, prev.playlist_video_count - 1) } : prev,
         );
       } catch {
-        // silently fail
       } finally {
         setRemovingVideoId(null);
       }
@@ -397,7 +375,6 @@ function VideoPlayerContent() {
       const res = await getPlaylist().getPlaylists({ limit: 50 });
       setUserPlaylists(res.items);
     } catch {
-      // silently fail
     } finally {
       setPlaylistDialogLoading(false);
     }
@@ -446,14 +423,12 @@ function VideoPlayerContent() {
     if (infoRes.status === "fulfilled") setPlaylistInfo(infoRes.value);
     if (videosRes.status === "fulfilled") {
       setPlaylistVideos(videosRes.value.items);
-      setPlaylistHasNext(videosRes.value.has_next);
       playlistHasNextRef.current = videosRes.value.has_next;
       const lastItem = videosRes.value.items[videosRes.value.items.length - 1];
       playlistCursorRef.current = lastItem?.video_id;
     }
   }, [playlistId]);
 
-  // Navigate to the next video in the playlist when the current video ends
   const handlePlayerStateChange = useCallback(
     (state: number) => {
       if (state !== PlayerState.ENDED) return;
@@ -530,7 +505,6 @@ function VideoPlayerContent() {
     return () => cancelAnimationFrame(raf);
   }, [isReady, duration, currentTimeRef, controlsVisible]);
 
-  // Keep refs in sync with latest values
   durationRef.current = duration;
   volumeRef.current = volume;
   isSeekingRef.current = isSeeking;
@@ -555,7 +529,6 @@ function VideoPlayerContent() {
     return () => observer.disconnect();
   }, [video?.external_video_description]);
 
-  // Fullscreen change listener
   useEffect(() => {
     const handler = () => {
       const fs = !!document.fullscreenElement;
@@ -627,7 +600,6 @@ function VideoPlayerContent() {
     return () => document.removeEventListener("keydown", handler);
   }, [isReady, togglePlay, seekTo, setVolume, toggleMute, toggleFullscreen]);
 
-  // Show controls on touch/interaction, auto-hide after 3s
   const showControlsTemporarily = useCallback(() => {
     setControlsVisible(true);
     if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
@@ -652,7 +624,6 @@ function VideoPlayerContent() {
     togglePlay();
   }, [controlsVisible, showControlsTemporarily, togglePlay]);
 
-  // Progress bar: click + drag support
   const calcSeekRatio = useCallback(
     (clientX: number) => {
       const bar = progressBarRef.current;
@@ -734,17 +705,13 @@ function VideoPlayerContent() {
     <DashboardLayout>
       <div class="flex-1 overflow-y-auto">
         <div class="max-w-[1536px] mx-auto px-0 sm:px-6 py-0 sm:py-8 pb-8 flex flex-col xl:flex-row xl:items-start gap-8">
-          {/* Main content */}
           <div class="flex-1 min-w-0">
-            {/* YouTube Player */}
             <div
               ref={playerWrapperRef}
               class="w-full bg-black overflow-hidden ring-1 ring-white/10 relative aspect-video group/player"
             >
-              {/* YouTube iframe gets injected here */}
               <div id={PLAYER_CONTAINER_ID} class="absolute inset-0 w-full h-full" />
 
-              {/* Click/tap overlay to toggle play/pause (above iframe) */}
               {isReady && (
                 <div
                   class="absolute inset-0 z-10 cursor-pointer"
@@ -754,7 +721,6 @@ function VideoPlayerContent() {
                 />
               )}
 
-              {/* Big play button when not started or paused */}
               {isReady && !isPlaying && playerState !== PlayerState.BUFFERING && (
                 <div class="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
                   <button
@@ -770,12 +736,10 @@ function VideoPlayerContent() {
 
 
 
-              {/* Player controls overlay */}
               <div
                 class={`absolute bottom-0 inset-x-0 p-4 md:p-6 bg-gradient-to-t from-black/80 to-transparent z-30 transition-[opacity,visibility] ${controlsVisible ? "opacity-100 visible" : "opacity-0 invisible group-hover/player:visible group-hover/player:opacity-100"}`}
                 onMouseMove={showControlsTemporarily}
               >
-                {/* Progress bar */}
                 <div class="flex items-center gap-4 mb-3">
                   <div
                     ref={progressBarRef}
@@ -803,7 +767,6 @@ function VideoPlayerContent() {
                     />
                   </div>
                 </div>
-                {/* Controls row */}
                 <div class="flex items-center justify-between text-white text-sm">
                   <div class="flex items-center gap-4 md:gap-6">
                     <button
@@ -855,7 +818,6 @@ function VideoPlayerContent() {
               </div>
             </div>
 
-            {/* Video info */}
             <div class="mt-8 px-4 sm:px-0">
               <h1 class="text-xl font-bold leading-tight tracking-tight">
                 {video.external_video_title}
@@ -980,7 +942,6 @@ function VideoPlayerContent() {
                   </a>
                 </div>
 
-              {/* Description */}
               <div class="mt-6">
                 <div class="bg-border-light/50 dark:bg-[#332e27]/30 p-6 rounded-xl">
                   <p class={`text-base text-charcoal dark:text-white ${video.external_video_description ? "mb-3" : ""}`}>
@@ -1011,13 +972,10 @@ function VideoPlayerContent() {
             </div>
           </div>
 
-          {/* Sidebar */}
           {playlistId && <aside class="w-full xl:w-[420px] shrink-0 flex flex-col gap-8 px-4 sm:px-0">
-            {/* Playlist sidebar */}
 
             {playlistId && !playlistLoading && playlistVideos.length > 0 && (
               <div class="bg-card-light dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark flex flex-col overflow-hidden">
-                {/* Playlist header */}
                 <div class="p-4 border-b border-border-light dark:border-border-dark flex items-center justify-between gap-3">
                   <a href={`/playlists/${playlistId}`} class="flex items-center gap-2 min-w-0 no-underline group/pl-title">
                     <Icon name="playlist_play" class="text-primary text-xl flex-shrink-0" />
@@ -1051,7 +1009,6 @@ function VideoPlayerContent() {
                   )}
                 </div>
 
-                {/* Video list */}
                 <div
                   class="overflow-y-auto max-h-[480px]"
                   onScroll={(e) => {
@@ -1137,7 +1094,6 @@ function VideoPlayerContent() {
           </aside>}
         </div>
       </div>
-      {/* Add to Playlist Dialog */}
       <Dialog
         open={showPlaylistDialog}
         onClose={() => setShowPlaylistDialog(false)}

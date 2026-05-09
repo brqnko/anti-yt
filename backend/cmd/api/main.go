@@ -26,10 +26,10 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core/llm"
 	"github.com/brqnko/anti-yt/backend/internal/core/oidc"
 	"github.com/brqnko/anti-yt/backend/internal/core/otel_d"
-	"github.com/brqnko/anti-yt/backend/internal/core/report"
 	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/brqnko/anti-yt/backend/internal/job"
+	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
@@ -114,6 +114,13 @@ func run(ctx context.Context) int {
 		slog.Error("failed to setup otel", slog.Any("error", err))
 		return 1
 	}
+	defer func() {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := otelShutdown(shutdownCtx); err != nil {
+			slog.Error("failed to shutdown otel", slog.Any("error", err))
+		}
+	}()
 
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
@@ -175,12 +182,6 @@ func run(ctx context.Context) int {
 	}
 	slog.Info("gemini api ok")
 
-	var reportOpts []report.Option
-	if cfg.discordWebhookURL != "" {
-		reportOpts = append(reportOpts, report.WithDiscord(discord_d.NewClient(cfg.discordWebhookURL)))
-	}
-	reportService := report.NewService(reportOpts...)
-
 	scheduler := scheduler.NewService()
 	if err := scheduler.AddFunc("0 0 * * *", job.NewLLMSummaryJob(db, llmClient, discord_d.NewClient(cfg.discordWebhookURL))); err != nil {
 		slog.Error("failed to setup llm summary job", slog.Any("error", err))
@@ -203,11 +204,9 @@ func run(ctx context.Context) int {
 		return 1
 	}
 
-	if cfg.discordWebhookURL != "" {
-		if err := scheduler.AddFunc("0 0 * * *", job.NewAuthorizationReportJob(db, discord_d.NewClient(cfg.discordWebhookURL))); err != nil {
-			slog.Error("failed to setup authorization report job", slog.Any("error", err))
-			return 1
-		}
+	if err := scheduler.AddFunc("0 0 * * *", job.NewAuthorizationReportJob(db, discord_d.NewClient(cfg.discordWebhookURL))); err != nil {
+		slog.Error("failed to setup authorization report job", slog.Any("error", err))
+		return 1
 	}
 
 	r := chi.NewRouter()
@@ -237,7 +236,7 @@ func run(ctx context.Context) int {
 			// WrapErrorMiddlewareはScreenTimeMiddlewareが返すDomainErrorを
 			// 捕捉する必要があるため、ScreenTimeより外側(=下)に置く。
 			// またSlogMiddlewareがctxに入れるloggerを使うため、Slogより内側(=上)に置く。
-			middleware_d.WrapErrorMiddleware(reportService),
+			middleware_d.WrapErrorMiddleware(discord_d.NewClient(cfg.discordWebhookURL)),
 			middleware_d.CsrfMiddleware(map[string]struct{}{
 				"GetAuthGoogle":         {},
 				"GetAuthGoogleCallback": {},
@@ -311,16 +310,14 @@ func run(ctx context.Context) int {
 
 	scheduler.Stop()
 
-	if err := otelShutdown(shutdownCtx); err != nil {
-		slog.Error("failed to shutdown otel", slog.Any("error", err))
-	}
-
 	slog.Info("graceful shutdown ok")
 
 	return 0
 }
 
-func loadPrivateKey(path string) (ed25519.PrivateKey, error) {
+func loadPrivateKey(path string) (_ ed25519.PrivateKey, err error) {
+	defer util.Wrap(&err, "loadPrivateKey(path=%s)", path)
+
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -343,7 +340,9 @@ func loadPrivateKey(path string) (ed25519.PrivateKey, error) {
 	return privateKey, nil
 }
 
-func loadPublicKey(path string) (ed25519.PublicKey, error) {
+func loadPublicKey(path string) (_ ed25519.PublicKey, err error) {
+	defer util.Wrap(&err, "loadPublicKey(path=%s)", path)
+
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err

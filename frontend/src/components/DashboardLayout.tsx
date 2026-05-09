@@ -50,7 +50,6 @@ export function DashboardLayout({
       <DashboardHeader sidebarOpen={sidebarOpen} onToggleSidebar={toggleSidebar} />
 
       <div class="flex flex-1 w-full tablet:overflow-hidden">
-        {/* Sidebar (tablet and up): full when open, fully hidden when closed */}
         <aside
           class={`hidden tablet:flex flex-col border-r border-border-light dark:border-border-dark shrink-0 transition-[width,opacity] duration-200 ${
             sidebarOpen
@@ -141,13 +140,11 @@ export function DashboardLayout({
           </div>
         </aside>
 
-        {/* Main Content */}
         <main class="flex-1 flex flex-col min-w-0 tablet:overflow-y-auto overflow-x-hidden pb-14 tablet:pb-0">
           {children}
         </main>
       </div>
 
-      {/* Bottom Navigation (below 657px only) */}
       <nav
         class="fixed bottom-0 left-0 right-0 z-50 flex tablet:hidden items-center justify-around border-t border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark"
         aria-label={t("dashboard.nav.mainNav")}

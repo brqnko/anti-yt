@@ -18,7 +18,6 @@ function SearchContent() {
   const searchQuery = params.get("q") || "";
   useTitle(searchQuery ? `${searchQuery} - ${t("search.pageTitle")}` : t("search.pageTitle"));
 
-  // Read filter params from URL
   const order = params.get("order") || undefined;
   const published_after = params.get("published_after") || undefined;
   const published_before = params.get("published_before") || undefined;

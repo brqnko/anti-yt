@@ -1,7 +1,6 @@
 import { useState, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { Dialog } from "./Dialog";
-import { Icon } from "./Icon";
 import { GetSearchOrder } from "../api/generated/antiYtApi.schemas";
 
 export interface SearchFilters {
@@ -61,7 +60,6 @@ export function SearchFilterDialog({
         </h2>
 
         <div class="space-y-5">
-          {/* Sort order */}
           <div>
             <label class="block text-sm font-medium text-charcoal dark:text-white mb-1.5">
               {t("search.filters.order")}
@@ -82,7 +80,6 @@ export function SearchFilterDialog({
             </select>
           </div>
 
-          {/* Published after */}
           <div>
             <label class="block text-sm font-medium text-charcoal dark:text-white mb-1.5">
               {t("search.filters.publishedAfter")}
@@ -97,7 +94,6 @@ export function SearchFilterDialog({
             />
           </div>
 
-          {/* Published before */}
           <div>
             <label class="block text-sm font-medium text-charcoal dark:text-white mb-1.5">
               {t("search.filters.publishedBefore")}
@@ -112,7 +108,6 @@ export function SearchFilterDialog({
             />
           </div>
 
-          {/* Region code */}
           <div>
             <label class="block text-sm font-medium text-charcoal dark:text-white mb-1.5">
               {t("search.filters.regionCode")}
@@ -133,7 +128,6 @@ export function SearchFilterDialog({
             </select>
           </div>
 
-          {/* Relevance language */}
           <div>
             <label class="block text-sm font-medium text-charcoal dark:text-white mb-1.5">
               {t("search.filters.relevanceLanguage")}
@@ -155,7 +149,6 @@ export function SearchFilterDialog({
           </div>
         </div>
 
-        {/* Actions */}
         <div class="flex justify-between mt-8">
           <button
             class="px-4 py-2 rounded-xl text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 bg-transparent border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"

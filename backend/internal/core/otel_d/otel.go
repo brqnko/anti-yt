@@ -16,10 +16,6 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
-// Setup は OTLP HTTP exporter で TracerProvider と MeterProvider を初期化し、
-// グローバルプロバイダに登録する。返り値の shutdown 関数を defer で呼ぶこと。
-//
-// エンドポイント等は OTEL_EXPORTER_OTLP_ENDPOINT などの標準 env で設定する。
 func Setup(ctx context.Context, serviceName, serviceVersion string) (shutdown func(context.Context) error, err error) {
 	defer util.Wrap(&err, "otel_d.Setup")
 

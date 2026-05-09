@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"sync"
 	"time"
-	"unicode/utf8"
 
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
@@ -154,13 +153,8 @@ func (j *llmSummaryJob) run(ctx context.Context) (err error) {
 			continue
 		}
 
-		// VARCHAR(128) / VARCHAR(4096) はcharacter数なのでruneで切る
-		if utf8.RuneCountInString(summary.Title) > 128 {
-			summary.Title = string([]rune(summary.Title)[:128])
-		}
-		if utf8.RuneCountInString(summary.Description) > 4096 {
-			summary.Description = string([]rune(summary.Description)[:4096])
-		}
+		summary.Title = util.Truncate(summary.Title, 128)
+		summary.Description = util.Truncate(summary.Description, 4096)
 
 		if err := q.UpsertMonthlyVideoWatchSummary(ctx, sqlc.UpsertMonthlyVideoWatchSummaryParams{
 			UserID:               row.UserID,

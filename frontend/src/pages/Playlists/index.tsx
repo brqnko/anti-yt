@@ -72,7 +72,6 @@ function PlaylistsContent() {
 
   const [playlists, setPlaylists] = useState<GetPlaylists200ItemsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasNext, setHasNext] = useState(false);
   const [error, setError] = useState(false);
   const [showAddPlaylist, setShowAddPlaylist] = useState(false);
@@ -103,7 +102,6 @@ function PlaylistsContent() {
   const loadMore = useCallback(async () => {
     if (loadingMoreRef.current || !hasNextRef.current) return;
     loadingMoreRef.current = true;
-    setIsLoadingMore(true);
     try {
       const res = await getPlaylist().getPlaylists({
         limit: PAGE_SIZES.PLAYLISTS,
@@ -119,7 +117,6 @@ function PlaylistsContent() {
       setHasNext(false);
     } finally {
       loadingMoreRef.current = false;
-      setIsLoadingMore(false);
     }
   }, []);
 
@@ -128,7 +125,6 @@ function PlaylistsContent() {
   return (
     <DashboardLayout>
       <div class="w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10 flex flex-col gap-8">
-        {/* Page Heading & Actions */}
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-6 border-b border-border-light dark:border-border-dark">
           <div class="flex flex-col gap-2 max-w-2xl">
             <h1 class="text-4xl font-black tracking-tight text-charcoal dark:text-white">
@@ -146,7 +142,6 @@ function PlaylistsContent() {
           </div>
         </div>
 
-        {/* Content */}
         {isLoading ? null : error ? (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
             <Icon name="error_outline" class="text-5xl mb-4" />

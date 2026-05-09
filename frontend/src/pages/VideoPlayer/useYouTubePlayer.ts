@@ -30,7 +30,6 @@ interface UseYouTubePlayerOptions {
 
 const IFRAME_API_TIMEOUT_MS = 10_000;
 
-// localStorage keys for persisting player preferences
 const STORAGE_KEY_VOLUME = "yt-player-volume";
 const STORAGE_KEY_MUTED = "yt-player-muted";
 const STORAGE_KEY_LOOP = "yt-player-loop";
@@ -257,7 +256,6 @@ export function useYouTubePlayer({
             setDuration(player.getDuration());
             loadedVideoIdRef.current = currentVideoId;
 
-            // Restore saved volume & mute preferences
             const savedVolume = loadPreference(STORAGE_KEY_VOLUME, 100);
             const savedMuted = loadPreference(STORAGE_KEY_MUTED, false);
             player.setVolume(savedVolume);
@@ -310,7 +308,6 @@ export function useYouTubePlayer({
   // eslint-disable-next-line react-hooks/exhaustive-deps -- startTimeSync/stopTimeSync are stable (useCallback with []), callbacks via refs
   }, [containerId]);
 
-  // Load a new video into the existing player when videoId changes.
   useEffect(() => {
     if (!videoId || videoId === loadedVideoIdRef.current) return;
     const p = playerRef.current;

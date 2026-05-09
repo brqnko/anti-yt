@@ -97,38 +97,39 @@ func (s *Service) CreateAuthCode(ctx context.Context, platform string) (_, _ str
 	return s.oidcClient.AuthCodeURL(stateToken), stateToken, nil
 }
 
-func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipAddress, countryCode, deviceFingerprint, userAgent string) (
-	_, // access token
-	_, // refresh token
-	_, // csrf token
-	_, // redirect path
-	_ string, // platform
-	_, // access token expires at
-	_ time.Time, // refresh token expires at
-	err error,
-) {
+type GoogleOIDCCallbackResult struct {
+	AccessToken           string
+	RefreshToken          string
+	CSRFToken             string
+	RedirectPath          string
+	Platform              string
+	AccessTokenExpiresAt  time.Time
+	RefreshTokenExpiresAt time.Time
+}
+
+func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipAddress, countryCode, deviceFingerprint, userAgent string) (_ GoogleOIDCCallbackResult, err error) {
 	defer util.Wrap(&err, "auth.(*Service).GoogleOIDCCallback")
 
 	if csrf == "" || state == "" {
-		return "", "", "", "", "", time.Time{}, time.Time{}, ErrInvalidCSRFOrState
+		return GoogleOIDCCallbackResult{}, ErrInvalidCSRFOrState
 	}
 	if csrf != state {
-		return "", "", "", "", "", time.Time{}, time.Time{}, ErrInvalidCSRF
+		return GoogleOIDCCallbackResult{}, ErrInvalidCSRF
 	}
 
 	platform, err := s.jwtService.VerifyOIDCStateToken(state)
 	if err != nil {
-		return "", "", "", "", "", time.Time{}, time.Time{}, ErrInvalidCSRFOrState
+		return GoogleOIDCCallbackResult{}, ErrInvalidCSRFOrState
 	}
 
 	sub, err := s.oidcClient.ExchangeAndVerify(ctx, code)
 	if err != nil {
-		return "", "", "", "", "", time.Time{}, time.Time{}, err
+		return GoogleOIDCCallbackResult{}, err
 	}
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return "", "", "", "", "", time.Time{}, time.Time{}, err
+		return GoogleOIDCCallbackResult{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -139,12 +140,12 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 
 	authorization, err := NewAuthorization("https://accounts.google.com", sub) // TODO: DI
 	if err != nil {
-		return "", "", "", "", "", time.Time{}, time.Time{}, err
+		return GoogleOIDCCallbackResult{}, err
 	}
 
 	authorizationID, err := NewAuthorizationRepository(q).Save(ctx, authorization)
 	if err != nil {
-		return "", "", "", "", "", time.Time{}, time.Time{}, err
+		return GoogleOIDCCallbackResult{}, err
 	}
 
 	// もし、userテーブルに存在するなら、ログイン用リフレッシュトークンを作成してダッシュボードにリダイレクトさせる。
@@ -153,7 +154,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 	// どちらにせよ、リフレッシュトークンは発行する。
 	refreshTokenRawStr, err := util.RandomStringUrlSafe(32)
 	if err != nil {
-		return "", "", "", "", "", time.Time{}, time.Time{}, err
+		return GoogleOIDCCallbackResult{}, err
 	}
 	refreshToken, err := NewRefreshToken(
 		userAgent,
@@ -165,17 +166,17 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 		WithRefreshTokenRaw(refreshTokenRawStr),
 	)
 	if err != nil {
-		return "", "", "", "", "", time.Time{}, time.Time{}, err
+		return GoogleOIDCCallbackResult{}, err
 	}
 	_, err = NewRefreshTokenRepository(q).Save(ctx, authorizationID, refreshToken)
 	if err != nil {
-		return "", "", "", "", "", time.Time{}, time.Time{}, err
+		return GoogleOIDCCallbackResult{}, err
 	}
 
 	// csrfはどのみち必要になるのでここで作っておく
 	csrfGenerated, err := util.RandomStringUrlSafe(32)
 	if err != nil {
-		return "", "", "", "", "", time.Time{}, time.Time{}, err
+		return GoogleOIDCCallbackResult{}, err
 	}
 
 	// userテーブルに存在する場合、リフレッシュトークンを保存して、アクセストークンを発行する。
@@ -187,38 +188,62 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 	if err == nil && !isDeactivated { // 現役で存在する場合
 		at, atExp, err := s.jwtService.SignUserAccessToken(userPublicID, refreshToken.AccessTokenJTI, s.serverURL)
 		if err != nil {
-			return "", "", "", "", "", time.Time{}, time.Time{}, err
+			return GoogleOIDCCallbackResult{}, err
 		}
 
 		if err := tx.Commit(ctx); err != nil {
-			return "", "", "", "", "", time.Time{}, time.Time{}, err
+			return GoogleOIDCCallbackResult{}, err
 		}
 
-		return at, refreshTokenRawStr, csrfGenerated, "dashboard", platform, atExp, refreshToken.ExpiresAt, nil
+		return GoogleOIDCCallbackResult{
+			AccessToken:           at,
+			RefreshToken:          refreshTokenRawStr,
+			CSRFToken:             csrfGenerated,
+			RedirectPath:          "dashboard",
+			Platform:              platform,
+			AccessTokenExpiresAt:  atExp,
+			RefreshTokenExpiresAt: refreshToken.ExpiresAt,
+		}, nil
 	} else if err == nil && isDeactivated { // 退会済みだが、レコードが残っている場合
 		accessToken, atExp, err := s.jwtService.SignRegisterToken(authorization.ID, refreshToken.AccessTokenJTI, s.serverURL)
 		if err != nil {
-			return "", "", "", "", "", time.Time{}, time.Time{}, err
+			return GoogleOIDCCallbackResult{}, err
 		}
 
 		if err := tx.Commit(ctx); err != nil {
-			return "", "", "", "", "", time.Time{}, time.Time{}, err
+			return GoogleOIDCCallbackResult{}, err
 		}
 
-		return accessToken, refreshTokenRawStr, csrfGenerated, "reactivation", platform, atExp, refreshToken.ExpiresAt, nil
+		return GoogleOIDCCallbackResult{
+			AccessToken:           accessToken,
+			RefreshToken:          refreshTokenRawStr,
+			CSRFToken:             csrfGenerated,
+			RedirectPath:          "reactivation",
+			Platform:              platform,
+			AccessTokenExpiresAt:  atExp,
+			RefreshTokenExpiresAt: refreshToken.ExpiresAt,
+		}, nil
 	} else if errors.Is(err, core.ErrNotFound) { // 存在しない場合
 		accessToken, atExp, err := s.jwtService.SignRegisterToken(authorization.ID, refreshToken.AccessTokenJTI, s.serverURL)
 		if err != nil {
-			return "", "", "", "", "", time.Time{}, time.Time{}, err
+			return GoogleOIDCCallbackResult{}, err
 		}
 
 		if err := tx.Commit(ctx); err != nil {
-			return "", "", "", "", "", time.Time{}, time.Time{}, err
+			return GoogleOIDCCallbackResult{}, err
 		}
 
-		return accessToken, refreshTokenRawStr, csrfGenerated, "register", platform, atExp, refreshToken.ExpiresAt, nil
+		return GoogleOIDCCallbackResult{
+			AccessToken:           accessToken,
+			RefreshToken:          refreshTokenRawStr,
+			CSRFToken:             csrfGenerated,
+			RedirectPath:          "register",
+			Platform:              platform,
+			AccessTokenExpiresAt:  atExp,
+			RefreshTokenExpiresAt: refreshToken.ExpiresAt,
+		}, nil
 	} else { // ただのDBエラー
-		return "", "", "", "", "", time.Time{}, time.Time{}, err
+		return GoogleOIDCCallbackResult{}, err
 	}
 }
 
@@ -236,8 +261,6 @@ func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) 
 		return err
 	}
 
-	// 削除した refresh token に紐づく access token の jti をブラックリスト入りさせ、
-	// 残りの有効期限が切れるまで再利用を防ぐ
 	return s.jtiBlacklistRepo.InsertJTI(ctx, jti, jtiExpiresAt)
 }
 
@@ -313,9 +336,6 @@ func (s *Service) RemoveSession(ctx context.Context, userID, sessionID uuid.UUID
 		return uuid.Nil, err
 	}
 
-	// 削除されたセッションに紐づく access token の jti をブラックリスト入りさせる。
-	// access token の残り有効期限分だけ TTL を持たせれば十分だが、ここでは sessionID から
-	// 取得できないので accessTokenDuration を上限としてセットする。
 	if err := s.jtiBlacklistRepo.InsertJTI(ctx, accessTokenJTI, time.Now().UTC().Add(s.accessTokenDuration)); err != nil {
 		return uuid.Nil, err
 	}
@@ -351,7 +371,6 @@ func (s *Service) YouTubeOAuthCallback(ctx context.Context, state, code string) 
 		return err
 	}
 
-	// 登録してるチャンネルを取得
 	if importSubscriptions {
 		channels, err := oauthClient.FetchAllSubscriptions(ctx)
 		if err != nil {
@@ -365,9 +384,6 @@ func (s *Service) YouTubeOAuthCallback(ctx context.Context, state, code string) 
 		clear(channels)
 	}
 
-	// NOTE: YouTube Data API v3 は Watch History (HL) の読み取りをサポートしていないため、視聴履歴のimportは未実装
-
-	// 高評価プレイリストをimport
 	if importLikes {
 		if _, err := s.playlistService.CreatePlaylistWithOAuthClient(ctx, userID, "高評価した動画", "", "private", "normal", oauthClient, "LL"); err != nil {
 			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to import liked playlist(youtube oauth callback)", slog.Any("error", err))
@@ -420,7 +436,6 @@ func (s *Service) ReactivateAccount(ctx context.Context, registerAccessToken str
 		return err
 	}
 
-	// コミット
 	if err := tx.Commit(ctx); err != nil {
 		return err
 	}

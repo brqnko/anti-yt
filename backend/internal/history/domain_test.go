@@ -160,9 +160,6 @@ func TestNewHeartbeat(t *testing.T) {
 	}
 }
 
-// 放置されたセッション(watch_end_at=farFuture)に次の動画再生が来たとき、
-// 旧セッションの閉じ時刻は「今」ではなく「最後の更新+1分」になるべき。
-// そうでないと放置中の何時間/何日もが視聴時間として計上される。
 func TestHeartbeat_Rotate_StaleDifferentVideo_ClosesAtLastUpdatedAt(t *testing.T) {
 	t.Parallel()
 
