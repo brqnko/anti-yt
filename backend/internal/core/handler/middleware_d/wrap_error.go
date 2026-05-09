@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
+	"github.com/brqnko/anti-yt/backend/internal/core/discord_d"
 	v1 "github.com/brqnko/anti-yt/backend/internal/core/handler/v1"
-	"github.com/brqnko/anti-yt/backend/internal/core/report"
 	"github.com/brqnko/anti-yt/backend/internal/util"
 )
 
@@ -26,7 +28,7 @@ func writeErrorJSON(w http.ResponseWriter, statusCode int, title, detail string)
 	return nil, nil
 }
 
-func WrapErrorMiddleware(reportService *report.Service) func(v1.StrictHandlerFunc, string) v1.StrictHandlerFunc {
+func WrapErrorMiddleware(discordClient discord_d.Client) func(v1.StrictHandlerFunc, string) v1.StrictHandlerFunc {
 	return func(f v1.StrictHandlerFunc, operationID string) v1.StrictHandlerFunc {
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
 			response, err := f(ctx, w, r, request)
@@ -43,7 +45,14 @@ func WrapErrorMiddleware(reportService *report.Service) func(v1.StrictHandlerFun
 				slog.String("operation_id", operationID),
 				slog.Any("error", err),
 			)
-			reportService.ReportError(ctx, operationID, err)
+
+			reportCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
+			go func() {
+				defer cancel()
+				if sendErr := discordClient.SendWebhookMessage(reportCtx, fmt.Sprintf("[ERROR] `%s`\n```\n%v\n```", operationID, err)); sendErr != nil {
+					util.LoggerFromContext(reportCtx).ErrorContext(reportCtx, "failed to send error report", slog.Any("error", sendErr))
+				}
+			}()
 
 			return writeErrorJSON(w, http.StatusInternalServerError, "internal_server_error", "an unexpected error has occurred")
 		}

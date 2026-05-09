@@ -3,6 +3,7 @@ package channel_test
 import (
 	"context"
 	"errors"
+	"math"
 	"testing"
 	"time"
 
@@ -21,7 +22,7 @@ func TestService_GetSubscriptions(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("limit too small returns error", func(t *testing.T) {
-		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFakeFeedRepository(nil), time.Hour)
+		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFeedRepo(t, nil), time.Hour)
 
 		_, _, err := svc.GetSubscriptions(ctx, uuid.New(), 0, nil)
 
@@ -29,7 +30,7 @@ func TestService_GetSubscriptions(t *testing.T) {
 	})
 
 	t.Run("limit too large returns error", func(t *testing.T) {
-		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFakeFeedRepository(nil), time.Hour)
+		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFeedRepo(t, nil), time.Hour)
 
 		_, _, err := svc.GetSubscriptions(ctx, uuid.New(), 51, nil)
 
@@ -38,7 +39,7 @@ func TestService_GetSubscriptions(t *testing.T) {
 
 	t.Run("valid limit returns empty list", func(t *testing.T) {
 		db := testutil.NewTestPool(t)
-		svc := channel.NewService(db, new(ClientMock{}), testutil.NewFakeFeedRepository(sqlc.New(db)), time.Hour)
+		svc := channel.NewService(db, new(ClientMock{}), testutil.NewFeedRepo(t, sqlc.New(db)), time.Hour)
 
 		channels, hasNext, err := svc.GetSubscriptions(ctx, uuid.Must(uuid.NewV7()), 10, nil)
 
@@ -54,7 +55,7 @@ func TestService_GetSubscriptions(t *testing.T) {
 		testCh := newTestChannel(t)
 		testVid := newTestVideo(t)
 		ytMock := newYTMock(testCh, map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid})
-		svc := channel.NewService(db, ytMock, testutil.NewFakeFeedRepository(sqlc.New(db)), 24*time.Hour)
+		svc := channel.NewService(db, ytMock, testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
 
 		_, err := svc.SubscribeChannel(ctx, userPublicID, "@testchannel")
 		require.NoError(t, err)
@@ -102,7 +103,7 @@ func TestService_GetSubscriptions(t *testing.T) {
 			FetchVideoDetailFunc: func(_ context.Context, _ []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
 				return map[youtube_d.VideoID]youtube_d.Video{}, nil
 			},
-		}), testutil.NewFakeFeedRepository(sqlc.New(db)), 24*time.Hour)
+		}), testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
 
 		_, err = svc.SubscribeChannel(ctx, userPublicID, "@channela")
 		require.NoError(t, err)
@@ -122,7 +123,7 @@ func TestService_GetChannelUploads(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("limit too small returns error", func(t *testing.T) {
-		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFakeFeedRepository(nil), time.Hour)
+		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFeedRepo(t, nil), time.Hour)
 
 		_, _, err := svc.GetChannelUploads(ctx, uuid.New(), uuid.New(), nil, 0, "newer")
 
@@ -130,7 +131,7 @@ func TestService_GetChannelUploads(t *testing.T) {
 	})
 
 	t.Run("limit too large returns error", func(t *testing.T) {
-		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFakeFeedRepository(nil), time.Hour)
+		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFeedRepo(t, nil), time.Hour)
 
 		_, _, err := svc.GetChannelUploads(ctx, uuid.New(), uuid.New(), nil, 51, "newer")
 
@@ -146,7 +147,7 @@ func TestService_GetChannelUploads(t *testing.T) {
 		ytMock := newYTMock(testCh, map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid})
 
 		// rssFetchDuration を十分長くして RSS 再取得が発動しないようにする
-		svc := channel.NewService(db, ytMock, testutil.NewFakeFeedRepository(sqlc.New(db)), 24*time.Hour)
+		svc := channel.NewService(db, ytMock, testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
 
 		ch, err := svc.SubscribeChannel(ctx, userPublicID, "@testchannel")
 		require.NoError(t, err)
@@ -199,7 +200,7 @@ func TestService_GetChannelUploads(t *testing.T) {
 		})
 
 		// rssFetchDuration=0 で常に RSS 再取得が発動するようにする
-		svc := channel.NewService(db, ytMock, testutil.NewFakeFeedRepository(sqlc.New(db)), 0)
+		svc := channel.NewService(db, ytMock, testutil.NewFeedRepo(t, sqlc.New(db)), 0)
 
 		ch, err := svc.SubscribeChannel(ctx, userPublicID, "@testchannel")
 		require.NoError(t, err)
@@ -226,7 +227,7 @@ func TestService_GetChannelUploads(t *testing.T) {
 		videoMap := map[youtube_d.VideoID]youtube_d.Video{vid1.ID: vid1, vid2.ID: vid2}
 
 		ytMock := newYTMock(testCh, videoMap)
-		svc := channel.NewService(db, ytMock, testutil.NewFakeFeedRepository(sqlc.New(db)), 24*time.Hour)
+		svc := channel.NewService(db, ytMock, testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
 
 		ch, err := svc.SubscribeChannel(ctx, userPublicID, "@testchannel")
 		require.NoError(t, err)
@@ -248,7 +249,7 @@ func TestService_GetChannelUploads(t *testing.T) {
 		videoMap := map[youtube_d.VideoID]youtube_d.Video{vid1.ID: vid1, vid2.ID: vid2}
 
 		ytMock := newYTMock(testCh, videoMap)
-		svc := channel.NewService(db, ytMock, testutil.NewFakeFeedRepository(sqlc.New(db)), 24*time.Hour)
+		svc := channel.NewService(db, ytMock, testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
 
 		ch, err := svc.SubscribeChannel(ctx, userPublicID, "@testchannel")
 		require.NoError(t, err)
@@ -264,7 +265,7 @@ func TestService_GetChannelUploads(t *testing.T) {
 		db := testutil.NewTestPool(t)
 		userPublicID := setupUser(t, ctx, sqlc.New(db))
 
-		svc := channel.NewService(db, new(ClientMock{}), testutil.NewFakeFeedRepository(sqlc.New(db)), 24*time.Hour)
+		svc := channel.NewService(db, new(ClientMock{}), testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
 
 		_, _, err := svc.GetChannelUploads(ctx, userPublicID, uuid.Must(uuid.NewV7()), nil, 10, "newer")
 
@@ -355,7 +356,7 @@ func TestService_SubscribeChannel(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("invalid channel text returns error", func(t *testing.T) {
-		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFakeFeedRepository(nil), time.Hour)
+		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFeedRepo(t, nil), time.Hour)
 
 		_, err := svc.SubscribeChannel(ctx, uuid.New(), "invalid")
 
@@ -369,7 +370,7 @@ func TestService_SubscribeChannel(t *testing.T) {
 			FetchChannelDetailByIDOrHandleFunc: func(_ context.Context, _ string) (youtube_d.Channel, error) {
 				return youtube_d.Channel{}, fetchErr
 			},
-		}), testutil.NewFakeFeedRepository(sqlc.New(db)), time.Hour)
+		}), testutil.NewFeedRepo(t, sqlc.New(db)), time.Hour)
 
 		_, err := svc.SubscribeChannel(ctx, uuid.Must(uuid.NewV7()), "@testchannel")
 
@@ -383,7 +384,7 @@ func TestService_SubscribeChannel(t *testing.T) {
 		testCh := newTestChannel(t)
 		testVid := newTestVideo(t)
 		ytMock := newYTMock(testCh, map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid})
-		svc := channel.NewService(db, ytMock, testutil.NewFakeFeedRepository(sqlc.New(db)), time.Hour)
+		svc := channel.NewService(db, ytMock, testutil.NewFeedRepo(t, sqlc.New(db)), time.Hour)
 
 		ch, err := svc.SubscribeChannel(ctx, userPublicID, "@testchannel")
 
@@ -399,7 +400,7 @@ func TestService_SubscribeChannel(t *testing.T) {
 		testCh := newTestChannel(t)
 		testVid := newTestVideo(t)
 		ytMock := newYTMock(testCh, map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid})
-		svc := channel.NewService(db, ytMock, testutil.NewFakeFeedRepository(sqlc.New(db)), time.Hour)
+		svc := channel.NewService(db, ytMock, testutil.NewFeedRepo(t, sqlc.New(db)), time.Hour)
 
 		_, err := svc.SubscribeChannel(ctx, userPublicID, "@testchannel")
 		require.NoError(t, err)
@@ -415,7 +416,7 @@ func TestService_UnsubscribeChannel(t *testing.T) {
 
 	t.Run("unsubscribe non-existent subscription returns error", func(t *testing.T) {
 		db := testutil.NewTestPool(t)
-		svc := channel.NewService(db, new(ClientMock{}), testutil.NewFakeFeedRepository(sqlc.New(db)), time.Hour)
+		svc := channel.NewService(db, new(ClientMock{}), testutil.NewFeedRepo(t, sqlc.New(db)), time.Hour)
 
 		err := svc.UnsubscribeChannel(ctx, uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()))
 
@@ -429,18 +430,22 @@ func TestService_UnsubscribeChannel(t *testing.T) {
 		testCh := newTestChannel(t)
 		testVid := newTestVideo(t)
 		ytMock := newYTMock(testCh, map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid})
-		feedRepo := testutil.NewFakeFeedRepository(sqlc.New(db))
+		feedRepo := testutil.NewFeedRepo(t, sqlc.New(db))
 		svc := channel.NewService(db, ytMock, feedRepo, time.Hour)
 
 		ch, err := svc.SubscribeChannel(ctx, userPublicID, "@testchannel")
 		require.NoError(t, err)
 		// Subscribe 後はチャンネルの既存動画が PushMany で feed に反映されている
-		assert.Equal(t, 1, feedRepo.Count(userPublicID))
+		videos, err := feedRepo.Get(ctx, userPublicID, nil, math.MaxInt64)
+		require.NoError(t, err)
+		assert.Len(t, videos, 1)
 
 		err = svc.UnsubscribeChannel(ctx, userPublicID, ch.ID)
 		assert.NoError(t, err)
 		// Unsubscribe 後は DeleteMany で feed から削除されている
-		assert.Equal(t, 0, feedRepo.Count(userPublicID))
+		videos, err = feedRepo.Get(ctx, userPublicID, nil, math.MaxInt64)
+		require.NoError(t, err)
+		assert.Empty(t, videos)
 	})
 }
 
@@ -449,7 +454,7 @@ func TestService_GetChannelDetail(t *testing.T) {
 
 	t.Run("non-existent channel returns error", func(t *testing.T) {
 		db := testutil.NewTestPool(t)
-		svc := channel.NewService(db, new(ClientMock{}), testutil.NewFakeFeedRepository(sqlc.New(db)), time.Hour)
+		svc := channel.NewService(db, new(ClientMock{}), testutil.NewFeedRepo(t, sqlc.New(db)), time.Hour)
 
 		_, err := svc.GetChannelDetail(ctx, uuid.Must(uuid.NewV7()), util.Base64UUID(uuid.Must(uuid.NewV7())).String())
 
@@ -463,7 +468,7 @@ func TestService_GetChannelDetail(t *testing.T) {
 		testCh := newTestChannel(t)
 		testVid := newTestVideo(t)
 		ytMock := newYTMock(testCh, map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid})
-		svc := channel.NewService(db, ytMock, testutil.NewFakeFeedRepository(sqlc.New(db)), time.Hour)
+		svc := channel.NewService(db, ytMock, testutil.NewFeedRepo(t, sqlc.New(db)), time.Hour)
 
 		ch, err := svc.SubscribeChannel(ctx, userPublicID, "@testchannel")
 		require.NoError(t, err)
@@ -481,7 +486,7 @@ func TestService_GetChannelFeeds(t *testing.T) {
 
 	t.Run("empty valuable channels", func(t *testing.T) {
 		db := testutil.NewTestPool(t)
-		svc := channel.NewService(db, new(ClientMock{}), testutil.NewFakeFeedRepository(sqlc.New(db)), time.Hour)
+		svc := channel.NewService(db, new(ClientMock{}), testutil.NewFeedRepo(t, sqlc.New(db)), time.Hour)
 
 		channels, err := svc.GetChannelFeeds(ctx)
 
@@ -494,7 +499,7 @@ func TestService_GetChannelFeeds(t *testing.T) {
 		testCh := newTestChannel(t)
 		testVid := newTestVideo(t)
 		ytMock := newYTMock(testCh, map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid})
-		svc := channel.NewService(db, ytMock, testutil.NewFakeFeedRepository(sqlc.New(db)), 24*time.Hour)
+		svc := channel.NewService(db, ytMock, testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
 
 		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "learn_deepen", "good channel")
 		require.NoError(t, err)
@@ -512,7 +517,7 @@ func TestService_CreateNewValuableChannel(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("invalid channel text returns error", func(t *testing.T) {
-		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFakeFeedRepository(nil), time.Hour)
+		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFeedRepo(t, nil), time.Hour)
 
 		_, err := svc.CreateNewValuableChannel(ctx, "invalid", "learn_deepen", "good channel")
 
@@ -526,7 +531,7 @@ func TestService_CreateNewValuableChannel(t *testing.T) {
 			FetchChannelDetailByIDOrHandleFunc: func(_ context.Context, _ string) (youtube_d.Channel, error) {
 				return youtube_d.Channel{}, fetchErr
 			},
-		}), testutil.NewFakeFeedRepository(sqlc.New(db)), time.Hour)
+		}), testutil.NewFeedRepo(t, sqlc.New(db)), time.Hour)
 
 		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "learn_deepen", "good channel")
 
@@ -548,7 +553,7 @@ func TestService_CreateNewValuableChannel(t *testing.T) {
 			FetchVideoDetailFunc: func(_ context.Context, _ []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
 				return map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid}, nil
 			},
-		}), testutil.NewFakeFeedRepository(sqlc.New(db)), time.Hour)
+		}), testutil.NewFeedRepo(t, sqlc.New(db)), time.Hour)
 
 		vc, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "learn_deepen", "good channel")
 
@@ -572,7 +577,7 @@ func TestService_CreateNewValuableChannel(t *testing.T) {
 			FetchVideoDetailFunc: func(_ context.Context, _ []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
 				return map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid}, nil
 			},
-		}), testutil.NewFakeFeedRepository(sqlc.New(db)), time.Hour)
+		}), testutil.NewFeedRepo(t, sqlc.New(db)), time.Hour)
 
 		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "invalid_reason", "good channel")
 
@@ -584,7 +589,7 @@ func TestService_RemoveValuableChannel(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("invalid channel text returns error", func(t *testing.T) {
-		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFakeFeedRepository(nil), time.Hour)
+		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFeedRepo(t, nil), time.Hour)
 
 		err := svc.RemoveValuableChannel(ctx, "invalid")
 
@@ -606,7 +611,7 @@ func TestService_RemoveValuableChannel(t *testing.T) {
 			FetchVideoDetailFunc: func(_ context.Context, _ []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
 				return map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid}, nil
 			},
-		}), testutil.NewFakeFeedRepository(sqlc.New(db)), time.Hour)
+		}), testutil.NewFeedRepo(t, sqlc.New(db)), time.Hour)
 
 		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "learn_deepen", "good channel")
 		require.NoError(t, err)
@@ -620,7 +625,7 @@ func TestService_UpdateValuableChannel(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("invalid channel text returns error", func(t *testing.T) {
-		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFakeFeedRepository(nil), time.Hour)
+		svc := channel.NewService((*pgxpool.Pool)(nil), new(ClientMock{}), testutil.NewFeedRepo(t, nil), time.Hour)
 
 		_, err := svc.UpdateValuableChannel(ctx, "invalid", nil, nil)
 
@@ -642,7 +647,7 @@ func TestService_UpdateValuableChannel(t *testing.T) {
 			FetchVideoDetailFunc: func(_ context.Context, _ []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
 				return map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid}, nil
 			},
-		}), testutil.NewFakeFeedRepository(sqlc.New(db)), time.Hour)
+		}), testutil.NewFeedRepo(t, sqlc.New(db)), time.Hour)
 
 		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "learn_deepen", "good channel")
 		require.NoError(t, err)
@@ -671,7 +676,7 @@ func TestService_UpdateValuableChannel(t *testing.T) {
 			FetchVideoDetailFunc: func(_ context.Context, _ []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
 				return map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid}, nil
 			},
-		}), testutil.NewFakeFeedRepository(sqlc.New(db)), time.Hour)
+		}), testutil.NewFeedRepo(t, sqlc.New(db)), time.Hour)
 
 		_, err := svc.CreateNewValuableChannel(ctx, "@testchannel", "learn_deepen", "good channel")
 		require.NoError(t, err)

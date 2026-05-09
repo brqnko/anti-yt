@@ -157,10 +157,8 @@ function ChannelsContent() {
             {t("channels.pageTitle")}
           </h1>
 
-          {/* Link to valuable channels */}
           <ExploreChannelsBanner />
 
-          {/* Subscribed channels list */}
           {isLoading ? null : error ? (
             <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
               <Icon name="error_outline" class="text-5xl mb-4" />

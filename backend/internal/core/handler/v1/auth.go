@@ -39,7 +39,7 @@ func (h *APIHandler) GetAuthGoogle(ctx context.Context, request GetAuthGoogleReq
 }
 
 func (h *APIHandler) GetAuthGoogleCallback(ctx context.Context, request GetAuthGoogleCallbackRequestObject) (GetAuthGoogleCallbackResponseObject, error) {
-	resultAccessToken, resultRefreshToken, resultCSRFToken, resultRedirectPath, resultPlatform, resultAccessTokenExpiresAt, resultRefreshTokenExpiresAt, err := h.authService.GoogleOIDCCallback(ctx,
+	result, err := h.authService.GoogleOIDCCallback(ctx,
 		request.Params.Csrf,
 		request.Params.State,
 		request.Params.Code,
@@ -52,35 +52,35 @@ func (h *APIHandler) GetAuthGoogleCallback(ctx context.Context, request GetAuthG
 		return nil, err
 	}
 
-	if resultPlatform == "mobile" {
+	if result.Platform == "mobile" {
 		return GetAuthGoogleCallback302Response{
 			Headers: GetAuthGoogleCallback302ResponseHeaders{
-				Location: fmt.Sprintf("antiyt://auth/callback?access_token=%s&refresh_token=%s&csrf_token=%s", resultAccessToken, resultRefreshToken, resultCSRFToken),
+				Location: fmt.Sprintf("antiyt://auth/callback?access_token=%s&refresh_token=%s&csrf_token=%s", result.AccessToken, result.RefreshToken, result.CSRFToken),
 			},
 		}, nil
 	}
 
 	hutil.AddResponseCookie(ctx, (new(http.Cookie{
 		Name:     "access_token",
-		Value:    resultAccessToken,
+		Value:    result.AccessToken,
 		Path:     "/",
-		Expires:  resultAccessTokenExpiresAt,
+		Expires:  result.AccessTokenExpiresAt,
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	})).String())
 	hutil.AddResponseCookie(ctx, (new(http.Cookie{
 		Name:     "refresh_token",
-		Value:    resultRefreshToken,
+		Value:    result.RefreshToken,
 		Path:     "/",
-		Expires:  resultRefreshTokenExpiresAt,
+		Expires:  result.RefreshTokenExpiresAt,
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	})).String())
 	hutil.AddResponseCookie(ctx, (new(http.Cookie{
 		Name:     "csrf_token",
-		Value:    resultCSRFToken,
+		Value:    result.CSRFToken,
 		Path:     "/",
 		Expires:  time.Now().AddDate(100, 0, 0),
 		HttpOnly: false,
@@ -90,7 +90,7 @@ func (h *APIHandler) GetAuthGoogleCallback(ctx context.Context, request GetAuthG
 
 	return GetAuthGoogleCallback302Response{
 		Headers: GetAuthGoogleCallback302ResponseHeaders{
-			Location: fmt.Sprintf("%s/%s", h.frontendURL, resultRedirectPath),
+			Location: fmt.Sprintf("%s/%s", h.frontendURL, result.RedirectPath),
 		},
 	}, nil
 }

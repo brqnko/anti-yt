@@ -68,21 +68,6 @@
         "body": "一週間分の視聴データを可視化することができます。過去の行動をみて、自分を振り返りましょう。"
       }
     },
-    "features": {
-      "heading": "機能仕様概略",
-      "feed": {
-        "title": "フィード",
-        "body": "API連携による登録チャンネルの取得と、時系列順のリスト表示機能。推薦アルゴリズムによる介在を排除したフィード構築を行います。"
-      },
-      "limit": {
-        "title": "視聴制限",
-        "body": "指定した閾値に基づくセッション制限およびスケジュール設定。過剰な利用を物理的に制約するための時間管理モジュールです。"
-      },
-      "analytics": {
-        "title": "アナリティクス",
-        "body": "視聴統計の自動集計。日次・週次での利用時間内訳、および対象チャンネル別の消費リソースを定量的に表示します。"
-      }
-    },
     "finalCta": {
       "description": "設計された環境下での視聴体験を\n<b>無料</b>で始めましょう"
     }
@@ -174,16 +159,6 @@
       "bottomAnalytics": "分析",
       "bottomProfile": "プロフィール",
       "aboutAntiYt": "anti-ytとは？"
-    },
-    "addChannelDialog": {
-      "title": "チャンネルを追加",
-      "description": "YouTubeチャンネルのURLまたはIDを入力してください。",
-      "placeholder": "https://www.youtube.com/@handle または UC...",
-      "cancel": "キャンセル",
-      "add": "追加",
-      "adding": "追加中...",
-      "error": "チャンネルの追加に失敗しました。IDを確認して再度お試しください。",
-      "paste": "クリップボードから貼り付け"
     },
     "addPlaylist": "プレイリストを作成",
     "addPlaylistDialog": {

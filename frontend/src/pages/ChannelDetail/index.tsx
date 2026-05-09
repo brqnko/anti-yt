@@ -177,7 +177,6 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
         setIsSubscribed(true);
       }
     } catch {
-      // silently fail
     } finally {
       setIsToggling(false);
     }
@@ -221,7 +220,6 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
           isToggling={isToggling}
         />
 
-        {/* Playlists */}
         {playlists.length > 0 && (
           <div class="mb-8">
             <div class="flex items-center justify-between mb-4">
@@ -270,7 +268,6 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
           </div>
         )}
 
-        {/* Latest Uploads */}
         <div>
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-bold">

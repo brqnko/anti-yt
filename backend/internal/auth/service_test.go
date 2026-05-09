@@ -129,7 +129,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		)
 
 		// action
-		_, _, _, _, _, _, _, err := svc.GoogleOIDCCallback(
+		_, err := svc.GoogleOIDCCallback(
 			ctx, "", "state", "code", "127.0.0.1", "JP", "fp", "ua",
 		)
 
@@ -152,7 +152,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		)
 
 		// action
-		_, _, _, _, _, _, _, err := svc.GoogleOIDCCallback(
+		_, err := svc.GoogleOIDCCallback(
 			ctx, "a", "b", "code", "127.0.0.1", "JP", "fp", "ua",
 		)
 
@@ -179,7 +179,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		)
 
 		// action
-		_, _, _, _, _, _, _, err := svc.GoogleOIDCCallback(
+		_, err := svc.GoogleOIDCCallback(
 			ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "ua",
 		)
 
@@ -209,7 +209,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		)
 
 		// action
-		_, _, _, _, _, _, _, err := svc.GoogleOIDCCallback(
+		_, err := svc.GoogleOIDCCallback(
 			ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "ua",
 		)
 
@@ -239,14 +239,14 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		)
 
 		// action
-		_, _, _, redirectPath, platform, _, _, err := svc.GoogleOIDCCallback(
+		result, err := svc.GoogleOIDCCallback(
 			ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "ua",
 		)
 
 		// assert
 		require.NoError(t, err)
-		assert.Equal(t, "register", redirectPath)
-		assert.Equal(t, "web", platform)
+		assert.Equal(t, "register", result.RedirectPath)
+		assert.Equal(t, "web", result.Platform)
 	})
 
 	t.Run("existing user redirects to dashboard", func(t *testing.T) {
@@ -290,14 +290,14 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		)
 
 		// action
-		_, _, _, redirectPath, platform, _, _, err := svc.GoogleOIDCCallback(
+		result, err := svc.GoogleOIDCCallback(
 			ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "ua",
 		)
 
 		// assert
 		require.NoError(t, err)
-		assert.Equal(t, "dashboard", redirectPath)
-		assert.Equal(t, "web", platform)
+		assert.Equal(t, "dashboard", result.RedirectPath)
+		assert.Equal(t, "web", result.Platform)
 	})
 
 	t.Run("same user login twice succeeds", func(t *testing.T) {
@@ -342,11 +342,11 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 		// action & assert
 		for range 2 {
-			_, _, _, redirectPath, _, _, _, err := svc.GoogleOIDCCallback(
+			result, err := svc.GoogleOIDCCallback(
 				ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "ua",
 			)
 			require.NoError(t, err)
-			assert.Equal(t, "dashboard", redirectPath)
+			assert.Equal(t, "dashboard", result.RedirectPath)
 		}
 	})
 
@@ -396,14 +396,14 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		)
 
 		// action
-		_, _, _, redirectPath, platform, _, _, err := svc.GoogleOIDCCallback(
+		result, err := svc.GoogleOIDCCallback(
 			ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "ua",
 		)
 
 		// assert
 		require.NoError(t, err)
-		assert.Equal(t, "reactivation", redirectPath)
-		assert.Equal(t, "web", platform)
+		assert.Equal(t, "reactivation", result.RedirectPath)
+		assert.Equal(t, "web", result.Platform)
 	})
 }
 

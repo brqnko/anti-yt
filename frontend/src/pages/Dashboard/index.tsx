@@ -245,7 +245,6 @@ function DashboardContent() {
                 </div>
               </a>
             ))}
-            {/* Create new playlist card */}
             <button
               type="button"
               class="group flex-shrink-0 w-72 rounded-xl border border-dashed border-border-light dark:border-border-dark hover:border-primary hover:bg-primary/5 overflow-hidden bg-transparent cursor-pointer flex flex-col items-center justify-center gap-3"

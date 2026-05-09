@@ -10,10 +10,8 @@ import { Icon } from "../../components/Icon";
 export function RestrictionsTab() {
   const { t } = useTranslation();
 
-  // Time ranges from user's screen_time
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
 
-  // Daily cap
   const [hours, setHours] = useState(1);
   const [minutes, setMinutes] = useState(0);
   const [isUnlimited, setIsUnlimited] = useState(false);
@@ -39,7 +37,6 @@ export function RestrictionsTab() {
     }).catch(() => {});
   }, []);
 
-  // Saving state
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveFading, setSaveFading] = useState(false);
@@ -109,7 +106,6 @@ export function RestrictionsTab() {
 
   return (
     <div class="flex flex-col gap-6 min-w-0 overflow-hidden">
-          {/* Time Constraints */}
           <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
             <div class="p-6 border-b border-border-light dark:border-border-dark">
               <h2 class="text-xl font-bold">
@@ -117,7 +113,6 @@ export function RestrictionsTab() {
               </h2>
             </div>
             <div class="p-6 flex flex-col gap-8">
-              {/* Permitted Hours */}
               <div class="flex flex-col gap-6">
                 <div class="flex justify-between items-center flex-wrap gap-2">
                   <label class="text-base font-semibold">
@@ -151,13 +146,11 @@ export function RestrictionsTab() {
 
               <hr class="border-border-light dark:border-border-dark" />
 
-              {/* Daily Cap Limit */}
               <div class="flex flex-col gap-4">
                 <label class="text-base font-semibold">
                   {t("restrictions.dailyCapLimit")}
                 </label>
                 <div class="flex flex-wrap gap-4 items-center">
-                  {/* Unlimited toggle */}
                   <button
                     type="button"
                     role="switch"

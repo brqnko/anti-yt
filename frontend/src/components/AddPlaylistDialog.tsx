@@ -69,7 +69,6 @@ export function AddPlaylistDialog({
         </h2>
 
         <div class="flex flex-col gap-4">
-          {/* Title */}
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium text-charcoal dark:text-white">
               {t("dashboard.addPlaylistDialog.titleLabel")}
@@ -83,7 +82,6 @@ export function AddPlaylistDialog({
             />
           </div>
 
-          {/* Description */}
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium text-charcoal dark:text-white">
               {t("dashboard.addPlaylistDialog.descriptionLabel")}
@@ -97,7 +95,6 @@ export function AddPlaylistDialog({
             />
           </div>
 
-          {/* Import from YouTube playlist URL (optional) */}
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium text-charcoal dark:text-white">
               {t("dashboard.addPlaylistDialog.importLabel")}

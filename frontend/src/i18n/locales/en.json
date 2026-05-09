@@ -68,21 +68,6 @@
         "body": "Visualize a full week of viewing data. Look back on your past behavior and reflect on how you've been spending your time."
       }
     },
-    "features": {
-      "heading": "Feature summary",
-      "feed": {
-        "title": "Feed",
-        "body": "Subscribed channels are pulled via API and displayed in chronological order — a feed built without algorithmic interference."
-      },
-      "limit": {
-        "title": "Limit",
-        "body": "Session limits and schedules based on thresholds you define. A time-management module that physically constrains overuse."
-      },
-      "analytics": {
-        "title": "Analytics",
-        "body": "Automatic aggregation of viewing statistics — daily and weekly breakdowns plus per-channel consumption, all quantified."
-      }
-    },
     "finalCta": {
       "description": "Begin a viewing experience designed on your own terms\n<b>for free</b>"
     }
@@ -174,16 +159,6 @@
       "bottomAnalytics": "Analytics",
       "bottomProfile": "Profile",
       "aboutAntiYt": "What is anti-yt?"
-    },
-    "addChannelDialog": {
-      "title": "Add Channel",
-      "description": "Enter a YouTube channel URL or ID.",
-      "placeholder": "https://www.youtube.com/@handle or UC...",
-      "cancel": "Cancel",
-      "add": "Add",
-      "adding": "Adding...",
-      "error": "Failed to add channel. Please check the ID and try again.",
-      "paste": "Paste from clipboard"
     },
     "addPlaylist": "Create Playlist",
     "addPlaylistDialog": {

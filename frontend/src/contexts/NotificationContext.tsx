@@ -1,6 +1,5 @@
-import { createContext } from "preact";
+import { createContext, type ComponentChildren } from "preact";
 import { useState, useEffect, useCallback, useContext, useMemo, useRef } from "preact/hooks";
-import type { ComponentChildren } from "preact";
 import { NotificationHost } from "../components/NotificationHost";
 
 export type NotificationType = "error" | "info";

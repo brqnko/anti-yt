@@ -7,7 +7,7 @@ import { Icon } from "../../components/Icon";
 
 const PAGE_SIZE = 20;
 
-function SessionMenu({ session, onRevoke }: { session: GetUsersMeSessions200ItemsItem; onRevoke: () => void }) {
+function SessionMenu({ onRevoke }: { onRevoke: () => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
@@ -125,7 +125,6 @@ export function SecurityTab() {
 
   return (
     <div class="flex flex-col gap-8">
-      {/* Error banner */}
       {error && (
         <div class="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm font-medium">
           <Icon name="error" class="text-base" />
@@ -139,7 +138,6 @@ export function SecurityTab() {
         </div>
       )}
 
-      {/* Active Sessions Table */}
       {sessions.length > 0 && (
         <div class="flex flex-col gap-4">
           <h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">
@@ -188,7 +186,6 @@ export function SecurityTab() {
                     </td>
                     <td class="px-4 py-3 text-right">
                       <SessionMenu
-                        session={session}
                         onRevoke={() => setConfirmRevokeId(session.id)}
                       />
                     </td>
@@ -200,7 +197,6 @@ export function SecurityTab() {
         </div>
       )}
 
-      {/* Load More */}
       {hasNext && (
         <div class="flex justify-center">
           <button
@@ -213,7 +209,6 @@ export function SecurityTab() {
         </div>
       )}
 
-      {/* Empty state */}
       {sessions.length === 0 && (
         <div class="text-center py-12 text-text-muted-light dark:text-text-muted-dark">
           <Icon name="devices" class="text-4xl mb-2" />
@@ -221,7 +216,6 @@ export function SecurityTab() {
         </div>
       )}
 
-      {/* Revoke Confirmation Dialog */}
       {confirmRevokeId && (() => {
         const session = sessions.find((s) => s.id === confirmRevokeId);
         if (!session) return null;

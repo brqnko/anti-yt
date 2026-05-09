@@ -1,4 +1,3 @@
-// ── Date utilities ──
 
 /** Format a Date as YYYY-MM-DD in local time. */
 export function toDateStr(d: Date): string {
@@ -27,7 +26,6 @@ export function formatDateLabel(d: Date): string {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-// ── Duration / time formatting ──
 
 export function formatDuration(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600);

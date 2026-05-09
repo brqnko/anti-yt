@@ -77,7 +77,6 @@ export function HistoryTab() {
       hasNextRef.current = res.has_next;
       cursorRef.current = res.items[res.items.length - 1]?.watch_id;
     } catch {
-      // ignore
     } finally {
       loadingMoreRef.current = false;
       setIsLoadingMore(false);

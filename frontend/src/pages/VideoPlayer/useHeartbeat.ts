@@ -143,7 +143,6 @@ export function useHeartbeat({
       sendHeartbeat();
     }
 
-    // Countdown remaining screen time
     setRemainingSeconds((prev) => {
       if (prev === null) return null;
       if (prev <= 1) {
