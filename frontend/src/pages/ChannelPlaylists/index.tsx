@@ -103,7 +103,6 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
         setIsSubscribed(true);
       }
     } catch {
-      // silently fail
     } finally {
       setIsToggling(false);
     }

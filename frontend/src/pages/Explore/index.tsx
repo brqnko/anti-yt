@@ -83,7 +83,6 @@ function ExploreContent() {
 
   return (
     <DashboardLayout>
-      {/* Banner */}
       <div class="relative overflow-hidden" style={{ minHeight: "180px" }}>
         <div
           class="absolute inset-0"
@@ -99,9 +98,7 @@ function ExploreContent() {
 
       <div class="flex-1 flex justify-center py-8 px-4 sm:px-8">
         <div class="w-full max-w-[1440px] flex flex-col gap-8">
-            {/* Header */}
             <div class="flex flex-col gap-6">
-              {/* Category pills */}
               <div class="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2">
                 {CATEGORY_CODES.map((cat) => {
                   const isActive = cat.code === selectedCategory;
@@ -125,7 +122,6 @@ function ExploreContent() {
               </div>
             </div>
 
-            {/* Channel Grid */}
             {isLoading ? null : error ? (
               <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
                 <Icon name="error_outline" class="text-5xl mb-4" />

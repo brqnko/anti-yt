@@ -88,7 +88,6 @@ export function TimeRangeSlider({
     return (
       <div class="group relative flex items-center gap-4">
         <div class="flex-grow pt-8 pb-4 relative select-none">
-          {/* Floating labels */}
           <div
             class="absolute top-1 z-20 transition-all duration-200"
             style={{ left: `${startPct}%`, transform: "translateX(-50%)" }}
@@ -106,12 +105,10 @@ export function TimeRangeSlider({
             </span>
           </div>
 
-          {/* Track */}
           <div
             ref={trackRef}
             class="h-3 w-full bg-gray-100 dark:bg-neutral-800 rounded-full relative border border-gray-200 dark:border-neutral-700"
           >
-            {/* Tick marks */}
             <div class="absolute inset-0 w-full flex justify-between px-0.5 items-center opacity-30 pointer-events-none">
               <div class="h-1.5 w-px bg-current text-taupe" />
               <div class="h-1.5 w-px bg-current text-taupe" />
@@ -120,12 +117,10 @@ export function TimeRangeSlider({
               <div class="h-1.5 w-px bg-current text-taupe" />
             </div>
 
-            {/* Highlight glow */}
             <div
               class="absolute top-0 bottom-0 bg-primary/30 rounded-full pointer-events-none"
               style={{ left: `${startPct}%`, width: `${endPct - startPct}%` }}
             />
-            {/* Highlight bar */}
             <div
               class="absolute top-[3px] bottom-[3px] bg-primary rounded-full pointer-events-none"
               style={{ left: `${startPct}%`, width: `${endPct - startPct}%` }}
@@ -149,7 +144,6 @@ export function TimeRangeSlider({
     );
   }
 
-  // Settings variant (default)
   return (
     <div class="flex flex-col gap-4 p-4 rounded-xl bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark">
       <div class="flex items-center justify-between">

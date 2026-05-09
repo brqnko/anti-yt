@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
 import { useTitle } from "../../hooks/useTitle";
-import { useEscapeKey } from "../../hooks/useEscapeKey";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
@@ -595,7 +594,6 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
   return (
     <DashboardLayout>
       <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
-        {/* Back link */}
         <a
           href="/playlists"
           class="inline-flex items-center gap-1 text-sm text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline mb-6"
@@ -604,10 +602,8 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
           {t("playlistDetail.backToPlaylists")}
         </a>
 
-        {/* Playlist Header */}
         <div class="bg-card-light dark:bg-card-dark rounded-xl border border-border-light dark:border-border-dark mb-8 p-6">
           <div class="flex flex-col sm:flex-row gap-6 items-start">
-            {/* Thumbnail */}
             {videos.length > 0 ? (
               <a
                 href={buildWatchUrl(videos[0].video_id, undefined, playlistId)}
@@ -639,7 +635,6 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
               </div>
             )}
 
-            {/* Info */}
             <div class="flex-1 min-w-0">
               <h1 class="text-2xl md:text-3xl font-bold text-charcoal dark:text-white mb-2">
                 {playlistInfo.playlist_title}
@@ -668,7 +663,6 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
               </div>
             </div>
 
-            {/* Actions */}
             {playlistInfo.playlist_type === "normal" ? (
               <div class="flex gap-2 flex-shrink-0">
                 <button
@@ -707,7 +701,6 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
           </div>
         </div>
 
-        {/* Videos */}
         <div>
           <h3 class="text-lg font-bold text-charcoal dark:text-white mb-4">
             {t("playlistDetail.videos")}

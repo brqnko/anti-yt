@@ -1,6 +1,5 @@
-import { createContext } from "preact";
+import { createContext, type ComponentChildren } from "preact";
 import { useState, useEffect, useCallback, useContext, useMemo } from "preact/hooks";
-import type { ComponentChildren } from "preact";
 import { AxiosError } from "axios";
 import { getUser } from "../api/generated/user";
 import { getAuth } from "../api/generated/auth";
@@ -87,7 +86,6 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
       const { postAuthLogout } = getAuth();
       await postAuthLogout();
     } catch {
-      // Clear state regardless
     }
     setIsAuthenticated(false);
     window.location.href = "/";

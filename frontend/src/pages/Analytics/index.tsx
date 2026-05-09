@@ -106,7 +106,6 @@ function AnalyticsContent() {
     <DashboardLayout>
       <div class="flex-grow w-full flex justify-center py-8 px-4 md:px-8 lg:px-20">
         <div class="flex flex-col w-full max-w-[1024px] gap-8">
-          {/* Page Heading */}
           <div class="flex flex-col gap-2">
             <h1 class="text-4xl font-black leading-tight tracking-[-0.033em] text-charcoal dark:text-white">
               {t("analytics.title")}
@@ -123,7 +122,6 @@ function AnalyticsContent() {
             </div>
           ) : (
             <>
-          {/* AI Summary */}
           {aiSummary && (
             <div class="rounded-xl p-6 bg-primary/10 dark:bg-[#2d2820] border border-primary/20 dark:border-primary/10 relative overflow-hidden">
               <p class="text-lg md:text-xl font-medium leading-relaxed text-charcoal dark:text-white">
@@ -132,9 +130,7 @@ function AnalyticsContent() {
             </div>
           )}
 
-          {/* Stats Cards */}
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Time Watched */}
             <div class="flex flex-col gap-3 rounded-xl p-6 border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark">
               <p class="text-text-muted-light dark:text-text-muted-dark text-sm font-medium uppercase tracking-wider">
                 {t("analytics.timeWasted")}
@@ -144,7 +140,6 @@ function AnalyticsContent() {
               </p>
             </div>
 
-            {/* Daily Average */}
             <div class="flex flex-col gap-3 rounded-xl p-6 border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark">
               <p class="text-text-muted-light dark:text-text-muted-dark text-sm font-medium uppercase tracking-wider">
                 {t("analytics.dailyAverage")}
@@ -154,7 +149,6 @@ function AnalyticsContent() {
               </p>
             </div>
 
-            {/* Total Videos Watched */}
             <div class="flex flex-col gap-3 rounded-xl p-6 border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark">
               <p class="text-text-muted-light dark:text-text-muted-dark text-sm font-medium uppercase tracking-wider">
                 {t("analytics.totalVideos")}
@@ -165,7 +159,6 @@ function AnalyticsContent() {
             </div>
           </div>
 
-          {/* Weekly Chart Section */}
           <div ref={chartRef} class="flex flex-col rounded-xl border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark">
             <div class="p-6 border-b border-border-light dark:border-border-dark flex justify-between items-center flex-wrap gap-4">
               <h3 class="text-lg font-bold text-charcoal dark:text-white">
@@ -174,7 +167,6 @@ function AnalyticsContent() {
             </div>
             <div class="p-6">
               <div class="relative h-64 w-full flex items-end justify-between gap-2 md:gap-4 pt-8">
-                {/* Limit Line (Dashed) */}
                 {dailyLimitHours != null && (
                   <div
                     class="absolute left-0 w-full border-t-2 border-dashed border-gray-300 dark:border-gray-600 z-0"

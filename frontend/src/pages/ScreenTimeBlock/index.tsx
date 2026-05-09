@@ -156,7 +156,6 @@ function GrassMowerGame() {
         </p>
       </div>
 
-      {/* Grass Grid */}
       <div class="grid grid-cols-6 gap-2 bg-card-light dark:bg-card-dark p-4 rounded-3xlborder border-border-light dark:border-border-dark w-full aspect-square max-w-[340px]">
         {tiles.map((state, i) => (
           <button
@@ -177,7 +176,6 @@ function GrassMowerGame() {
         ))}
       </div>
 
-      {/* Stats row */}
       <div class="mt-6 flex gap-4">
         <div class="bg-card-light dark:bg-card-dark px-4 py-2 rounded-2xlborder border-border-light dark:border-border-dark flex items-center gap-2">
           <Icon name="grass" class="text-green-500 text-sm" />
@@ -209,7 +207,6 @@ export default function ScreenTimeBlock({
 
   return (
     <div class="min-h-dvh bg-background-light dark:bg-background-dark flex flex-col items-center justify-center px-6 py-12">
-      {/* Header */}
       <div class="text-center mb-10">
         <h1 class="text-2xl font-bold text-charcoal dark:text-white tracking-tight">
           {t("screenTimeBlock.title")}
@@ -221,12 +218,10 @@ export default function ScreenTimeBlock({
         </p>
       </div>
 
-      {/* Game */}
       <div class="w-full max-w-md">
         <GrassMowerGame />
       </div>
 
-      {/* Settings link */}
       <a
         href="/screen-time-settings"
         class="mt-8 flex items-center gap-2 text-sm text-taupe dark:text-white/50 hover:text-charcoal dark:hover:text-white/80 no-underline"

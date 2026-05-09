@@ -3,11 +3,9 @@ import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./Icon";
 import { AuthPromptDialog } from "./AuthPromptDialog";
-import { SearchFilterDialog } from "./SearchFilterDialog";
-import type { SearchFilters } from "./SearchFilterDialog";
+import { SearchFilterDialog, type SearchFilters } from "./SearchFilterDialog";
 import { useAuth } from "../contexts/AuthContext";
 
-/** Read filter params from the current URL query string. */
 function parseFiltersFromURL(qs: string): SearchFilters {
   const p = new URLSearchParams(qs);
   const filters: SearchFilters = {};
@@ -19,7 +17,6 @@ function parseFiltersFromURL(qs: string): SearchFilters {
   return filters;
 }
 
-/** Build a URL search string from query + filters. */
 function buildSearchURL(query: string, filters: SearchFilters): string {
   const p = new URLSearchParams();
   p.set("q", query);

@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { formatSubscriberCount } from "../utils/format";
-import { getChannel } from "../api/generated/channel";
 import type { GetChannelsChannelId200 } from "../api/generated/antiYtApi.schemas";
 import { Linkify } from "./Linkify";
 import { Icon } from "./Icon";
@@ -56,7 +55,6 @@ export function ChannelInfoCard({
   return (
     <div class="bg-card-light dark:bg-card-dark rounded-xl border border-border-light dark:border-border-dark mb-8 p-6">
       <div class="flex flex-row gap-4 md:gap-6 items-start md:items-center">
-        {/* Avatar */}
         <div class="shrink-0">
           <div class="size-16 md:size-28 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden border-2 border-border-light dark:border-border-dark">
             <img
@@ -67,9 +65,7 @@ export function ChannelInfoCard({
           </div>
         </div>
 
-        {/* Channel Text Info + Whitelist Toggle */}
         <div class="flex-1 min-w-0 flex flex-col md:flex-row md:items-center gap-3">
-          {/* Channel Text Info */}
           <div class="flex-1 min-w-0">
             <h1 class="text-xl md:text-3xl font-bold mb-1 truncate">{channelInfo.external_channel_display_name}</h1>
             <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-muted-light dark:text-text-muted-dark">
@@ -93,7 +89,6 @@ export function ChannelInfoCard({
             </div>
           </div>
 
-          {/* Whitelist Toggle */}
           <div class="flex-shrink-0">
             <div class="bg-background-light dark:bg-background-dark border border-primary/20 p-4 rounded-xl flex items-center gap-4">
               <div class="flex flex-col">
@@ -105,7 +100,6 @@ export function ChannelInfoCard({
         </div>
       </div>
 
-      {/* Description */}
       {channelInfo.external_channel_description && (
         <ExpandableDescription description={channelInfo.external_channel_description} />
       )}

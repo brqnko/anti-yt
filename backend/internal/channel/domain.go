@@ -183,7 +183,6 @@ type ValuableChannel struct {
 	ValuableDescription ValuableDescription
 }
 
-// これEntityでいいのかな...?
 func NewValuableChannel(channelID uuid.UUID, reasonCode, valuableDescription string) (_ *ValuableChannel, err error) {
 	defer util.Wrap(&err, "channel.NewValuableChannel")
 

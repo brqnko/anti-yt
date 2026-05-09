@@ -98,7 +98,6 @@ function ProfileContent() {
   return (
     <DashboardLayout>
       <div class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-10 py-8 flex flex-col gap-6">
-        {/* Tab navigation */}
         <nav class="flex items-center gap-1 bg-background-light dark:bg-background-dark p-1 rounded-full border border-border-light dark:border-border-dark overflow-x-auto">
           <button
             onClick={() => setActiveTab("profile")}
@@ -138,7 +137,6 @@ function ProfileContent() {
 
         {activeTab === "profile" && (
           <>
-            {/* Account Details */}
             <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
               <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
                 <h2 class="text-xl font-bold">
@@ -219,7 +217,6 @@ function ProfileContent() {
               </div>
             </div>
 
-            {/* Appearance */}
             <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
               <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
                 <h2 class="text-xl font-bold">
@@ -245,10 +242,8 @@ function ProfileContent() {
               </div>
             </div>
 
-            {/* Restrictions */}
             <RestrictionsTab />
 
-            {/* その他 */}
             <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
               <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
                 <h2 class="text-xl font-bold">
@@ -288,7 +283,6 @@ function ProfileContent() {
         )}
       </div>
 
-      {/* Logout Confirmation Dialog */}
       {showLogoutConfirm && (
         <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60" onClick={() => setShowLogoutConfirm(false)}>
           <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
@@ -316,7 +310,6 @@ function ProfileContent() {
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
         <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60" onClick={() => { if (!isDeleting) { setShowDeleteConfirm(false); setDeleteConfirmInput(""); } }}>
           <div class="bg-card-light dark:bg-card-dark rounded-xl ring-1 ring-black/10 dark:ring-white/10 border border-border-light dark:border-border-dark max-w-md w-full mx-4 p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
@@ -359,7 +352,6 @@ function ProfileContent() {
         </div>
       )}
 
-      {/* YouTube Import Dialog */}
       {showImportDialog && (
         <div
           class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60"

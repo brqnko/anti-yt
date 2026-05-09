@@ -4,7 +4,6 @@ import { SITE_URL } from "../constants";
 
 const URL_REGEX = /(https?:\/\/[^\s<>"']+)/g;
 const URL_TEST = /^https?:\/\//;
-const TIMESTAMP_REGEX = /(?:(\d{1,2}):)?(\d{1,2}):(\d{2})/;
 const TOKEN_REGEX = new RegExp(
   `(https?:\\/\\/[^\\s<>"']+)|(?:(\\d{1,2}):)?(\\d{1,2}):(\\d{2})`,
   "g",
@@ -51,7 +50,6 @@ export function Linkify({
   onTimestamp?: (seconds: number) => void;
 }): VNode {
   if (!onTimestamp) {
-    // Original URL-only behaviour
     const parts = text.split(URL_REGEX);
     return (
       <>
@@ -62,20 +60,17 @@ export function Linkify({
     );
   }
 
-  // URL + timestamp handling
   const nodes: (string | VNode)[] = [];
   let lastIndex = 0;
 
   TOKEN_REGEX.lastIndex = 0;
   let match: RegExpExecArray | null;
   while ((match = TOKEN_REGEX.exec(text)) !== null) {
-    // Push text before this match
     if (match.index > lastIndex) {
       nodes.push(text.slice(lastIndex, match.index));
     }
 
     if (match[1]) {
-      // URL match
       nodes.push(<UrlAnchor key={match.index} url={match[1]} />);
     } else {
       // Timestamp match: groups [2]=hours, [3]=minutes, [4]=seconds
@@ -96,7 +91,6 @@ export function Linkify({
     lastIndex = match.index + match[0].length;
   }
 
-  // Push remaining text
   if (lastIndex < text.length) {
     nodes.push(text.slice(lastIndex, text.length));
   }

@@ -68,21 +68,6 @@
         "body": "可视化过去一周的观看数据。回顾过去的行为，反思自己。"
       }
     },
-    "features": {
-      "heading": "功能概要",
-      "feed": {
-        "title": "动态",
-        "body": "通过 API 获取订阅频道，并按时间顺序显示——一个没有算法干预的动态。"
-      },
-      "limit": {
-        "title": "限制",
-        "body": "基于您设定阈值的会话限制和计划。一个从物理上约束过度使用的时间管理模块。"
-      },
-      "analytics": {
-        "title": "分析",
-        "body": "自动汇总观看统计数据——每日和每周细分以及各频道消耗，全部量化。"
-      }
-    },
     "finalCta": {
       "description": "按照您自己的方式设计的观看体验\n<b>免费</b>开始使用"
     }
@@ -174,16 +159,6 @@
       "bottomAnalytics": "分析",
       "bottomProfile": "个人资料",
       "aboutAntiYt": "什么是 anti-yt？"
-    },
-    "addChannelDialog": {
-      "title": "添加频道",
-      "description": "输入 YouTube 频道 URL 或 ID。",
-      "placeholder": "https://www.youtube.com/@handle 或 UC...",
-      "cancel": "取消",
-      "add": "添加",
-      "adding": "添加中...",
-      "error": "添加频道失败，请检查 ID 后重试。",
-      "paste": "从剪贴板粘贴"
     },
     "addPlaylist": "创建播放列表",
     "addPlaylistDialog": {

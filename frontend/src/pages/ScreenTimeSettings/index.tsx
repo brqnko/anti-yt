@@ -135,7 +135,6 @@ function ScreenTimeSettingsContent() {
           {t("restrictions.timeConstraints")}
         </h1>
 
-        {/* Permitted Hours */}
         <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
           <div class="p-6 flex flex-col gap-6">
             <div class="flex justify-between items-center flex-wrap gap-2">
@@ -171,7 +170,6 @@ function ScreenTimeSettingsContent() {
           </div>
         </div>
 
-        {/* Daily Cap Limit */}
         <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
           <div class="p-6 flex flex-col gap-4">
             <label class="text-base font-semibold">
