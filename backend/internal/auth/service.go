@@ -199,7 +199,7 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 			AccessToken:           at,
 			RefreshToken:          refreshTokenRawStr,
 			CSRFToken:             csrfGenerated,
-			RedirectPath:          "dashboard",
+			RedirectPath:          "",
 			Platform:              platform,
 			AccessTokenExpiresAt:  atExp,
 			RefreshTokenExpiresAt: refreshToken.ExpiresAt,

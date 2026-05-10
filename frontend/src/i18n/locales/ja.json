@@ -310,7 +310,9 @@
     "fullscreen": "全画面表示",
     "exitFullscreen": "全画面解除",
     "seekBar": "シークバー",
-    "openOnYouTube": "YTで見る"
+    "openOnYouTube": "YTで見る",
+    "copyLink": "リンクをコピー",
+    "linkCopied": "コピーしました"
   },
   "analytics": {
     "pageTitle": "アナリティクス",

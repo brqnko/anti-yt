@@ -18,6 +18,12 @@ import type {
 } from "../../api/generated/antiYtApi.schemas";
 import { PAGE_SIZES } from "../../constants";
 import { Icon } from "../../components/Icon";
+import {
+  ChannelInfoCardSkeleton,
+  ChannelDetailPlaylistCardSkeleton,
+  VideoCardSkeleton,
+  SkeletonRepeat,
+} from "../../components/skeletons";
 
 const ChannelVideoCard = memo(function ChannelVideoCard({
   video,
@@ -185,7 +191,17 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10" />
+        <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
+          <ChannelInfoCardSkeleton />
+          <div class="mb-8">
+            <div class="flex gap-4 overflow-x-auto pb-2">
+              <SkeletonRepeat count={4} render={(i) => <ChannelDetailPlaylistCardSkeleton key={i} />} />
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <SkeletonRepeat count={6} render={(i) => <VideoCardSkeleton key={i} />} />
+          </div>
+        </div>
       </DashboardLayout>
     );
   }
@@ -288,7 +304,11 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
             </select>
           </div>
 
-          {isVideosLoading ? null : videos.length > 0 ? (
+          {isVideosLoading ? (
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <SkeletonRepeat count={6} render={(i) => <VideoCardSkeleton key={i} />} />
+            </div>
+          ) : videos.length > 0 ? (
             <>
               <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {videos.map((video) => (
@@ -300,6 +320,9 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
                     onToggleWatched={handleToggleWatched}
                   />
                 ))}
+                {isLoadingMore && (
+                  <SkeletonRepeat count={3} render={(i) => <VideoCardSkeleton key={`more-${i}`} />} />
+                )}
               </div>
               <div ref={sentinelRef} class="h-1" />
               {!hasNextVideos && !isLoadingMore && videos.length > 0 && (

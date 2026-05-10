@@ -19,6 +19,11 @@ import type {
   GetPlaylistsPlaylistId200,
   GetPlaylistsPlaylistIdVideos200ItemsItem,
 } from "../../api/generated/antiYtApi.schemas";
+import {
+  PlaylistHeaderSkeleton,
+  VideoCardSkeleton,
+  SkeletonRepeat,
+} from "../../components/skeletons";
 
 
 function EditPlaylistDialog({
@@ -543,6 +548,17 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
             <Icon name="arrow_back" class="text-[18px]" />
             {t("playlistDetail.backToPlaylists")}
           </a>
+          <PlaylistHeaderSkeleton />
+          <div class="flex flex-col divide-y divide-gray-200 dark:divide-gray-800">
+            <SkeletonRepeat
+              count={5}
+              render={(i) => (
+                <div key={i} class="py-4 first:pt-0">
+                  <VideoCardSkeleton layout="row" />
+                </div>
+              )}
+            />
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -743,6 +759,18 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                   </div>
                 ))}
               </div>
+              {isLoadingMore && (
+                <div class="flex flex-col divide-y divide-gray-200 dark:divide-gray-800">
+                  <SkeletonRepeat
+                    count={3}
+                    render={(i) => (
+                      <div key={`more-${i}`} class="py-4 first:pt-0">
+                        <VideoCardSkeleton layout="row" />
+                      </div>
+                    )}
+                  />
+                </div>
+              )}
               <div ref={sentinelRef} class="h-1" />
               {!hasNext && !isLoadingMore && videos.length > 0 && (
                 <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">
