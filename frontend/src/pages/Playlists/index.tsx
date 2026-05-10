@@ -73,6 +73,7 @@ function PlaylistsContent() {
 
   const [playlists, setPlaylists] = useState<GetPlaylists200ItemsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasNext, setHasNext] = useState(false);
   const [error, setError] = useState(false);
   const [showAddPlaylist, setShowAddPlaylist] = useState(false);
@@ -103,6 +104,7 @@ function PlaylistsContent() {
   const loadMore = useCallback(async () => {
     if (loadingMoreRef.current || !hasNextRef.current) return;
     loadingMoreRef.current = true;
+    setIsLoadingMore(true);
     try {
       const res = await getPlaylist().getPlaylists({
         limit: PAGE_SIZES.PLAYLISTS,
@@ -118,6 +120,7 @@ function PlaylistsContent() {
       setHasNext(false);
     } finally {
       loadingMoreRef.current = false;
+      setIsLoadingMore(false);
     }
   }, []);
 
