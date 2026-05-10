@@ -10,6 +10,7 @@ import { getFeed } from "../../api/generated/feed";
 import { PAGE_SIZES } from "../../constants";
 import type { GetSearch200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
+import { VideoCardSkeleton, SkeletonRepeat } from "../../components/skeletons";
 
 function SearchContent() {
   const { t } = useTranslation();
@@ -115,7 +116,11 @@ function SearchContent() {
             <Icon name="search" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("search.placeholder")}</p>
           </div>
-        ) : isLoading && videos.length === 0 ? null : error ? (
+        ) : isLoading && videos.length === 0 ? (
+          <div class="flex flex-col gap-6">
+            <SkeletonRepeat count={5} render={(i) => <VideoCardSkeleton key={i} layout="row" />} />
+          </div>
+        ) : error ? (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
             <Icon name="error_outline" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("search.loadError")}</p>
@@ -146,6 +151,9 @@ function SearchContent() {
                   layout="row"
                 />
               ))}
+              {isLoadingMore && (
+                <SkeletonRepeat count={3} render={(i) => <VideoCardSkeleton key={`more-${i}`} layout="row" />} />
+              )}
             </div>
             <div ref={sentinelRef} class="h-1" />
             {!hasNext && !isLoadingMore && (

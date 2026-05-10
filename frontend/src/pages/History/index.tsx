@@ -10,6 +10,7 @@ import { isoToDateStr, toDateStr, today } from "../../utils/format";
 import { PAGE_SIZES } from "../../constants";
 import type { GetHistory200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
+import { VideoCardSkeleton, SkeletonRepeat } from "../../components/skeletons";
 
 function formatDateHeader(
   dateKey: string,
@@ -117,7 +118,18 @@ function HistoryContent() {
           {t("history.title")}
         </h1>
 
-        {isLoading ? null : error ? (
+        {isLoading ? (
+          <div class="flex flex-col gap-3 divide-y divide-gray-200 dark:divide-gray-800">
+            <SkeletonRepeat
+              count={5}
+              render={(i) => (
+                <div key={i} class="py-4 first:pt-0">
+                  <VideoCardSkeleton layout="row" />
+                </div>
+              )}
+            />
+          </div>
+        ) : error ? (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
             <Icon name="error_outline" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("history.loadError")}</p>
@@ -159,6 +171,18 @@ function HistoryContent() {
                 </section>
               ))}
             </div>
+            {isLoadingMore && (
+              <div class="flex flex-col divide-y divide-gray-200 dark:divide-gray-800">
+                <SkeletonRepeat
+                  count={3}
+                  render={(i) => (
+                    <div key={`more-${i}`} class="py-4 first:pt-0">
+                      <VideoCardSkeleton layout="row" />
+                    </div>
+                  )}
+                />
+              </div>
+            )}
             {hasNext && <div ref={sentinelRef} class="h-1" />}
             {!hasNext && !isLoadingMore && (
               <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">

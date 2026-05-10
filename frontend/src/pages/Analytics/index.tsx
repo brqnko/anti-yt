@@ -8,6 +8,7 @@ import { getUser } from "../../api/generated/user";
 import { toDateStr, getLastNDays, isoToDateStr, formatDateLabel } from "../../utils/format";
 import type { GetStatisticsWeekly200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
+import { AnalyticsSkeleton } from "../../components/skeletons";
 
 function AnalyticsContent() {
   const { t } = useTranslation();
@@ -112,7 +113,9 @@ function AnalyticsContent() {
             </h1>
           </div>
 
-          {isLoading ? null : error ? (
+          {isLoading ? (
+            <AnalyticsSkeleton />
+          ) : error ? (
             <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
               <Icon name="error_outline" class="text-5xl mb-4" />
               <p class="text-lg font-medium">{t("analytics.loadError")}</p>

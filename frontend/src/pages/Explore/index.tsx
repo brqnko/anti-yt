@@ -6,6 +6,7 @@ import { DashboardLayout } from "../../components/DashboardLayout";
 import { getChannel } from "../../api/generated/channel";
 import type { GetFeedChannels200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
+import { ChannelGridCardSkeleton, SkeletonRepeat } from "../../components/skeletons";
 
 const CATEGORY_CODES = [
   { code: -1, key: "all", icon: "grid_view" },
@@ -122,7 +123,13 @@ function ExploreContent() {
               </div>
             </div>
 
-            {isLoading ? null : error ? (
+            {isLoading ? (
+              <section class="flex flex-col gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+                  <SkeletonRepeat count={8} render={(i) => <ChannelGridCardSkeleton key={i} />} />
+                </div>
+              </section>
+            ) : error ? (
               <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
                 <Icon name="error_outline" class="text-5xl mb-4" />
                 <p class="text-lg font-medium">{t("explore.loadError")}</p>

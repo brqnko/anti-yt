@@ -310,7 +310,9 @@
     "fullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "seekBar": "Seek bar",
-    "openOnYouTube": "Open on YT"
+    "openOnYouTube": "Open on YT",
+    "copyLink": "Copy link",
+    "linkCopied": "Copied"
   },
   "analytics": {
     "pageTitle": "Analytics",

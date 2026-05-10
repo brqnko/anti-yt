@@ -11,6 +11,7 @@ import { formatTimeAgo } from "../../utils/format";
 import { PAGE_SIZES } from "../../constants";
 import type { GetPlaylists200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
+import { PlaylistCardSkeleton, SkeletonRepeat } from "../../components/skeletons";
 
 function PlaylistCard({ playlist }: { playlist: GetPlaylists200ItemsItem }) {
   const { t } = useTranslation();
@@ -72,6 +73,7 @@ function PlaylistsContent() {
 
   const [playlists, setPlaylists] = useState<GetPlaylists200ItemsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasNext, setHasNext] = useState(false);
   const [error, setError] = useState(false);
   const [showAddPlaylist, setShowAddPlaylist] = useState(false);
@@ -102,6 +104,7 @@ function PlaylistsContent() {
   const loadMore = useCallback(async () => {
     if (loadingMoreRef.current || !hasNextRef.current) return;
     loadingMoreRef.current = true;
+    setIsLoadingMore(true);
     try {
       const res = await getPlaylist().getPlaylists({
         limit: PAGE_SIZES.PLAYLISTS,
@@ -117,6 +120,7 @@ function PlaylistsContent() {
       setHasNext(false);
     } finally {
       loadingMoreRef.current = false;
+      setIsLoadingMore(false);
     }
   }, []);
 
@@ -142,7 +146,11 @@ function PlaylistsContent() {
           </div>
         </div>
 
-        {isLoading ? null : error ? (
+        {isLoading ? (
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <SkeletonRepeat count={6} render={(i) => <PlaylistCardSkeleton key={i} />} />
+          </div>
+        ) : error ? (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
             <Icon name="error_outline" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("playlists.loadError")}</p>
@@ -162,6 +170,9 @@ function PlaylistsContent() {
                   playlist={playlist}
                 />
               ))}
+              {isLoadingMore && (
+                <SkeletonRepeat count={3} render={(i) => <PlaylistCardSkeleton key={`more-${i}`} />} />
+              )}
             </div>
             {hasNext && <div ref={sentinelRef} class="h-1" />}
           </>
