@@ -17,6 +17,7 @@ import { Icon } from "../../components/Icon";
 import { AddPlaylistDialog } from "../../components/AddPlaylistDialog";
 import { ExploreChannelsBanner } from "../../components/ExploreChannelsBanner";
 import { getApiErrorCode } from "../../utils/api-error";
+import { VideoCardSkeleton, SkeletonRepeat } from "../../components/skeletons";
 
 const FeedVideoCard = memo(function FeedVideoCard({
   video,
@@ -258,7 +259,11 @@ function DashboardContent() {
           </div>
         </div>
         )}
-        {isLoadingFeed ? null : feedRateLimited ? (
+        {isLoadingFeed ? (
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <SkeletonRepeat count={6} render={(i) => <VideoCardSkeleton key={i} />} />
+          </div>
+        ) : feedRateLimited ? (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
             <Icon name="hourglass_top" class="text-5xl mb-4" />
             <p class="text-sm font-medium">{t("dashboard.rateLimitedTitle")}</p>
@@ -277,6 +282,9 @@ function DashboardContent() {
                   onMarkWatched={handleMarkWatched}
                 />
               ))}
+              {isLoadingMore && (
+                <SkeletonRepeat count={3} render={(i) => <VideoCardSkeleton key={`more-${i}`} />} />
+              )}
             </div>
             <div ref={sentinelRef} class="h-1" />
             {!hasNext && !isLoadingMore && (

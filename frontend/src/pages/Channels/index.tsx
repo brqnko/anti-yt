@@ -9,6 +9,7 @@ import type { GetChannelsSubscribed200ItemsItem } from "../../api/generated/anti
 import { Icon } from "../../components/Icon";
 import { Dialog } from "../../components/Dialog";
 import { ExploreChannelsBanner } from "../../components/ExploreChannelsBanner";
+import { ChannelRowSkeleton, SkeletonRepeat } from "../../components/skeletons";
 
 const PAGE_SIZE = 30;
 
@@ -159,7 +160,11 @@ function ChannelsContent() {
 
           <ExploreChannelsBanner />
 
-          {isLoading ? null : error ? (
+          {isLoading ? (
+            <div class="flex flex-col gap-3">
+              <SkeletonRepeat count={6} render={(i) => <ChannelRowSkeleton key={i} />} />
+            </div>
+          ) : error ? (
             <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
               <Icon name="error_outline" class="text-5xl mb-4" />
               <p class="text-lg font-medium">{t("channels.loadError")}</p>
@@ -211,6 +216,9 @@ function ChannelsContent() {
                   </button>
                 </div>
               ))}
+              {isLoadingMore && (
+                <SkeletonRepeat count={3} render={(i) => <ChannelRowSkeleton key={`more-${i}`} />} />
+              )}
               {hasNext && (
                 <button
                   class="mt-4 self-center px-6 py-2.5 bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-lg text-sm font-medium text-charcoal dark:text-white hover:border-primary/30 cursor-pointer"

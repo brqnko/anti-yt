@@ -296,7 +296,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 		// assert
 		require.NoError(t, err)
-		assert.Equal(t, "dashboard", result.RedirectPath)
+		assert.Equal(t, "", result.RedirectPath)
 		assert.Equal(t, "web", result.Platform)
 	})
 
@@ -346,7 +346,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 				ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "ua",
 			)
 			require.NoError(t, err)
-			assert.Equal(t, "dashboard", result.RedirectPath)
+			assert.Equal(t, "", result.RedirectPath)
 		}
 	})
 

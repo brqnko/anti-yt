@@ -124,7 +124,7 @@ func (h *APIHandler) GetAuthOauthYoutubeCallback(ctx context.Context, request Ge
 
 	return GetAuthOauthYoutubeCallback302Response{
 		Headers: GetAuthOauthYoutubeCallback302ResponseHeaders{
-			Location: fmt.Sprintf("%s/dashboard", h.frontendURL),
+			Location: fmt.Sprintf("%s/", h.frontendURL),
 		},
 	}, nil
 }

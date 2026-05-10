@@ -23,6 +23,7 @@ import { useYouTubePlayer, PlayerState } from "./useYouTubePlayer";
 import { useHeartbeat } from "./useHeartbeat";
 import { Linkify } from "../../components/Linkify";
 import { Icon } from "../../components/Icon";
+import { VideoPlayerSkeleton } from "../../components/skeletons";
 
 const PLAYER_CONTAINER_ID = "yt-player";
 
@@ -280,6 +281,24 @@ function VideoPlayerContent() {
   const [markedWatched, setMarkedWatched] = useState(false);
   const [markingWatchLater, setMarkingWatchLater] = useState(false);
   const [markedWatchLater, setMarkedWatchLater] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const linkCopiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleCopyLink = useCallback(async () => {
+    if (typeof window === "undefined") return;
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setLinkCopied(true);
+      if (linkCopiedTimerRef.current) clearTimeout(linkCopiedTimerRef.current);
+      linkCopiedTimerRef.current = setTimeout(() => setLinkCopied(false), 2000);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (linkCopiedTimerRef.current) clearTimeout(linkCopiedTimerRef.current);
+    };
+  }, []);
 
   // Refs for values used in keyboard handler / cleanup to avoid stale closures
   const durationRef = useRef(0);
@@ -679,7 +698,7 @@ function VideoPlayerContent() {
   if (isLoading && !video) {
     return (
       <DashboardLayout>
-        <div class="flex-1 overflow-y-auto" />
+        <VideoPlayerSkeleton hasPlaylist={!!playlistId} />
       </DashboardLayout>
     );
   }
@@ -930,6 +949,19 @@ function VideoPlayerContent() {
                   >
                     <Icon name="playlist_add" class="text-lg" />
                     <span class="text-[10px] font-semibold">{t("videoPlayer.playlist")}</span>
+                  </button>
+                  <button
+                    class={`flex flex-col items-center gap-0.5 bg-transparent border-none cursor-pointer ${
+                      linkCopied
+                        ? "text-primary hover:text-primary/80"
+                        : "text-charcoal dark:text-white hover:text-primary"
+                    }`}
+                    onClick={handleCopyLink}
+                  >
+                    <Icon name={linkCopied ? "check" : "link"} class="text-lg" />
+                    <span class="text-[10px] font-semibold">
+                      {linkCopied ? t("videoPlayer.linkCopied") : t("videoPlayer.copyLink")}
+                    </span>
                   </button>
                   <a
                     href={`https://www.youtube.com/watch?v=${video.external_video_id}`}

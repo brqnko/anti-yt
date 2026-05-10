@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { getAuth } from "../../api/generated/auth";
 import type { GetUsersMeSessions200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
+import { SessionTableRowSkeleton, SkeletonRepeat } from "../../components/skeletons";
 
 const PAGE_SIZE = 20;
 
@@ -12,13 +13,15 @@ function SessionMenu({ onRevoke }: { onRevoke: () => void }) {
   const [open, setOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (btnRef.current && !btnRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      if (btnRef.current?.contains(target)) return;
+      if (menuRef.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -47,6 +50,7 @@ function SessionMenu({ onRevoke }: { onRevoke: () => void }) {
       </button>
       {open && createPortal(
         <div
+          ref={menuRef}
           style={{ position: "absolute", top: menuPos.top, right: menuPos.right }}
           class="z-[200] bg-card-light dark:bg-card-dark rounded-lg shadow-lg border border-border-light dark:border-border-dark p-1 min-w-[140px]"
         >
@@ -120,7 +124,40 @@ export function SecurityTab() {
   };
 
   if (isLoading) {
-    return null;
+    return (
+      <div class="flex flex-col gap-4">
+        <h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">
+          {t("security.activeSessions")}
+        </h3>
+        <div class="overflow-x-auto rounded-xl border border-border-light dark:border-border-dark">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-border-light dark:border-border-dark bg-background-light/50 dark:bg-background-dark/30">
+                <th class="text-left px-4 py-3 font-semibold text-text-muted-light dark:text-text-muted-dark whitespace-nowrap">
+                  {t("security.device")}
+                </th>
+                <th class="text-left px-4 py-3 font-semibold text-text-muted-light dark:text-text-muted-dark whitespace-nowrap">
+                  {t("security.location")}
+                </th>
+                <th class="text-left px-4 py-3 font-semibold text-text-muted-light dark:text-text-muted-dark whitespace-nowrap">
+                  {t("security.userAgent")}
+                </th>
+                <th class="text-left px-4 py-3 font-semibold text-text-muted-light dark:text-text-muted-dark whitespace-nowrap">
+                  {t("security.createdAt")}
+                </th>
+                <th class="text-left px-4 py-3 font-semibold text-text-muted-light dark:text-text-muted-dark whitespace-nowrap">
+                  {t("security.updatedAt")}
+                </th>
+                <th class="px-4 py-3 w-10" />
+              </tr>
+            </thead>
+            <tbody>
+              <SkeletonRepeat count={5} render={(i) => <SessionTableRowSkeleton key={i} />} />
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
   }
 
   return (
