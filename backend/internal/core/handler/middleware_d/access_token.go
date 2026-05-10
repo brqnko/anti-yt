@@ -23,6 +23,9 @@ func AccessTokenMiddleware(
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (_ interface{}, err error) {
 			cookie, err := r.Cookie("access_token")
 			if err != nil {
+				if operationID == "PostAuthRefresh" {
+					return f(ctx, w, r, request)
+				}
 				if _, rerr := r.Cookie("refresh_token"); rerr == nil {
 					return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 				}
