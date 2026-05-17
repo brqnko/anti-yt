@@ -297,13 +297,13 @@
     "notFound": "チャンネルが見つかりません",
     "showMore": "もっと見る",
     "showLess": "閉じる",
-    "playlists": "プレイリスト",
+    "playlists": "プレイリスト"
   },
   "videoPlayer": {
     "pageTitle": "動画プレーヤー",
     "metaDescription": "anti-ytでこのYouTube動画を視聴できます。レコメンド・自動再生なしで、視聴時間も管理可能。",
     "notFound": "動画が見つかりません",
-"curatedPlaylist": "キュレーションプレイリスト",
+    "curatedPlaylist": "キュレーションプレイリスト",
     "addToPlaylist": "保存",
     "playlist": "再生リスト",
     "watchLater": "後で見る",
