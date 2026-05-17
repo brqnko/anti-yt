@@ -204,8 +204,8 @@ func TestService_Search(t *testing.T) {
 	t.Run("empty results", func(t *testing.T) {
 		db := testutil.NewTestPool(t)
 		svc := feed.NewService(db, new(ClientMock{
-			SearchVideoIDsFunc: func(_ context.Context, _ string, _ string, _ youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
-				return []youtube_d.VideoID{}, "", nil
+			SearchIDsFunc: func(_ context.Context, _ string, _ string, _ youtube_d.SearchOptions) ([]youtube_d.SearchItem, string, error) {
+				return []youtube_d.SearchItem{}, "", nil
 			},
 		}), testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
 
@@ -217,14 +217,14 @@ func TestService_Search(t *testing.T) {
 		assert.Nil(t, nextCursor)
 	})
 
-	t.Run("returns search results", func(t *testing.T) {
+	t.Run("returns video search results", func(t *testing.T) {
 		db := testutil.NewTestPool(t)
 		testCh := newTestChannel(t)
 		testVid := newTestVideo(t)
 
 		svc := feed.NewService(db, new(ClientMock{
-			SearchVideoIDsFunc: func(_ context.Context, _ string, _ string, _ youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
-				return []youtube_d.VideoID{testVid.ID}, "", nil
+			SearchIDsFunc: func(_ context.Context, _ string, _ string, _ youtube_d.SearchOptions) ([]youtube_d.SearchItem, string, error) {
+				return []youtube_d.SearchItem{{Type: youtube_d.SearchItemTypeVideo, VideoID: testVid.ID}}, "", nil
 			},
 			FetchVideoDetailFunc: func(_ context.Context, _ []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
 				return map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid}, nil
@@ -238,6 +238,7 @@ func TestService_Search(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.Len(t, items, 1)
+		assert.Equal(t, "video", items[0].Type)
 		assert.Equal(t, "Test Video", items[0].ExternalVideoTitle)
 		assert.Equal(t, "Test Channel", items[0].ExternalChannelDisplayName)
 		assert.False(t, hasNext)
@@ -250,8 +251,8 @@ func TestService_Search(t *testing.T) {
 		testVid := newTestVideo(t)
 
 		svc := feed.NewService(db, new(ClientMock{
-			SearchVideoIDsFunc: func(_ context.Context, _ string, _ string, _ youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
-				return []youtube_d.VideoID{testVid.ID}, "next-page-token", nil
+			SearchIDsFunc: func(_ context.Context, _ string, _ string, _ youtube_d.SearchOptions) ([]youtube_d.SearchItem, string, error) {
+				return []youtube_d.SearchItem{{Type: youtube_d.SearchItemTypeVideo, VideoID: testVid.ID}}, "next-page-token", nil
 			},
 			FetchVideoDetailFunc: func(_ context.Context, _ []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
 				return map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid}, nil
@@ -277,9 +278,9 @@ func TestService_Search(t *testing.T) {
 
 		var capturedPageToken string
 		svc := feed.NewService(db, new(ClientMock{
-			SearchVideoIDsFunc: func(_ context.Context, _ string, pageToken string, _ youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
+			SearchIDsFunc: func(_ context.Context, _ string, pageToken string, _ youtube_d.SearchOptions) ([]youtube_d.SearchItem, string, error) {
 				capturedPageToken = pageToken
-				return []youtube_d.VideoID{testVid.ID}, "", nil
+				return []youtube_d.SearchItem{{Type: youtube_d.SearchItemTypeVideo, VideoID: testVid.ID}}, "", nil
 			},
 			FetchVideoDetailFunc: func(_ context.Context, _ []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
 				return map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid}, nil
@@ -296,11 +297,11 @@ func TestService_Search(t *testing.T) {
 		assert.Equal(t, "my-page-token", capturedPageToken)
 	})
 
-	t.Run("SearchVideoIDs error returns error", func(t *testing.T) {
+	t.Run("SearchIDs error returns error", func(t *testing.T) {
 		db := testutil.NewTestPool(t)
 		searchErr := errors.New("search failed")
 		svc := feed.NewService(db, new(ClientMock{
-			SearchVideoIDsFunc: func(_ context.Context, _ string, _ string, _ youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
+			SearchIDsFunc: func(_ context.Context, _ string, _ string, _ youtube_d.SearchOptions) ([]youtube_d.SearchItem, string, error) {
 				return nil, "", searchErr
 			},
 		}), testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
@@ -316,8 +317,8 @@ func TestService_Search(t *testing.T) {
 		testVid := newTestVideo(t)
 
 		svc := feed.NewService(db, new(ClientMock{
-			SearchVideoIDsFunc: func(_ context.Context, _ string, _ string, _ youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
-				return []youtube_d.VideoID{testVid.ID}, "", nil
+			SearchIDsFunc: func(_ context.Context, _ string, _ string, _ youtube_d.SearchOptions) ([]youtube_d.SearchItem, string, error) {
+				return []youtube_d.SearchItem{{Type: youtube_d.SearchItemTypeVideo, VideoID: testVid.ID}}, "", nil
 			},
 			FetchVideoDetailFunc: func(_ context.Context, _ []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
 				return nil, detailErr
@@ -335,8 +336,8 @@ func TestService_Search(t *testing.T) {
 		testVid := newTestVideo(t)
 
 		svc := feed.NewService(db, new(ClientMock{
-			SearchVideoIDsFunc: func(_ context.Context, _ string, _ string, _ youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
-				return []youtube_d.VideoID{testVid.ID}, "", nil
+			SearchIDsFunc: func(_ context.Context, _ string, _ string, _ youtube_d.SearchOptions) ([]youtube_d.SearchItem, string, error) {
+				return []youtube_d.SearchItem{{Type: youtube_d.SearchItemTypeVideo, VideoID: testVid.ID}}, "", nil
 			},
 			FetchVideoDetailFunc: func(_ context.Context, _ []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
 				return map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid}, nil

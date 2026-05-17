@@ -10,7 +10,40 @@ import { getFeed } from "../../api/generated/feed";
 import { PAGE_SIZES } from "../../constants";
 import type { GetSearch200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
-import { VideoCardSkeleton, SkeletonRepeat } from "../../components/skeletons";
+import { VideoCardSkeleton, ChannelRowSkeleton, SkeletonRepeat } from "../../components/skeletons";
+import { formatSubscriberCount } from "../../utils/format";
+
+function ChannelRow({ item }: { item: GetSearch200ItemsItem }) {
+  const { t } = useTranslation();
+  return (
+    <a
+      href={`/channels/${item.channel_id}`}
+      class="flex items-center gap-4 p-3 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark hover:border-primary/50 no-underline text-inherit"
+    >
+      <img
+        src={item.external_channel_icon_url}
+        alt=""
+        loading="lazy"
+        class="rounded-full size-12 shrink-0 border border-border-light dark:border-border-dark object-cover"
+      />
+      <div class="flex flex-col grow min-w-0">
+        <p class="font-bold truncate text-charcoal dark:text-white">
+          {item.external_channel_display_name}
+        </p>
+        <p class="text-xs text-text-muted-light dark:text-text-muted-dark">
+          {item.channel_custom_id}
+          {item.channel_subscribers_count != null && (
+            <>
+              {" · "}
+              {formatSubscriberCount(item.channel_subscribers_count)}{" "}
+              {t("channelDetail.subscribers")}
+            </>
+          )}
+        </p>
+      </div>
+    </a>
+  );
+}
 
 function SearchContent() {
   const { t } = useTranslation();
@@ -29,10 +62,9 @@ function SearchContent() {
   const region_code = params.get("region_code") || undefined;
   const relevance_language = params.get("relevance_language") || undefined;
 
-  // Serialize filters into a stable key so useEffect re-fires on filter changes
   const filterKey = JSON.stringify({ order, published_after, published_before, region_code, relevance_language });
 
-  const [videos, setVideos] = useState<GetSearch200ItemsItem[]>([]);
+  const [items, setItems] = useState<GetSearch200ItemsItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasNext, setHasNext] = useState(false);
@@ -57,7 +89,7 @@ function SearchContent() {
 
   useEffect(() => {
     if (!searchQuery.trim()) {
-      setVideos([]);
+      setItems([]);
       setIsLoading(false);
       setError(false);
       setHasNext(false);
@@ -71,7 +103,7 @@ function SearchContent() {
     setIsLoading(true);
     setError(false);
     if (isQueryChange) {
-      setVideos([]);
+      setItems([]);
     }
     cursorRef.current = undefined;
 
@@ -79,7 +111,7 @@ function SearchContent() {
       try {
         const res = await getFeed().getSearch(buildParams());
         if (currentQueryRef.current !== searchQuery) return;
-        setVideos(res.items);
+        setItems(res.items);
         setHasNext(res.has_next);
         cursorRef.current = res.cursor;
       } catch {
@@ -96,7 +128,7 @@ function SearchContent() {
     setIsLoadingMore(true);
     try {
       const res = await getFeed().getSearch(buildParams(cursorRef.current));
-      setVideos((prev) => [...prev, ...res.items]);
+      setItems((prev) => [...prev, ...res.items]);
       setHasNext(res.has_next);
       cursorRef.current = res.cursor;
     } finally {
@@ -105,6 +137,29 @@ function SearchContent() {
   }, [isLoadingMore, hasNext, searchQuery, buildParams]);
 
   const sentinelRef = useInfiniteScroll(loadMore);
+
+  const renderItem = (item: GetSearch200ItemsItem) => {
+    if (item.type === "channel") {
+      return <ChannelRow key={item.channel_id} item={item} />;
+    }
+    return (
+      <VideoCard
+        key={item.video_id}
+        videoId={item.video_id!}
+        thumbnailUrl={item.external_video_thumbnail_url!}
+        title={item.external_video_title!}
+        lengthSeconds={item.external_video_length_seconds!}
+        channel={{
+          channelId: item.channel_id,
+          iconUrl: item.external_channel_icon_url,
+          displayName: item.external_channel_display_name,
+        }}
+        dateStr={item.external_video_created_at!}
+        watchedSeconds={item.last_watch_seconds}
+        layout="row"
+      />
+    );
+  };
 
   return (
     <DashboardLayout>
@@ -120,9 +175,10 @@ function SearchContent() {
             <Icon name="search" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("search.placeholder")}</p>
           </div>
-        ) : isLoading && videos.length === 0 ? (
-          <div class="flex flex-col gap-6">
-            <SkeletonRepeat count={5} render={(i) => <VideoCardSkeleton key={i} layout="row" />} />
+        ) : isLoading && items.length === 0 ? (
+          <div class="flex flex-col gap-4">
+            <SkeletonRepeat count={2} render={(i) => <ChannelRowSkeleton key={`ch-${i}`} />} />
+            <SkeletonRepeat count={4} render={(i) => <VideoCardSkeleton key={i} layout="row" />} />
           </div>
         ) : error ? (
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
@@ -135,26 +191,10 @@ function SearchContent() {
               {t("search.retry")}
             </button>
           </div>
-        ) : videos.length > 0 ? (
+        ) : items.length > 0 ? (
           <>
-            <div class="flex flex-col gap-6">
-              {videos.map((video) => (
-                <VideoCard
-                  key={video.video_id}
-                  videoId={video.video_id}
-                  thumbnailUrl={video.external_video_thumbnail_url}
-                  title={video.external_video_title}
-                  lengthSeconds={video.external_video_length_seconds}
-                  channel={{
-                    channelId: video.channel_id,
-                    iconUrl: video.external_channel_icon_url,
-                    displayName: video.external_channel_display_name,
-                  }}
-                  dateStr={video.external_video_created_at}
-                  watchedSeconds={video.last_watch_seconds}
-                  layout="row"
-                />
-              ))}
+            <div class="flex flex-col gap-4">
+              {items.map(renderItem)}
               {isLoadingMore && (
                 <SkeletonRepeat count={3} render={(i) => <VideoCardSkeleton key={`more-${i}`} layout="row" />} />
               )}

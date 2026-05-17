@@ -27,42 +27,54 @@ func (h *APIHandler) GetSearch(ctx context.Context, request GetSearchRequestObje
 		return nil, err
 	}
 
-	resp := GetSearch200JSONResponse{
+	loc := hutil.TimezoneFromContext(ctx)
+	respItems := make([]struct {
+		ChannelCustomId            *string          `json:"channel_custom_id,omitempty"`
+		ChannelId                  util.Base64UUID  `json:"channel_id"`
+		ChannelSubscribersCount    *int             `json:"channel_subscribers_count,omitempty"`
+		ExternalChannelDisplayName string           `json:"external_channel_display_name"`
+		ExternalChannelIconUrl     string           `json:"external_channel_icon_url"`
+		ExternalChannelId          string           `json:"external_channel_id"`
+		ExternalVideoCreatedAt     *time.Time       `json:"external_video_created_at,omitempty"`
+		ExternalVideoDescription   *string          `json:"external_video_description,omitempty"`
+		ExternalVideoId            *string          `json:"external_video_id,omitempty"`
+		ExternalVideoLengthSeconds *int             `json:"external_video_length_seconds,omitempty"`
+		ExternalVideoThumbnailUrl  *string          `json:"external_video_thumbnail_url,omitempty"`
+		ExternalVideoTitle         *string          `json:"external_video_title,omitempty"`
+		LastWatchSeconds           *int             `json:"last_watch_seconds,omitempty"`
+		Type                       string           `json:"type"`
+		VideoId                    *util.Base64UUID `json:"video_id,omitempty"`
+	}, len(items))
+
+	for i, item := range items {
+		respItems[i].Type = item.Type
+		respItems[i].ChannelId = util.Base64UUID(item.ChannelID)
+		respItems[i].ExternalChannelId = item.ExternalChannelID
+		respItems[i].ExternalChannelDisplayName = item.ExternalChannelDisplayName
+		respItems[i].ExternalChannelIconUrl = item.ExternalChannelIconUrl
+
+		if item.Type == "video" {
+			videoId := util.Base64UUID(item.VideoID)
+			respItems[i].VideoId = &videoId
+			respItems[i].ExternalVideoId = &item.ExternalVideoID
+			respItems[i].ExternalVideoTitle = &item.ExternalVideoTitle
+			respItems[i].ExternalVideoDescription = &item.ExternalVideoDescription
+			respItems[i].ExternalVideoThumbnailUrl = &item.ExternalVideoThumbnailUrl
+			t := item.ExternalVideoCreatedAt.In(loc)
+			respItems[i].ExternalVideoCreatedAt = &t
+			respItems[i].ExternalVideoLengthSeconds = &item.ExternalVideoLengthSeconds
+		} else {
+			respItems[i].ChannelCustomId = &item.ChannelCustomID
+			respItems[i].ChannelSubscribersCount = &item.ChannelSubscribersCount
+		}
+	}
+
+	return GetSearch200JSONResponse{
 		HasNext:   hasNext,
 		Cursor:    nextCursor,
 		ItemCount: len(items),
-		Items: make([]struct {
-			ChannelId                  util.Base64UUID `json:"channel_id"`
-			ExternalChannelDisplayName string          `json:"external_channel_display_name"`
-			ExternalChannelIconUrl     string          `json:"external_channel_icon_url"`
-			ExternalChannelId          string          `json:"external_channel_id"`
-			ExternalVideoCreatedAt     time.Time       `json:"external_video_created_at"`
-			ExternalVideoDescription   string          `json:"external_video_description"`
-			ExternalVideoId            string          `json:"external_video_id"`
-			ExternalVideoLengthSeconds int             `json:"external_video_length_seconds"`
-			ExternalVideoThumbnailUrl  string          `json:"external_video_thumbnail_url"`
-			ExternalVideoTitle         string          `json:"external_video_title"`
-			LastWatchSeconds           *int            `json:"last_watch_seconds,omitempty"`
-			VideoId                    util.Base64UUID `json:"video_id"`
-		}, len(items)),
-	}
-
-	loc := hutil.TimezoneFromContext(ctx)
-	for i, item := range items {
-		resp.Items[i].VideoId = util.Base64UUID(item.VideoID)
-		resp.Items[i].ChannelId = util.Base64UUID(item.ChannelID)
-		resp.Items[i].ExternalVideoId = item.ExternalVideoID
-		resp.Items[i].ExternalChannelId = item.ExternalChannelID
-		resp.Items[i].ExternalVideoTitle = item.ExternalVideoTitle
-		resp.Items[i].ExternalVideoDescription = item.ExternalVideoDescription
-		resp.Items[i].ExternalVideoThumbnailUrl = item.ExternalVideoThumbnailUrl
-		resp.Items[i].ExternalChannelDisplayName = item.ExternalChannelDisplayName
-		resp.Items[i].ExternalChannelIconUrl = item.ExternalChannelIconUrl
-		resp.Items[i].ExternalVideoCreatedAt = item.ExternalVideoCreatedAt.In(loc)
-		resp.Items[i].ExternalVideoLengthSeconds = item.ExternalVideoLengthSeconds
-	}
-
-	return resp, nil
+		Items:     respItems,
+	}, nil
 }
 
 func (h *APIHandler) GetFeed(ctx context.Context, request GetFeedRequestObject) (GetFeedResponseObject, error) {

@@ -224,7 +224,7 @@ channelLoop:
 			// チャンネルを保存
 			savedChannels := make(map[youtube_d.ChannelID]uuid.UUID)
 			for _, cd := range channelDetailMap {
-				ch, err := channel.NewChannel(fetchedAt, fetchedAt, cd)
+				ch, err := channel.NewChannel(fetchedAt, fetchedAt.AddDate(-1, 0, 0), cd)
 				if err != nil {
 					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new channel(exhaust quota job)", slog.Any("error", err))
 					continue

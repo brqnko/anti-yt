@@ -36,7 +36,7 @@ type Client interface {
 	FetchVideoDetail(ctx context.Context, videoIDs []VideoID) (map[VideoID]Video, error)
 	FetchPlaylistVideoIDs(ctx context.Context, playlistID string, pageToken string) (_ []VideoID, _ string, err error)
 	FetchChannelPlaylists(ctx context.Context, channelID ChannelID, pageToken string) (_ []Playlist, _ string, err error)
-	SearchVideoIDs(ctx context.Context, query string, pageToken string, opts SearchOptions) (_ []VideoID, _ string, err error)
+	SearchIDs(ctx context.Context, query string, pageToken string, opts SearchOptions) (_ []SearchItem, _ string, err error)
 	OAuthAuthCodeURL(state string) string
 	OAuthExchange(ctx context.Context, code string) (*OAuthClient, error)
 }
@@ -382,62 +382,6 @@ func (s *clientImpl) FetchChannelPlaylists(ctx context.Context, channelID Channe
 	return playlists, res.NextPageToken, nil
 }
 
-func (s *clientImpl) SearchVideoIDs(ctx context.Context, query string, pageToken string, opts SearchOptions) (_ []VideoID, _ string, err error) {
-	defer util.Wrap(&err, "youtube_d.(*clientImpl).SearchVideoIDs")
-	defer s.markIfQuotaExceeded(&err)
-
-	if err := s.checkQuota(); err != nil {
-		return nil, "", err
-	}
-
-	call := s.ytClient.Search.List([]string{"id"}).
-		Q(query).
-		Type("video").
-		MaxResults(50).
-		Context(ctx)
-	if pageToken != "" {
-		call = call.PageToken(pageToken)
-	}
-	if opts.Language != nil && *opts.Language != "" {
-		call = call.RelevanceLanguage(*opts.Language)
-	}
-	if opts.Order != nil && *opts.Order != "" {
-		call = call.Order(*opts.Order)
-	}
-	if opts.PublishedBefore != nil {
-		call = call.PublishedBefore(opts.PublishedBefore.Format(time.RFC3339))
-	}
-	if opts.PublishedAfter != nil {
-		call = call.PublishedAfter(opts.PublishedAfter.Format(time.RFC3339))
-	}
-	if opts.RegionCode != nil && *opts.RegionCode != "" {
-		call = call.RegionCode(*opts.RegionCode)
-	}
-	if opts.RelevanceLanguage != nil && *opts.RelevanceLanguage != "" {
-		call = call.RelevanceLanguage(*opts.RelevanceLanguage)
-	}
-
-	res, err := call.Do()
-	if err != nil {
-		return nil, "", err
-	}
-
-	videoIDs := make([]VideoID, 0, len(res.Items))
-	for _, item := range res.Items {
-		if item.Id == nil || item.Id.VideoId == "" {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "item.Id is nil or VideoId is empty(search video ids)")
-			continue
-		}
-		videoID, err := NewVideoID(item.Id.VideoId)
-		if err != nil {
-			util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video id(search video ids)", slog.Any("error", err))
-			continue
-		}
-		videoIDs = append(videoIDs, videoID)
-	}
-
-	return videoIDs, res.NextPageToken, nil
-}
 
 func (s *clientImpl) checkQuota() error {
 	today := quotaDate()
