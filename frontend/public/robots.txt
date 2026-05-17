@@ -16,4 +16,4 @@ Allow: /search
 Allow: /terms
 Allow: /privacy
 
-Sitemap: https://anti-yt.app/sitemap.xml
+Sitemap: https://anti-yt.brqnko.rs/sitemap.xml

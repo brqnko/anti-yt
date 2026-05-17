@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { useTranslation } from "react-i18next";
-import { useTitle } from "../../hooks/useTitle";
+import { useMeta } from "../../hooks/useMeta";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
@@ -27,11 +27,14 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
   const [hasNext, setHasNext] = useState(false);
   const cursorRef = useRef<string | undefined>(undefined);
 
-  useTitle(
-    channelInfo
+  useMeta({
+    title: channelInfo
       ? `${channelInfo.external_channel_display_name} - ${t("channelDetail.playlists")}`
-      : t("channelDetail.playlists")
-  );
+      : t("channelDetail.playlists"),
+    description: t("channelDetail.metaPlaylistsDescription"),
+    canonicalPath: `/channels/${channelId}/playlists`,
+    ogImage: channelInfo?.external_channel_icon_url,
+  });
 
   useEffect(() => {
     if (isAuthLoading) return;
