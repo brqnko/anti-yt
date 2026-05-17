@@ -14,6 +14,8 @@ function parseFiltersFromURL(qs: string): SearchFilters {
   if (p.get("published_before")) filters.published_before = p.get("published_before")!;
   if (p.get("region_code")) filters.region_code = p.get("region_code")!;
   if (p.get("relevance_language")) filters.relevance_language = p.get("relevance_language")!;
+  const t = p.get("type");
+  if (t === "channel" || t === "video") filters.type = t;
   return filters;
 }
 
@@ -25,6 +27,7 @@ function buildSearchURL(query: string, filters: SearchFilters): string {
   if (filters.published_before) p.set("published_before", filters.published_before);
   if (filters.region_code) p.set("region_code", filters.region_code);
   if (filters.relevance_language) p.set("relevance_language", filters.relevance_language);
+  if (filters.type) p.set("type", filters.type);
   return `/search?${p.toString()}`;
 }
 
