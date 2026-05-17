@@ -61,6 +61,7 @@ function SearchContent() {
   const published_before = params.get("published_before") || undefined;
   const region_code = params.get("region_code") || undefined;
   const relevance_language = params.get("relevance_language") || undefined;
+  const typeParam = params.get("type") as "channel" | "video" | null;
 
   const filterKey = JSON.stringify({ order, published_after, published_before, region_code, relevance_language });
 
@@ -191,28 +192,31 @@ function SearchContent() {
               {t("search.retry")}
             </button>
           </div>
-        ) : items.length > 0 ? (
-          <>
-            <div class="flex flex-col gap-4">
-              {items.map(renderItem)}
-              {isLoadingMore && (
-                <SkeletonRepeat count={3} render={(i) => <VideoCardSkeleton key={`more-${i}`} layout="row" />} />
+        ) : (() => {
+          const filteredItems = typeParam ? items.filter((item) => item.type === typeParam) : items;
+          return filteredItems.length > 0 ? (
+            <>
+              <div class="flex flex-col gap-4">
+                {filteredItems.map(renderItem)}
+                {isLoadingMore && (
+                  <SkeletonRepeat count={3} render={(i) => <VideoCardSkeleton key={`more-${i}`} layout="row" />} />
+                )}
+              </div>
+              <div ref={sentinelRef} class="h-1" />
+              {!hasNext && !isLoadingMore && (
+                <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">
+                  {t("search.endOfResults")}
+                </p>
               )}
+            </>
+          ) : (
+            <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
+              <Icon name="search_off" class="text-5xl mb-4" />
+              <p class="text-lg font-medium">{t("search.noResults")}</p>
+              <p class="text-sm mt-1">{t("search.noResultsDesc")}</p>
             </div>
-            <div ref={sentinelRef} class="h-1" />
-            {!hasNext && !isLoadingMore && (
-              <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">
-                {t("search.endOfResults")}
-              </p>
-            )}
-          </>
-        ) : (
-          <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-            <Icon name="search_off" class="text-5xl mb-4" />
-            <p class="text-lg font-medium">{t("search.noResults")}</p>
-            <p class="text-sm mt-1">{t("search.noResultsDesc")}</p>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </DashboardLayout>
   );
