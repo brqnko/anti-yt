@@ -18,7 +18,7 @@ type ChannelRepository interface {
 	FindForUpdate(ctx context.Context, id uuid.UUID) (*Channel, error)
 	FindByIdOrHandle(ctx context.Context, idOrHandle string) (*Channel, error)
 	FindToFetchRSSForUpdate(ctx context.Context, userID uuid.UUID, rssFetchDuration time.Duration, limit int32) ([]*Channel, error)
-	FindBulkFetchedBefore(ctx context.Context, before time.Time) ([]*Channel, error)
+	ListForBulkFetch(ctx context.Context) ([]*Channel, error)
 	SaveSubscription(ctx context.Context, subscribedChannel *SubscribedChannel) (int64, error)
 	RemoveSubscription(ctx context.Context, userID, channelID uuid.UUID) (int64, error)
 }
@@ -56,6 +56,7 @@ func (c *channelRepositoryImpl) Save(ctx context.Context, channel *Channel) (_ i
 		RssFetchedAt:              channel.RSSFetchedAt,
 		FetchedAt:                 channel.FetchedAt,
 		BulkFetchedAt:             channel.BulkFetchedAt,
+		LastSeenAt:                channel.LastSeenAt,
 	})
 	if err != nil {
 		return 0, err
@@ -97,8 +98,14 @@ func (c *channelRepositoryImpl) FindForUpdate(ctx context.Context, id uuid.UUID)
 		channelDetail,
 		WithChannelID(row.PublicID),
 		WithBulkFetchedAt(row.BulkFetchedAt),
+		WithLastSeenAt(row.LastSeenAt),
 	)
 	if err != nil {
+		return nil, err
+	}
+
+	ch.MarkAsSeen()
+	if _, err := c.Save(ctx, ch); err != nil {
 		return nil, err
 	}
 
@@ -133,8 +140,20 @@ func (c *channelRepositoryImpl) FindByIdOrHandle(ctx context.Context, idOrHandle
 		return nil, err
 	}
 
-	ch, err := NewChannel(row.FetchedAt, row.RssFetchedAt, ytCh, WithChannelID(row.PublicID), WithBulkFetchedAt(row.BulkFetchedAt))
+	ch, err := NewChannel(
+		row.FetchedAt,
+		row.RssFetchedAt,
+		ytCh,
+		WithChannelID(row.PublicID),
+		WithBulkFetchedAt(row.BulkFetchedAt),
+		WithLastSeenAt(row.LastSeenAt),
+	)
 	if err != nil {
+		return nil, err
+	}
+
+	ch.MarkAsSeen()
+	if _, err := c.Save(ctx, ch); err != nil {
 		return nil, err
 	}
 
@@ -175,6 +194,7 @@ func (c *channelRepositoryImpl) FindToFetchRSSForUpdate(ctx context.Context, use
 			channelDetail,
 			WithChannelID(row.PublicID),
 			WithBulkFetchedAt(row.BulkFetchedAt),
+			WithLastSeenAt(row.LastSeenAt),
 		)
 		if err != nil {
 			return nil, err
@@ -186,10 +206,10 @@ func (c *channelRepositoryImpl) FindToFetchRSSForUpdate(ctx context.Context, use
 	return channels, nil
 }
 
-func (c *channelRepositoryImpl) FindBulkFetchedBefore(ctx context.Context, before time.Time) (_ []*Channel, err error) {
-	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).FindBulkFetchedBefore")
+func (c *channelRepositoryImpl) ListForBulkFetch(ctx context.Context) (_ []*Channel, err error) {
+	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).ListForBulkFetch")
 
-	rows, err := c.q.ListChannelsBulkFetchedBefore(ctx, before)
+	rows, err := c.q.ListChannelsForBulkFetch(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -216,6 +236,7 @@ func (c *channelRepositoryImpl) FindBulkFetchedBefore(ctx context.Context, befor
 			channelDetail,
 			WithChannelID(row.PublicID),
 			WithBulkFetchedAt(row.BulkFetchedAt),
+			WithLastSeenAt(row.LastSeenAt),
 		)
 		if err != nil {
 			return nil, err

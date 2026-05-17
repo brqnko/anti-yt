@@ -12,7 +12,8 @@ SELECT
     m_channel.external_uploads_playlist_id,
     m_channel.fetched_at,
     m_channel.rss_fetched_at,
-    m_channel.bulk_fetched_at
+    m_channel.bulk_fetched_at,
+    m_channel.last_seen_at
 FROM
     m_channel
 WHERE
@@ -45,10 +46,11 @@ INSERT INTO
         public_id,
         rss_fetched_at,
         fetched_at,
-        bulk_fetched_at
+        bulk_fetched_at,
+        last_seen_at
     )
 VALUES
-    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    (@external_id, @external_display_name, @external_custom_id, @external_icon_url, @external_description, @external_subscribers_count, @external_created_at, @external_uploads_playlist_id, @public_id, @rss_fetched_at, @fetched_at, @bulk_fetched_at, @last_seen_at)
 ON CONFLICT (external_id) DO UPDATE SET
     external_display_name = EXCLUDED.external_display_name,
     external_custom_id = EXCLUDED.external_custom_id,
@@ -60,7 +62,8 @@ ON CONFLICT (external_id) DO UPDATE SET
     updated_at = CURRENT_TIMESTAMP,
     rss_fetched_at = EXCLUDED.rss_fetched_at,
     fetched_at = EXCLUDED.fetched_at,
-    bulk_fetched_at = EXCLUDED.bulk_fetched_at
+    bulk_fetched_at = EXCLUDED.bulk_fetched_at,
+    last_seen_at = EXCLUDED.last_seen_at
 RETURNING
     m_channel.m_channel_id,
     m_channel.public_id;
@@ -213,7 +216,8 @@ SELECT
     m_channel.rss_fetched_at,
     m_channel.fetched_at,
     m_channel.external_uploads_playlist_id,
-    m_channel.bulk_fetched_at
+    m_channel.bulk_fetched_at,
+    m_channel.last_seen_at
 FROM
     m_channel
 WHERE
@@ -235,7 +239,8 @@ SELECT
     c.external_uploads_playlist_id,
     c.rss_fetched_at,
     c.fetched_at,
-    c.bulk_fetched_at
+    c.bulk_fetched_at,
+    c.last_seen_at
 FROM
     m_channel c
     INNER JOIN m_user_subscribing_channel sub ON c.m_channel_id = sub.m_channel_id
@@ -257,7 +262,7 @@ LIMIT
     @query_limit
 FOR UPDATE;
 
--- name: ListChannelsBulkFetchedBefore :many
+-- name: ListChannelsForBulkFetch :many
 SELECT
     c.public_id,
     c.external_id,
@@ -270,8 +275,9 @@ SELECT
     c.external_uploads_playlist_id,
     c.rss_fetched_at,
     c.fetched_at,
-    c.bulk_fetched_at
+    c.bulk_fetched_at,
+    c.last_seen_at
 FROM
     m_channel c
-WHERE
-    c.bulk_fetched_at < @bulk_fetched_before;
+ORDER BY
+    c.last_seen_at DESC;

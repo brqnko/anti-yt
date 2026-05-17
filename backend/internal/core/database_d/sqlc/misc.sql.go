@@ -14,8 +14,8 @@ SELECT pg_advisory_unlock($1::bigint) AS released
 `
 
 // セッションレベルのアドバイザリロックを解除
-func (q *Queries) ReleaseAdvisoryLock(ctx context.Context, dollar_1 int64) (bool, error) {
-	row := q.db.QueryRow(ctx, releaseAdvisoryLock, dollar_1)
+func (q *Queries) ReleaseAdvisoryLock(ctx context.Context, lockKey int64) (bool, error) {
+	row := q.db.QueryRow(ctx, releaseAdvisoryLock, lockKey)
 	var released bool
 	err := row.Scan(&released)
 	return released, err
@@ -26,8 +26,8 @@ SELECT pg_try_advisory_lock($1::bigint) AS acquired
 `
 
 // セッションレベルのロック（ノンブロッキング）
-func (q *Queries) TryAcquireAdvisoryLock(ctx context.Context, dollar_1 int64) (bool, error) {
-	row := q.db.QueryRow(ctx, tryAcquireAdvisoryLock, dollar_1)
+func (q *Queries) TryAcquireAdvisoryLock(ctx context.Context, lockKey int64) (bool, error) {
+	row := q.db.QueryRow(ctx, tryAcquireAdvisoryLock, lockKey)
 	var acquired bool
 	err := row.Scan(&acquired)
 	return acquired, err
@@ -38,8 +38,8 @@ SELECT pg_try_advisory_xact_lock($1::bigint) AS acquired
 `
 
 // トランザクションレベルのロック（ノンブロッキング）
-func (q *Queries) TryAcquireAdvisoryXactLock(ctx context.Context, dollar_1 int64) (bool, error) {
-	row := q.db.QueryRow(ctx, tryAcquireAdvisoryXactLock, dollar_1)
+func (q *Queries) TryAcquireAdvisoryXactLock(ctx context.Context, lockKey int64) (bool, error) {
+	row := q.db.QueryRow(ctx, tryAcquireAdvisoryXactLock, lockKey)
 	var acquired bool
 	err := row.Scan(&acquired)
 	return acquired, err

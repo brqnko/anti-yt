@@ -7,10 +7,10 @@ WITH evicted AS (
     WHERE m_refresh_token_id IN (
         SELECT m_refresh_token_id
         FROM m_refresh_token
-        WHERE m_user_authorization_id = $1
+        WHERE m_user_authorization_id = @m_user_authorization_id
         ORDER BY created_at ASC
         LIMIT GREATEST(0, (
-            SELECT COUNT(*) FROM m_refresh_token WHERE m_user_authorization_id = $1
+            SELECT COUNT(*) FROM m_refresh_token WHERE m_user_authorization_id = @m_user_authorization_id
         ) - 19)
     )
 )
@@ -33,7 +33,7 @@ INSERT INTO
         last_logged_in_at
     )
 VALUES
-    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+    (@m_user_authorization_id, @token_hash, @generation, @public_id, @ip_address, @device_fingerprint, @user_agent, @country_code, @city_name, @browser_name, @device_type, @expires_at, @access_token_jti, @activated_at, @last_logged_in_at)
 RETURNING
     m_refresh_token_id;
 

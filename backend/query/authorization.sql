@@ -6,7 +6,7 @@
 INSERT INTO
     m_user_authorization (issuer, sub, last_logged_in_at, public_id)
 VALUES
-    ($1, $2, $3, $4)
+    (@issuer, @sub, @last_logged_in_at, @public_id)
 ON CONFLICT (issuer, sub) DO
 UPDATE
 SET
@@ -33,7 +33,7 @@ SELECT
 FROM
     m_user
 WHERE
-    m_user.m_user_authorization_id = $1
+    m_user.m_user_authorization_id = @m_user_authorization_id
 UNION ALL
 SELECT
     h_user.public_id,
@@ -41,7 +41,7 @@ SELECT
 FROM
     h_user
 WHERE
-    h_user.m_user_authorization_id = $1
+    h_user.m_user_authorization_id = @m_user_authorization_id
 ORDER BY
     is_deactivated
 LIMIT
