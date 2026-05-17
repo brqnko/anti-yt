@@ -15,7 +15,9 @@
     "termsLink": "Terms of Service",
     "privacyPolicyConsentMiddle": " and ",
     "privacyPolicyLink": "Privacy Policy",
-    "privacyPolicyConsentAfter": "."
+    "privacyPolicyConsentAfter": ".",
+    "notFoundTitle": "404 Not Found",
+    "notFoundDescription": "The page you're looking for doesn't exist on anti-yt."
   },
   "videoCard": {
     "moreOptions": "More options",
@@ -35,6 +37,7 @@
   },
   "about": {
     "pageTitle": "About",
+    "metaDescription": "Learn how anti-yt helps you break free from YouTube's algorithm with subscription-only feeds, daily time caps, and screen time analytics.",
     "hero": {
       "title1": "Break free",
       "title2": "from YouTube",
@@ -74,6 +77,7 @@
   },
   "terms": {
     "title": "Terms of Service",
+    "metaDescription": "Terms of Service for anti-yt — the rules and obligations that apply when you use our distraction-free YouTube viewer.",
     "sections": {
       "acceptance": {
         "title": "Acceptance of Terms",
@@ -99,6 +103,7 @@
   },
   "privacy": {
     "title": "Privacy Policy",
+    "metaDescription": "Privacy Policy for anti-yt — what data we collect, how we use it, and your rights. We do not sell your personal data.",
     "sections": {
       "dataCollection": {
         "title": "Information We Collect",
@@ -145,6 +150,7 @@
   },
   "dashboard": {
     "pageTitle": "Dashboard",
+    "metaDescription": "Browse the latest videos from channels you've personally curated — no algorithm, no recommendations, just your subscribed feed on anti-yt.",
     "toggleSidebar": "Toggle sidebar",
     "nav": {
       "mainFeed": "Main Feed",
@@ -279,6 +285,8 @@
   },
   "channelDetail": {
     "pageTitle": "Channel",
+    "metaDescription": "View this YouTube channel's latest uploads and playlists on anti-yt without the recommendation feed.",
+    "metaPlaylistsDescription": "Browse all playlists from this YouTube channel on anti-yt.",
     "backToDashboard": "Dashboard",
     "subscribers": "Subscribers",
     "whitelistChannel": "Whitelist Channel",
@@ -294,6 +302,7 @@
   },
   "videoPlayer": {
     "pageTitle": "Video Player",
+    "metaDescription": "Watch this YouTube video on anti-yt — a distraction-free player with no recommendations, no autoplay, and clear screen time limits.",
     "notFound": "Video not found",
 "curatedPlaylist": "Curated Playlist",
     "addToPlaylist": "Save",
@@ -358,6 +367,7 @@
   },
   "playlistDetail": {
     "pageTitle": "Playlist Detail",
+    "metaDescription": "Watch this playlist on anti-yt — algorithm-free, ad-free, with built-in screen time controls.",
     "backToPlaylists": "Back to Playlists",
     "videos": "Videos",
     "edit": "Edit",
@@ -421,6 +431,7 @@
   },
   "explore": {
     "pageTitle": "Explore Channels",
+    "metaDescription": "Discover curated YouTube channels worth subscribing to, organized by category — handpicked alternatives to algorithmic recommendations.",
     "title": "Explore Channels",
     "allCategories": "All Categories",
     "noChannels": "No channels found",
@@ -439,6 +450,7 @@
   },
   "search": {
     "pageTitle": "Search",
+    "metaDescription": "Search YouTube videos without the algorithmic feed. Find what you actually want to watch on anti-yt.",
     "inputPlaceholder": "Search videos...",
     "placeholder": "Search for videos",
     "resultsFor": "Results for \"{{query}}\"",

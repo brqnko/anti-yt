@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "preact/hooks";
 import { useTranslation } from "react-i18next";
-import { useTitle } from "../../hooks/useTitle";
+import { useMeta } from "../../hooks/useMeta";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { getChannel } from "../../api/generated/channel";
@@ -53,7 +53,11 @@ function getCategoryBadgeClasses(code: number): string {
 
 function ExploreContent() {
   const { t } = useTranslation();
-  useTitle(t("explore.pageTitle"));
+  useMeta({
+    title: t("explore.pageTitle"),
+    description: t("explore.metaDescription"),
+    canonicalPath: "/channels/explore",
+  });
 
   const [channels, setChannels] = useState<GetFeedChannels200ItemsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);

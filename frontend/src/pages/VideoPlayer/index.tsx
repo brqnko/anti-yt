@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "preact/hooks";
 import { useRoute, useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
-import { useTitle } from "../../hooks/useTitle";
+import { useMeta } from "../../hooks/useMeta";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { AuthPromptDialog } from "../../components/AuthPromptDialog";
@@ -310,7 +310,13 @@ function VideoPlayerContent() {
   const playlistIdRef = useRef(playlistId);
   playlistIdRef.current = playlistId;
 
-  useTitle(video?.external_video_title ?? t("videoPlayer.pageTitle"));
+  useMeta({
+    title: video?.external_video_title ?? t("videoPlayer.pageTitle"),
+    description: video?.external_video_description?.slice(0, 160) || t("videoPlayer.metaDescription"),
+    canonicalPath: videoId ? `/watch/${videoId}` : undefined,
+    ogImage: video?.external_video_thumbnail_url,
+    ogType: "video.other",
+  });
 
   useEffect(() => {
     if (!videoId) return;

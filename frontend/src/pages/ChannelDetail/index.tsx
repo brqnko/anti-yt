@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { memo } from "preact/compat";
 import { useTranslation } from "react-i18next";
-import { useTitle } from "../../hooks/useTitle";
+import { useMeta } from "../../hooks/useMeta";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
@@ -72,7 +72,12 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
   const cursorRef = useRef<string | undefined>(undefined);
   const channelUuidRef = useRef<string | undefined>(undefined);
 
-  useTitle(channelInfo?.external_channel_display_name ?? t("channelDetail.pageTitle"));
+  useMeta({
+    title: channelInfo?.external_channel_display_name ?? t("channelDetail.pageTitle"),
+    description: channelInfo?.external_channel_description?.slice(0, 160) || t("channelDetail.metaDescription"),
+    canonicalPath: `/channels/${channelId}`,
+    ogImage: channelInfo?.external_channel_icon_url,
+  });
 
   useEffect(() => {
     setOrder("newer");

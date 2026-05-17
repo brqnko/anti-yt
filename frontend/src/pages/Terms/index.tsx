@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { LegalLayout } from "../../components/LegalLayout";
-import { useTitle } from "../../hooks/useTitle";
-import { useCanonical } from "../../hooks/useCanonical";
+import { useMeta } from "../../hooks/useMeta";
 
 const sections = [
   { num: "01", key: "acceptance" },
@@ -13,8 +12,11 @@ const sections = [
 
 export default function Terms() {
   const { t } = useTranslation();
-  useTitle("Terms of Service");
-  useCanonical("/terms");
+  useMeta({
+    title: t("terms.title"),
+    description: t("terms.metaDescription"),
+    canonicalPath: "/terms",
+  });
 
   return (
     <LegalLayout>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "preact/hooks";
 import { memo } from "preact/compat";
 import { useTranslation } from "react-i18next";
-import { useTitle } from "../../hooks/useTitle";
+import { useMeta } from "../../hooks/useMeta";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
@@ -66,7 +66,11 @@ const FeedVideoCard = memo(function FeedVideoCard({
 
 function DashboardContent() {
   const { t } = useTranslation();
-  useTitle(t("dashboard.pageTitle"));
+  useMeta({
+    title: t("dashboard.pageTitle"),
+    description: t("dashboard.metaDescription"),
+    canonicalPath: "/",
+  });
   const { isAuthenticated, isLoading: isAuthLoading, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
 
   const [feedVideos, setFeedVideos] = useState<GetFeed200ItemsItem[]>([]);

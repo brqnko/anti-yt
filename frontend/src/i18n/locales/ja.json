@@ -15,7 +15,9 @@
     "termsLink": "利用規約",
     "privacyPolicyConsentMiddle": "および",
     "privacyPolicyLink": "プライバシーポリシー",
-    "privacyPolicyConsentAfter": "に同意したものとみなされます。"
+    "privacyPolicyConsentAfter": "に同意したものとみなされます。",
+    "notFoundTitle": "404 Not Found",
+    "notFoundDescription": "お探しのページはanti-ytには存在しません。"
   },
   "videoCard": {
     "moreOptions": "その他のオプション",
@@ -35,6 +37,7 @@
   },
   "about": {
     "pageTitle": "anti-ytとは",
+    "metaDescription": "anti-ytはレコメンドに頼らない、登録チャンネル中心のYouTubeビューアです。視聴時間の制限と利用分析でデジタル時間を取り戻します。",
     "hero": {
       "title1": "とめよう、",
       "title2": "YouTube依存",
@@ -74,6 +77,7 @@
   },
   "terms": {
     "title": "利用規約",
+    "metaDescription": "anti-ytの利用規約です。サービスを利用する際の権利・義務・条件を記載しています。",
     "sections": {
       "acceptance": {
         "title": "規約への同意",
@@ -99,6 +103,7 @@
   },
   "privacy": {
     "title": "プライバシーポリシー",
+    "metaDescription": "anti-ytのプライバシーポリシーです。収集するデータと取り扱い方針、利用者の権利について明記しています。",
     "sections": {
       "dataCollection": {
         "title": "収集する情報",
@@ -145,6 +150,7 @@
   },
   "dashboard": {
     "pageTitle": "ダッシュボード",
+    "metaDescription": "アルゴリズムに振り回されず、自分で選んだチャンネルの最新動画だけを表示するanti-ytのフィードページです。",
     "toggleSidebar": "サイドバーを切り替え",
     "nav": {
       "mainFeed": "メインフィード",
@@ -279,6 +285,8 @@
   },
   "channelDetail": {
     "pageTitle": "チャンネル",
+    "metaDescription": "このYouTubeチャンネルの最新動画とプレイリストをanti-ytでチェック。",
+    "metaPlaylistsDescription": "このYouTubeチャンネルのすべてのプレイリストをanti-ytで一覧できます。",
     "backToDashboard": "ダッシュボード",
     "subscribers": "登録者",
     "whitelistChannel": "チャンネルを許可",
@@ -294,6 +302,7 @@
   },
   "videoPlayer": {
     "pageTitle": "動画プレーヤー",
+    "metaDescription": "anti-ytでこのYouTube動画を視聴できます。レコメンド・自動再生なしで、視聴時間も管理可能。",
     "notFound": "動画が見つかりません",
 "curatedPlaylist": "キュレーションプレイリスト",
     "addToPlaylist": "保存",
@@ -361,6 +370,7 @@
   },
   "playlistDetail": {
     "pageTitle": "プレイリスト詳細",
+    "metaDescription": "anti-ytでこのプレイリストを視聴できます。レコメンドや広告なし、視聴時間制限つき。",
     "backToPlaylists": "プレイリスト一覧",
     "videos": "動画一覧",
     "edit": "編集",
@@ -432,6 +442,7 @@
   },
   "explore": {
     "pageTitle": "チャンネルを探す",
+    "metaDescription": "カテゴリ別に厳選されたおすすめYouTubeチャンネルを発見できます。アルゴリズムに依存しない手動キュレーション。",
     "title": "チャンネルを探す",
     "allCategories": "すべてのカテゴリ",
     "noChannels": "チャンネルが見つかりません",
@@ -450,6 +461,7 @@
   },
   "search": {
     "pageTitle": "検索",
+    "metaDescription": "アルゴリズムに頼らずYouTube動画を検索しましょう。本当に見たい動画だけを見つけられます。",
     "inputPlaceholder": "動画を検索...",
     "placeholder": "動画を検索してみましょう",
     "resultsFor": "「{{query}}」の検索結果",
