@@ -5,11 +5,16 @@ on:
     workflows: [backend, frontend.yml]
     types: [completed]
     branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'nginx.conf'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 jobs:
   deploy:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -20,7 +25,11 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            set -euo pipefail
             cd ~/anti-yt
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
             docker compose up -d --build
             docker wait anti-yt-frontend-1
+            docker exec brqnko-infra-nginx-1 nginx -t
+            docker exec brqnko-infra-nginx-1 nginx -s reload
