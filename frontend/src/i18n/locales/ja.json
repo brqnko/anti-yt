@@ -500,13 +500,17 @@
       "regionDefault": "すべての地域",
       "regions": {
         "JP": "日本",
-        "US": "アメリカ"
+        "US": "アメリカ",
+        "TW": "台湾",
+        "HK": "香港"
       },
       "relevanceLanguage": "優先言語",
       "languageDefault": "すべての言語",
       "languages": {
         "ja": "日本語",
-        "en": "英語"
+        "en": "英語",
+        "zh-Hant": "中国語（繁体字）",
+        "zh-Hans": "中国語（簡体字）"
       },
       "apply": "適用",
       "cancel": "キャンセル",

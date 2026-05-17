@@ -497,13 +497,17 @@
       "regionDefault": "Any Region",
       "regions": {
         "JP": "Japan",
-        "US": "United States"
+        "US": "United States",
+        "TW": "Taiwan",
+        "HK": "Hong Kong"
       },
       "relevanceLanguage": "Relevance Language",
       "languageDefault": "Any Language",
       "languages": {
         "ja": "Japanese",
-        "en": "English"
+        "en": "English",
+        "zh-Hant": "Chinese (Traditional)",
+        "zh-Hans": "Chinese (Simplified)"
       },
       "apply": "Apply",
       "cancel": "Cancel",

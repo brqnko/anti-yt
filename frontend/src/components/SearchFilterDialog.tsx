@@ -20,8 +20,8 @@ interface SearchFilterDialogProps {
 
 const ORDER_OPTIONS = Object.values(GetSearchOrder);
 
-const REGION_CODES = ["", "JP", "US"] as const;
-const LANGUAGES = ["", "ja", "en"] as const;
+const REGION_CODES = ["", "JP", "US", "TW", "HK"] as const;
+const LANGUAGES = ["", "ja", "en", "zh-Hant", "zh-Hans"] as const;
 
 export function SearchFilterDialog({
   open,

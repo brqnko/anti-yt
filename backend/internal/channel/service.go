@@ -91,7 +91,7 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 		}
 
 		// YouTubeで取得したチャンネル情報をシステムのエンティティに変換
-		channel, err := NewChannel(fetchedAt, fetchedAt, channelDetail)
+		channel, err := NewChannel(fetchedAt, fetchedAt.AddDate(-1, 0, 0), channelDetail)
 		if err != nil {
 			return nil, err
 		}
@@ -303,7 +303,7 @@ func (s *Service) GetChannelDetail(ctx context.Context, userID uuid.UUID, rawID 
 	}
 
 	fetchedAt := time.Now().UTC()
-	ch, err := NewChannel(fetchedAt, fetchedAt, ytChannel)
+	ch, err := NewChannel(fetchedAt, fetchedAt.AddDate(-1, 0, 0), ytChannel)
 	if err != nil {
 		return GetChannelDetailView{}, err
 	}
@@ -395,7 +395,7 @@ func (s *Service) CreateNewValuableChannel(ctx context.Context, externalChannelI
 		}
 
 		// YouTubeで取得したチャンネル情報をシステムのエンティティに変換
-		ch, err := NewChannel(fetchedAt, fetchedAt, channelDetail)
+		ch, err := NewChannel(fetchedAt, fetchedAt.AddDate(-1, 0, 0), channelDetail)
 		if err != nil {
 			return nil, err
 		}

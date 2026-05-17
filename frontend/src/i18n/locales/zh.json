@@ -497,13 +497,17 @@
       "regionDefault": "所有地区",
       "regions": {
         "JP": "日本",
-        "US": "美国"
+        "US": "美国",
+        "TW": "台湾",
+        "HK": "香港"
       },
       "relevanceLanguage": "相关语言",
       "languageDefault": "所有语言",
       "languages": {
         "ja": "日语",
-        "en": "英语"
+        "en": "英语",
+        "zh-Hant": "中文（繁體）",
+        "zh-Hans": "中文（简体）"
       },
       "apply": "应用",
       "cancel": "取消",

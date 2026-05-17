@@ -487,20 +487,24 @@ export const GetSearchOrder = {
 } as const;
 
 export type GetSearch200ItemsItem = {
-  video_id: string;
+  type: string;
   channel_id: string;
-  external_video_id: string;
-  external_video_thumbnail_url: string;
-  external_channel_icon_url: string;
-  external_video_title: string;
-  external_video_description: string;
   external_channel_id: string;
   external_channel_display_name: string;
-  external_video_created_at: string;
+  external_channel_icon_url: string;
+  video_id?: string;
+  external_video_id?: string;
+  external_video_thumbnail_url?: string;
+  external_video_title?: string;
+  external_video_description?: string;
+  external_video_created_at?: string;
   /** @minimum 0 */
-  external_video_length_seconds: number;
+  external_video_length_seconds?: number;
   /** @minimum 0 */
   last_watch_seconds?: number;
+  channel_custom_id?: string;
+  /** @minimum 0 */
+  channel_subscribers_count?: number;
 };
 
 export type GetSearch200 = {
