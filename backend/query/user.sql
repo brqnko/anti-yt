@@ -50,7 +50,7 @@ INSERT INTO
         screen_time_range_end
     )
 VALUES
-    ($1, $2, $3);
+    (@m_user_id, @screen_time_range_start, @screen_time_range_end);
 
 -- m_user.public_idのユーザーの視聴制限範囲を取得する。
 -- name: ListScreenTimeRanges :many
@@ -81,7 +81,7 @@ WITH auth AS (
     FROM
         m_user_authorization
     WHERE
-        m_user_authorization.public_id = $1
+        m_user_authorization.public_id = @authorization_public_id
     LIMIT
         1
 )
@@ -150,7 +150,7 @@ ORDER BY
 DELETE FROM
     m_user_screen_time_range
 WHERE
-    m_user_screen_time_range.m_user_id = $1;
+    m_user_screen_time_range.m_user_id = @m_user_id;
 
 -- m_userをh_userに移動します。
 -- name: ArchiveUser :exec

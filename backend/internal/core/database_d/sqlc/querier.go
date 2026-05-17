@@ -6,7 +6,6 @@ package sqlc
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -24,7 +23,7 @@ type Querier interface {
 	CountAuthorizations(ctx context.Context) (int64, error)
 	CountUserPlaylists(ctx context.Context, userPublicID uuid.UUID) (int, error)
 	// m_user_authorization_idに紐づくh_userとm_userの数を数える
-	CountUsersByAuthorization(ctx context.Context, publicID uuid.UUID) (int32, error)
+	CountUsersByAuthorization(ctx context.Context, authorizationPublicID uuid.UUID) (int32, error)
 	// authorization_public_idに紐づく退会済みユーザーを削除する
 	// 退会済みユーザーが存在しない場合はpgx.ErrNoRowsが返される。
 	DeleteLeftUserByAuthorization(ctx context.Context, userAuthorizationPublicID uuid.UUID) (int64, error)
@@ -75,7 +74,7 @@ type Querier interface {
 	ListChannelVideoIDs(ctx context.Context, arg ListChannelVideoIDsParams) ([]uuid.UUID, error)
 	ListChannelVideos(ctx context.Context, arg ListChannelVideosParams) ([]ListChannelVideosRow, error)
 	ListChannelVideosOlder(ctx context.Context, arg ListChannelVideosOlderParams) ([]ListChannelVideosOlderRow, error)
-	ListChannelsBulkFetchedBefore(ctx context.Context, bulkFetchedBefore time.Time) ([]ListChannelsBulkFetchedBeforeRow, error)
+	ListChannelsForBulkFetch(ctx context.Context) ([]ListChannelsForBulkFetchRow, error)
 	ListDailyWatchStatsByRange(ctx context.Context, arg ListDailyWatchStatsByRangeParams) ([]ListDailyWatchStatsByRangeRow, error)
 	// 認証なしで最新の動画をpublic_id降順で取得する。
 	ListLatestVideos(ctx context.Context, arg ListLatestVideosParams) ([]ListLatestVideosRow, error)
@@ -108,7 +107,7 @@ type Querier interface {
 	// m_user.recent_playlist_idsを更新する。先頭に追加し、重複を除去し、最大5件に制限する。
 	PushRecentPlaylistId(ctx context.Context, arg PushRecentPlaylistIdParams) error
 	// セッションレベルのアドバイザリロックを解除
-	ReleaseAdvisoryLock(ctx context.Context, dollar_1 int64) (bool, error)
+	ReleaseAdvisoryLock(ctx context.Context, lockKey int64) (bool, error)
 	// m_refresh_tokenのtoken_hashから、そのレコードを削除します。
 	// 削除されたレコードに紐づくjtiをブラックリストに保存します。
 	// 削除されたレコードのpublic_idが返されます。
@@ -130,9 +129,9 @@ type Querier interface {
 	// 返り値は、m_user_authorization_idとpublic_id、そして新規作成されたかどうかを示すis_createdフラグ。
 	SaveAuthorization(ctx context.Context, arg SaveAuthorizationParams) (SaveAuthorizationRow, error)
 	// セッションレベルのロック（ノンブロッキング）
-	TryAcquireAdvisoryLock(ctx context.Context, dollar_1 int64) (bool, error)
+	TryAcquireAdvisoryLock(ctx context.Context, lockKey int64) (bool, error)
 	// トランザクションレベルのロック（ノンブロッキング）
-	TryAcquireAdvisoryXactLock(ctx context.Context, dollar_1 int64) (bool, error)
+	TryAcquireAdvisoryXactLock(ctx context.Context, lockKey int64) (bool, error)
 	UnmarkVideoWatched(ctx context.Context, arg UnmarkVideoWatchedParams) error
 	UpdateHeartbeat(ctx context.Context, arg UpdateHeartbeatParams) error
 	// ユーザーを更新する。

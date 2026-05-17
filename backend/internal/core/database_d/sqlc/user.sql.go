@@ -111,8 +111,8 @@ SELECT
 `
 
 // m_user_authorization_idに紐づくh_userとm_userの数を数える
-func (q *Queries) CountUsersByAuthorization(ctx context.Context, publicID uuid.UUID) (int32, error) {
-	row := q.db.QueryRow(ctx, countUsersByAuthorization, publicID)
+func (q *Queries) CountUsersByAuthorization(ctx context.Context, authorizationPublicID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, countUsersByAuthorization, authorizationPublicID)
 	var total_count int32
 	err := row.Scan(&total_count)
 	return total_count, err

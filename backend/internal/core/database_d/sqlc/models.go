@@ -41,6 +41,7 @@ type MChannel struct {
 	RssFetchedAt              time.Time
 	ExternalUploadsPlaylistID string
 	BulkFetchedAt             time.Time
+	LastSeenAt                time.Time
 }
 
 type MPlaylist struct {

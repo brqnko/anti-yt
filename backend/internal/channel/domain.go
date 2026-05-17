@@ -43,6 +43,7 @@ type Channel struct {
 	FetchedAt     time.Time
 	RSSFetchedAt  time.Time
 	BulkFetchedAt time.Time
+	LastSeenAt    time.Time
 	Channel       youtube_d.Channel
 }
 
@@ -60,6 +61,12 @@ func WithBulkFetchedAt(bulkFetchedAt time.Time) ChannelOption {
 	}
 }
 
+func WithLastSeenAt(lastSeenAt time.Time) ChannelOption {
+	return func(c *Channel) {
+		c.LastSeenAt = lastSeenAt
+	}
+}
+
 func NewChannel(fetchedAt, rssFetchedAt time.Time, channel youtube_d.Channel, opts ...ChannelOption) (_ *Channel, err error) {
 	defer util.Wrap(&err, "channel.NewChannel")
 
@@ -68,11 +75,13 @@ func NewChannel(fetchedAt, rssFetchedAt time.Time, channel youtube_d.Channel, op
 		return nil, err
 	}
 
+	now := time.Now().UTC()
 	c := new(Channel{
 		ID:            id,
 		FetchedAt:     fetchedAt,
 		RSSFetchedAt:  rssFetchedAt,
-		BulkFetchedAt: time.Now().UTC().AddDate(-1, 0, 0),
+		BulkFetchedAt: now.AddDate(-1, 0, 0),
+		LastSeenAt:    now,
 		Channel:       channel,
 	})
 
@@ -93,6 +102,10 @@ func (c *Channel) MarkAsRSSFetched() {
 
 func (c *Channel) MarkAsBulkFetched() {
 	c.BulkFetchedAt = time.Now().UTC()
+}
+
+func (c *Channel) MarkAsSeen() {
+	c.LastSeenAt = time.Now().UTC()
 }
 
 type ValuableDescription string
