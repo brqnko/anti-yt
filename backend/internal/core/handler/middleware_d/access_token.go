@@ -26,9 +26,6 @@ func AccessTokenMiddleware(
 				if operationID == "PostAuthRefresh" {
 					return f(ctx, w, r, request)
 				}
-				if _, rerr := r.Cookie("refresh_token"); rerr == nil {
-					return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
-				}
 				if optional {
 					return f(ctx, w, r, request)
 				}
@@ -36,6 +33,9 @@ func AccessTokenMiddleware(
 			}
 			userID, jti, _, err := jwtService.VerifyUserAccessToken(cookie.Value)
 			if err != nil {
+				if optional {
+					return f(ctx, w, r, request)
+				}
 				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 			}
 

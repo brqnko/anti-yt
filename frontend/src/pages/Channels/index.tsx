@@ -8,6 +8,7 @@ import { formatSubscriberCount } from "../../utils/format";
 import type { GetChannelsSubscribed200ItemsItem } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
 import { Dialog } from "../../components/Dialog";
+import { AddChannelDialog } from "../../components/AddChannelDialog";
 import { ExploreChannelsBanner } from "../../components/ExploreChannelsBanner";
 import { ChannelRowSkeleton, SkeletonRepeat } from "../../components/skeletons";
 
@@ -107,6 +108,7 @@ function ChannelsContent() {
   const [hasNext, setHasNext] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<GetChannelsSubscribed200ItemsItem | null>(null);
+  const [showAddChannel, setShowAddChannel] = useState(false);
   const cursorRef = useRef<string | undefined>(undefined);
 
   const loadChannels = useCallback(async () => {
@@ -175,13 +177,24 @@ function ChannelsContent() {
                 {t("channels.retry")}
               </button>
             </div>
-          ) : channels.length === 0 ? (
-            <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
-              <p class="text-lg font-medium">{t("channels.noChannels")}</p>
-            </div>
           ) : (
             <div class="flex flex-col gap-3">
-              {channels.map((ch) => (
+              <button
+                class="flex items-center gap-4 p-3 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark hover:border-primary/50 cursor-pointer text-left w-full"
+                onClick={() => setShowAddChannel(true)}
+              >
+                <span class="rounded-full size-12 shrink-0 border border-border-light dark:border-border-dark flex items-center justify-center text-text-muted-light dark:text-text-muted-dark">
+                  <Icon name="add" class="text-[24px]" />
+                </span>
+                <span class="font-bold truncate text-charcoal dark:text-white grow min-w-0">
+                  {t("channels.addChannel")}
+                </span>
+              </button>
+              {channels.length === 0 ? (
+                <div class="flex flex-col items-center justify-center py-16 text-text-muted-light dark:text-text-muted-dark">
+                  <p class="text-lg font-medium">{t("channels.noChannels")}</p>
+                </div>
+              ) : channels.map((ch) => (
                 <div
                   key={ch.channel_id}
                   class="flex items-center gap-4 p-3 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark group hover:border-primary/50"
@@ -238,6 +251,27 @@ function ChannelsContent() {
         channel={removeTarget}
         onClose={() => setRemoveTarget(null)}
         onConfirm={handleRemoveConfirm}
+      />
+
+      <AddChannelDialog
+        open={showAddChannel}
+        onClose={() => setShowAddChannel(false)}
+        onAdded={(ch) => {
+          setChannels((prev) => {
+            if (prev.some((c) => c.channel_id === ch.channel_id)) return prev;
+            return [
+              {
+                channel_id: ch.channel_id,
+                external_channel_id: ch.external_channel_id,
+                external_channel_display_name: ch.external_channel_display_name,
+                channel_custom_id: ch.channel_custom_id,
+                external_channel_icon_url: ch.external_channel_icon_url,
+                channel_subscribers_count: ch.channel_subscribers_count,
+              },
+              ...prev,
+            ];
+          });
+        }}
       />
     </DashboardLayout>
   );

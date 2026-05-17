@@ -427,7 +427,26 @@
     "noChannels": "尚未订阅任何频道。",
     "loadError": "加载频道失败",
     "retry": "重试",
-    "loadMore": "加载更多"
+    "loadMore": "加载更多",
+    "addChannel": "添加频道",
+    "unsubscribeError": "取消订阅失败。",
+    "unsubscribeDialog": {
+      "title": "取消订阅频道",
+      "description": "确定要取消订阅「{{name}}」吗？该频道将不再出现在你的信息流中。",
+      "cancel": "取消",
+      "remove": "取消订阅",
+      "removing": "处理中..."
+    },
+    "addChannelDialog": {
+      "title": "添加频道",
+      "description": "请输入 YouTube 频道 ID（UC...）或句柄名（@name）。",
+      "placeholder": "频道 ID 或 @句柄",
+      "paste": "从剪贴板粘贴",
+      "cancel": "取消",
+      "add": "添加",
+      "adding": "添加中...",
+      "error": "添加频道失败，请重试。"
+    }
   },
   "explore": {
     "pageTitle": "探索频道",

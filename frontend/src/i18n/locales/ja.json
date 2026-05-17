@@ -431,6 +431,7 @@
     "loadError": "チャンネルの読み込みに失敗しました",
     "retry": "再試行",
     "loadMore": "もっと見る",
+    "addChannel": "チャンネルを追加",
     "unsubscribeError": "登録解除に失敗しました",
     "unsubscribeDialog": {
       "title": "チャンネル登録を解除",
@@ -438,6 +439,16 @@
       "cancel": "キャンセル",
       "remove": "登録解除",
       "removing": "解除中..."
+    },
+    "addChannelDialog": {
+      "title": "チャンネルを追加",
+      "description": "YouTubeのチャンネルID(UC...)またはハンドル名(@name)を入力してください。",
+      "placeholder": "チャンネルIDまたは@ハンドル",
+      "paste": "クリップボードから貼り付け",
+      "cancel": "キャンセル",
+      "add": "追加",
+      "adding": "追加中...",
+      "error": "チャンネルの追加に失敗しました。もう一度お試しください。"
     }
   },
   "explore": {
