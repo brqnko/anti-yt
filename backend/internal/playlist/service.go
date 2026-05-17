@@ -119,7 +119,7 @@ func (s *Service) CreatePlaylist(ctx context.Context, userID uuid.UUID, title, d
 		// チャンネルの詳細情報を先に保存する
 		savedChannels := make(map[youtube_d.ChannelID]uuid.UUID)
 		for _, channelDetail := range channelDetails {
-			ch, err := channel.NewChannel(fetchedAt, fetchedAt, channelDetail)
+			ch, err := channel.NewChannel(fetchedAt, fetchedAt.AddDate(-1, 0, 0), channelDetail)
 			if err != nil {
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new channel(create playlist)", slog.Any("error", err))
 				continue
@@ -260,7 +260,7 @@ func (s *Service) CreatePlaylistWithOAuthClient(ctx context.Context, userID uuid
 
 		savedChannels := make(map[youtube_d.ChannelID]uuid.UUID)
 		for _, channelDetail := range channelDetails {
-			ch, err := channel.NewChannel(fetchedAt, fetchedAt, channelDetail)
+			ch, err := channel.NewChannel(fetchedAt, fetchedAt.AddDate(-1, 0, 0), channelDetail)
 			if err != nil {
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new channel(create playlist with access token)", slog.Any("error", err))
 				continue
@@ -536,7 +536,7 @@ func (s *Service) FetchAndInsertVideoIntoPlaylist(ctx context.Context, userID, p
 	q := sqlc.New(s.db)
 
 	// チャンネルを挿入
-	ch, err := channel.NewChannel(fetchedAt, fetchedAt, cd)
+	ch, err := channel.NewChannel(fetchedAt, fetchedAt.AddDate(-1, 0, 0), cd)
 	if err != nil {
 		return uuid.Nil, err
 	}

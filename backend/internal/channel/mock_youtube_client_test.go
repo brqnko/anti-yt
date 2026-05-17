@@ -40,8 +40,8 @@ var _ youtube_d.Client = &ClientMock{}
 //			OAuthExchangeFunc: func(ctx context.Context, code string) (*youtube_d.OAuthClient, error) {
 //				panic("mock out the OAuthExchange method")
 //			},
-//			SearchVideoIDsFunc: func(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
-//				panic("mock out the SearchVideoIDs method")
+//			SearchIDsFunc: func(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.SearchItem, string, error) {
+//				panic("mock out the SearchIDs method")
 //			},
 //		}
 //
@@ -71,8 +71,8 @@ type ClientMock struct {
 	// OAuthExchangeFunc mocks the OAuthExchange method.
 	OAuthExchangeFunc func(ctx context.Context, code string) (*youtube_d.OAuthClient, error)
 
-	// SearchVideoIDsFunc mocks the SearchVideoIDs method.
-	SearchVideoIDsFunc func(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error)
+	// SearchIDsFunc mocks the SearchIDs method.
+	SearchIDsFunc func(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.SearchItem, string, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -127,8 +127,8 @@ type ClientMock struct {
 			// Code is the code argument value.
 			Code string
 		}
-		// SearchVideoIDs holds details about calls to the SearchVideoIDs method.
-		SearchVideoIDs []struct {
+		// SearchIDs holds details about calls to the SearchIDs method.
+		SearchIDs []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
 			// Query is the query argument value.
@@ -146,7 +146,7 @@ type ClientMock struct {
 	lockFetchVideoDetail               sync.RWMutex
 	lockOAuthAuthCodeURL               sync.RWMutex
 	lockOAuthExchange                  sync.RWMutex
-	lockSearchVideoIDs                 sync.RWMutex
+	lockSearchIDs                      sync.RWMutex
 }
 
 // FetchChannelDetail calls FetchChannelDetailFunc.
@@ -405,10 +405,10 @@ func (mock *ClientMock) OAuthExchangeCalls() []struct {
 	return calls
 }
 
-// SearchVideoIDs calls SearchVideoIDsFunc.
-func (mock *ClientMock) SearchVideoIDs(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.VideoID, string, error) {
-	if mock.SearchVideoIDsFunc == nil {
-		panic("ClientMock.SearchVideoIDsFunc: method is nil but Client.SearchVideoIDs was just called")
+// SearchIDs calls SearchIDsFunc.
+func (mock *ClientMock) SearchIDs(ctx context.Context, query string, pageToken string, opts youtube_d.SearchOptions) ([]youtube_d.SearchItem, string, error) {
+	if mock.SearchIDsFunc == nil {
+		panic("ClientMock.SearchIDsFunc: method is nil but Client.SearchIDs was just called")
 	}
 	callInfo := struct {
 		Ctx       context.Context
@@ -421,17 +421,17 @@ func (mock *ClientMock) SearchVideoIDs(ctx context.Context, query string, pageTo
 		PageToken: pageToken,
 		Opts:      opts,
 	}
-	mock.lockSearchVideoIDs.Lock()
-	mock.calls.SearchVideoIDs = append(mock.calls.SearchVideoIDs, callInfo)
-	mock.lockSearchVideoIDs.Unlock()
-	return mock.SearchVideoIDsFunc(ctx, query, pageToken, opts)
+	mock.lockSearchIDs.Lock()
+	mock.calls.SearchIDs = append(mock.calls.SearchIDs, callInfo)
+	mock.lockSearchIDs.Unlock()
+	return mock.SearchIDsFunc(ctx, query, pageToken, opts)
 }
 
-// SearchVideoIDsCalls gets all the calls that were made to SearchVideoIDs.
+// SearchIDsCalls gets all the calls that were made to SearchIDs.
 // Check the length with:
 //
-//	len(mockedClient.SearchVideoIDsCalls())
-func (mock *ClientMock) SearchVideoIDsCalls() []struct {
+//	len(mockedClient.SearchIDsCalls())
+func (mock *ClientMock) SearchIDsCalls() []struct {
 	Ctx       context.Context
 	Query     string
 	PageToken string
@@ -443,8 +443,8 @@ func (mock *ClientMock) SearchVideoIDsCalls() []struct {
 		PageToken string
 		Opts      youtube_d.SearchOptions
 	}
-	mock.lockSearchVideoIDs.RLock()
-	calls = mock.calls.SearchVideoIDs
-	mock.lockSearchVideoIDs.RUnlock()
+	mock.lockSearchIDs.RLock()
+	calls = mock.calls.SearchIDs
+	mock.lockSearchIDs.RUnlock()
 	return calls
 }

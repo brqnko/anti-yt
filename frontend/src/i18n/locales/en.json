@@ -320,7 +320,7 @@
     "exitFullscreen": "Exit fullscreen",
     "seekBar": "Seek bar",
     "openOnYouTube": "Open on YT",
-    "copyLink": "Copy link",
+    "copyLink": "Link",
     "linkCopied": "Copied"
   },
   "analytics": {
@@ -427,7 +427,26 @@
     "noChannels": "No channels subscribed yet.",
     "loadError": "Failed to load channels",
     "retry": "Retry",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "addChannel": "Add channel",
+    "unsubscribeError": "Failed to unsubscribe.",
+    "unsubscribeDialog": {
+      "title": "Unsubscribe channel",
+      "description": "Unsubscribe from \"{{name}}\"? It will no longer appear in your feed.",
+      "cancel": "Cancel",
+      "remove": "Unsubscribe",
+      "removing": "Removing..."
+    },
+    "addChannelDialog": {
+      "title": "Add channel",
+      "description": "Enter a YouTube channel ID (UC...) or handle (@name).",
+      "placeholder": "Channel ID or @handle",
+      "paste": "Paste from clipboard",
+      "cancel": "Cancel",
+      "add": "Add",
+      "adding": "Adding...",
+      "error": "Failed to add channel. Please try again."
+    }
   },
   "explore": {
     "pageTitle": "Explore Channels",
@@ -478,13 +497,17 @@
       "regionDefault": "Any Region",
       "regions": {
         "JP": "Japan",
-        "US": "United States"
+        "US": "United States",
+        "TW": "Taiwan",
+        "HK": "Hong Kong"
       },
       "relevanceLanguage": "Relevance Language",
       "languageDefault": "Any Language",
       "languages": {
         "ja": "Japanese",
-        "en": "English"
+        "en": "English",
+        "zh-Hant": "Chinese (Traditional)",
+        "zh-Hans": "Chinese (Simplified)"
       },
       "apply": "Apply",
       "cancel": "Cancel",
