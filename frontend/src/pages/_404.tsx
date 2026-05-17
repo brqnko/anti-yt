@@ -1,8 +1,11 @@
 import { useTranslation } from "react-i18next";
-import { useTitle } from "../hooks/useTitle";
+import { useMeta } from "../hooks/useMeta";
 export default function NotFound() {
   const { t } = useTranslation();
-  useTitle("404 Not Found");
+  useMeta({
+    title: t("common.notFoundTitle"),
+    description: t("common.notFoundDescription"),
+  });
 
   return (
     <main class="flex flex-1 flex-col items-center justify-center px-6 text-center max-w-4xl mx-auto w-full py-24">

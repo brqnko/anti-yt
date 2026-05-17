@@ -1,6 +1,5 @@
 import { useTranslation, Trans } from "react-i18next";
-import { useTitle } from "../../hooks/useTitle";
-import { useCanonical } from "../../hooks/useCanonical";
+import { useMeta } from "../../hooks/useMeta";
 import { HeaderControls } from "../../components/HeaderControls";
 import { Reveal } from "../../components/Reveal";
 
@@ -314,8 +313,11 @@ function GoogleSignInButton({ label }: { label: string }) {
 
 export default function About() {
   const { t } = useTranslation();
-  useTitle(t("about.pageTitle"));
-  useCanonical("/about");
+  useMeta({
+    title: t("about.pageTitle"),
+    description: t("about.metaDescription"),
+    canonicalPath: "/about",
+  });
 
   return (
     <div class="min-h-dvh bg-background-light dark:bg-background-dark text-charcoal dark:text-white font-display">

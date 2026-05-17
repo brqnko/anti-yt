@@ -15,7 +15,9 @@
     "termsLink": "服务条款",
     "privacyPolicyConsentMiddle": "和",
     "privacyPolicyLink": "隐私政策",
-    "privacyPolicyConsentAfter": "。"
+    "privacyPolicyConsentAfter": "。",
+    "notFoundTitle": "404 Not Found",
+    "notFoundDescription": "您正在寻找的页面在 anti-yt 上不存在。"
   },
   "videoCard": {
     "moreOptions": "更多选项",
@@ -35,6 +37,7 @@
   },
   "about": {
     "pageTitle": "关于",
+    "metaDescription": "anti-yt 是无算法推荐的 YouTube 观看器，配合每日时间上限与使用分析，帮您拿回数字时间。",
     "hero": {
       "title1": "告别",
       "title2": "YouTube 依赖",
@@ -74,6 +77,7 @@
   },
   "terms": {
     "title": "服务条款",
+    "metaDescription": "anti-yt 的服务条款，说明使用本服务时适用的规则与义务。",
     "sections": {
       "acceptance": {
         "title": "条款接受",
@@ -99,6 +103,7 @@
   },
   "privacy": {
     "title": "隐私政策",
+    "metaDescription": "anti-yt 的隐私政策，说明我们收集哪些数据、如何使用以及您的权利。我们不会出售您的个人信息。",
     "sections": {
       "dataCollection": {
         "title": "我们收集的信息",
@@ -145,6 +150,7 @@
   },
   "dashboard": {
     "pageTitle": "仪表板",
+    "metaDescription": "anti-yt 仅展示您主动订阅频道的最新视频，告别推荐算法的干扰。",
     "toggleSidebar": "切换侧边栏",
     "nav": {
       "mainFeed": "主动态",
@@ -279,6 +285,8 @@
   },
   "channelDetail": {
     "pageTitle": "频道",
+    "metaDescription": "在 anti-yt 上查看此 YouTube 频道的最新视频与播放列表。",
+    "metaPlaylistsDescription": "在 anti-yt 上浏览此 YouTube 频道的所有播放列表。",
     "backToDashboard": "仪表板",
     "subscribers": "订阅者",
     "whitelistChannel": "将频道加入白名单",
@@ -294,6 +302,7 @@
   },
   "videoPlayer": {
     "pageTitle": "视频播放器",
+    "metaDescription": "在 anti-yt 上观看此 YouTube 视频，无推荐、无自动播放，配有屏幕时间管理。",
     "notFound": "未找到视频",
     "curatedPlaylist": "精选播放列表",
     "addToPlaylist": "保存",
@@ -358,6 +367,7 @@
   },
   "playlistDetail": {
     "pageTitle": "播放列表详情",
+    "metaDescription": "在 anti-yt 上观看此播放列表，无算法、无广告，并内建屏幕时间限制。",
     "backToPlaylists": "返回播放列表",
     "videos": "视频",
     "edit": "编辑",
@@ -421,6 +431,7 @@
   },
   "explore": {
     "pageTitle": "探索频道",
+    "metaDescription": "按分类发现值得订阅的优质 YouTube 频道，远离算法推荐的精选替代方案。",
     "title": "探索频道",
     "allCategories": "所有分类",
     "noChannels": "未找到频道",
@@ -439,6 +450,7 @@
   },
   "search": {
     "pageTitle": "搜索",
+    "metaDescription": "在不被算法干扰的前提下搜索 YouTube 视频，找到您真正想看的内容。",
     "inputPlaceholder": "搜索视频...",
     "placeholder": "搜索视频",
     "resultsFor": "「{{query}}」的搜索结果",

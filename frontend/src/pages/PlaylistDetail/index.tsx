@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
-import { useTitle } from "../../hooks/useTitle";
+import { useMeta } from "../../hooks/useMeta";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
@@ -439,7 +439,12 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
   const [showAddVideo, setShowAddVideo] = useState(false);
   const [showCopy, setShowCopy] = useState(false);
 
-  useTitle(playlistInfo?.playlist_title ?? t("playlistDetail.pageTitle"));
+  useMeta({
+    title: playlistInfo?.playlist_title ?? t("playlistDetail.pageTitle"),
+    description: playlistInfo?.playlist_description?.slice(0, 160) || t("playlistDetail.metaDescription"),
+    canonicalPath: `/playlists/${playlistId}`,
+    ogImage: playlistInfo?.top_video_thumbnail_url,
+  });
 
   const loadInitial = useCallback(async () => {
     setIsLoading(true);

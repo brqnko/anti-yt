@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
-import { useTitle } from "../../hooks/useTitle";
+import { useMeta } from "../../hooks/useMeta";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
@@ -17,7 +17,11 @@ function SearchContent() {
   const { query: urlQuery } = useLocation();
   const params = new URLSearchParams(urlQuery);
   const searchQuery = params.get("q") || "";
-  useTitle(searchQuery ? `${searchQuery} - ${t("search.pageTitle")}` : t("search.pageTitle"));
+  useMeta({
+    title: searchQuery ? `${searchQuery} - ${t("search.pageTitle")}` : t("search.pageTitle"),
+    description: t("search.metaDescription"),
+    canonicalPath: "/search",
+  });
 
   const order = params.get("order") || undefined;
   const published_after = params.get("published_after") || undefined;
