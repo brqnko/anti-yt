@@ -969,15 +969,6 @@ function VideoPlayerContent() {
                       {linkCopied ? t("videoPlayer.linkCopied") : t("videoPlayer.copyLink")}
                     </span>
                   </button>
-                  <a
-                    href={`https://www.youtube.com/watch?v=${video.external_video_id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="flex flex-col items-center gap-0.5 text-charcoal dark:text-white hover:text-primary no-underline"
-                  >
-                    <Icon name="open_in_new" class="text-lg" />
-                    <span class="text-[10px] font-semibold">{t("videoPlayer.openOnYouTube")}</span>
-                  </a>
                 </div>
 
               <div class="mt-6">

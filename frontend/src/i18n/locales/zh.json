@@ -298,7 +298,6 @@
     "showMore": "显示更多",
     "showLess": "收起",
     "playlists": "播放列表",
-    "openOnYouTube": "在 YouTube 上打开"
   },
   "videoPlayer": {
     "pageTitle": "视频播放器",
@@ -319,7 +318,6 @@
     "fullscreen": "进入全屏",
     "exitFullscreen": "退出全屏",
     "seekBar": "进度条",
-    "openOnYouTube": "在 YT 打开",
     "copyLink": "链接",
     "linkCopied": "已复制"
   },
@@ -470,8 +468,8 @@
   "search": {
     "pageTitle": "搜索",
     "metaDescription": "在不被算法干扰的前提下搜索 YouTube 视频，找到您真正想看的内容。",
-    "inputPlaceholder": "搜索视频...",
-    "placeholder": "搜索视频",
+    "inputPlaceholder": "搜索...",
+    "placeholder": "搜索",
     "resultsFor": "「{{query}}」的搜索结果",
     "noResults": "未找到结果",
     "noResultsDesc": "请尝试使用不同的关键词搜索。",
@@ -509,6 +507,10 @@
         "zh-Hant": "中文（繁體）",
         "zh-Hans": "中文（简体）"
       },
+      "typeFilter": "类型",
+      "typeAll": "全部",
+      "typeChannels": "仅频道",
+      "typeVideos": "仅视频",
       "apply": "应用",
       "cancel": "取消",
       "reset": "重置"

@@ -298,7 +298,6 @@
     "showMore": "もっと見る",
     "showLess": "閉じる",
     "playlists": "プレイリスト",
-    "openOnYouTube": "YouTubeで見る"
   },
   "videoPlayer": {
     "pageTitle": "動画プレーヤー",
@@ -319,7 +318,6 @@
     "fullscreen": "全画面表示",
     "exitFullscreen": "全画面解除",
     "seekBar": "シークバー",
-    "openOnYouTube": "YTで見る",
     "copyLink": "リンク",
     "linkCopied": "コピーしました"
   },
@@ -473,8 +471,8 @@
   "search": {
     "pageTitle": "検索",
     "metaDescription": "アルゴリズムに頼らずYouTube動画を検索しましょう。本当に見たい動画だけを見つけられます。",
-    "inputPlaceholder": "動画を検索...",
-    "placeholder": "動画を検索してみましょう",
+    "inputPlaceholder": "検索...",
+    "placeholder": "検索してみましょう",
     "resultsFor": "「{{query}}」の検索結果",
     "noResults": "検索結果がありません",
     "noResultsDesc": "別のキーワードで検索してみてください。",
@@ -512,6 +510,10 @@
         "zh-Hant": "中国語（繁体字）",
         "zh-Hans": "中国語（簡体字）"
       },
+      "typeFilter": "タイプ",
+      "typeAll": "すべて",
+      "typeChannels": "チャンネルのみ",
+      "typeVideos": "動画のみ",
       "apply": "適用",
       "cancel": "キャンセル",
       "reset": "リセット"

@@ -298,7 +298,6 @@
     "showMore": "Show more",
     "showLess": "Show less",
     "playlists": "Playlists",
-    "openOnYouTube": "Open on YouTube"
   },
   "videoPlayer": {
     "pageTitle": "Video Player",
@@ -319,7 +318,6 @@
     "fullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "seekBar": "Seek bar",
-    "openOnYouTube": "Open on YT",
     "copyLink": "Link",
     "linkCopied": "Copied"
   },
@@ -470,8 +468,8 @@
   "search": {
     "pageTitle": "Search",
     "metaDescription": "Search YouTube videos without the algorithmic feed. Find what you actually want to watch on anti-yt.",
-    "inputPlaceholder": "Search videos...",
-    "placeholder": "Search for videos",
+    "inputPlaceholder": "Search...",
+    "placeholder": "Search",
     "resultsFor": "Results for \"{{query}}\"",
     "noResults": "No results found",
     "noResultsDesc": "Try searching with different keywords.",
@@ -509,6 +507,10 @@
         "zh-Hant": "Chinese (Traditional)",
         "zh-Hans": "Chinese (Simplified)"
       },
+      "typeFilter": "Type",
+      "typeAll": "All",
+      "typeChannels": "Channels only",
+      "typeVideos": "Videos only",
       "apply": "Apply",
       "cancel": "Cancel",
       "reset": "Reset"

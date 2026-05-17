@@ -77,15 +77,6 @@ export function ChannelInfoCard({
                   {channelInfo.external_channel_custom_id}
                 </span>
               )}
-              <a
-                href={`https://www.youtube.com/${channelInfo.external_channel_custom_id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center gap-1 text-text-muted-light dark:text-text-muted-dark hover:text-primary no-underline"
-              >
-                <Icon name="open_in_new" class="text-sm" />
-                {t("channelDetail.openOnYouTube")}
-              </a>
             </div>
           </div>
 

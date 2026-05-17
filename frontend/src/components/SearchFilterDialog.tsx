@@ -9,6 +9,7 @@ export interface SearchFilters {
   published_before?: string;
   region_code?: string;
   relevance_language?: string;
+  type?: "channel" | "video";
 }
 
 interface SearchFilterDialogProps {
@@ -51,7 +52,7 @@ export function SearchFilterDialog({
   };
 
   const hasFilters =
-    draft.order || draft.published_after || draft.published_before || draft.region_code || draft.relevance_language;
+    draft.order || draft.published_after || draft.published_before || draft.region_code || draft.relevance_language || draft.type;
 
   return (
     <Dialog open={open} onClose={onClose} ariaLabel={t("search.filters.title")} showCloseButton closeButtonLabel={t("search.filters.close")} panelClass="max-h-[85vh] overflow-y-auto">
@@ -60,6 +61,28 @@ export function SearchFilterDialog({
         </h2>
 
         <div class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-charcoal dark:text-white mb-1.5">
+              {t("search.filters.typeFilter")}
+            </label>
+            <div class="flex gap-2">
+              {(["", "channel", "video"] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  class={`flex-1 px-3 py-2 rounded-xl text-sm font-medium border transition-all cursor-pointer ${
+                    (draft.type ?? "") === v
+                      ? "bg-primary text-white border-primary"
+                      : "bg-background-light dark:bg-neutral-800 text-charcoal dark:text-white border-gray-200 dark:border-neutral-700 hover:border-primary/50"
+                  }`}
+                  onClick={() => setDraft({ ...draft, type: v === "" ? undefined : v })}
+                >
+                  {v === "" ? t("search.filters.typeAll") : v === "channel" ? t("search.filters.typeChannels") : t("search.filters.typeVideos")}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <label class="block text-sm font-medium text-charcoal dark:text-white mb-1.5">
               {t("search.filters.order")}
