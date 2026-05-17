@@ -6,7 +6,6 @@ package sqlc
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -75,7 +74,7 @@ type Querier interface {
 	ListChannelVideoIDs(ctx context.Context, arg ListChannelVideoIDsParams) ([]uuid.UUID, error)
 	ListChannelVideos(ctx context.Context, arg ListChannelVideosParams) ([]ListChannelVideosRow, error)
 	ListChannelVideosOlder(ctx context.Context, arg ListChannelVideosOlderParams) ([]ListChannelVideosOlderRow, error)
-	ListChannelsBulkFetchedBefore(ctx context.Context, bulkFetchedBefore time.Time) ([]ListChannelsBulkFetchedBeforeRow, error)
+	ListChannelsForBulkFetch(ctx context.Context) ([]ListChannelsForBulkFetchRow, error)
 	ListDailyWatchStatsByRange(ctx context.Context, arg ListDailyWatchStatsByRangeParams) ([]ListDailyWatchStatsByRangeRow, error)
 	// 認証なしで最新の動画をpublic_id降順で取得する。
 	ListLatestVideos(ctx context.Context, arg ListLatestVideosParams) ([]ListLatestVideosRow, error)

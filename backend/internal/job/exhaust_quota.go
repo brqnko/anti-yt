@@ -41,7 +41,7 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 		}
 	}()
 
-	channels, err := channel.NewChannelRepository(q).FindBulkFetchedBefore(ctx, time.Now().UTC().Add(-24*30*time.Hour))
+	channels, err := channel.NewChannelRepository(q).ListForBulkFetch(ctx)
 	if err != nil {
 		return err
 	}
@@ -53,8 +53,12 @@ channelLoop:
 		}
 
 		// 動画を全て取得して保存する
+		// uploads playlistはYouTubeから新しい順で返ってくるので、前回のbulk_fetched_atより
+		// 古い動画に到達したらそれ以降は前回までで取得済みとみなしてbreakする
+		prevBulkFetchedAt := c.BulkFetchedAt
 		fetchedAt := time.Now().UTC()
 		pageToken := ""
+		reachedPrevBulkFetch := false
 		for {
 			videoIDs, nextPageToken, err := j.youtubeClient.FetchPlaylistVideoIDs(ctx, string(c.Channel.UploadsPlaylistID), pageToken)
 			if err != nil {
@@ -72,7 +76,15 @@ channelLoop:
 					continue
 				}
 
-				for _, vd := range videoDetails {
+				for _, vid := range videoIDs {
+					vd, ok := videoDetails[vid]
+					if !ok {
+						continue
+					}
+					if vd.CreatedAt.Before(prevBulkFetchedAt) {
+						reachedPrevBulkFetch = true
+						break
+					}
 					v, err := video.NewVideo(c.ID, fetchedAt, vd)
 					if err != nil {
 						util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(exhaust quota job)", slog.Any("error", err))
@@ -89,7 +101,7 @@ channelLoop:
 				}
 			}
 
-			if nextPageToken == "" {
+			if reachedPrevBulkFetch || nextPageToken == "" {
 				break
 			}
 			pageToken = nextPageToken

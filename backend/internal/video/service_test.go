@@ -45,6 +45,7 @@ func TestService_GetVideoDetail(t *testing.T) {
 			RssFetchedAt:             time.Now(),
 			FetchedAt:                time.Now(),
 			BulkFetchedAt:            time.Now(),
+			LastSeenAt:               time.Now(),
 		})
 		require.NoError(t, err)
 

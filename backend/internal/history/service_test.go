@@ -54,6 +54,7 @@ func setupChannel(t *testing.T, ctx context.Context, q sqlc.Querier) uuid.UUID {
 		RssFetchedAt:             time.Now(),
 		FetchedAt:                time.Now(),
 		BulkFetchedAt:            time.Now(),
+		LastSeenAt:               time.Now(),
 	})
 	require.NoError(t, err)
 	return channelPublicID
