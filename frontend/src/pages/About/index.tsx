@@ -342,6 +342,12 @@ export default function About() {
               <p class="text-lg md:text-xl text-taupe dark:text-text-muted-dark leading-relaxed font-medium max-w-md">
                 {t("about.hero.description")}
               </p>
+              <div class="flex flex-col items-start gap-2">
+                <GoogleSignInButton label={t("common.signInWithGoogle")} />
+                <p class="text-xs text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+                  {t("common.oidcNoticeNoPii")}
+                </p>
+              </div>
             </Reveal>
             <Reveal
               as="ul"

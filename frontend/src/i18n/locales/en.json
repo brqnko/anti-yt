@@ -297,13 +297,13 @@
     "notFound": "Channel not found",
     "showMore": "Show more",
     "showLess": "Show less",
-    "playlists": "Playlists",
+    "playlists": "Playlists"
   },
   "videoPlayer": {
     "pageTitle": "Video Player",
     "metaDescription": "Watch this YouTube video on anti-yt — a distraction-free player with no recommendations, no autoplay, and clear screen time limits.",
     "notFound": "Video not found",
-"curatedPlaylist": "Curated Playlist",
+    "curatedPlaylist": "Curated Playlist",
     "addToPlaylist": "Save",
     "playlist": "Playlist",
     "watchLater": "Watch Later",
