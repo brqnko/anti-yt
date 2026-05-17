@@ -546,7 +546,7 @@ INSERT INTO
         playlist_position
     )
 VALUES
-    ($1, $2, $3);
+    (@m_playlist_id, @m_video_id, @playlist_position);
 
 -- name: ListChannelPlaylists :many
 SELECT
