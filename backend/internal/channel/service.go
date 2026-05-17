@@ -134,6 +134,11 @@ func (s *Service) SubscribeChannel(ctx context.Context, userID uuid.UUID, channe
 			}
 		}
 
+		channel.MarkAsRSSFetched()
+		if _, err := NewChannelRepository(sqlc.New(s.db)).Save(ctx, channel); err != nil {
+			return nil, err
+		}
+
 		foundChannel = channel
 	}
 

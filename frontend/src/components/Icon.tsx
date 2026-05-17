@@ -66,6 +66,7 @@ import VideocamOff from "~icons/material-symbols/videocam-off-outline";
 import VolumeDown from "~icons/material-symbols/volume-down-outline";
 import VolumeOff from "~icons/material-symbols/volume-off-outline";
 import VolumeUp from "~icons/material-symbols/volume-up-outline";
+import Link from "~icons/material-symbols/link";
 import OpenInNew from "~icons/material-symbols/open-in-new";
 import Warning from "~icons/material-symbols/warning-outline";
 import Weekend from "~icons/material-symbols/weekend-outline";
@@ -108,6 +109,7 @@ const iconMap: Record<string, string> = {
   home: Home,
   language: Language,
   light_mode: LightMode,
+  link: Link,
   logout: Logout,
   memory: Memory,
   menu: Menu,
