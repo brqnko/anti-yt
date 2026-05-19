@@ -32,6 +32,10 @@ type exhaustQuotaJob struct {
 func (j *exhaustQuotaJob) run(ctx context.Context) (processed int, err error) {
 	defer util.Wrap(&err, "job.(*exhaustQuotaJob).run")
 
+	if wErr := j.discordClient.SendWebhookMessage(ctx, "**[Exhaust Quota]** Started"); wErr != nil {
+		slog.Error("failed to send discord webhook(exhaust quota job start)", slog.Any("error", wErr))
+	}
+
 	q := sqlc.New(j.db)
 
 	// セッションレベルのadvisory lockを取得
