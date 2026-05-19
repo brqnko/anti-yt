@@ -191,14 +191,16 @@ func run(ctx context.Context) int {
 		slog.Error("failed to setup purge left user job", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("30 6 * * *", job.NewExhaustQuotaJob(db, youtubeClient, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)), discord_d.NewClient(cfg.discordWebhookURL))); err != nil { // 夏
+	exhaustQuotaJob := job.NewExhaustQuotaJob(db, youtubeClient, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)), discord_d.NewClient(cfg.discordWebhookURL))
+	if err := scheduler.AddFunc("30 6 * * *", exhaustQuotaJob); err != nil { // 夏
 		slog.Error("failed to setup exhaust quota job (PDT)", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("30 7 * * *", job.NewExhaustQuotaJob(db, youtubeClient, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)), discord_d.NewClient(cfg.discordWebhookURL))); err != nil { // 冬
+	if err := scheduler.AddFunc("30 7 * * *", exhaustQuotaJob); err != nil { // 冬
 		slog.Error("failed to setup exhaust quota job (PST)", slog.Any("error", err))
 		return 1
 	}
+	go exhaustQuotaJob.Run()
 	if err := scheduler.AddFunc("0 * * * *", job.NewRefillFeedJob(db, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)))); err != nil {
 		slog.Error("failed to setup refill feed job", slog.Any("error", err))
 		return 1
