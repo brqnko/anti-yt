@@ -2,6 +2,7 @@ package job
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"sync"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/channel"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
+	"github.com/brqnko/anti-yt/backend/internal/core/discord_d"
 	"github.com/brqnko/anti-yt/backend/internal/core/scheduler"
 	"github.com/brqnko/anti-yt/backend/internal/core/youtube_d"
 	"github.com/brqnko/anti-yt/backend/internal/playlist"
@@ -23,17 +25,18 @@ type exhaustQuotaJob struct {
 	db            *pgxpool.Pool
 	youtubeClient youtube_d.Client
 	feedRepo      database_d.FeedRepository
+	discordClient discord_d.Client
 	mx            *sync.Mutex
 }
 
-func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
+func (j *exhaustQuotaJob) run(ctx context.Context) (processed int, err error) {
 	defer util.Wrap(&err, "job.(*exhaustQuotaJob).run")
 
 	q := sqlc.New(j.db)
 
 	// セッションレベルのadvisory lockを取得
 	if err := database_d.TryAdLockSession(ctx, q, []byte("exhaustQuotaJob")); err != nil {
-		return err
+		return 0, err
 	}
 	defer func() {
 		if err := database_d.ReleaseAdLock(ctx, q, []byte("exhaustQuotaJob")); err != nil {
@@ -43,7 +46,7 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (err error) {
 
 	channels, err := channel.NewChannelRepository(q).ListForBulkFetch(ctx)
 	if err != nil {
-		return err
+		return 0, err
 	}
 channelLoop:
 	for _, c := range channels {
@@ -326,9 +329,10 @@ channelLoop:
 			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to release ad lock for channel", slog.String("channel_id", c.ID.String()), slog.Any("error", err))
 		}
 
+		processed++
 	}
 
-	return nil
+	return processed, nil
 }
 
 func (j *exhaustQuotaJob) Run() {
@@ -352,16 +356,33 @@ func (j *exhaustQuotaJob) Run() {
 	ctx, cancel := context.WithDeadline(context.Background(), nextMidnight)
 	defer cancel()
 
-	if err := j.run(ctx); err != nil {
+	processed, err := j.run(ctx)
+
+	notifyCtx, notifyCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer notifyCancel()
+
+	var msg string
+	switch {
+	case err != nil && ctx.Err() == nil:
 		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to run exhaust quota job", slog.Any("error", err))
+		msg = fmt.Sprintf("[Error] exhaust quota job: %v\nProcessed: **%d** channels", err, processed)
+	case ctx.Err() != nil:
+		msg = fmt.Sprintf("**[Exhaust Quota]** Deadline reached (quota reset)\nProcessed: **%d** channels", processed)
+	default:
+		msg = fmt.Sprintf("**[Exhaust Quota]** Completed\nProcessed: **%d** channels", processed)
+	}
+
+	if wErr := j.discordClient.SendWebhookMessage(notifyCtx, msg); wErr != nil {
+		slog.Error("failed to send discord webhook(exhaust quota job)", slog.Any("error", wErr))
 	}
 }
 
-func NewExhaustQuotaJob(db *pgxpool.Pool, youtubeClient youtube_d.Client, feedRepo database_d.FeedRepository) scheduler.Job {
+func NewExhaustQuotaJob(db *pgxpool.Pool, youtubeClient youtube_d.Client, feedRepo database_d.FeedRepository, discordClient discord_d.Client) scheduler.Job {
 	return &exhaustQuotaJob{
 		db:            db,
 		youtubeClient: youtubeClient,
 		feedRepo:      feedRepo,
+		discordClient: discordClient,
 		mx:            new(sync.Mutex{}),
 	}
 }
