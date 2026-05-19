@@ -191,11 +191,11 @@ func run(ctx context.Context) int {
 		slog.Error("failed to setup purge left user job", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("50 6 * * *", job.NewExhaustQuotaJob(db, youtubeClient, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)))); err != nil { // 夏
+	if err := scheduler.AddFunc("30 6 * * *", job.NewExhaustQuotaJob(db, youtubeClient, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)))); err != nil { // 夏
 		slog.Error("failed to setup exhaust quota job (PDT)", slog.Any("error", err))
 		return 1
 	}
-	if err := scheduler.AddFunc("50 7 * * *", job.NewExhaustQuotaJob(db, youtubeClient, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)))); err != nil { // 冬
+	if err := scheduler.AddFunc("30 7 * * *", job.NewExhaustQuotaJob(db, youtubeClient, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)))); err != nil { // 冬
 		slog.Error("failed to setup exhaust quota job (PST)", slog.Any("error", err))
 		return 1
 	}
