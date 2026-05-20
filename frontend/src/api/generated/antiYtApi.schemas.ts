@@ -571,7 +571,10 @@ export type GetVideosVideoId200 = {
   is_watched: boolean;
   /** あとで見るプレイリストに入っているかどうか */
   is_in_watch_later: boolean;
-  /** 最後に視聴した位置（秒数）。未視聴の場合は0 */
+  /**
+     * 最後に視聴した位置（秒数）。未視聴の場合は0
+     * @minimum 0
+     */
   last_watch_seconds: number;
 };
 
