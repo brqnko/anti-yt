@@ -44,7 +44,17 @@ SELECT
                 LIMIT 1
             )
             AND pv.m_video_id = video.m_video_id
-    )::bool AS is_in_watch_later
+    )::bool AS is_in_watch_later,
+    COALESCE((
+        SELECT watch_position_seconds
+        FROM t_video_watch
+        WHERE t_video_watch.m_video_id = video.m_video_id
+            AND t_video_watch.m_user_id = (
+                SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1
+            )
+        ORDER BY t_video_watch.watch_start_at DESC
+        LIMIT 1
+    ), 0)::int AS last_watch_seconds
 FROM
     m_video video
     INNER JOIN m_channel channel ON video.m_channel_id = channel.m_channel_id
@@ -76,6 +86,7 @@ type GetVideoDetailRow struct {
 	ExternalSubscribersCount int64
 	IsWatched                bool
 	IsInWatchLater           bool
+	LastWatchSeconds         int
 }
 
 func (q *Queries) GetVideoDetail(ctx context.Context, arg GetVideoDetailParams) (GetVideoDetailRow, error) {
@@ -96,6 +107,7 @@ func (q *Queries) GetVideoDetail(ctx context.Context, arg GetVideoDetailParams) 
 		&i.ExternalSubscribersCount,
 		&i.IsWatched,
 		&i.IsInWatchLater,
+		&i.LastWatchSeconds,
 	)
 	return i, err
 }

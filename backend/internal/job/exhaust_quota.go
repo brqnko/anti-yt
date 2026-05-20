@@ -341,7 +341,7 @@ channelLoop:
 
 func (j *exhaustQuotaJob) Run() {
 	// クオータリセットはPT midnight。cronは夏冬両方で登録されるので、
-	// リセットまで30分以内でなければスキップする。
+	// リセットまで1時間以内でなければスキップする。
 	loc, err := time.LoadLocation("America/Los_Angeles")
 	if err != nil {
 		slog.Error("failed to load location for exhaust quota job", slog.Any("error", err))
@@ -349,7 +349,7 @@ func (j *exhaustQuotaJob) Run() {
 	}
 	now := time.Now().In(loc)
 	nextMidnight := time.Date(now.Year(), now.Month(), now.Day()+1, 0, 0, 0, 0, loc)
-	if nextMidnight.Sub(now) > 30*time.Minute {
+	if nextMidnight.Sub(now) > 1*time.Hour {
 		slog.Info("skipping exhaust quota job: not close enough to quota reset")
 		return
 	}

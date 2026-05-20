@@ -29,6 +29,7 @@ func (h *APIHandler) GetVideosVideoId(ctx context.Context, request GetVideosVide
 		ExternalChannelSubscribersCount: int(videoDetail.ExternalChannelSubscribersCount),
 		IsWatched:                       videoDetail.IsWatched,
 		IsInWatchLater:                  videoDetail.IsInWatchLater,
+		LastWatchSeconds:                videoDetail.LastWatchSeconds,
 	}, nil
 }
 

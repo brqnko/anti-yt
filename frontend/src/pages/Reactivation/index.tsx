@@ -14,7 +14,7 @@ export default function Reactivation() {
     try {
       const { postAuthReactivate } = getAuth();
       await postAuthReactivate();
-      window.location.href = "/register";
+      window.location.href = "/";
     } catch (err) {
       const code = getApiErrorCode(err);
       const msg = code

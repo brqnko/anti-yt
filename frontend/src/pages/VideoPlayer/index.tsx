@@ -330,6 +330,9 @@ function VideoPlayerContent() {
         setVideo(res);
         setMarkedWatched(res.is_watched);
         setMarkedWatchLater(res.is_in_watch_later);
+        if (startTimeRef.current === null && res.last_watch_seconds > 0) {
+          startTimeRef.current = res.last_watch_seconds;
+        }
       })
       .catch(() => setError(true))
       .finally(() => setIsLoading(false));

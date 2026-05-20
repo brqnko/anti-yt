@@ -193,17 +193,56 @@ SELECT
 FROM
     deleted;
 
--- authorization_public_idに紐づく退会済みユーザーを削除する
+-- authorization_public_idに紐づく退会済みユーザーをh_userからm_userに復元する。
+-- 元のm_user_id (=h_user_id) を保ったまま戻すため、購読・プレイリスト・視聴履歴などの
+-- 関連データのFKがそのまま生きる。
 -- 退会済みユーザーが存在しない場合はpgx.ErrNoRowsが返される。
--- name: DeleteLeftUserByAuthorization :one
-DELETE FROM h_user
-WHERE h_user.m_user_authorization_id = (
-    SELECT m_user_authorization.m_user_authorization_id
+-- 復元したm_userのpublic_idと、m_user_authorization_id (bigint)を返す。
+-- name: RestoreUserFromHistory :one
+WITH auth AS (
+    SELECT m_user_authorization_id
     FROM m_user_authorization
     WHERE m_user_authorization.public_id = @user_authorization_public_id
     LIMIT 1
+),
+restored AS (
+    DELETE FROM h_user
+    WHERE h_user.m_user_authorization_id = (SELECT m_user_authorization_id FROM auth)
+    RETURNING
+        h_user_id,
+        m_user_authorization_id,
+        display_name,
+        language_code,
+        daily_screen_time_seconds,
+        joined_at,
+        public_id
+),
+inserted AS (
+    INSERT INTO
+        m_user (
+            m_user_id,
+            m_user_authorization_id,
+            display_name,
+            language_code,
+            daily_screen_time_seconds,
+            joined_at,
+            public_id,
+            recent_playlist_ids
+        )
+    OVERRIDING SYSTEM VALUE
+    SELECT
+        h_user_id,
+        m_user_authorization_id,
+        display_name,
+        language_code,
+        daily_screen_time_seconds,
+        joined_at,
+        public_id,
+        '{}'::bigint[]
+    FROM restored
+    RETURNING m_user_authorization_id, public_id
 )
-RETURNING h_user_id;
+SELECT m_user_authorization_id, public_id FROM inserted;
 
 -- 退会済みユーザーの一覧を取得する。
 -- name: ListLeftUsers :many

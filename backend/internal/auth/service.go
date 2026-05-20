@@ -393,12 +393,19 @@ func (s *Service) YouTubeOAuthCallback(ctx context.Context, state, code string) 
 	return nil
 }
 
-func (s *Service) ReactivateAccount(ctx context.Context, registerAccessToken string) (err error) {
+type ReactivateAccountResult struct {
+	AccessToken           string
+	RefreshToken          string
+	AccessTokenExpiresAt  time.Time
+	RefreshTokenExpiresAt time.Time
+}
+
+func (s *Service) ReactivateAccount(ctx context.Context, registerAccessToken, ipAddress, countryCode, deviceFingerprint, userAgent string) (_ ReactivateAccountResult, err error) {
 	defer util.Wrap(&err, "auth.(*Service).ReactivateAccount")
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return err
+		return ReactivateAccountResult{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
@@ -408,37 +415,69 @@ func (s *Service) ReactivateAccount(ctx context.Context, registerAccessToken str
 	q := sqlc.New(tx)
 
 	// register tokenの検証
-	authorizationID, jti, err := s.jwtService.VerifyRegisterToken(registerAccessToken)
+	authorizationPublicID, jti, err := s.jwtService.VerifyRegisterToken(registerAccessToken)
 	if err != nil {
-		return err
+		return ReactivateAccountResult{}, err
 	}
 	// jti blacklist検証
 	blacklisted, err := s.jtiBlacklistRepo.IsJtiExist(ctx, jti)
 	if err != nil {
-		return err
+		return ReactivateAccountResult{}, err
 	}
 	if blacklisted {
-		return core.ErrJTIBlacklisted
+		return ReactivateAccountResult{}, core.ErrJTIBlacklisted
 	}
 
 	// authorizationIDで勧告ロック
-	if err := database_d.TryAdLock(ctx, q, authorizationID[:]); err != nil {
-		return err
+	if err := database_d.TryAdLock(ctx, q, authorizationPublicID[:]); err != nil {
+		return ReactivateAccountResult{}, err
 	}
 
-	// アカウント復活
-	if _, err := NewAuthorizationRepository(q).DeleteLeftByAuthorization(ctx, authorizationID); err != nil {
-		return err
+	// h_userからm_userに行を戻す。元のm_user_idを保つので関連データのFKがそのまま生きる。
+	authorizationID, userPublicID, err := NewAuthorizationRepository(q).RestoreUserFromHistory(ctx, authorizationPublicID)
+	if err != nil {
+		return ReactivateAccountResult{}, err
+	}
+
+	// 復活後のセッション用にrefresh tokenを新規発行する
+	refreshTokenRawStr, err := util.RandomStringUrlSafe(32)
+	if err != nil {
+		return ReactivateAccountResult{}, err
+	}
+	refreshToken, err := NewRefreshToken(
+		userAgent,
+		deviceFingerprint,
+		ipAddress,
+		countryCode,
+		"", // TODO: cityName
+		time.Now().UTC().Add(s.refreshTokenDuration),
+		WithRefreshTokenRaw(refreshTokenRawStr),
+	)
+	if err != nil {
+		return ReactivateAccountResult{}, err
+	}
+	if _, err := NewRefreshTokenRepository(q).Save(ctx, authorizationID, refreshToken); err != nil {
+		return ReactivateAccountResult{}, err
+	}
+
+	accessToken, accessTokenExpiresAt, err := s.jwtService.SignUserAccessToken(userPublicID, refreshToken.AccessTokenJTI, s.serverURL)
+	if err != nil {
+		return ReactivateAccountResult{}, err
 	}
 
 	// 使用済みregisterトークンのJTIをブラックリストに追加
 	if err := s.jtiBlacklistRepo.InsertJTI(ctx, jti, time.Now().UTC().Add(s.accessTokenDuration)); err != nil {
-		return err
+		return ReactivateAccountResult{}, err
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return err
+		return ReactivateAccountResult{}, err
 	}
 
-	return nil
+	return ReactivateAccountResult{
+		AccessToken:           accessToken,
+		RefreshToken:          refreshTokenRawStr,
+		AccessTokenExpiresAt:  accessTokenExpiresAt,
+		RefreshTokenExpiresAt: refreshToken.ExpiresAt,
+	}, nil
 }

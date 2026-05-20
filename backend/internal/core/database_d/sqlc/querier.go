@@ -24,9 +24,6 @@ type Querier interface {
 	CountUserPlaylists(ctx context.Context, userPublicID uuid.UUID) (int, error)
 	// m_user_authorization_idに紐づくh_userとm_userの数を数える
 	CountUsersByAuthorization(ctx context.Context, authorizationPublicID uuid.UUID) (int32, error)
-	// authorization_public_idに紐づく退会済みユーザーを削除する
-	// 退会済みユーザーが存在しない場合はpgx.ErrNoRowsが返される。
-	DeleteLeftUserByAuthorization(ctx context.Context, userAuthorizationPublicID uuid.UUID) (int64, error)
 	DeletePlaylist(ctx context.Context, arg DeletePlaylistParams) (uuid.UUID, error)
 	DeletePlaylistVideo(ctx context.Context, arg DeletePlaylistVideoParams) (int64, error)
 	// m_user.m_user_idから、そのユーザーのスクリーン時間の範囲制限を削除する
@@ -108,6 +105,12 @@ type Querier interface {
 	PushRecentPlaylistId(ctx context.Context, arg PushRecentPlaylistIdParams) error
 	// セッションレベルのアドバイザリロックを解除
 	ReleaseAdvisoryLock(ctx context.Context, lockKey int64) (bool, error)
+	// authorization_public_idに紐づく退会済みユーザーをh_userからm_userに復元する。
+	// 元のm_user_id (=h_user_id) を保ったまま戻すため、購読・プレイリスト・視聴履歴などの
+	// 関連データのFKがそのまま生きる。
+	// 退会済みユーザーが存在しない場合はpgx.ErrNoRowsが返される。
+	// 復元したm_userのpublic_idと、m_user_authorization_id (bigint)を返す。
+	RestoreUserFromHistory(ctx context.Context, userAuthorizationPublicID uuid.UUID) (RestoreUserFromHistoryRow, error)
 	// m_refresh_tokenのtoken_hashから、そのレコードを削除します。
 	// 削除されたレコードに紐づくjtiをブラックリストに保存します。
 	// 削除されたレコードのpublic_idが返されます。

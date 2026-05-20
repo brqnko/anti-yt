@@ -135,9 +135,36 @@ func (h *APIHandler) PostAuthReactivate(ctx context.Context, request PostAuthRea
 		return nil, hutil.ErrUserIDNotFoundInContext
 	}
 
-	if err := h.authService.ReactivateAccount(ctx, accessToken); err != nil {
+	result, err := h.authService.ReactivateAccount(ctx,
+		accessToken,
+		string(request.Params.XRealIP),
+		string(request.Params.CfIpcountry),
+		string(request.Params.XDeviceFingerprint),
+		string(request.Params.UserAgent),
+	)
+	if err != nil {
 		return nil, err
 	}
+
+	// RegisterTokenからUserAccessTokenにcookieを差し替える
+	hutil.AddResponseCookie(ctx, (new(http.Cookie{
+		Name:     "access_token",
+		Value:    result.AccessToken,
+		Path:     "/",
+		Expires:  result.AccessTokenExpiresAt,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	})).String())
+	hutil.AddResponseCookie(ctx, (new(http.Cookie{
+		Name:     "refresh_token",
+		Value:    result.RefreshToken,
+		Path:     "/",
+		Expires:  result.RefreshTokenExpiresAt,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	})).String())
 
 	return PostAuthReactivate200Response{}, nil
 }

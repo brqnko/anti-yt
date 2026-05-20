@@ -14,7 +14,7 @@ import (
 
 type AuthorizationRepository interface {
 	Save(ctx context.Context, authorization *Authorization) (int64, error)
-	DeleteLeftByAuthorization(ctx context.Context, authorizationID uuid.UUID) (int64, error)
+	RestoreUserFromHistory(ctx context.Context, authorizationPublicID uuid.UUID) (authorizationID int64, userPublicID uuid.UUID, err error)
 }
 
 func NewAuthorizationRepository(q sqlc.Querier) AuthorizationRepository {
@@ -43,17 +43,17 @@ func (a *authorizationRepositoryImpl) Save(ctx context.Context, authorization *A
 	return saveAuthorization.MUserAuthorizationID, nil
 }
 
-func (a *authorizationRepositoryImpl) DeleteLeftByAuthorization(ctx context.Context, authorizationID uuid.UUID) (_ int64, err error) {
-	defer util.Wrap(&err, "auth.(*authorizationRepositoryImpl).DeleteLeftByAuthorization(authorizationID=%s)", authorizationID)
+func (a *authorizationRepositoryImpl) RestoreUserFromHistory(ctx context.Context, authorizationPublicID uuid.UUID) (_ int64, _ uuid.UUID, err error) {
+	defer util.Wrap(&err, "auth.(*authorizationRepositoryImpl).RestoreUserFromHistory(authorizationPublicID=%s)", authorizationPublicID)
 
-	hUserID, err := a.q.DeleteLeftUserByAuthorization(ctx, authorizationID)
+	row, err := a.q.RestoreUserFromHistory(ctx, authorizationPublicID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, core.ErrNotFound
+			return 0, uuid.Nil, core.ErrNotFound
 		}
-		return 0, err
+		return 0, uuid.Nil, err
 	}
-	return hUserID, nil
+	return row.MUserAuthorizationID, row.PublicID, nil
 }
 
 var _ AuthorizationRepository = (*authorizationRepositoryImpl)(nil)

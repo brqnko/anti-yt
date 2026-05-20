@@ -118,26 +118,6 @@ func (q *Queries) CountUsersByAuthorization(ctx context.Context, authorizationPu
 	return total_count, err
 }
 
-const deleteLeftUserByAuthorization = `-- name: DeleteLeftUserByAuthorization :one
-DELETE FROM h_user
-WHERE h_user.m_user_authorization_id = (
-    SELECT m_user_authorization.m_user_authorization_id
-    FROM m_user_authorization
-    WHERE m_user_authorization.public_id = $1
-    LIMIT 1
-)
-RETURNING h_user_id
-`
-
-// authorization_public_idに紐づく退会済みユーザーを削除する
-// 退会済みユーザーが存在しない場合はpgx.ErrNoRowsが返される。
-func (q *Queries) DeleteLeftUserByAuthorization(ctx context.Context, userAuthorizationPublicID uuid.UUID) (int64, error) {
-	row := q.db.QueryRow(ctx, deleteLeftUserByAuthorization, userAuthorizationPublicID)
-	var h_user_id int64
-	err := row.Scan(&h_user_id)
-	return h_user_id, err
-}
-
 const deleteScreenTimeRangesByUserID = `-- name: DeleteScreenTimeRangesByUserID :exec
 DELETE FROM
     m_user_screen_time_range
@@ -438,6 +418,70 @@ type PurgeLeftUserParams struct {
 func (q *Queries) PurgeLeftUser(ctx context.Context, arg PurgeLeftUserParams) error {
 	_, err := q.db.Exec(ctx, purgeLeftUser, arg.AuthorizationID, arg.HUserID)
 	return err
+}
+
+const restoreUserFromHistory = `-- name: RestoreUserFromHistory :one
+WITH auth AS (
+    SELECT m_user_authorization_id
+    FROM m_user_authorization
+    WHERE m_user_authorization.public_id = $1
+    LIMIT 1
+),
+restored AS (
+    DELETE FROM h_user
+    WHERE h_user.m_user_authorization_id = (SELECT m_user_authorization_id FROM auth)
+    RETURNING
+        h_user_id,
+        m_user_authorization_id,
+        display_name,
+        language_code,
+        daily_screen_time_seconds,
+        joined_at,
+        public_id
+),
+inserted AS (
+    INSERT INTO
+        m_user (
+            m_user_id,
+            m_user_authorization_id,
+            display_name,
+            language_code,
+            daily_screen_time_seconds,
+            joined_at,
+            public_id,
+            recent_playlist_ids
+        )
+    OVERRIDING SYSTEM VALUE
+    SELECT
+        h_user_id,
+        m_user_authorization_id,
+        display_name,
+        language_code,
+        daily_screen_time_seconds,
+        joined_at,
+        public_id,
+        '{}'::bigint[]
+    FROM restored
+    RETURNING m_user_authorization_id, public_id
+)
+SELECT m_user_authorization_id, public_id FROM inserted
+`
+
+type RestoreUserFromHistoryRow struct {
+	MUserAuthorizationID int64
+	PublicID             uuid.UUID
+}
+
+// authorization_public_idに紐づく退会済みユーザーをh_userからm_userに復元する。
+// 元のm_user_id (=h_user_id) を保ったまま戻すため、購読・プレイリスト・視聴履歴などの
+// 関連データのFKがそのまま生きる。
+// 退会済みユーザーが存在しない場合はpgx.ErrNoRowsが返される。
+// 復元したm_userのpublic_idと、m_user_authorization_id (bigint)を返す。
+func (q *Queries) RestoreUserFromHistory(ctx context.Context, userAuthorizationPublicID uuid.UUID) (RestoreUserFromHistoryRow, error) {
+	row := q.db.QueryRow(ctx, restoreUserFromHistory, userAuthorizationPublicID)
+	var i RestoreUserFromHistoryRow
+	err := row.Scan(&i.MUserAuthorizationID, &i.PublicID)
+	return i, err
 }
 
 const updateUser = `-- name: UpdateUser :one

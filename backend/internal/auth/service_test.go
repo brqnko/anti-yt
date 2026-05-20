@@ -1007,6 +1007,7 @@ func TestService_ReactivateAccount(t *testing.T) {
 		}))
 
 		jti := uuid.Must(uuid.NewV7())
+		accessTokenExpiresAt := time.Now().Add(15 * time.Minute)
 		svc := auth.NewService(
 			db,
 			new(GoogleClientMock{}),
@@ -1017,6 +1018,10 @@ func TestService_ReactivateAccount(t *testing.T) {
 			new(ServiceMock{
 				VerifyRegisterTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, error) {
 					return authPublicID, jti, nil
+				},
+				SignUserAccessTokenFunc: func(gotUserID uuid.UUID, _ uuid.UUID, _ string) (string, time.Time, error) {
+					assert.Equal(t, userPublicID, gotUserID)
+					return "user-access-token", accessTokenExpiresAt, nil
 				},
 			}),
 			15*time.Minute, 7*24*time.Hour,
@@ -1031,10 +1036,23 @@ func TestService_ReactivateAccount(t *testing.T) {
 		)
 
 		// action
-		err = svc.ReactivateAccount(ctx, "register-token")
+		result, err := svc.ReactivateAccount(ctx, "register-token", "127.0.0.1", "JP", "fp", "ua")
 
 		// assert
 		require.NoError(t, err)
+		assert.Equal(t, "user-access-token", result.AccessToken)
+		assert.NotEmpty(t, result.RefreshToken)
+		assert.Equal(t, accessTokenExpiresAt, result.AccessTokenExpiresAt)
+		assert.False(t, result.RefreshTokenExpiresAt.IsZero())
+
+		// h_userは削除されている
+		var hUserCount int
+		require.NoError(t, db.QueryRow(ctx, "SELECT COUNT(*) FROM h_user WHERE public_id = $1", userPublicID).Scan(&hUserCount))
+		assert.Equal(t, 0, hUserCount)
+		// m_userに復元されている
+		var mUserCount int
+		require.NoError(t, db.QueryRow(ctx, "SELECT COUNT(*) FROM m_user WHERE public_id = $1", userPublicID).Scan(&mUserCount))
+		assert.Equal(t, 1, mUserCount)
 	})
 
 	t.Run("invalid token returns error", func(t *testing.T) {
@@ -1057,7 +1075,7 @@ func TestService_ReactivateAccount(t *testing.T) {
 		)
 
 		// action
-		err := svc.ReactivateAccount(ctx, "invalid-token")
+		_, err := svc.ReactivateAccount(ctx, "invalid-token", "127.0.0.1", "JP", "fp", "ua")
 
 		// assert
 		assert.ErrorIs(t, err, tokenErr)
@@ -1100,7 +1118,7 @@ func TestService_ReactivateAccount(t *testing.T) {
 		)
 
 		// action
-		err = svc.ReactivateAccount(ctx, "register-token")
+		_, err = svc.ReactivateAccount(ctx, "register-token", "127.0.0.1", "JP", "fp", "ua")
 
 		// assert
 		assert.ErrorIs(t, err, core.ErrJTIBlacklisted)
