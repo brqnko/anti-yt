@@ -31,7 +31,15 @@ func AccessTokenMiddleware(
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (_ interface{}, err error) {
 			cookie, err := r.Cookie("access_token")
 			if err != nil {
-				if operationID == "PostAuthRefresh" || optional || bypass {
+				if operationID == "PostAuthRefresh" || bypass {
+					return f(ctx, w, r, request)
+				}
+				// access_tokenが切れてブラウザに削除されたが refresh_tokenが残っている場合、
+				// 401を返してフロントの自動リフレッシュ機構を起動させる
+				if _, rerr := r.Cookie("refresh_token"); rerr == nil {
+					return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
+				}
+				if optional {
 					return f(ctx, w, r, request)
 				}
 				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
