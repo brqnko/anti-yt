@@ -1,5 +1,26 @@
 # anti-yt
 
+## アーキテクチャ
+
+```mermaid
+flowchart LR
+    user["ユーザー"]
+    cf["Cloudflare Tunnel"]
+    nginx["Nginx"]
+    front["Preact"]
+    backend["バックエンド"]
+    pg["PostgreSQL"]
+    redis["Redis"]
+    yt["YouTube Data API"]
+    user -->|HTTPS| cf
+    cf --> nginx
+    nginx -->|静的配信| front
+    nginx -->|/api/v1/*| backend
+    backend --> pg
+    backend --> redis
+    backend -->|Data API| yt
+````
+
 ## 環境構築
 
 VSCodeのDevcontainerを使って開くことをおすすめします。
