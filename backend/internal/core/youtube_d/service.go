@@ -28,6 +28,8 @@ var (
 	ErrInvalidChannelID = core.NewDomainError("youtube.invalid_channel_id", "invalid channel id", core.StatusBadRequest)
 
 	ErrVideoIDsTooMuch = core.NewDomainError("youtube.video_ids_too_much", "video ids are too much", core.StatusBadRequest)
+
+	ErrQuotaExceeded = errors.New("daily quota exceeded")
 )
 
 type Client interface {
@@ -391,7 +393,7 @@ func (s *clientImpl) checkQuota() error {
 		exceeded := s.quotaExceeded
 		s.mu.RUnlock()
 		if exceeded {
-			return errors.New("daily quota exceeded")
+			return ErrQuotaExceeded
 		}
 		return nil
 	}
@@ -404,7 +406,7 @@ func (s *clientImpl) checkQuota() error {
 		s.lastCheckedDay = today
 	}
 	if s.quotaExceeded {
-		return errors.New("daily quota exceeded")
+		return ErrQuotaExceeded
 	}
 	return nil
 }

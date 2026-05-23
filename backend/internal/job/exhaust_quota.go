@@ -2,6 +2,7 @@ package job
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -52,6 +53,7 @@ func (j *exhaustQuotaJob) run(ctx context.Context) (processed int, err error) {
 	if err != nil {
 		return 0, err
 	}
+	quotaExhausted := false
 channelLoop:
 	for _, c := range channels {
 		if err := database_d.TryAdLockSession(ctx, q, c.ID[:]); err != nil {
@@ -69,10 +71,14 @@ channelLoop:
 		for {
 			videoIDs, nextPageToken, err := j.youtubeClient.FetchPlaylistVideoIDs(ctx, string(c.Channel.UploadsPlaylistID), pageToken)
 			if err != nil {
-				util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to fetch uploads playlist video IDs(exhaust quota job)", slog.String("channel_id", c.ID.String()), slog.String("uploads_playlist_id", string(c.Channel.UploadsPlaylistID)), slog.Any("error", err))
 				if relErr := database_d.ReleaseAdLock(ctx, q, c.ID[:]); relErr != nil {
 					util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to release ad lock for channel", slog.String("channel_id", c.ID.String()), slog.Any("error", relErr))
 				}
+				if errors.Is(err, youtube_d.ErrQuotaExceeded) {
+					quotaExhausted = true
+					break channelLoop
+				}
+				util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to fetch uploads playlist video IDs(exhaust quota job)", slog.String("channel_id", c.ID.String()), slog.String("uploads_playlist_id", string(c.Channel.UploadsPlaylistID)), slog.Any("error", err))
 				continue channelLoop
 			}
 
@@ -121,6 +127,10 @@ channelLoop:
 		for {
 			playlists, nextPageToken, err := j.youtubeClient.FetchChannelPlaylists(ctx, c.Channel.ID, pageToken)
 			if err != nil {
+				if errors.Is(err, youtube_d.ErrQuotaExceeded) {
+					quotaExhausted = true
+					break channelLoop
+				}
 				util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to fetch channel playlists(exhaust quota job)", slog.String("channel_id", c.ID.String()), slog.String("yt_channel_id", string(c.Channel.ID)), slog.Any("error", err))
 				fetchPlaylistsFailed = true
 				break
@@ -336,6 +346,9 @@ channelLoop:
 		processed++
 	}
 
+	if quotaExhausted {
+		return processed, youtube_d.ErrQuotaExceeded
+	}
 	return processed, nil
 }
 
@@ -367,6 +380,8 @@ func (j *exhaustQuotaJob) Run() {
 
 	var msg string
 	switch {
+	case errors.Is(err, youtube_d.ErrQuotaExceeded):
+		msg = fmt.Sprintf("**[Exhaust Quota]** Quota exhausted\nProcessed: **%d** channels", processed)
 	case err != nil && ctx.Err() == nil:
 		util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to run exhaust quota job", slog.Any("error", err))
 		msg = fmt.Sprintf("[Error] exhaust quota job: %v\nProcessed: **%d** channels", err, processed)
