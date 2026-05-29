@@ -14,24 +14,33 @@ import (
 
 // access_tokenクッキーのJWTを解析し、user_idをcontextに付与する。
 //
-// ignoreOperationIDs: 認証オプショナル扱い。クッキーが無い場合は匿名で通過。
-// クッキーが存在して検証失敗の場合は401を返す(フロントの自動リフレッシュ機構を起動させるため)。
+// ignoreOperationIDs: 認証オプショナル扱い。access_tokenクッキーが無く refresh_tokenも無い場合は匿名で通過。
+// クッキーが存在して検証失敗、またはaccess_tokenが無く refresh_tokenが残っている場合は401を返す
+// (フロントの自動リフレッシュ機構を起動させるため)。
+//
+// publicOperationIDs: ブラウザが直接遷移するリダイレクト型の認証フロー(Googleログイン開始/コールバック等)。
+// access_tokenの有無に関わらず常に匿名で通過。refresh_tokenが残っていてもJSON 401を返さない。
 //
 // bypassOperationIDs: 検証失敗でも常に通過。register tokenを受け取るエンドポイント用。
 func AccessTokenMiddleware(
 	jwtService jwt_d.Service,
 	jtiBlacklistRepo database_d.JtiBlacklistRepository,
 	ignoreOperationIDs map[string]struct{},
+	publicOperationIDs map[string]struct{},
 	bypassOperationIDs map[string]struct{},
 ) func(v1.StrictHandlerFunc, string) v1.StrictHandlerFunc {
 	return func(f v1.StrictHandlerFunc, operationID string) v1.StrictHandlerFunc {
 		_, optional := ignoreOperationIDs[operationID]
+		_, public := publicOperationIDs[operationID]
 		_, bypass := bypassOperationIDs[operationID]
 
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (_ interface{}, err error) {
 			cookie, err := r.Cookie("access_token")
 			if err != nil {
-				if operationID == "PostAuthRefresh" || bypass {
+				if bypass || public {
+					// public: ブラウザが直接遷移するリダイレクト型の認証フロー
+					// (Googleログイン開始/コールバック等)。access_tokenが無くても
+					// JSON 401を返さず匿名で通過させる。
 					return f(ctx, w, r, request)
 				}
 				// access_tokenが切れてブラウザに削除されたが refresh_tokenが残っている場合、
@@ -46,7 +55,7 @@ func AccessTokenMiddleware(
 			}
 			userID, jti, _, err := jwtService.VerifyUserAccessToken(cookie.Value)
 			if err != nil {
-				if bypass {
+				if bypass || public {
 					return f(ctx, w, r.WithContext(ctx), request)
 				}
 				return writeErrorJSON(w, http.StatusUnauthorized, "unauthorized", "unauthorized")

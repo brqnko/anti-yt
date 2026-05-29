@@ -268,12 +268,8 @@ func run(ctx context.Context) int {
 			// slogはuser_id(AccessTokenMiddlewareで付与), request_idをcontextに必要としているためここに配置
 			middleware_d.SlogMiddleware,
 			middleware_d.AccessTokenMiddleware(jwtService, jtiBlacklistRepo,
-				// optional: クッキーなしは匿名通過、失効時は401（フロント自動リフレッシュ起動）
+				// optional: クッキーなしかつrefresh_tokenなしは匿名通過、失効時は401（フロント自動リフレッシュ起動）
 				map[string]struct{}{
-					"GetAuthGoogle":               {},
-					"GetAuthGoogleCallback":       {},
-					"PostAuthRefresh":             {},
-					"GetAuthOauthYoutubeCallback": {},
 					"GetChannelsChannelId":          {},
 					"GetChannelsChannelIdVideos":    {},
 					"GetChannelsChannelIdPlaylists": {},
@@ -281,6 +277,14 @@ func run(ctx context.Context) int {
 					"GetPlaylistsPlaylistId":        {},
 					"GetPlaylistsPlaylistIdVideos":  {},
 					"GetFeed":                       {},
+				},
+				// public: ブラウザが直接遷移するリダイレクト型の認証フロー。
+				// access_tokenの有無/失効に関わらず常に匿名通過（JSON 401を返さない）
+				map[string]struct{}{
+					"GetAuthGoogle":               {},
+					"GetAuthGoogleCallback":       {},
+					"PostAuthRefresh":             {},
+					"GetAuthOauthYoutubeCallback": {},
 				},
 				// bypass: register tokenを受け取るため、検証失敗でも常に通過
 				map[string]struct{}{
