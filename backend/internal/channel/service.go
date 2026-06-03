@@ -212,62 +212,6 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 		return nil, false, ErrInvalidGetUploadLimit
 	}
 
-	tx, err := s.db.Begin(ctx)
-	if err != nil {
-		return nil, false, err
-	}
-	defer func() {
-		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to rollback transaction", slog.Any("error", err))
-		}
-	}()
-	q := sqlc.New(tx)
-
-	// ロッキングリード
-	lockedChannel, err := NewChannelRepository(q).FindForUpdate(ctx, channelID)
-	if err != nil {
-		return nil, false, err
-	}
-	if lockedChannel.ShouldFetchRSSFeed(s.rssFetchDuration) {
-		// PlaylistAPIから動画ID一覧を取得する
-		videoIDs, _, err := s.youtubeClient.FetchPlaylistVideoIDs(ctx, string(lockedChannel.Channel.UploadsPlaylistID), "")
-		if err != nil {
-			return nil, false, err
-		}
-
-		// 動画ID一覧から動画の詳細情報を取得する
-		videoDetailMap, err := s.youtubeClient.FetchVideoDetail(ctx, videoIDs)
-		if err != nil {
-			return nil, false, err
-		}
-
-		fetchedAt := time.Now().UTC()
-		for _, videoDetail := range videoDetailMap {
-			v, err := video.NewVideo(lockedChannel.ID, fetchedAt, videoDetail)
-			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(get channel uploads)", slog.Any("error", err))
-				continue
-			}
-
-			if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(get channel uploads)", slog.Any("error", err))
-				continue
-			}
-			if err := s.feedRepo.FanOut(ctx, v.ChannelID, v.ID); err != nil {
-				util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(get channel uploads)", slog.Any("error", err))
-			}
-		}
-
-		lockedChannel.MarkAsRSSFetched()
-		if _, err := NewChannelRepository(q).Save(ctx, lockedChannel); err != nil {
-			return nil, false, err
-		}
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return nil, false, err
-	}
-
 	videos, err := s.channelQS.GetChannelUploads(ctx, userID, channelID, cursor, limit+1, order)
 	if err != nil {
 		return nil, false, err
