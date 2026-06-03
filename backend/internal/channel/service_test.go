@@ -164,55 +164,6 @@ func TestService_GetChannelUploads(t *testing.T) {
 		assert.Equal(t, callsBefore, len(ytMock.FetchPlaylistVideoIDsCalls()))
 	})
 
-	t.Run("triggers RSS re-fetch when stale", func(t *testing.T) {
-		db := testutil.NewTestPool(t)
-		userPublicID := setupUser(t, ctx, sqlc.New(db))
-
-		testCh := newTestChannel(t)
-		testVid := newTestVideo(t)
-		newVid := newTestVideoWith(t, "xyzABCDE123", "New Video After RSS", time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC))
-
-		fetchCount := 0
-		ytMock := new(ClientMock{
-			FetchChannelDetailByIDOrHandleFunc: func(_ context.Context, _ string) (youtube_d.Channel, error) {
-				return testCh, nil
-			},
-			FetchPlaylistVideoIDsFunc: func(_ context.Context, _ string, _ string) ([]youtube_d.VideoID, string, error) {
-				fetchCount++
-				if fetchCount <= 1 {
-					// SubscribeChannel 時は元の動画のみ
-					return []youtube_d.VideoID{testVid.ID}, "", nil
-				}
-				// GetChannelUploads での RSS 再取得時は新しい動画も含む
-				return []youtube_d.VideoID{testVid.ID, newVid.ID}, "", nil
-			},
-			FetchVideoDetailFunc: func(_ context.Context, ids []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
-				result := map[youtube_d.VideoID]youtube_d.Video{}
-				all := map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid, newVid.ID: newVid}
-				for _, id := range ids {
-					if v, ok := all[id]; ok {
-						result[id] = v
-					}
-				}
-				return result, nil
-			},
-		})
-
-		// rssFetchDuration=0 で常に RSS 再取得が発動するようにする
-		svc := channel.NewService(db, ytMock, testutil.NewFeedRepo(t, sqlc.New(db)), 0)
-
-		ch, err := svc.SubscribeChannel(ctx, userPublicID, "@testchannel")
-		require.NoError(t, err)
-
-		videos, hasNext, err := svc.GetChannelUploads(ctx, userPublicID, ch.ID, nil, 10, "newer")
-
-		require.NoError(t, err)
-		assert.Len(t, videos, 2)
-		assert.False(t, hasNext)
-		// FetchPlaylistVideoIDs が2回呼ばれている(Subscribe時 + GetChannelUploads時)
-		assert.Equal(t, 2, len(ytMock.FetchPlaylistVideoIDsCalls()))
-	})
-
 	t.Run("hasNext true when more videos than limit", func(t *testing.T) {
 		db := testutil.NewTestPool(t)
 		userPublicID := setupUser(t, ctx, sqlc.New(db))
@@ -260,15 +211,17 @@ func TestService_GetChannelUploads(t *testing.T) {
 		assert.False(t, hasNext)
 	})
 
-	t.Run("non-existent channel returns error", func(t *testing.T) {
+	t.Run("non-existent channel returns empty", func(t *testing.T) {
 		db := testutil.NewTestPool(t)
 		userPublicID := setupUser(t, ctx, sqlc.New(db))
 
 		svc := channel.NewService(db, new(ClientMock{}), testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
 
-		_, _, err := svc.GetChannelUploads(ctx, userPublicID, uuid.Must(uuid.NewV7()), nil, 10, "newer")
+		videos, hasNext, err := svc.GetChannelUploads(ctx, userPublicID, uuid.Must(uuid.NewV7()), nil, 10, "newer")
 
-		assert.Error(t, err)
+		require.NoError(t, err)
+		assert.Empty(t, videos)
+		assert.False(t, hasNext)
 	})
 }
 

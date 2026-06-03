@@ -1241,7 +1241,7 @@ type ServerInterface interface {
 	DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId util.Base64UUID, params DeleteUsersMeSessionsSessionIdParams)
 	// Get video detail
 	// (GET /api/v1/videos/{video_id})
-	GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId string, params GetVideosVideoIdParams)
+	GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params GetVideosVideoIdParams)
 	// Heartbeats
 	// (POST /api/v1/videos/{video_id}/heartbeats)
 	PostVideosVideoIdHeartbeats(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params PostVideosVideoIdHeartbeatsParams)
@@ -1472,7 +1472,7 @@ func (_ Unimplemented) DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r *
 
 // Get video detail
 // (GET /api/v1/videos/{video_id})
-func (_ Unimplemented) GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId string, params GetVideosVideoIdParams) {
+func (_ Unimplemented) GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params GetVideosVideoIdParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -7509,9 +7509,9 @@ func (siw *ServerInterfaceWrapper) GetVideosVideoId(w http.ResponseWriter, r *ht
 	var err error
 
 	// ------------- Path parameter "video_id" -------------
-	var videoId string
+	var videoId util.Base64UUID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "video_id", chi.URLParam(r, "video_id"), &videoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
+	err = runtime.BindStyledParameterWithOptions("simple", "video_id", chi.URLParam(r, "video_id"), &videoId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "video_id", Err: err})
 		return
@@ -12063,7 +12063,7 @@ func (response DeleteUsersMeSessionsSessionId500JSONResponse) VisitDeleteUsersMe
 }
 
 type GetVideosVideoIdRequestObject struct {
-	VideoId string `json:"video_id"`
+	VideoId util.Base64UUID `json:"video_id"`
 	Params  GetVideosVideoIdParams
 }
 
@@ -13729,7 +13729,7 @@ func (sh *strictHandler) DeleteUsersMeSessionsSessionId(w http.ResponseWriter, r
 }
 
 // GetVideosVideoId operation middleware
-func (sh *strictHandler) GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId string, params GetVideosVideoIdParams) {
+func (sh *strictHandler) GetVideosVideoId(w http.ResponseWriter, r *http.Request, videoId util.Base64UUID, params GetVideosVideoIdParams) {
 	var request GetVideosVideoIdRequestObject
 
 	request.VideoId = videoId
@@ -14030,18 +14030,18 @@ var swaggerSpec = []string{
 	"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",
-	"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",
+	"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",
+	"SO7IRk2cbGjk1Mj/BwAA//9QizbYtwgBAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

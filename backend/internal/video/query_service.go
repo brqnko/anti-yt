@@ -31,7 +31,7 @@ type GetVideoDetailView struct {
 }
 
 type VideoQueryService interface {
-	FindByIDOrExternalID(ctx context.Context, userID uuid.UUID, videoID *uuid.UUID, externalVideoID *string) (GetVideoDetailView, error)
+	GetVideoDetail(ctx context.Context, userID uuid.UUID, videoID uuid.UUID) (GetVideoDetailView, error)
 }
 
 type videoQueryServiceImpl struct {
@@ -44,13 +44,12 @@ func NewVideoQueryService(db *pgxpool.Pool) VideoQueryService {
 	}
 }
 
-func (v *videoQueryServiceImpl) FindByIDOrExternalID(ctx context.Context, userID uuid.UUID, videoID *uuid.UUID, externalVideoID *string) (_ GetVideoDetailView, err error) {
-	defer util.Wrap(&err, "video.(*videoQueryServiceImpl).FindByIDOrExternalID")
+func (v *videoQueryServiceImpl) GetVideoDetail(ctx context.Context, userID uuid.UUID, videoID uuid.UUID) (_ GetVideoDetailView, err error) {
+	defer util.Wrap(&err, "video.(*videoQueryServiceImpl).GetVideoDetail")
 
 	row, err := v.q.GetVideoDetail(ctx, sqlc.GetVideoDetailParams{
-		UserID:          userID,
-		VideoID:         videoID,
-		ExternalVideoID: externalVideoID,
+		UserID:  userID,
+		VideoID: &videoID,
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

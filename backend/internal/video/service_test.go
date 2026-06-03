@@ -8,7 +8,6 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
 	"github.com/brqnko/anti-yt/backend/internal/testutil"
-	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/brqnko/anti-yt/backend/internal/video"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +20,7 @@ func TestService_GetVideoDetail(t *testing.T) {
 	t.Run("non-existent video returns not found", func(t *testing.T) {
 		db := testutil.NewTestPool(t)
 
-		_, err := video.NewService(db).GetVideoDetail(ctx, uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()).String())
+		_, err := video.NewService(db).GetVideoDetail(ctx, uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()))
 
 		assert.ErrorIs(t, err, core.ErrNotFound)
 	})
@@ -66,7 +65,7 @@ func TestService_GetVideoDetail(t *testing.T) {
 		require.NoError(t, err)
 
 		// action
-		detail, err := video.NewService(db).GetVideoDetail(ctx, uuid.Must(uuid.NewV7()), util.Base64UUID(videoPublicID).String())
+		detail, err := video.NewService(db).GetVideoDetail(ctx, uuid.Must(uuid.NewV7()), videoPublicID)
 
 		// assert
 		require.NoError(t, err)

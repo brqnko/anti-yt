@@ -18,18 +18,8 @@ func NewService(db *pgxpool.Pool) *Service {
 	})
 }
 
-func (s *Service) GetVideoDetail(ctx context.Context, userID uuid.UUID, rawID string) (_ GetVideoDetailView, err error) {
+func (s *Service) GetVideoDetail(ctx context.Context, userID uuid.UUID, videoID uuid.UUID) (_ GetVideoDetailView, err error) {
 	defer util.Wrap(&err, "video.(*Service).GetVideoDetail")
 
-	var videoID *uuid.UUID
-	var externalVideoID *string
-	var b util.Base64UUID
-	if parseErr := b.UnmarshalText([]byte(rawID)); parseErr == nil {
-		id := b.UUID()
-		videoID = &id
-	} else {
-		externalVideoID = &rawID
-	}
-
-	return s.videoQS.FindByIDOrExternalID(ctx, userID, videoID, externalVideoID)
+	return s.videoQS.GetVideoDetail(ctx, userID, videoID)
 }
