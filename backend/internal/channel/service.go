@@ -223,75 +223,10 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 	return videos, false, nil
 }
 
-func (s *Service) GetChannelDetail(ctx context.Context, userID uuid.UUID, rawID string) (_ GetChannelDetailView, err error) {
+func (s *Service) GetChannelDetail(ctx context.Context, channelID uuid.UUID) (_ GetChannelDetailView, err error) {
 	defer util.Wrap(&err, "channel.(*Service).GetChannelDetail")
 
-	var channelID *uuid.UUID
-	var externalChannelID *string
-	var b util.Base64UUID
-	if parseErr := b.UnmarshalText([]byte(rawID)); parseErr == nil {
-		id := b.UUID()
-		channelID = &id
-	} else {
-		externalChannelID = &rawID
-	}
-
-	detail, err := s.channelQS.GetChannelDetail(ctx, channelID, externalChannelID)
-	if err == nil {
-		return detail, nil
-	}
-	if !errors.Is(err, core.ErrNotFound) || externalChannelID == nil || userID == uuid.Nil {
-		// UUID指定でnot found、DBエラー、または未認証ユーザーの場合はそのまま返す
-		return GetChannelDetailView{}, err
-	}
-
-	// 外部IDまたはハンドルで見つからない場合は YouTube からフェッチして保存
-	ytChannel, err := s.youtubeClient.FetchChannelDetailByIDOrHandle(ctx, *externalChannelID)
-	if err != nil {
-		return GetChannelDetailView{}, err
-	}
-
-	fetchedAt := time.Now().UTC()
-	ch, err := NewChannel(fetchedAt, fetchedAt.AddDate(-1, 0, 0), ytChannel)
-	if err != nil {
-		return GetChannelDetailView{}, err
-	}
-
-	if _, err := NewChannelRepository(sqlc.New(s.db)).Save(ctx, ch); err != nil {
-		return GetChannelDetailView{}, err
-	}
-
-	// チャンネルの投稿動画(IDのみ)をAPIから取得する。1ページで最大50件。
-	uploadIDs, _, err := s.youtubeClient.FetchPlaylistVideoIDs(ctx, string(ch.Channel.UploadsPlaylistID), "")
-	if err != nil {
-		util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fetch playlist video ids(get channel detail)", slog.Any("error", err))
-	} else {
-		videoDetails, err := s.youtubeClient.FetchVideoDetail(ctx, uploadIDs)
-		if err != nil {
-			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fetch video detail(get channel detail)", slog.Any("error", err))
-		} else {
-			for _, vd := range videoDetails {
-				v, err := video.NewVideo(ch.ID, fetchedAt, vd)
-				if err != nil {
-					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(get channel detail)", slog.Any("error", err))
-					continue
-				}
-				if _, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v); err != nil {
-					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(get channel detail)", slog.Any("error", err))
-					continue
-				}
-			}
-		}
-	}
-
-	return GetChannelDetailView{
-		ChannelID:        ch.ID,
-		CustomID:         ch.Channel.CustomID,
-		DisplayName:      ch.Channel.DisplayName,
-		Description:      ch.Channel.Description,
-		IconURL:          ch.Channel.IconURL,
-		SubscribersCount: int64(ch.Channel.SubscribersCount),
-	}, nil
+	return s.channelQS.GetChannelDetail(ctx, channelID)
 }
 
 func (s *Service) GetChannelFeeds(ctx context.Context) (_ []GetValuableChannelView, err error) {

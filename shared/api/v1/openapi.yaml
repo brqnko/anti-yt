@@ -601,6 +601,7 @@ paths:
           in: path
           schema:
             type: string
+            format: uuid
           required: true
       responses:
         "200":

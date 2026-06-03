@@ -1,6 +1,4 @@
 import type { VNode } from "preact";
-import { rewriteYouTubeUrl } from "../utils/url";
-import { SITE_URL } from "../constants";
 
 const URL_REGEX = /(https?:\/\/[^\s<>"']+)/g;
 const URL_TEST = /^https?:\/\//;
@@ -10,14 +8,6 @@ const TOKEN_REGEX = new RegExp(
 );
 
 function UrlAnchor({ url }: { url: string }): VNode {
-  const internal = rewriteYouTubeUrl(url);
-  if (internal) {
-    return (
-      <a href={internal} class="text-primary hover:underline break-all">
-        {SITE_URL}{internal}
-      </a>
-    );
-  }
   return (
     <a
       href={url}

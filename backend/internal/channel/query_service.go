@@ -25,7 +25,7 @@ type GetSubscriptionsView struct {
 
 type ChannelQueryService interface {
 	GetSubscriptions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetSubscriptionsView, error)
-	GetChannelDetail(ctx context.Context, channelID *uuid.UUID, externalChannelID *string) (GetChannelDetailView, error)
+	GetChannelDetail(ctx context.Context, channelID uuid.UUID) (GetChannelDetailView, error)
 	GetChannelUploads(ctx context.Context, userID, channelID uuid.UUID, cursor *uuid.UUID, limit int32, order string) ([]GetChannelUploadsView, error)
 	ListChannelVideoIDs(ctx context.Context, userID, channelID uuid.UUID, limit int32) ([]uuid.UUID, error)
 }
@@ -120,12 +120,11 @@ type GetChannelDetailView struct {
 	SubscribersCount   int64
 }
 
-func (c *channelQueryServiceImpl) GetChannelDetail(ctx context.Context, channelID *uuid.UUID, externalChannelID *string) (_ GetChannelDetailView, err error) {
+func (c *channelQueryServiceImpl) GetChannelDetail(ctx context.Context, channelID uuid.UUID) (_ GetChannelDetailView, err error) {
 	defer util.Wrap(&err, "channel.(*channelQueryServiceImpl).GetChannelDetail")
 
 	row, err := c.q.GetChannelByPublicID(ctx, sqlc.GetChannelByPublicIDParams{
-		ChannelID:         channelID,
-		ExternalChannelID: externalChannelID,
+		ChannelID: &channelID,
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
