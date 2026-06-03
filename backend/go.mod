@@ -10,7 +10,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/mssola/user_agent v0.6.0
-	github.com/oapi-codegen/runtime v1.4.0
+	github.com/oapi-codegen/runtime v1.4.1
 	github.com/pressly/goose/v3 v3.27.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.11.1
@@ -20,6 +20,7 @@ require (
 )
 
 require (
+	github.com/alicebob/miniredis/v2 v2.37.0
 	github.com/exaring/otelpgx v0.10.0
 	github.com/peterldowns/pgtestdb/migrators/goosemigrator v0.1.1
 	github.com/redis/go-redis/extra/redisotel/v9 v9.19.0
@@ -32,7 +33,6 @@ require (
 )
 
 require (
-	github.com/alicebob/miniredis/v2 v2.37.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0 // indirect
 	github.com/redis/go-redis/extra/rediscmd/v9 v9.19.0 // indirect
