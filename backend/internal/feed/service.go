@@ -4,7 +4,6 @@ package feed
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"time"
 
@@ -15,7 +14,6 @@ import (
 	"github.com/brqnko/anti-yt/backend/internal/util"
 	"github.com/brqnko/anti-yt/backend/internal/video"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -40,65 +38,6 @@ func NewService(db *pgxpool.Pool, youtubeClient youtube_d.Client, feedRepo datab
 
 func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetVideoFeedView, _ bool, err error) {
 	defer util.Wrap(&err, "feed.(*Service).GetFeed")
-
-	tx, err := s.db.Begin(ctx)
-	if err != nil {
-		return nil, false, err
-	}
-	defer func() {
-		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to rollback transaction", slog.Any("error", err))
-		}
-	}()
-	q := sqlc.New(tx)
-
-	// NOTE: YouTube RSS Feedはレートリミットが厳しいのでlimit=1
-	// rss_fetched_atで昇順ソートしているので、ちょっとずつ更新されていくはず
-	channels, err := channel.NewChannelRepository(q).FindToFetchRSSForUpdate(ctx, userID, s.rssFetchDuration, 1)
-	if err != nil {
-		return nil, false, err
-	}
-
-	for _, ch := range channels {
-		// PlaylistAPIから動画ID一覧を取得する
-		videoIDs, _, err := s.youtubeClient.FetchPlaylistVideoIDs(ctx, string(ch.Channel.UploadsPlaylistID), "")
-		if err != nil {
-			return nil, false, err
-		}
-
-		// 動画ID一覧から動画の詳細情報を取得する
-		// TODO: 現在はchannels分YouTube Data APIにリクエストを投げているが、一括で取得したい
-		videoDetailMap, err := s.youtubeClient.FetchVideoDetail(ctx, videoIDs)
-		if err != nil {
-			return nil, false, err
-		}
-
-		fetchedAt := time.Now().UTC()
-		for _, vd := range videoDetailMap {
-			v, err := video.NewVideo(ch.ID, fetchedAt, vd)
-			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(get feed)", slog.Any("error", err))
-				continue
-			}
-
-			if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(get feed)", slog.Any("error", err))
-				continue
-			}
-			if err := s.feedRepo.FanOut(ctx, v.ChannelID, v.ID); err != nil {
-				util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(get feed)", slog.Any("error", err))
-			}
-		}
-
-		ch.MarkAsRSSFetched()
-		if _, err := channel.NewChannelRepository(q).Save(ctx, ch); err != nil {
-			return nil, false, err
-		}
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return nil, false, err
-	}
 
 	videoIDs, err := s.feedRepo.Get(ctx, userID, cursor, int64(limit)+1)
 	if err != nil {
