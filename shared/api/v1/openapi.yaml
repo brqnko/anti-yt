@@ -601,6 +601,7 @@ paths:
           in: path
           schema:
             type: string
+            format: uuid
           required: true
       responses:
         "200":
@@ -1293,7 +1294,8 @@ paths:
         required: true
         schema:
           type: string
-        description: 動画の内部IDまたはYouTube動画ID
+          format: uuid
+        description: 動画の内部ID
         in: path
       - $ref: '#/components/parameters/HeaderXRealIP'
       - $ref: '#/components/parameters/HeaderCfIpCountry'

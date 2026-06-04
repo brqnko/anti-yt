@@ -26,8 +26,6 @@ type Service struct {
 
 	channelQS         ChannelQueryService
 	valuableChannelQS ValuableChannelQueryService
-
-	rssFetchDuration time.Duration
 }
 
 var (
@@ -40,13 +38,11 @@ func NewService(
 	db *pgxpool.Pool,
 	youtubeClient youtube_d.Client,
 	feedRepo database_d.FeedRepository,
-	rssFetchDuration time.Duration,
 ) *Service {
 	return new(Service{
 		db:                db,
 		youtubeClient:     youtubeClient,
 		feedRepo:          feedRepo,
-		rssFetchDuration:  rssFetchDuration,
 		channelQS:         NewChannelQueryService(db),
 		valuableChannelQS: NewValuableChannelQueryService(db),
 	})
@@ -212,62 +208,6 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 		return nil, false, ErrInvalidGetUploadLimit
 	}
 
-	tx, err := s.db.Begin(ctx)
-	if err != nil {
-		return nil, false, err
-	}
-	defer func() {
-		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to rollback transaction", slog.Any("error", err))
-		}
-	}()
-	q := sqlc.New(tx)
-
-	// ロッキングリード
-	lockedChannel, err := NewChannelRepository(q).FindForUpdate(ctx, channelID)
-	if err != nil {
-		return nil, false, err
-	}
-	if lockedChannel.ShouldFetchRSSFeed(s.rssFetchDuration) {
-		// PlaylistAPIから動画ID一覧を取得する
-		videoIDs, _, err := s.youtubeClient.FetchPlaylistVideoIDs(ctx, string(lockedChannel.Channel.UploadsPlaylistID), "")
-		if err != nil {
-			return nil, false, err
-		}
-
-		// 動画ID一覧から動画の詳細情報を取得する
-		videoDetailMap, err := s.youtubeClient.FetchVideoDetail(ctx, videoIDs)
-		if err != nil {
-			return nil, false, err
-		}
-
-		fetchedAt := time.Now().UTC()
-		for _, videoDetail := range videoDetailMap {
-			v, err := video.NewVideo(lockedChannel.ID, fetchedAt, videoDetail)
-			if err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(get channel uploads)", slog.Any("error", err))
-				continue
-			}
-
-			if _, err := video.NewVideoRepository(q).Save(ctx, v); err != nil {
-				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(get channel uploads)", slog.Any("error", err))
-				continue
-			}
-			if err := s.feedRepo.FanOut(ctx, v.ChannelID, v.ID); err != nil {
-				util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fan-out video(get channel uploads)", slog.Any("error", err))
-			}
-		}
-
-		lockedChannel.MarkAsRSSFetched()
-		if _, err := NewChannelRepository(q).Save(ctx, lockedChannel); err != nil {
-			return nil, false, err
-		}
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return nil, false, err
-	}
-
 	videos, err := s.channelQS.GetChannelUploads(ctx, userID, channelID, cursor, limit+1, order)
 	if err != nil {
 		return nil, false, err
@@ -279,75 +219,10 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 	return videos, false, nil
 }
 
-func (s *Service) GetChannelDetail(ctx context.Context, userID uuid.UUID, rawID string) (_ GetChannelDetailView, err error) {
+func (s *Service) GetChannelDetail(ctx context.Context, channelID uuid.UUID) (_ GetChannelDetailView, err error) {
 	defer util.Wrap(&err, "channel.(*Service).GetChannelDetail")
 
-	var channelID *uuid.UUID
-	var externalChannelID *string
-	var b util.Base64UUID
-	if parseErr := b.UnmarshalText([]byte(rawID)); parseErr == nil {
-		id := b.UUID()
-		channelID = &id
-	} else {
-		externalChannelID = &rawID
-	}
-
-	detail, err := s.channelQS.GetChannelDetail(ctx, channelID, externalChannelID)
-	if err == nil {
-		return detail, nil
-	}
-	if !errors.Is(err, core.ErrNotFound) || externalChannelID == nil || userID == uuid.Nil {
-		// UUID指定でnot found、DBエラー、または未認証ユーザーの場合はそのまま返す
-		return GetChannelDetailView{}, err
-	}
-
-	// 外部IDまたはハンドルで見つからない場合は YouTube からフェッチして保存
-	ytChannel, err := s.youtubeClient.FetchChannelDetailByIDOrHandle(ctx, *externalChannelID)
-	if err != nil {
-		return GetChannelDetailView{}, err
-	}
-
-	fetchedAt := time.Now().UTC()
-	ch, err := NewChannel(fetchedAt, fetchedAt.AddDate(-1, 0, 0), ytChannel)
-	if err != nil {
-		return GetChannelDetailView{}, err
-	}
-
-	if _, err := NewChannelRepository(sqlc.New(s.db)).Save(ctx, ch); err != nil {
-		return GetChannelDetailView{}, err
-	}
-
-	// チャンネルの投稿動画(IDのみ)をAPIから取得する。1ページで最大50件。
-	uploadIDs, _, err := s.youtubeClient.FetchPlaylistVideoIDs(ctx, string(ch.Channel.UploadsPlaylistID), "")
-	if err != nil {
-		util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fetch playlist video ids(get channel detail)", slog.Any("error", err))
-	} else {
-		videoDetails, err := s.youtubeClient.FetchVideoDetail(ctx, uploadIDs)
-		if err != nil {
-			util.LoggerFromContext(ctx).WarnContext(ctx, "failed to fetch video detail(get channel detail)", slog.Any("error", err))
-		} else {
-			for _, vd := range videoDetails {
-				v, err := video.NewVideo(ch.ID, fetchedAt, vd)
-				if err != nil {
-					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to new video(get channel detail)", slog.Any("error", err))
-					continue
-				}
-				if _, err := video.NewVideoRepository(sqlc.New(s.db)).Save(ctx, v); err != nil {
-					util.LoggerFromContext(ctx).InfoContext(ctx, "failed to save video(get channel detail)", slog.Any("error", err))
-					continue
-				}
-			}
-		}
-	}
-
-	return GetChannelDetailView{
-		ChannelID:        ch.ID,
-		CustomID:         ch.Channel.CustomID,
-		DisplayName:      ch.Channel.DisplayName,
-		Description:      ch.Channel.Description,
-		IconURL:          ch.Channel.IconURL,
-		SubscribersCount: int64(ch.Channel.SubscribersCount),
-	}, nil
+	return s.channelQS.GetChannelDetail(ctx, channelID)
 }
 
 func (s *Service) GetChannelFeeds(ctx context.Context) (_ []GetValuableChannelView, err error) {

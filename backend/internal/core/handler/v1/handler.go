@@ -54,7 +54,6 @@ func NewAPIHandler(
 	accessTokenDuration time.Duration,
 	refreshTokenDuration time.Duration,
 	youtubeClient youtube_d.Client,
-	rssFetchDuration time.Duration,
 	scheduler scheduler.Service,
 	jtiBlacklistRepo database_d.JtiBlacklistRepository,
 	feedRepo database_d.FeedRepository,
@@ -63,13 +62,13 @@ func NewAPIHandler(
 	return new(APIHandler{
 		db: db,
 
-		channelService:  channel.NewService(db, youtubeClient, feedRepo, rssFetchDuration),
+		channelService:  channel.NewService(db, youtubeClient, feedRepo),
 		videoService:    video.NewService(db),
 		playlistService: playlist.NewService(db, youtubeClient, feedRepo),
-		authService:     auth.NewService(db, oidcClient, youtubeClient, channel.NewService(db, youtubeClient, feedRepo, rssFetchDuration), playlist.NewService(db, youtubeClient, feedRepo), serverURL, jwtService, accessTokenDuration, refreshTokenDuration, jtiBlacklistRepo),
+		authService:     auth.NewService(db, oidcClient, youtubeClient, channel.NewService(db, youtubeClient, feedRepo), playlist.NewService(db, youtubeClient, feedRepo), serverURL, jwtService, accessTokenDuration, refreshTokenDuration, jtiBlacklistRepo),
 		userService:     user.NewService(db, jwtService, serverURL, accessTokenDuration, jtiBlacklistRepo),
 		historyService:  history.NewService(db, feedRepo),
-		feedService:     feed.NewService(db, youtubeClient, feedRepo, rssFetchDuration),
+		feedService:     feed.NewService(db, youtubeClient, feedRepo),
 
 		serverURL:   serverURL,
 		frontendURL: frontendURL,

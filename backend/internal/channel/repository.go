@@ -3,7 +3,6 @@ package channel
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
@@ -15,9 +14,7 @@ import (
 
 type ChannelRepository interface {
 	Save(ctx context.Context, channel *Channel) (int64, error)
-	FindForUpdate(ctx context.Context, id uuid.UUID) (*Channel, error)
 	FindByIdOrHandle(ctx context.Context, idOrHandle string) (*Channel, error)
-	FindToFetchRSSForUpdate(ctx context.Context, userID uuid.UUID, rssFetchDuration time.Duration, limit int32) ([]*Channel, error)
 	ListForBulkFetch(ctx context.Context) ([]*Channel, error)
 	SaveSubscription(ctx context.Context, subscribedChannel *SubscribedChannel) (int64, error)
 	RemoveSubscription(ctx context.Context, userID, channelID uuid.UUID) (int64, error)
@@ -67,51 +64,6 @@ func (c *channelRepositoryImpl) Save(ctx context.Context, channel *Channel) (_ i
 	return row.MChannelID, nil
 }
 
-func (c *channelRepositoryImpl) FindForUpdate(ctx context.Context, id uuid.UUID) (_ *Channel, err error) {
-	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).FindForUpdate(id=%s)", id)
-
-	row, err := c.q.GetChannelForUpdate(ctx, id)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, core.ErrNotFound
-		}
-		return nil, err
-	}
-
-	channelDetail, err := youtube_d.NewChannel(
-		row.ExternalID,
-		row.ExternalDisplayName,
-		row.ExternalCustomID,
-		row.ExternalDescription,
-		row.ExternalIconUrl,
-		uint64(row.ExternalSubscribersCount),
-		row.ExternalUploadsPlaylistID,
-		row.ExternalCreatedAt,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	ch, err := NewChannel(
-		row.FetchedAt,
-		row.RssFetchedAt,
-		channelDetail,
-		WithChannelID(row.PublicID),
-		WithBulkFetchedAt(row.BulkFetchedAt),
-		WithLastSeenAt(row.LastSeenAt),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	ch.MarkAsSeen()
-	if _, err := c.Save(ctx, ch); err != nil {
-		return nil, err
-	}
-
-	return ch, nil
-}
-
 func (c *channelRepositoryImpl) FindByIdOrHandle(ctx context.Context, idOrHandle string) (_ *Channel, err error) {
 	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).FindByIdOrHandle")
 
@@ -158,52 +110,6 @@ func (c *channelRepositoryImpl) FindByIdOrHandle(ctx context.Context, idOrHandle
 	}
 
 	return ch, nil
-}
-
-func (c *channelRepositoryImpl) FindToFetchRSSForUpdate(ctx context.Context, userID uuid.UUID, rssFetchDuration time.Duration, limit int32) (_ []*Channel, err error) {
-	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).FindToFetchRSSForUpdate(userID=%s)", userID)
-
-	rows, err := c.q.ListStaleRSSChannelsForUpdate(ctx, sqlc.ListStaleRSSChannelsForUpdateParams{
-		UserID:     userID,
-		RssFetch:   time.Now().UTC().Add(-rssFetchDuration),
-		QueryLimit: limit,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	channels := make([]*Channel, len(rows))
-	for i, row := range rows {
-		channelDetail, err := youtube_d.NewChannel(
-			row.ExternalID,
-			row.ExternalDisplayName,
-			row.ExternalCustomID,
-			row.ExternalDescription,
-			row.ExternalIconUrl,
-			uint64(row.ExternalSubscribersCount),
-			row.ExternalUploadsPlaylistID,
-			row.ExternalCreatedAt,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		channel, err := NewChannel(
-			row.FetchedAt,
-			row.RssFetchedAt,
-			channelDetail,
-			WithChannelID(row.PublicID),
-			WithBulkFetchedAt(row.BulkFetchedAt),
-			WithLastSeenAt(row.LastSeenAt),
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		channels[i] = channel
-	}
-
-	return channels, nil
 }
 
 func (c *channelRepositoryImpl) ListForBulkFetch(ctx context.Context) (_ []*Channel, err error) {

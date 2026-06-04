@@ -45,7 +45,7 @@ func TestNewRefreshToken(t *testing.T) {
 				countryCode:       "jp",
 				cityName:          "docker",
 				expiresAt:         time.Now(),
-				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenHash("hash")},
+				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
 			},
 			want: &want{
 				ipAddress:         "docker",
@@ -66,7 +66,7 @@ func TestNewRefreshToken(t *testing.T) {
 				countryCode:       "jp",
 				cityName:          "docker",
 				expiresAt:         time.Now(),
-				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenHash("hash")},
+				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
 			},
 			want: &want{
 				ipAddress:         strings.Repeat("あ", 64),
@@ -87,7 +87,7 @@ func TestNewRefreshToken(t *testing.T) {
 				countryCode:       "jp",
 				cityName:          "docker",
 				expiresAt:         time.Now(),
-				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenHash("hash")},
+				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
 			},
 			want: &want{
 				ipAddress:         "docker",
@@ -108,7 +108,7 @@ func TestNewRefreshToken(t *testing.T) {
 				countryCode:       "jp",
 				cityName:          "docker",
 				expiresAt:         time.Now(),
-				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenHash("hash")},
+				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
 			},
 			want: &want{
 				ipAddress:         "docker",
@@ -129,7 +129,7 @@ func TestNewRefreshToken(t *testing.T) {
 				countryCode:       "jpn",
 				cityName:          "docker",
 				expiresAt:         time.Now(),
-				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenHash("hash")},
+				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
 			},
 			want: &want{
 				ipAddress:         "docker",
@@ -150,7 +150,7 @@ func TestNewRefreshToken(t *testing.T) {
 				countryCode:       "jp",
 				cityName:          strings.Repeat("あ", 129),
 				expiresAt:         time.Now(),
-				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenHash("hash")},
+				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
 			},
 			want: &want{
 				ipAddress:         "docker",

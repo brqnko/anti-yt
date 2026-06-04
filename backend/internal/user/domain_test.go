@@ -9,52 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewLeaveReasonCode(t *testing.T) {
-	t.Parallel()
-
-	type arg struct {
-		str string
-	}
-
-	type want struct {
-		code user.LeaveReasonCode
-	}
-
-	cases := map[string]struct {
-		arg     arg
-		want    *want
-		wantErr error
-	}{
-		"self": {
-			arg:     arg{str: "self"},
-			want:    &want{code: 0},
-			wantErr: nil,
-		},
-		"invalid": {
-			arg:     arg{str: "invalid"},
-			want:    nil,
-			wantErr: user.ErrInvalidLeaveReasonCode,
-		},
-	}
-
-	for name, c := range cases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			// act
-			got, err := user.NewLeaveReasonCode(c.arg.str)
-
-			// assert
-			if c.wantErr != nil {
-				assert.ErrorIs(t, err, c.wantErr)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, c.want.code, got)
-			}
-		})
-	}
-}
-
 func TestNewDailyScreenTimeLimit(t *testing.T) {
 	t.Parallel()
 

@@ -30,12 +30,6 @@ type RefreshToken struct {
 
 type RefreshTokenOption func(*RefreshToken)
 
-func WithRefreshTokenHash(tokenHash string) RefreshTokenOption {
-	return func(rt *RefreshToken) {
-		rt.TokenHash = tokenHash
-	}
-}
-
 func WithRefreshTokenRaw(tokenRaw string) RefreshTokenOption {
 	return func(rt *RefreshToken) {
 		rt.TokenHash = util.Sha256Hex(tokenRaw)

@@ -88,50 +88,6 @@ func TestNewChannel(t *testing.T) {
 	}
 }
 
-func TestChannel_ShouldRSSFetchFeed(t *testing.T) {
-	t.Parallel()
-
-	type arg struct {
-		rssFetchedAt  time.Time
-		fetchDuration time.Duration
-	}
-
-	cases := map[string]struct {
-		arg  arg
-		want bool
-	}{
-		"should fetch": {
-			arg: arg{
-				rssFetchedAt:  time.Now().UTC().Add(-2 * time.Hour),
-				fetchDuration: time.Hour,
-			},
-			want: true,
-		},
-		"should not fetch": {
-			arg: arg{
-				rssFetchedAt:  time.Now().UTC().Add(-30 * time.Minute),
-				fetchDuration: time.Hour,
-			},
-			want: false,
-		},
-	}
-
-	for name, c := range cases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			// arrange
-			ch := new(channel.Channel{RSSFetchedAt: c.arg.rssFetchedAt})
-
-			// act
-			got := ch.ShouldFetchRSSFeed(c.arg.fetchDuration)
-
-			// assert
-			assert.Equal(t, c.want, got)
-		})
-	}
-}
-
 func TestNewValuableCategoryCode(t *testing.T) {
 	t.Parallel()
 

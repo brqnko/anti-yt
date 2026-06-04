@@ -7,7 +7,7 @@ import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
 import { Toggle } from "./Toggle";
 
-export interface VideoCardProps {
+interface VideoCardProps {
   videoId: string;
   thumbnailUrl: string;
   title: string;

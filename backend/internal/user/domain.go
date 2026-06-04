@@ -21,8 +21,6 @@ var (
 
 	ErrDailyScreenTimeLimitRangeOrder = core.NewDomainError("user.invalid_screen_time_range_order", "screen time range start must be before end", core.StatusBadRequest)
 	ErrDailyScreenTimeLimitOutOfRange = core.NewDomainError("user.invalid_screen_time_range", "daily screen time limit is out of range", core.StatusBadRequest)
-
-	ErrInvalidLeaveReasonCode = core.NewDomainError("user.invalid_leave_reason_code", "invalid leave reason code", core.StatusBadRequest)
 )
 
 type LeaveReasonCode int
@@ -32,18 +30,6 @@ var leaveReasonCodeMap = []struct {
 	str  string
 }{
 	{code: 0, str: "self"},
-}
-
-func NewLeaveReasonCode(s string) (_ LeaveReasonCode, err error) {
-	defer util.Wrap(&err, "user.NewLeaveReasonCode")
-
-	for _, c := range leaveReasonCodeMap {
-		if s == c.str {
-			return c.code, nil
-		}
-	}
-
-	return 0, ErrInvalidLeaveReasonCode
 }
 
 func (l LeaveReasonCode) String() string {
