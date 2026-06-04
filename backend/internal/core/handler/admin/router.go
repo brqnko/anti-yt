@@ -11,7 +11,7 @@ import (
 )
 
 func HandleAdminEndpoints(m *chi.Mux, db *pgxpool.Pool, youtubeClient youtube_d.Client, feedRepo database_d.FeedRepository, adminAPIKey string) {
-	h := newHandler(channel.NewService(db, youtubeClient, feedRepo, 0))
+	h := newHandler(channel.NewService(db, youtubeClient, feedRepo))
 
 	m.Route("/api/admin", func(r chi.Router) {
 		r.Use(adminAPIKeyAuthMiddleware(adminAPIKey))

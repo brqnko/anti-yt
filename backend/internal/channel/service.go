@@ -26,8 +26,6 @@ type Service struct {
 
 	channelQS         ChannelQueryService
 	valuableChannelQS ValuableChannelQueryService
-
-	rssFetchDuration time.Duration
 }
 
 var (
@@ -40,13 +38,11 @@ func NewService(
 	db *pgxpool.Pool,
 	youtubeClient youtube_d.Client,
 	feedRepo database_d.FeedRepository,
-	rssFetchDuration time.Duration,
 ) *Service {
 	return new(Service{
 		db:                db,
 		youtubeClient:     youtubeClient,
 		feedRepo:          feedRepo,
-		rssFetchDuration:  rssFetchDuration,
 		channelQS:         NewChannelQueryService(db),
 		valuableChannelQS: NewValuableChannelQueryService(db),
 	})

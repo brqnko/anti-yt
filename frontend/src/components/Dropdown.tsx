@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "preact/hooks";
 import { createPortal } from "preact/compat";
 import { Icon } from "./Icon";
 
-export interface DropdownOption {
+interface DropdownOption {
   value: string;
   label: string;
   icon?: string;

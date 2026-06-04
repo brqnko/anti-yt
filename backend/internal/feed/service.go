@@ -22,17 +22,14 @@ type Service struct {
 	youtubeClient youtube_d.Client
 	feedRepo      database_d.FeedRepository
 	feedQS        FeedQueryService
-
-	rssFetchDuration time.Duration
 }
 
-func NewService(db *pgxpool.Pool, youtubeClient youtube_d.Client, feedRepo database_d.FeedRepository, rssFetchDuration time.Duration) *Service {
+func NewService(db *pgxpool.Pool, youtubeClient youtube_d.Client, feedRepo database_d.FeedRepository) *Service {
 	return new(Service{
-		db:               db,
-		youtubeClient:    youtubeClient,
-		feedRepo:         feedRepo,
-		feedQS:           NewFeedQueryService(db),
-		rssFetchDuration: rssFetchDuration,
+		db:            db,
+		youtubeClient: youtubeClient,
+		feedRepo:      feedRepo,
+		feedQS:        NewFeedQueryService(db),
 	})
 }
 

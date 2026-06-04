@@ -32,7 +32,6 @@ type Querier interface {
 	DeleteValuableChannel(ctx context.Context, channelPublicID uuid.UUID) error
 	FindChannelByExternalID(ctx context.Context, arg FindChannelByExternalIDParams) (FindChannelByExternalIDRow, error)
 	GetChannelByPublicID(ctx context.Context, arg GetChannelByPublicIDParams) (GetChannelByPublicIDRow, error)
-	GetChannelForUpdate(ctx context.Context, channelID uuid.UUID) (GetChannelForUpdateRow, error)
 	// m_user.public_idから、そのユーザーが今日視聴していた合計時間(seconds)と設定している制限時間を返す。
 	// その日に一本も動画を視聴していない場合は0を返します。
 	GetDailyWatchSummary(ctx context.Context, arg GetDailyWatchSummaryParams) (GetDailyWatchSummaryRow, error)
@@ -83,7 +82,6 @@ type Querier interface {
 	ListRefreshTokens(ctx context.Context, arg ListRefreshTokensParams) ([]ListRefreshTokensRow, error)
 	// m_user.public_idのユーザーの視聴制限範囲を取得する。
 	ListScreenTimeRanges(ctx context.Context, userPublicID uuid.UUID) ([]ListScreenTimeRangesRow, error)
-	ListStaleRSSChannelsForUpdate(ctx context.Context, arg ListStaleRSSChannelsForUpdateParams) ([]ListStaleRSSChannelsForUpdateRow, error)
 	ListSubscribedChannels(ctx context.Context, arg ListSubscribedChannelsParams) ([]ListSubscribedChannelsRow, error)
 	// 指定チャンネルを購読しているユーザーのうち、指定動画をまだ視聴していないユーザーだけを返す。
 	// fan-out時に視聴済み動画がfeedに再挿入されるのを防ぐ目的。

@@ -25,7 +25,7 @@ func TestService_GetFeed(t *testing.T) {
 		userPublicID := setupUser(t, ctx, sqlc.New(db))
 
 		feedRepo := testutil.NewFeedRepo(t, sqlc.New(db))
-		svc := feed.NewService(db, new(ClientMock{}), feedRepo, 24*time.Hour)
+		svc := feed.NewService(db, new(ClientMock{}), feedRepo)
 
 		videos, hasMore, err := svc.GetFeed(ctx, userPublicID, nil, 10)
 
@@ -43,7 +43,7 @@ func TestService_GetFeed(t *testing.T) {
 
 		ytMock := newYTMock(testCh, map[youtube_d.VideoID]youtube_d.Video{testVid.ID: testVid})
 		feedRepo := testutil.NewFeedRepo(t, sqlc.New(db))
-		chSvc := channel.NewService(db, ytMock, feedRepo, 24*time.Hour)
+		chSvc := channel.NewService(db, ytMock, feedRepo)
 
 		_, err := chSvc.SubscribeChannel(ctx, userPublicID, "@testchannel")
 		require.NoError(t, err)
@@ -53,7 +53,7 @@ func TestService_GetFeed(t *testing.T) {
 		require.NoError(t, err)
 		assert.Len(t, feedItems, 1)
 
-		feedSvc := feed.NewService(db, ytMock, feedRepo, 24*time.Hour)
+		feedSvc := feed.NewService(db, ytMock, feedRepo)
 
 		videos, hasMore, err := feedSvc.GetFeed(ctx, userPublicID, nil, 10)
 
@@ -74,12 +74,12 @@ func TestService_GetFeed(t *testing.T) {
 
 		ytMock := newYTMock(testCh, videoMap)
 		feedRepo := testutil.NewFeedRepo(t, sqlc.New(db))
-		chSvc := channel.NewService(db, ytMock, feedRepo, 24*time.Hour)
+		chSvc := channel.NewService(db, ytMock, feedRepo)
 
 		_, err := chSvc.SubscribeChannel(ctx, userPublicID, "@testchannel")
 		require.NoError(t, err)
 
-		feedSvc := feed.NewService(db, ytMock, feedRepo, 24*time.Hour)
+		feedSvc := feed.NewService(db, ytMock, feedRepo)
 
 		videos, hasMore, err := feedSvc.GetFeed(ctx, userPublicID, nil, 1)
 
@@ -98,7 +98,7 @@ func TestService_Search(t *testing.T) {
 			SearchIDsFunc: func(_ context.Context, _ string, _ string, _ youtube_d.SearchOptions) ([]youtube_d.SearchItem, string, error) {
 				return []youtube_d.SearchItem{}, "", nil
 			},
-		}), testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
+		}), testutil.NewFeedRepo(t, sqlc.New(db)))
 
 		items, hasNext, nextCursor, err := svc.Search(ctx, "test query", 10, nil, youtube_d.SearchOptions{})
 
@@ -123,7 +123,7 @@ func TestService_Search(t *testing.T) {
 			FetchChannelDetailFunc: func(_ context.Context, _ []youtube_d.ChannelID) (map[youtube_d.ChannelID]youtube_d.Channel, error) {
 				return map[youtube_d.ChannelID]youtube_d.Channel{testCh.ID: testCh}, nil
 			},
-		}), testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
+		}), testutil.NewFeedRepo(t, sqlc.New(db)))
 
 		items, hasNext, nextCursor, err := svc.Search(ctx, "test query", 10, nil, youtube_d.SearchOptions{})
 
@@ -151,7 +151,7 @@ func TestService_Search(t *testing.T) {
 			FetchChannelDetailFunc: func(_ context.Context, _ []youtube_d.ChannelID) (map[youtube_d.ChannelID]youtube_d.Channel, error) {
 				return map[youtube_d.ChannelID]youtube_d.Channel{testCh.ID: testCh}, nil
 			},
-		}), testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
+		}), testutil.NewFeedRepo(t, sqlc.New(db)))
 
 		items, hasNext, nextCursor, err := svc.Search(ctx, "test query", 10, nil, youtube_d.SearchOptions{})
 
@@ -179,7 +179,7 @@ func TestService_Search(t *testing.T) {
 			FetchChannelDetailFunc: func(_ context.Context, _ []youtube_d.ChannelID) (map[youtube_d.ChannelID]youtube_d.Channel, error) {
 				return map[youtube_d.ChannelID]youtube_d.Channel{testCh.ID: testCh}, nil
 			},
-		}), testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
+		}), testutil.NewFeedRepo(t, sqlc.New(db)))
 
 		cursor := "my-page-token"
 		_, _, _, err := svc.Search(ctx, "test query", 10, &cursor, youtube_d.SearchOptions{})
@@ -195,7 +195,7 @@ func TestService_Search(t *testing.T) {
 			SearchIDsFunc: func(_ context.Context, _ string, _ string, _ youtube_d.SearchOptions) ([]youtube_d.SearchItem, string, error) {
 				return nil, "", searchErr
 			},
-		}), testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
+		}), testutil.NewFeedRepo(t, sqlc.New(db)))
 
 		_, _, _, err := svc.Search(ctx, "test query", 10, nil, youtube_d.SearchOptions{})
 
@@ -214,7 +214,7 @@ func TestService_Search(t *testing.T) {
 			FetchVideoDetailFunc: func(_ context.Context, _ []youtube_d.VideoID) (map[youtube_d.VideoID]youtube_d.Video, error) {
 				return nil, detailErr
 			},
-		}), testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
+		}), testutil.NewFeedRepo(t, sqlc.New(db)))
 
 		_, _, _, err := svc.Search(ctx, "test query", 10, nil, youtube_d.SearchOptions{})
 
@@ -236,7 +236,7 @@ func TestService_Search(t *testing.T) {
 			FetchChannelDetailFunc: func(_ context.Context, _ []youtube_d.ChannelID) (map[youtube_d.ChannelID]youtube_d.Channel, error) {
 				return nil, channelErr
 			},
-		}), testutil.NewFeedRepo(t, sqlc.New(db)), 24*time.Hour)
+		}), testutil.NewFeedRepo(t, sqlc.New(db)))
 
 		_, _, _, err := svc.Search(ctx, "test query", 10, nil, youtube_d.SearchOptions{})
 

@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { formatSubscriberCount } from "../utils/format";
 import type { GetChannelsChannelId200 } from "../api/generated/antiYtApi.schemas";
 import { Linkify } from "./Linkify";
-import { Icon } from "./Icon";
 import { Toggle } from "./Toggle";
 
 function ExpandableDescription({ description }: { description: string }) {

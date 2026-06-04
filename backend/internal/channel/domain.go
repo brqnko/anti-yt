@@ -92,10 +92,6 @@ func NewChannel(fetchedAt, rssFetchedAt time.Time, channel youtube_d.Channel, op
 	return c, nil
 }
 
-func (c *Channel) ShouldFetchRSSFeed(fetchDuration time.Duration) bool {
-	return time.Now().UTC().Sub(c.RSSFetchedAt) > fetchDuration
-}
-
 func (c *Channel) MarkAsRSSFetched() {
 	c.RSSFetchedAt = time.Now().UTC()
 }

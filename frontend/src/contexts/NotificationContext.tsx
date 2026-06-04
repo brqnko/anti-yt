@@ -2,16 +2,16 @@ import { createContext, type ComponentChildren } from "preact";
 import { useState, useEffect, useCallback, useContext, useMemo, useRef } from "preact/hooks";
 import { NotificationHost } from "../components/NotificationHost";
 
-export type NotificationType = "error" | "info";
+type NotificationType = "error" | "info";
 
-export interface NotificationItem {
+interface NotificationItem {
   id: string;
   type: NotificationType;
   messageKey: string;
   durationMs: number;
 }
 
-export interface ShowNotificationInput {
+interface ShowNotificationInput {
   type?: NotificationType;
   messageKey: string;
   durationMs?: number;

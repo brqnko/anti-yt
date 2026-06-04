@@ -221,7 +221,7 @@ func run(ctx context.Context) int {
 	}
 	admin.HandleAdminEndpoints(r, db, youtubeClient, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)), cfg.adminAPIKey)
 	v1.HandlerFromMux(v1.NewStrictHandler(
-		v1.NewAPIHandler(db, oidcClient, cfg.serverURL, cfg.frontendURL, jwtService, accessTokenDuration, 30*24*time.Hour, youtubeClient, 1*time.Hour, scheduler, jtiBlacklistRepo, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db))),
+		v1.NewAPIHandler(db, oidcClient, cfg.serverURL, cfg.frontendURL, jwtService, accessTokenDuration, 30*24*time.Hour, youtubeClient, scheduler, jtiBlacklistRepo, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db))),
 		// StrictMiddlewareは下に書いた順から実行される
 		[]v1.StrictMiddlewareFunc{
 			middleware_d.ResponseCookieMiddleware,
