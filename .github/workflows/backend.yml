@@ -56,6 +56,9 @@ jobs:
           cache: true
           cache-dependency-path: backend/go.sum
 
+      - name: Setup Takumi Guard (Go modules)
+        uses: flatt-security/setup-takumi-guard-golang@v1
+
       - run: go mod download
 
       - uses: sqlc-dev/setup-sqlc@v5
