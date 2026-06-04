@@ -10,6 +10,6 @@ RUN --mount=type=bind,source=package.json,target=package.json \
 COPY . .
 RUN npm run build
 
-FROM busybox:1.37.0-musl
+FROM busybox:1.38.0-musl
 COPY --from=build /usr/src/app/dist /dist
 CMD ["sh", "-c", "rm -rf /output/* && cp -r /dist/. /output/"]
