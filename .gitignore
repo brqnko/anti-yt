@@ -5,3 +5,4 @@ nginx/server.key
 .env
 secrets/
 .claude/
+.npmrc
