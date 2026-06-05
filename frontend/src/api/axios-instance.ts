@@ -1,4 +1,4 @@
-import Axios from "axios";
+import Axios, { type InternalAxiosRequestConfig } from "axios";
 import { getCookie } from "../utils/cookie";
 
 let cachedVisitorId: string | null = null;
@@ -40,6 +40,47 @@ export const axiosInstance = Axios.create({
   withCredentials: true,
 });
 
+type RetryableConfig = InternalAxiosRequestConfig & {
+  _retry?: boolean;
+  _gen?: number;
+};
+
+// Token-refresh coordination.
+//
+// `refreshGeneration` is bumped on every successful refresh. Each outgoing
+// request is stamped (below) with the generation that was current when it was
+// sent, so the response interceptor can tell whether a refresh already happened
+// after a given request left the client.
+//
+// `refreshPromise` holds the single in-flight refresh so that every concurrent
+// 401 awaits the same request instead of each firing its own. This matters
+// because refresh tokens are single-use on the backend (rotation): a second,
+// redundant refresh would be rejected and tear down the session.
+let refreshGeneration = 0;
+let refreshPromise: Promise<void> | null = null;
+
+const performRefresh = (): Promise<void> => {
+  if (!refreshPromise) {
+    refreshPromise = axiosInstance
+      .post("/api/v1/auth/refresh", undefined, { timeout: 15000 })
+      .then(() => {
+        refreshGeneration += 1;
+      })
+      .catch((refreshError) => {
+        window.dispatchEvent(
+          new CustomEvent("auth:logout", {
+            detail: { reason: "session_expired" },
+          }),
+        );
+        throw refreshError;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+};
+
 // Request interceptor: fingerprint + CSRF token
 axiosInstance.interceptors.request.use(async (config) => {
   if (typeof window === "undefined") return config;
@@ -56,28 +97,19 @@ axiosInstance.interceptors.request.use(async (config) => {
 
   config.headers["X-Timezone"] = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+  // Stamp the refresh generation current when this request leaves, so the
+  // response interceptor can detect a refresh that completes while this request
+  // is in flight and retry instead of starting a second (redundant) refresh.
+  (config as RetryableConfig)._gen = refreshGeneration;
+
   return config;
 });
 
 // Response interceptor: automatic token refresh on 401
-let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value?: unknown) => void;
-  reject: (reason?: unknown) => void;
-}> = [];
-
-const processQueue = (error: unknown | null) => {
-  failedQueue.forEach((prom) => {
-    if (error) prom.reject(error);
-    else prom.resolve();
-  });
-  failedQueue = [];
-};
-
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config as RetryableConfig | undefined;
 
     // Handle 429 Too Many Requests (rate limit)
     if (error.response?.status === 429) {
@@ -109,6 +141,7 @@ axiosInstance.interceptors.response.use(
 
     if (
       error.response?.status !== 401 ||
+      !originalRequest ||
       originalRequest._retry ||
       originalRequest.url === "/api/v1/auth/refresh"
     ) {
@@ -129,32 +162,26 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      }).then(() => {
-        originalRequest._retry = true;
-        return axiosInstance(originalRequest);
-      });
+    originalRequest._retry = true;
+
+    // A refresh already completed after this request was sent (its stamped
+    // generation is behind the current one), so the cookie is fresh now. Retry
+    // directly instead of starting a redundant second refresh — which the
+    // backend would reject because refresh tokens are single-use, tearing down
+    // an otherwise valid session.
+    if (
+      typeof originalRequest._gen === "number" &&
+      originalRequest._gen < refreshGeneration
+    ) {
+      return axiosInstance(originalRequest);
     }
 
-    originalRequest._retry = true;
-    isRefreshing = true;
-
+    // Otherwise share the single in-flight refresh (or start one), then retry.
     try {
-      await axiosInstance.post("/api/v1/auth/refresh", undefined, { timeout: 15000 });
-      processQueue(null);
+      await performRefresh();
       return axiosInstance(originalRequest);
     } catch (refreshError) {
-      processQueue(refreshError);
-      window.dispatchEvent(
-        new CustomEvent("auth:logout", {
-          detail: { reason: "session_expired" },
-        }),
-      );
       return Promise.reject(refreshError);
-    } finally {
-      isRefreshing = false;
     }
   },
 );
