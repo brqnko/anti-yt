@@ -84,7 +84,6 @@ func (r *refreshTokenRepositoryImpl) Save(ctx context.Context, authorizationID i
 		Generation:           1,
 		PublicID:             refreshToken.ID,
 		IpAddress:            refreshToken.IpAddress,
-		DeviceFingerprint:    refreshToken.DeviceFingerprint,
 		UserAgent:            refreshToken.UserAgent,
 		CountryCode:          refreshToken.CountryCode,
 		CityName:             refreshToken.CityName,
@@ -139,19 +138,18 @@ func (r *refreshTokenRepositoryImpl) RotateRefreshToken(ctx context.Context, new
 
 	var userID uuid.UUID
 	userID, err = r.q.RotateRefreshToken(ctx, sqlc.RotateRefreshTokenParams{
-		NewTokenHash:         newRefreshToken.TokenHash,
-		NewExpiresAt:         newRefreshToken.ExpiresAt,
-		NewIpAddress:         newRefreshToken.IpAddress,
-		NewDeviceFingerprint: newRefreshToken.DeviceFingerprint,
-		NewUserAgent:         newRefreshToken.UserAgent,
-		NewCountryCode:       newRefreshToken.CountryCode,
-		NewCityName:          newRefreshToken.CityName,
-		NewBrowserName:       newRefreshToken.BrowserName,
-		NewDeviceType:        newRefreshToken.DeviceType,
-		NewAccessTokenJti:    newRefreshToken.AccessTokenJTI,
-		TokenHashForCheck:    tokenHashForCheck,
-		UpdatedAtForCheck:    updatedAtForCheck,
-		LastLoggedInAt:       newRefreshToken.LastLoggedInAt,
+		NewTokenHash:      newRefreshToken.TokenHash,
+		NewExpiresAt:      newRefreshToken.ExpiresAt,
+		NewIpAddress:      newRefreshToken.IpAddress,
+		NewUserAgent:      newRefreshToken.UserAgent,
+		NewCountryCode:    newRefreshToken.CountryCode,
+		NewCityName:       newRefreshToken.CityName,
+		NewBrowserName:    newRefreshToken.BrowserName,
+		NewDeviceType:     newRefreshToken.DeviceType,
+		NewAccessTokenJti: newRefreshToken.AccessTokenJTI,
+		TokenHashForCheck: tokenHashForCheck,
+		UpdatedAtForCheck: updatedAtForCheck,
+		LastLoggedInAt:    newRefreshToken.LastLoggedInAt,
 	})
 
 	if err != nil {

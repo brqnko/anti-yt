@@ -13,19 +13,18 @@ import (
 var ErrRefreshTokenHashNotSet = errors.New("refresh token token hash is not set")
 
 type RefreshToken struct {
-	ID                uuid.UUID
-	ActivatedAt       time.Time
-	TokenHash         string
-	IpAddress         string
-	DeviceFingerprint string
-	UserAgent         string
-	CountryCode       string
-	CityName          string
-	BrowserName       string
-	DeviceType        string
-	ExpiresAt         time.Time
-	AccessTokenJTI    uuid.UUID
-	LastLoggedInAt    time.Time
+	ID             uuid.UUID
+	ActivatedAt    time.Time
+	TokenHash      string
+	IpAddress      string
+	UserAgent      string
+	CountryCode    string
+	CityName       string
+	BrowserName    string
+	DeviceType     string
+	ExpiresAt      time.Time
+	AccessTokenJTI uuid.UUID
+	LastLoggedInAt time.Time
 }
 
 type RefreshTokenOption func(*RefreshToken)
@@ -38,7 +37,6 @@ func WithRefreshTokenRaw(tokenRaw string) RefreshTokenOption {
 
 func NewRefreshToken(
 	userAgent,
-	deviceFingerprint,
 	ipAddress,
 	countryCode,
 	cityName string,
@@ -62,19 +60,18 @@ func NewRefreshToken(
 	browserName, browserVersion := ua.Browser()
 
 	rt := new(RefreshToken{
-		ID:                id,
-		ActivatedAt:       now,
-		TokenHash:         "",
-		IpAddress:         util.Truncate(ipAddress, 64),
-		DeviceFingerprint: util.Truncate(deviceFingerprint, 32),
-		UserAgent:         util.Truncate(userAgent, 512),
-		CountryCode:       util.Truncate(countryCode, 2),
-		CityName:          util.Truncate(cityName, 128),
-		BrowserName:       util.Truncate(fmt.Sprintf("%s:%s", browserName, browserVersion), 64),
-		DeviceType:        util.Truncate(ua.OSInfo().FullName, 32),
-		ExpiresAt:         expiresAt,
-		AccessTokenJTI:    accessTokenJTI,
-		LastLoggedInAt:    now,
+		ID:             id,
+		ActivatedAt:    now,
+		TokenHash:      "",
+		IpAddress:      util.Truncate(ipAddress, 64),
+		UserAgent:      util.Truncate(userAgent, 512),
+		CountryCode:    util.Truncate(countryCode, 2),
+		CityName:       util.Truncate(cityName, 128),
+		BrowserName:    util.Truncate(fmt.Sprintf("%s:%s", browserName, browserVersion), 64),
+		DeviceType:     util.Truncate(ua.OSInfo().FullName, 32),
+		ExpiresAt:      expiresAt,
+		AccessTokenJTI: accessTokenJTI,
+		LastLoggedInAt: now,
 	})
 	for _, opt := range opts {
 		opt(rt)

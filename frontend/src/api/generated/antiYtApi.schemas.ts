@@ -147,8 +147,6 @@ export type HeaderUserAgentParameter = string;
 
 export type HeaderCSRFTokenParameter = string;
 
-export type HeaderDeviceFingerprintParameter = string;
-
 export type HeaderTimezoneParameter = string;
 
 export type GetAuthGoogleParams = {

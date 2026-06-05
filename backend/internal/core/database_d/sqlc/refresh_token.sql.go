@@ -32,7 +32,6 @@ INSERT INTO
         generation,
         public_id,
         ip_address,
-        device_fingerprint,
         user_agent,
         country_code,
         city_name,
@@ -44,7 +43,7 @@ INSERT INTO
         last_logged_in_at
     )
 VALUES
-    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 RETURNING
     m_refresh_token_id
 `
@@ -55,7 +54,6 @@ type InsertRefreshTokenParams struct {
 	Generation           int
 	PublicID             uuid.UUID
 	IpAddress            string
-	DeviceFingerprint    string
 	UserAgent            string
 	CountryCode          string
 	CityName             string
@@ -77,7 +75,6 @@ func (q *Queries) InsertRefreshToken(ctx context.Context, arg InsertRefreshToken
 		arg.Generation,
 		arg.PublicID,
 		arg.IpAddress,
-		arg.DeviceFingerprint,
 		arg.UserAgent,
 		arg.CountryCode,
 		arg.CityName,
@@ -251,19 +248,18 @@ WITH updated AS (
         token_hash = $1,
         expires_at = $2,
         ip_address = $3,
-        device_fingerprint = $4,
-        user_agent = $5,
-        country_code = $6,
-        city_name = $7,
-        browser_name = $8,
-        device_type = $9,
+        user_agent = $4,
+        country_code = $5,
+        city_name = $6,
+        browser_name = $7,
+        device_type = $8,
         updated_at = current_timestamp,
         generation = generation + 1,
-        access_token_jti = $10,
-        last_logged_in_at = $11
+        access_token_jti = $9,
+        last_logged_in_at = $10
     WHERE
-        token_hash = $12 -- NOTE: token_hashにunique indexがあるため、updated_at, expires_atにインデックスは張らなくてもよい
-        AND m_refresh_token.updated_at < $13
+        token_hash = $11 -- NOTE: token_hashにunique indexがあるため、updated_at, expires_atにインデックスは張らなくてもよい
+        AND m_refresh_token.updated_at < $12
         AND expires_at > current_timestamp
     RETURNING
         m_user_authorization_id
@@ -279,19 +275,18 @@ LIMIT
 `
 
 type RotateRefreshTokenParams struct {
-	NewTokenHash         string
-	NewExpiresAt         time.Time
-	NewIpAddress         string
-	NewDeviceFingerprint string
-	NewUserAgent         string
-	NewCountryCode       string
-	NewCityName          string
-	NewBrowserName       string
-	NewDeviceType        string
-	NewAccessTokenJti    uuid.UUID
-	LastLoggedInAt       time.Time
-	TokenHashForCheck    string
-	UpdatedAtForCheck    time.Time
+	NewTokenHash      string
+	NewExpiresAt      time.Time
+	NewIpAddress      string
+	NewUserAgent      string
+	NewCountryCode    string
+	NewCityName       string
+	NewBrowserName    string
+	NewDeviceType     string
+	NewAccessTokenJti uuid.UUID
+	LastLoggedInAt    time.Time
+	TokenHashForCheck string
+	UpdatedAtForCheck time.Time
 }
 
 // リフレッシュトークンを更新します。
@@ -305,7 +300,6 @@ func (q *Queries) RotateRefreshToken(ctx context.Context, arg RotateRefreshToken
 		arg.NewTokenHash,
 		arg.NewExpiresAt,
 		arg.NewIpAddress,
-		arg.NewDeviceFingerprint,
 		arg.NewUserAgent,
 		arg.NewCountryCode,
 		arg.NewCityName,

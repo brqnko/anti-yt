@@ -13,23 +13,21 @@ func TestNewRefreshToken(t *testing.T) {
 	t.Parallel()
 
 	type arg struct {
-		userAgent         string
-		deviceFingerprint string
-		ipAddress         string
-		countryCode       string
-		cityName          string
-		expiresAt         time.Time
-		opts              []auth.RefreshTokenOption
+		userAgent   string
+		ipAddress   string
+		countryCode string
+		cityName    string
+		expiresAt   time.Time
+		opts        []auth.RefreshTokenOption
 	}
 
 	type want struct {
-		ipAddress         string
-		deviceFingerprint string
-		userAgent         string
-		countryCode       string
-		cityName          string
-		browserName       string
-		deviceType        string
+		ipAddress   string
+		userAgent   string
+		countryCode string
+		cityName    string
+		browserName string
+		deviceType  string
 	}
 
 	cases := map[string]struct {
@@ -39,139 +37,107 @@ func TestNewRefreshToken(t *testing.T) {
 	}{
 		"success": {
 			arg: arg{
-				userAgent:         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-				deviceFingerprint: "docker",
-				ipAddress:         "docker",
-				countryCode:       "jp",
-				cityName:          "docker",
-				expiresAt:         time.Now(),
-				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
+				userAgent:   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+				ipAddress:   "docker",
+				countryCode: "jp",
+				cityName:    "docker",
+				expiresAt:   time.Now(),
+				opts:        []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
 			},
 			want: &want{
-				ipAddress:         "docker",
-				deviceFingerprint: "docker",
-				userAgent:         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-				countryCode:       "jp",
-				cityName:          "docker",
-				browserName:       "Chrome:122.0.0.0",
-				deviceType:        "Windows 10",
+				ipAddress:   "docker",
+				userAgent:   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+				countryCode: "jp",
+				cityName:    "docker",
+				browserName: "Chrome:122.0.0.0",
+				deviceType:  "Windows 10",
 			},
 			wantErr: nil,
 		},
 		"ipAddress truncated": {
 			arg: arg{
-				userAgent:         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-				deviceFingerprint: "docker",
-				ipAddress:         strings.Repeat("あ", 65),
-				countryCode:       "jp",
-				cityName:          "docker",
-				expiresAt:         time.Now(),
-				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
+				userAgent:   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+				ipAddress:   strings.Repeat("あ", 65),
+				countryCode: "jp",
+				cityName:    "docker",
+				expiresAt:   time.Now(),
+				opts:        []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
 			},
 			want: &want{
-				ipAddress:         strings.Repeat("あ", 64),
-				deviceFingerprint: "docker",
-				userAgent:         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-				countryCode:       "jp",
-				cityName:          "docker",
-				browserName:       "Chrome:122.0.0.0",
-				deviceType:        "Windows 10",
-			},
-			wantErr: nil,
-		},
-		"deviceFingerprint truncated": {
-			arg: arg{
-				userAgent:         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-				deviceFingerprint: strings.Repeat("あ", 33),
-				ipAddress:         "docker",
-				countryCode:       "jp",
-				cityName:          "docker",
-				expiresAt:         time.Now(),
-				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
-			},
-			want: &want{
-				ipAddress:         "docker",
-				deviceFingerprint: strings.Repeat("あ", 32),
-				userAgent:         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-				countryCode:       "jp",
-				cityName:          "docker",
-				browserName:       "Chrome:122.0.0.0",
-				deviceType:        "Windows 10",
+				ipAddress:   strings.Repeat("あ", 64),
+				userAgent:   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+				countryCode: "jp",
+				cityName:    "docker",
+				browserName: "Chrome:122.0.0.0",
+				deviceType:  "Windows 10",
 			},
 			wantErr: nil,
 		},
 		"userAgent truncated": {
 			arg: arg{
-				userAgent:         strings.Repeat("あ", 513),
-				deviceFingerprint: "docker",
-				ipAddress:         "docker",
-				countryCode:       "jp",
-				cityName:          "docker",
-				expiresAt:         time.Now(),
-				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
+				userAgent:   strings.Repeat("あ", 513),
+				ipAddress:   "docker",
+				countryCode: "jp",
+				cityName:    "docker",
+				expiresAt:   time.Now(),
+				opts:        []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
 			},
 			want: &want{
-				ipAddress:         "docker",
-				deviceFingerprint: "docker",
-				userAgent:         strings.Repeat("あ", 512),
-				countryCode:       "jp",
-				cityName:          "docker",
-				browserName:       strings.Repeat("あ", 64),
-				deviceType:        "",
+				ipAddress:   "docker",
+				userAgent:   strings.Repeat("あ", 512),
+				countryCode: "jp",
+				cityName:    "docker",
+				browserName: strings.Repeat("あ", 64),
+				deviceType:  "",
 			},
 			wantErr: nil,
 		},
 		"countryCode truncated": {
 			arg: arg{
-				userAgent:         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-				deviceFingerprint: "docker",
-				ipAddress:         "docker",
-				countryCode:       "jpn",
-				cityName:          "docker",
-				expiresAt:         time.Now(),
-				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
+				userAgent:   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+				ipAddress:   "docker",
+				countryCode: "jpn",
+				cityName:    "docker",
+				expiresAt:   time.Now(),
+				opts:        []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
 			},
 			want: &want{
-				ipAddress:         "docker",
-				deviceFingerprint: "docker",
-				userAgent:         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-				countryCode:       "jp",
-				cityName:          "docker",
-				browserName:       "Chrome:122.0.0.0",
-				deviceType:        "Windows 10",
+				ipAddress:   "docker",
+				userAgent:   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+				countryCode: "jp",
+				cityName:    "docker",
+				browserName: "Chrome:122.0.0.0",
+				deviceType:  "Windows 10",
 			},
 			wantErr: nil,
 		},
 		"cityName truncated": {
 			arg: arg{
-				userAgent:         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-				deviceFingerprint: "docker",
-				ipAddress:         "docker",
-				countryCode:       "jp",
-				cityName:          strings.Repeat("あ", 129),
-				expiresAt:         time.Now(),
-				opts:              []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
+				userAgent:   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+				ipAddress:   "docker",
+				countryCode: "jp",
+				cityName:    strings.Repeat("あ", 129),
+				expiresAt:   time.Now(),
+				opts:        []auth.RefreshTokenOption{auth.WithRefreshTokenRaw("raw")},
 			},
 			want: &want{
-				ipAddress:         "docker",
-				deviceFingerprint: "docker",
-				userAgent:         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-				countryCode:       "jp",
-				cityName:          strings.Repeat("あ", 128),
-				browserName:       "Chrome:122.0.0.0",
-				deviceType:        "Windows 10",
+				ipAddress:   "docker",
+				userAgent:   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+				countryCode: "jp",
+				cityName:    strings.Repeat("あ", 128),
+				browserName: "Chrome:122.0.0.0",
+				deviceType:  "Windows 10",
 			},
 			wantErr: nil,
 		},
 		"token hash not set": {
 			arg: arg{
-				userAgent:         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-				deviceFingerprint: "docker",
-				ipAddress:         "docker",
-				countryCode:       "jp",
-				cityName:          "docker",
-				expiresAt:         time.Now(),
-				opts:              []auth.RefreshTokenOption{},
+				userAgent:   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+				ipAddress:   "docker",
+				countryCode: "jp",
+				cityName:    "docker",
+				expiresAt:   time.Now(),
+				opts:        []auth.RefreshTokenOption{},
 			},
 			want:    nil,
 			wantErr: auth.ErrRefreshTokenHashNotSet,
@@ -187,7 +153,6 @@ func TestNewRefreshToken(t *testing.T) {
 			// act
 			got, err := auth.NewRefreshToken(
 				c.arg.userAgent,
-				c.arg.deviceFingerprint,
 				c.arg.ipAddress,
 				c.arg.countryCode,
 				c.arg.cityName,
@@ -202,7 +167,6 @@ func TestNewRefreshToken(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, c.want.ipAddress, got.IpAddress)
-				assert.Equal(t, c.want.deviceFingerprint, got.DeviceFingerprint)
 				assert.Equal(t, c.want.userAgent, got.UserAgent)
 				assert.Equal(t, c.want.countryCode, got.CountryCode)
 				assert.Equal(t, c.want.cityName, got.CityName)

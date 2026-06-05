@@ -107,7 +107,7 @@ type GoogleOIDCCallbackResult struct {
 	RefreshTokenExpiresAt time.Time
 }
 
-func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipAddress, countryCode, deviceFingerprint, userAgent string) (_ GoogleOIDCCallbackResult, err error) {
+func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipAddress, countryCode, userAgent string) (_ GoogleOIDCCallbackResult, err error) {
 	defer util.Wrap(&err, "auth.(*Service).GoogleOIDCCallback")
 
 	if csrf == "" || state == "" {
@@ -158,7 +158,6 @@ func (s *Service) GoogleOIDCCallback(ctx context.Context, csrf, state, code, ipA
 	}
 	refreshToken, err := NewRefreshToken(
 		userAgent,
-		deviceFingerprint,
 		ipAddress,
 		countryCode,
 		"", // TODO: cityName
@@ -264,7 +263,7 @@ func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) 
 	return s.jtiBlacklistRepo.InsertJTI(ctx, jti, jtiExpiresAt)
 }
 
-func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, countryCode, deviceFingerprint, userAgent string) (_, _ string, _, _ time.Time, err error) {
+func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, countryCode, userAgent string) (_, _ string, _, _ time.Time, err error) {
 	defer util.Wrap(&err, "auth.(*Service).RefreshToken")
 
 	tokenHash := util.Sha256Hex(refreshToken)
@@ -275,7 +274,6 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 	}
 	newRefreshToken, err := NewRefreshToken(
 		userAgent,
-		deviceFingerprint,
 		ipAddress,
 		countryCode,
 		"",
@@ -400,7 +398,7 @@ type ReactivateAccountResult struct {
 	RefreshTokenExpiresAt time.Time
 }
 
-func (s *Service) ReactivateAccount(ctx context.Context, registerAccessToken, ipAddress, countryCode, deviceFingerprint, userAgent string) (_ ReactivateAccountResult, err error) {
+func (s *Service) ReactivateAccount(ctx context.Context, registerAccessToken, ipAddress, countryCode, userAgent string) (_ ReactivateAccountResult, err error) {
 	defer util.Wrap(&err, "auth.(*Service).ReactivateAccount")
 
 	tx, err := s.db.Begin(ctx)
@@ -446,7 +444,6 @@ func (s *Service) ReactivateAccount(ctx context.Context, registerAccessToken, ip
 	}
 	refreshToken, err := NewRefreshToken(
 		userAgent,
-		deviceFingerprint,
 		ipAddress,
 		countryCode,
 		"", // TODO: cityName

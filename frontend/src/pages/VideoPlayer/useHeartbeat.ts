@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from "preact/hooks";
 import type { RefObject } from "preact";
 import { getHistory } from "../../api/generated/history";
 import { getCookie } from "../../utils/cookie";
-import { getCachedVisitorId } from "../../api/axios-instance";
 
 const HEARTBEAT_INTERVAL_TICKS = 60; // 60 ticks = 60 seconds (onSyncTick fires every 1s)
 const HEARTBEAT_DEBOUNCE_TICKS = 2;
@@ -16,8 +15,6 @@ function sendBeaconHeartbeat(videoId: string, positionSeconds: number, playlistI
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   const csrfToken = getCookie("csrf_token");
   if (csrfToken) headers["x-csrf-token"] = csrfToken;
-  const visitorId = getCachedVisitorId();
-  if (visitorId) headers["X-Device-Fingerprint"] = visitorId;
   headers["X-Timezone"] = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   try {

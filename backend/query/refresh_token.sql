@@ -21,7 +21,6 @@ INSERT INTO
         generation,
         public_id,
         ip_address,
-        device_fingerprint,
         user_agent,
         country_code,
         city_name,
@@ -33,7 +32,7 @@ INSERT INTO
         last_logged_in_at
     )
 VALUES
-    (@m_user_authorization_id, @token_hash, @generation, @public_id, @ip_address, @device_fingerprint, @user_agent, @country_code, @city_name, @browser_name, @device_type, @expires_at, @access_token_jti, @activated_at, @last_logged_in_at)
+    (@m_user_authorization_id, @token_hash, @generation, @public_id, @ip_address, @user_agent, @country_code, @city_name, @browser_name, @device_type, @expires_at, @access_token_jti, @activated_at, @last_logged_in_at)
 RETURNING
     m_refresh_token_id;
 
@@ -51,7 +50,6 @@ WITH updated AS (
         token_hash = @new_token_hash,
         expires_at = @new_expires_at,
         ip_address = @new_ip_address,
-        device_fingerprint = @new_device_fingerprint,
         user_agent = @new_user_agent,
         country_code = @new_country_code,
         city_name = @new_city_name,

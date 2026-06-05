@@ -130,7 +130,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 		// action
 		_, err := svc.GoogleOIDCCallback(
-			ctx, "", "state", "code", "127.0.0.1", "JP", "fp", "ua",
+			ctx, "", "state", "code", "127.0.0.1", "JP", "ua",
 		)
 
 		// assert
@@ -153,7 +153,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 		// action
 		_, err := svc.GoogleOIDCCallback(
-			ctx, "a", "b", "code", "127.0.0.1", "JP", "fp", "ua",
+			ctx, "a", "b", "code", "127.0.0.1", "JP", "ua",
 		)
 
 		// assert
@@ -180,7 +180,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 		// action
 		_, err := svc.GoogleOIDCCallback(
-			ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "ua",
+			ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "ua",
 		)
 
 		// assert
@@ -210,7 +210,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 		// action
 		_, err := svc.GoogleOIDCCallback(
-			ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "ua",
+			ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "ua",
 		)
 
 		// assert
@@ -240,7 +240,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 		// action
 		result, err := svc.GoogleOIDCCallback(
-			ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "ua",
+			ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "ua",
 		)
 
 		// assert
@@ -291,7 +291,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 		// action
 		result, err := svc.GoogleOIDCCallback(
-			ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "ua",
+			ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "ua",
 		)
 
 		// assert
@@ -343,7 +343,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		// action & assert
 		for range 2 {
 			result, err := svc.GoogleOIDCCallback(
-				ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "ua",
+				ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "ua",
 			)
 			require.NoError(t, err)
 			assert.Equal(t, "", result.RedirectPath)
@@ -397,7 +397,7 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 
 		// action
 		result, err := svc.GoogleOIDCCallback(
-			ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "fp", "ua",
+			ctx, "csrf", "csrf", "code", "127.0.0.1", "JP", "ua",
 		)
 
 		// assert
@@ -438,7 +438,6 @@ func TestService_Logout(t *testing.T) {
 			Generation:           1,
 			PublicID:             uuid.Must(uuid.NewV7()),
 			IpAddress:            "127.0.0.1",
-			DeviceFingerprint:    "fp",
 			UserAgent:            "ua",
 			CountryCode:          "JP",
 			CityName:             "",
@@ -555,7 +554,6 @@ func TestService_RefreshToken(t *testing.T) {
 			Generation:           1,
 			PublicID:             uuid.Must(uuid.NewV7()),
 			IpAddress:            "127.0.0.1",
-			DeviceFingerprint:    "fp",
 			UserAgent:            "ua",
 			CountryCode:          "JP",
 			CityName:             "",
@@ -592,7 +590,7 @@ func TestService_RefreshToken(t *testing.T) {
 
 		// action
 		newRefreshToken, accessToken, _, _, err := svc.RefreshToken(
-			ctx, rawToken, "127.0.0.1", "JP", "fp", "ua",
+			ctx, rawToken, "127.0.0.1", "JP", "ua",
 		)
 
 		// assert
@@ -611,15 +609,14 @@ func TestService_RefreshToken(t *testing.T) {
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			new(ServiceMock{
-			}),
+			new(ServiceMock{}),
 			15*time.Minute, 7*24*time.Hour,
 			new(JtiBlacklistRepositoryMock{}),
 		)
 
 		// action
 		_, _, _, _, err := svc.RefreshToken(
-			ctx, "nonexistent-token", "127.0.0.1", "JP", "fp", "ua",
+			ctx, "nonexistent-token", "127.0.0.1", "JP", "ua",
 		)
 
 		// assert
@@ -658,7 +655,6 @@ func TestService_GetSessions(t *testing.T) {
 				Generation:           1,
 				PublicID:             uuid.Must(uuid.NewV7()),
 				IpAddress:            "127.0.0.1",
-				DeviceFingerprint:    "fp",
 				UserAgent:            "ua",
 				CountryCode:          "JP",
 				CityName:             "",
@@ -721,7 +717,6 @@ func TestService_GetSessions(t *testing.T) {
 				Generation:           1,
 				PublicID:             uuid.Must(uuid.NewV7()),
 				IpAddress:            "127.0.0.1",
-				DeviceFingerprint:    "fp",
 				UserAgent:            "ua",
 				CountryCode:          "JP",
 				CityName:             "",
@@ -832,7 +827,6 @@ func TestService_RemoveSession(t *testing.T) {
 			Generation:           1,
 			PublicID:             sessionPublicID,
 			IpAddress:            "127.0.0.1",
-			DeviceFingerprint:    "fp",
 			UserAgent:            "ua",
 			CountryCode:          "JP",
 			CityName:             "",
@@ -857,8 +851,7 @@ func TestService_RemoveSession(t *testing.T) {
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			new(ServiceMock{
-			}),
+			new(ServiceMock{}),
 			15*time.Minute, 7*24*time.Hour,
 			jtiRepo,
 		)
@@ -904,8 +897,7 @@ func TestService_RemoveSession(t *testing.T) {
 			(*channel.Service)(nil),
 			(*playlist.Service)(nil),
 			"http://localhost",
-			new(ServiceMock{
-			}),
+			new(ServiceMock{}),
 			15*time.Minute, 7*24*time.Hour,
 			new(JtiBlacklistRepositoryMock{}),
 		)
@@ -1036,7 +1028,7 @@ func TestService_ReactivateAccount(t *testing.T) {
 		)
 
 		// action
-		result, err := svc.ReactivateAccount(ctx, "register-token", "127.0.0.1", "JP", "fp", "ua")
+		result, err := svc.ReactivateAccount(ctx, "register-token", "127.0.0.1", "JP", "ua")
 
 		// assert
 		require.NoError(t, err)
@@ -1075,7 +1067,7 @@ func TestService_ReactivateAccount(t *testing.T) {
 		)
 
 		// action
-		_, err := svc.ReactivateAccount(ctx, "invalid-token", "127.0.0.1", "JP", "fp", "ua")
+		_, err := svc.ReactivateAccount(ctx, "invalid-token", "127.0.0.1", "JP", "ua")
 
 		// assert
 		assert.ErrorIs(t, err, tokenErr)
@@ -1118,7 +1110,7 @@ func TestService_ReactivateAccount(t *testing.T) {
 		)
 
 		// action
-		_, err = svc.ReactivateAccount(ctx, "register-token", "127.0.0.1", "JP", "fp", "ua")
+		_, err = svc.ReactivateAccount(ctx, "register-token", "127.0.0.1", "JP", "ua")
 
 		// assert
 		assert.ErrorIs(t, err, core.ErrJTIBlacklisted)

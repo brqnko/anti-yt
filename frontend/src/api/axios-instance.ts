@@ -1,41 +1,6 @@
 import Axios, { type InternalAxiosRequestConfig } from "axios";
 import { getCookie } from "../utils/cookie";
 
-let cachedVisitorId: string | null = null;
-let visitorIdPromise: Promise<string | null> | null = null;
-
-export const getCachedVisitorId = (): string | null => cachedVisitorId;
-
-const loadVisitorId = async (): Promise<string | null> => {
-  try {
-    const FingerprintJS = (await import("@fingerprintjs/fingerprintjs")).default;
-    const fp = await FingerprintJS.load();
-    const result = await fp.get();
-    cachedVisitorId = result.visitorId;
-    return cachedVisitorId;
-  } catch {
-    return null;
-  }
-};
-
-const getVisitorId = (): Promise<string | null> => {
-  if (typeof window === "undefined") return Promise.resolve(null);
-  if (cachedVisitorId) return Promise.resolve(cachedVisitorId);
-  if (!visitorIdPromise) {
-    visitorIdPromise = loadVisitorId();
-  }
-  return visitorIdPromise;
-};
-
-if (typeof window !== "undefined") {
-  const idle =
-    (window as unknown as { requestIdleCallback?: (cb: () => void) => void })
-      .requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1));
-  idle(() => {
-    void getVisitorId();
-  });
-}
-
 export const axiosInstance = Axios.create({
   withCredentials: true,
 });
@@ -81,14 +46,9 @@ const performRefresh = (): Promise<void> => {
   return refreshPromise;
 };
 
-// Request interceptor: fingerprint + CSRF token
-axiosInstance.interceptors.request.use(async (config) => {
+// Request interceptor: CSRF token + timezone
+axiosInstance.interceptors.request.use((config) => {
   if (typeof window === "undefined") return config;
-
-  const visitorId = await getVisitorId();
-  if (visitorId) {
-    config.headers["X-Device-Fingerprint"] = visitorId;
-  }
 
   const csrfToken = getCookie("csrf_token");
   if (csrfToken) {

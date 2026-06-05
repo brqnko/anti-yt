@@ -45,7 +45,6 @@ func (h *APIHandler) GetAuthGoogleCallback(ctx context.Context, request GetAuthG
 		request.Params.Code,
 		request.Params.XRealIP,
 		request.Params.CfIpcountry,
-		"", // NOTE: googleからのリダイレクトなのでfingerpintは取得できない
 		request.Params.UserAgent,
 	)
 	if err != nil {
@@ -139,7 +138,6 @@ func (h *APIHandler) PostAuthReactivate(ctx context.Context, request PostAuthRea
 		accessToken,
 		string(request.Params.XRealIP),
 		string(request.Params.CfIpcountry),
-		string(request.Params.XDeviceFingerprint),
 		string(request.Params.UserAgent),
 	)
 	if err != nil {
@@ -230,7 +228,7 @@ func (h *APIHandler) PostAuthRefresh(ctx context.Context, request PostAuthRefres
 		}, nil
 	}
 
-	newRefreshToken, newAccessToken, accessTokenExpiresAt, refreshTokenExpiresAt, err := h.authService.RefreshToken(ctx, refreshToken, request.Params.XRealIP, request.Params.CfIpcountry, request.Params.XDeviceFingerprint, request.Params.UserAgent)
+	newRefreshToken, newAccessToken, accessTokenExpiresAt, refreshTokenExpiresAt, err := h.authService.RefreshToken(ctx, refreshToken, request.Params.XRealIP, request.Params.CfIpcountry, request.Params.UserAgent)
 	if err != nil {
 		return nil, err
 	}

@@ -74,7 +74,6 @@ type MRefreshToken struct {
 	TokenHash            string
 	Generation           int
 	IpAddress            string
-	DeviceFingerprint    string
 	UserAgent            string
 	CountryCode          string
 	CityName             string

@@ -187,9 +187,6 @@ type HeaderCfIpCountry = string
 // HeaderCfRay defines model for HeaderCfRay.
 type HeaderCfRay = string
 
-// HeaderDeviceFingerprint defines model for HeaderDeviceFingerprint.
-type HeaderDeviceFingerprint = string
-
 // HeaderTimezone クライアントのIANAタイムゾーン名（例：Asia/Tokyo）
 type HeaderTimezone = string
 
@@ -280,9 +277,8 @@ type PostAuthLogoutParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetAuthOauthYoutubeParams defines parameters for GetAuthOauthYoutube.
@@ -344,9 +340,8 @@ type PostAuthReactivateParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 
 	// CsrfToken CSRF Token
 	CsrfToken CookieCSRFToken `form:"csrf_token" json:"csrf_token"`
@@ -366,9 +361,8 @@ type PostAuthRefreshParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 
 	// CsrfToken CSRF Token
 	CsrfToken CookieCSRFToken `form:"csrf_token" json:"csrf_token"`
@@ -392,9 +386,8 @@ type PostChannelsSubscribeParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetChannelsSubscribedParams defines parameters for GetChannelsSubscribed.
@@ -415,9 +408,8 @@ type GetChannelsSubscribedParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetChannelsChannelIdParams defines parameters for GetChannelsChannelId.
@@ -432,9 +424,8 @@ type GetChannelsChannelIdParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetChannelsChannelIdPlaylistsParams defines parameters for GetChannelsChannelIdPlaylists.
@@ -455,9 +446,8 @@ type GetChannelsChannelIdPlaylistsParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // DeleteChannelsChannelIdSubscribeParams defines parameters for DeleteChannelsChannelIdSubscribe.
@@ -472,9 +462,8 @@ type DeleteChannelsChannelIdSubscribeParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetChannelsChannelIdVideosParams defines parameters for GetChannelsChannelIdVideos.
@@ -496,9 +485,8 @@ type GetChannelsChannelIdVideosParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetChannelsChannelIdVideosParamsOrder defines parameters for GetChannelsChannelIdVideos.
@@ -522,9 +510,8 @@ type GetFeedParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetFeedChannelsParams defines parameters for GetFeedChannels.
@@ -539,9 +526,8 @@ type GetFeedChannelsParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetHistoryParams defines parameters for GetHistory.
@@ -562,9 +548,8 @@ type GetHistoryParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetPlaylistsParams defines parameters for GetPlaylists.
@@ -585,9 +570,8 @@ type GetPlaylistsParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // PostPlaylistsJSONBody defines parameters for PostPlaylists.
@@ -616,9 +600,8 @@ type PostPlaylistsParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetPlaylistsRecentParams defines parameters for GetPlaylistsRecent.
@@ -633,9 +616,8 @@ type GetPlaylistsRecentParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // DeletePlaylistsPlaylistIdParams defines parameters for DeletePlaylistsPlaylistId.
@@ -650,9 +632,8 @@ type DeletePlaylistsPlaylistIdParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetPlaylistsPlaylistIdParams defines parameters for GetPlaylistsPlaylistId.
@@ -667,9 +648,8 @@ type GetPlaylistsPlaylistIdParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // PatchPlaylistsPlaylistIdJSONBody defines parameters for PatchPlaylistsPlaylistId.
@@ -690,9 +670,8 @@ type PatchPlaylistsPlaylistIdParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // PostPlaylistsPlaylistIdCopyJSONBody defines parameters for PostPlaylistsPlaylistIdCopy.
@@ -713,9 +692,8 @@ type PostPlaylistsPlaylistIdCopyParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // DeletePlaylistsPlaylistIdVideosParams defines parameters for DeletePlaylistsPlaylistIdVideos.
@@ -732,9 +710,8 @@ type DeletePlaylistsPlaylistIdVideosParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetPlaylistsPlaylistIdVideosParams defines parameters for GetPlaylistsPlaylistIdVideos.
@@ -755,9 +732,8 @@ type GetPlaylistsPlaylistIdVideosParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // PostPlaylistsPlaylistIdVideosJSONBody defines parameters for PostPlaylistsPlaylistIdVideos.
@@ -779,9 +755,8 @@ type PostPlaylistsPlaylistIdVideosParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetSearchParams defines parameters for GetSearch.
@@ -823,9 +798,8 @@ type GetSearchParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetSearchParamsOrder defines parameters for GetSearch.
@@ -846,9 +820,8 @@ type GetStatisticsWeeklyParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // PostUsersMeJSONBody defines parameters for PostUsersMe.
@@ -876,9 +849,8 @@ type PostUsersMeParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // DeleteUsersMeParams defines parameters for DeleteUsersMe.
@@ -893,9 +865,8 @@ type DeleteUsersMeParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetUsersMeStatusParams defines parameters for GetUsersMeStatus.
@@ -910,9 +881,8 @@ type GetUsersMeStatusParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // PatchUsersMeStatusJSONBody defines parameters for PatchUsersMeStatus.
@@ -940,9 +910,8 @@ type PatchUsersMeStatusParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetUsersMeSessionsParams defines parameters for GetUsersMeSessions.
@@ -961,9 +930,8 @@ type GetUsersMeSessionsParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // DeleteUsersMeSessionsSessionIdParams defines parameters for DeleteUsersMeSessionsSessionId.
@@ -978,9 +946,8 @@ type DeleteUsersMeSessionsSessionIdParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetVideosVideoIdParams defines parameters for GetVideosVideoId.
@@ -995,9 +962,8 @@ type GetVideosVideoIdParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // PostVideosVideoIdHeartbeatsJSONBody defines parameters for PostVideosVideoIdHeartbeats.
@@ -1021,9 +987,8 @@ type PostVideosVideoIdHeartbeatsParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // DeleteVideosVideoIdWatchLaterParams defines parameters for DeleteVideosVideoIdWatchLater.
@@ -1038,9 +1003,8 @@ type DeleteVideosVideoIdWatchLaterParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // PostVideosVideoIdWatchLaterParams defines parameters for PostVideosVideoIdWatchLater.
@@ -1055,9 +1019,8 @@ type PostVideosVideoIdWatchLaterParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // DeleteVideosVideoIdWatchedParams defines parameters for DeleteVideosVideoIdWatched.
@@ -1072,9 +1035,8 @@ type DeleteVideosVideoIdWatchedParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // PostVideosVideoIdWatchedParams defines parameters for PostVideosVideoIdWatched.
@@ -1089,9 +1051,8 @@ type PostVideosVideoIdWatchedParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // GetHealthParams defines parameters for GetHealth.
@@ -1106,9 +1067,8 @@ type GetHealthParams struct {
 	CfRay HeaderCfRay `json:"Cf-Ray"`
 
 	// UserAgent クライアントのブラウザ・アプリケーション情報
-	UserAgent          HeaderUserAgent         `json:"User-Agent"`
-	XDeviceFingerprint HeaderDeviceFingerprint `json:"X-Device-Fingerprint"`
-	XTimezone          HeaderTimezone          `json:"X-Timezone"`
+	UserAgent HeaderUserAgent `json:"User-Agent"`
+	XTimezone HeaderTimezone  `json:"X-Timezone"`
 }
 
 // PostChannelsSubscribeJSONRequestBody defines body for PostChannelsSubscribe for application/json ContentType.
@@ -1919,29 +1879,6 @@ func (siw *ServerInterfaceWrapper) PostAuthLogout(w http.ResponseWriter, r *http
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -2387,29 +2324,6 @@ func (siw *ServerInterfaceWrapper) PostAuthReactivate(w http.ResponseWriter, r *
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -2587,29 +2501,6 @@ func (siw *ServerInterfaceWrapper) PostAuthRefresh(w http.ResponseWriter, r *htt
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -2767,29 +2658,6 @@ func (siw *ServerInterfaceWrapper) PostChannelsSubscribe(w http.ResponseWriter, 
 	} else {
 		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
 		return
 	}
 
@@ -2958,29 +2826,6 @@ func (siw *ServerInterfaceWrapper) GetChannelsSubscribed(w http.ResponseWriter, 
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -3123,29 +2968,6 @@ func (siw *ServerInterfaceWrapper) GetChannelsChannelId(w http.ResponseWriter, r
 	} else {
 		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
 		return
 	}
 
@@ -3317,29 +3139,6 @@ func (siw *ServerInterfaceWrapper) GetChannelsChannelIdPlaylists(w http.Response
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -3488,29 +3287,6 @@ func (siw *ServerInterfaceWrapper) DeleteChannelsChannelIdSubscribe(w http.Respo
 	} else {
 		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
 		return
 	}
 
@@ -3690,29 +3466,6 @@ func (siw *ServerInterfaceWrapper) GetChannelsChannelIdVideos(w http.ResponseWri
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -3872,29 +3625,6 @@ func (siw *ServerInterfaceWrapper) GetFeed(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -4034,29 +3764,6 @@ func (siw *ServerInterfaceWrapper) GetFeedChannels(w http.ResponseWriter, r *htt
 	} else {
 		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
 		return
 	}
 
@@ -4225,29 +3932,6 @@ func (siw *ServerInterfaceWrapper) GetHistory(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -4413,29 +4097,6 @@ func (siw *ServerInterfaceWrapper) GetPlaylists(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -4578,29 +4239,6 @@ func (siw *ServerInterfaceWrapper) PostPlaylists(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -4740,29 +4378,6 @@ func (siw *ServerInterfaceWrapper) GetPlaylistsRecent(w http.ResponseWriter, r *
 	} else {
 		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
 		return
 	}
 
@@ -4917,29 +4532,6 @@ func (siw *ServerInterfaceWrapper) DeletePlaylistsPlaylistId(w http.ResponseWrit
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -5082,29 +4674,6 @@ func (siw *ServerInterfaceWrapper) GetPlaylistsPlaylistId(w http.ResponseWriter,
 	} else {
 		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
 		return
 	}
 
@@ -5259,29 +4828,6 @@ func (siw *ServerInterfaceWrapper) PatchPlaylistsPlaylistId(w http.ResponseWrite
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -5430,29 +4976,6 @@ func (siw *ServerInterfaceWrapper) PostPlaylistsPlaylistIdCopy(w http.ResponseWr
 	} else {
 		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
 		return
 	}
 
@@ -5619,29 +5142,6 @@ func (siw *ServerInterfaceWrapper) DeletePlaylistsPlaylistIdVideos(w http.Respon
 	} else {
 		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
 		return
 	}
 
@@ -5819,29 +5319,6 @@ func (siw *ServerInterfaceWrapper) GetPlaylistsPlaylistIdVideos(w http.ResponseW
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -5990,29 +5467,6 @@ func (siw *ServerInterfaceWrapper) PostPlaylistsPlaylistIdVideos(w http.Response
 	} else {
 		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
 		return
 	}
 
@@ -6244,29 +5698,6 @@ func (siw *ServerInterfaceWrapper) GetSearch(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -6424,29 +5855,6 @@ func (siw *ServerInterfaceWrapper) GetStatisticsWeekly(w http.ResponseWriter, r 
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -6586,29 +5994,6 @@ func (siw *ServerInterfaceWrapper) PostUsersMe(w http.ResponseWriter, r *http.Re
 	} else {
 		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
 		return
 	}
 
@@ -6754,29 +6139,6 @@ func (siw *ServerInterfaceWrapper) DeleteUsersMe(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -6919,29 +6281,6 @@ func (siw *ServerInterfaceWrapper) GetUsersMeStatus(w http.ResponseWriter, r *ht
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -7081,29 +6420,6 @@ func (siw *ServerInterfaceWrapper) PatchUsersMeStatus(w http.ResponseWriter, r *
 	} else {
 		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
 		return
 	}
 
@@ -7272,29 +6588,6 @@ func (siw *ServerInterfaceWrapper) GetUsersMeSessions(w http.ResponseWriter, r *
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -7446,29 +6739,6 @@ func (siw *ServerInterfaceWrapper) DeleteUsersMeSessionsSessionId(w http.Respons
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -7611,29 +6881,6 @@ func (siw *ServerInterfaceWrapper) GetVideosVideoId(w http.ResponseWriter, r *ht
 	} else {
 		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
 		return
 	}
 
@@ -7788,29 +7035,6 @@ func (siw *ServerInterfaceWrapper) PostVideosVideoIdHeartbeats(w http.ResponseWr
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -7959,29 +7183,6 @@ func (siw *ServerInterfaceWrapper) DeleteVideosVideoIdWatchLater(w http.Response
 	} else {
 		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
 		return
 	}
 
@@ -8136,29 +7337,6 @@ func (siw *ServerInterfaceWrapper) PostVideosVideoIdWatchLater(w http.ResponseWr
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -8307,29 +7485,6 @@ func (siw *ServerInterfaceWrapper) DeleteVideosVideoIdWatched(w http.ResponseWri
 	} else {
 		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
 		return
 	}
 
@@ -8484,29 +7639,6 @@ func (siw *ServerInterfaceWrapper) PostVideosVideoIdWatched(w http.ResponseWrite
 		return
 	}
 
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
-		return
-	}
-
 	// ------------- Required header parameter "X-Timezone" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Timezone")]; found {
 		var XTimezone HeaderTimezone
@@ -8640,29 +7772,6 @@ func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Requ
 	} else {
 		err := fmt.Errorf("Header parameter User-Agent is required, but not found")
 		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "User-Agent", Err: err})
-		return
-	}
-
-	// ------------- Required header parameter "X-Device-Fingerprint" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-Fingerprint")]; found {
-		var XDeviceFingerprint HeaderDeviceFingerprint
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Device-Fingerprint", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-Device-Fingerprint", valueList[0], &XDeviceFingerprint, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Device-Fingerprint", Err: err})
-			return
-		}
-
-		params.XDeviceFingerprint = XDeviceFingerprint
-
-	} else {
-		err := fmt.Errorf("Header parameter X-Device-Fingerprint is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Device-Fingerprint", Err: err})
 		return
 	}
 
@@ -13926,122 +13035,121 @@ func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request, param
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"SO7IRk2cbGjk1Mj/BwAA//9QizbYtwgBAA==",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
