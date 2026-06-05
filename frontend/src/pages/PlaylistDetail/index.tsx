@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "preact/hooks";
+import { createPortal } from "preact/compat";
 import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
 import { useMeta } from "../../hooks/useMeta";
@@ -24,6 +25,134 @@ import {
   VideoCardSkeleton,
   SkeletonRepeat,
 } from "../../components/skeletons";
+
+function PlaylistActionsMenu({
+  onEdit,
+  onDelete,
+}: {
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (btnRef.current?.contains(target)) return;
+      if (menuRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setMenuPos({
+        top: rect.bottom + window.scrollY + 6,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setOpen((v) => !v);
+  };
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={handleOpen}
+        class="size-9 inline-flex items-center justify-center rounded-lg border border-border-light dark:border-border-dark bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+        aria-label={t("playlistDetail.actions")}
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <Icon name="more_vert" class="text-[20px]" />
+      </button>
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            style={{ position: "absolute", top: menuPos.top, right: menuPos.right }}
+            class="z-[200] min-w-[150px] rounded-lg border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark p-1 shadow-lg"
+          >
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                onEdit();
+              }}
+              class="w-full flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-charcoal dark:text-white hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
+            >
+              <Icon name="edit" class="text-[18px]" />
+              {t("playlistDetail.edit")}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                onDelete();
+              }}
+              class="w-full flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer bg-transparent border-none"
+            >
+              <Icon name="delete" class="text-[18px]" />
+              {t("playlistDetail.delete")}
+            </button>
+          </div>,
+          document.body,
+        )}
+    </>
+  );
+}
+
+function PlaylistDescription({ description }: { description: string }) {
+  const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
+  const [clamped, setClamped] = useState(false);
+  const ref = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (el) setClamped(el.scrollHeight > el.clientHeight);
+  }, [description]);
+
+  return (
+    <div class="mt-3 max-w-3xl">
+      <p
+        ref={ref}
+        class={`text-sm leading-relaxed text-text-muted-light dark:text-text-muted-dark whitespace-pre-wrap break-words ${expanded ? "" : "line-clamp-3"}`}
+      >
+        <Linkify text={description} />
+      </p>
+      {clamped && (
+        <button
+          type="button"
+          class="mt-2 p-0 text-sm font-medium text-primary hover:text-primary/80 bg-transparent border-none cursor-pointer"
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? t("playlistDetail.showLess") : t("playlistDetail.showMore")}
+        </button>
+      )}
+    </div>
+  );
+}
 
 
 function EditPlaylistDialog({
@@ -624,12 +753,12 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
           {t("playlistDetail.backToPlaylists")}
         </a>
 
-        <div class="bg-card-light dark:bg-card-dark rounded-xl border border-border-light dark:border-border-dark mb-8 p-6">
-          <div class="flex flex-col sm:flex-row gap-6 items-start">
+        <section class="mb-8">
+          <div class="flex flex-col sm:flex-row gap-5 md:gap-6 items-start">
             {videos.length > 0 ? (
               <a
                 href={buildWatchUrl(videos[0].video_id, undefined, playlistId)}
-                class="group/thumb relative w-full sm:w-48 aspect-video flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 block no-underline"
+                class="group/thumb relative w-full sm:w-56 aspect-video flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 block no-underline ring-1 ring-border-light dark:ring-border-dark"
               >
                 {playlistInfo.top_video_thumbnail_url ? (
                   <img
@@ -650,80 +779,68 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                 </div>
               </a>
             ) : (
-              <div class="relative w-full sm:w-48 aspect-video flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+              <div class="relative w-full sm:w-56 aspect-video flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 ring-1 ring-border-light dark:ring-border-dark">
                 <div class="absolute inset-0 flex items-center justify-center">
                   <Icon name="playlist_play" class="text-5xl text-text-muted-light dark:text-text-muted-dark" />
                 </div>
               </div>
             )}
 
-            <div class="flex-1 min-w-0">
-              <h1 class="text-2xl md:text-3xl font-bold text-charcoal dark:text-white mb-2">
-                {playlistInfo.playlist_title}
-              </h1>
-              {playlistInfo.playlist_description && (
-                <p class="text-text-muted-light dark:text-text-muted-dark text-sm mb-3 whitespace-pre-wrap break-words">
-                  <Linkify text={playlistInfo.playlist_description} />
-                </p>
-              )}
-              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-muted-light dark:text-text-muted-dark">
-                <span>
-                  {t("playlists.videoCount", {
-                    count: playlistInfo.playlist_video_count,
-                  })}
-                </span>
-                <span>
-                  {t("playlists.createdAt", {
-                    time: formatTimeAgo(playlistInfo.playlist_registered_at, t),
-                  })}
-                </span>
-                <span>
-                  {t("playlists.lastUpdated", {
-                    time: formatTimeAgo(playlistInfo.playlist_updated_at, t),
-                  })}
-                </span>
+            <div class="min-w-0 flex-1 w-full">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div class="min-w-0">
+                  <h1 class="text-2xl md:text-3xl font-bold text-charcoal dark:text-white leading-tight break-words">
+                    {playlistInfo.playlist_title}
+                  </h1>
+                  <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-muted-light dark:text-text-muted-dark">
+                    <span>
+                      {t("playlists.videoCount", {
+                        count: playlistInfo.playlist_video_count,
+                      })}
+                    </span>
+                    <span aria-hidden="true">·</span>
+                    <span>
+                      {t("playlists.lastUpdated", {
+                        time: formatTimeAgo(playlistInfo.playlist_updated_at, t),
+                      })}
+                    </span>
+                  </div>
+                  {playlistInfo.playlist_description && (
+                    <PlaylistDescription description={playlistInfo.playlist_description} />
+                  )}
+                </div>
+
+                {playlistInfo.playlist_type === "normal" ? (
+                  <div class="flex flex-shrink-0 items-center gap-2">
+                    <button
+                      class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 cursor-pointer border-none"
+                      onClick={() => requireAuth(() => setShowAddVideo(true))}
+                    >
+                      <Icon name="add" class="text-[18px]" />
+                      {t("playlistDetail.addVideo")}
+                    </button>
+                    <PlaylistActionsMenu
+                      onEdit={() => requireAuth(() => setShowEdit(true))}
+                      onDelete={() => requireAuth(() => setShowDelete(true))}
+                    />
+                  </div>
+                ) : (
+                  <div class="flex flex-shrink-0 items-center gap-2">
+                    <button
+                      class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 cursor-pointer border-none"
+                      onClick={() => requireAuth(() => setShowCopy(true))}
+                    >
+                      <Icon name="content_copy" class="text-[18px]" />
+                      {t("playlistDetail.copy")}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-
-            {playlistInfo.playlist_type === "normal" ? (
-              <div class="flex gap-2 flex-shrink-0">
-                <button
-                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 cursor-pointer border-none"
-                  onClick={() => requireAuth(() => setShowAddVideo(true))}
-                >
-                  <Icon name="add" class="text-[18px]" />
-                  {t("playlistDetail.addVideo")}
-                </button>
-                <button
-                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-transparent border border-border-light dark:border-border-dark text-sm font-medium text-charcoal dark:text-white hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
-                  onClick={() => requireAuth(() => setShowEdit(true))}
-                >
-                  <Icon name="edit" class="text-[18px]" />
-                  {t("playlistDetail.edit")}
-                </button>
-                <button
-                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-transparent border border-red-300 dark:border-red-800 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer"
-                  onClick={() => requireAuth(() => setShowDelete(true))}
-                >
-                  <Icon name="delete" class="text-[18px]" />
-                  {t("playlistDetail.delete")}
-                </button>
-              </div>
-            ) : (
-              <div class="flex gap-2 flex-shrink-0">
-                <button
-                  class="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 cursor-pointer border-none"
-                  onClick={() => requireAuth(() => setShowCopy(true))}
-                >
-                  <Icon name="content_copy" class="text-[18px]" />
-                  {t("playlistDetail.copy")}
-                </button>
-              </div>
-            )}
           </div>
-        </div>
+        </section>
 
-        <div>
+        <div class="border-t border-border-light dark:border-border-dark pt-6">
           <h3 class="text-lg font-bold text-charcoal dark:text-white mb-4">
             {t("playlistDetail.videos")}
           </h3>
