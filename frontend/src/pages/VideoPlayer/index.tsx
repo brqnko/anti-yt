@@ -227,7 +227,7 @@ function VideoPlayerContent() {
   const { t } = useTranslation();
   const { params } = useRoute();
   const { route } = useLocation();
-  const { isAuthenticated, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
+  const { isAuthenticated, isLoading: isAuthLoading, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
   const videoId = params.videoId;
 
   const [video, setVideo] = useState<GetVideosVideoId200 | null>(null);
@@ -319,6 +319,7 @@ function VideoPlayerContent() {
   });
 
   useEffect(() => {
+    if (isAuthLoading) return;
     if (!videoId) return;
     setIsLoading(true);
     setError(false);
@@ -336,9 +337,10 @@ function VideoPlayerContent() {
       })
       .catch(() => setError(true))
       .finally(() => setIsLoading(false));
-  }, [videoId]);
+  }, [videoId, isAuthLoading]);
 
   useEffect(() => {
+    if (isAuthLoading) return;
     if (!playlistId) return;
     setPlaylistLoading(true);
     Promise.allSettled([
@@ -355,7 +357,7 @@ function VideoPlayerContent() {
         playlistCursorRef.current = lastItem?.video_id;
       }
     }).finally(() => setPlaylistLoading(false));
-  }, [playlistId]);
+  }, [playlistId, isAuthLoading]);
 
   const loadMorePlaylistVideos = useCallback(async () => {
     if (playlistLoadingMoreRef.current || !playlistHasNextRef.current || !playlistId) return;

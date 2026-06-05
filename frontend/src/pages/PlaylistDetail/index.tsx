@@ -418,7 +418,7 @@ function CopyPlaylistDialog({
 function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
   const { t } = useTranslation();
   const { route } = useLocation();
-  const { requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
+  const { isLoading: isAuthLoading, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
 
   const [playlistInfo, setPlaylistInfo] = useState<GetPlaylistsPlaylistId200 | null>(null);
   const [videos, setVideos] = useState<GetPlaylistsPlaylistIdVideos200ItemsItem[]>([]);
@@ -483,8 +483,9 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
   }, [playlistId]);
 
   useEffect(() => {
+    if (isAuthLoading) return;
     loadInitial();
-  }, [loadInitial]);
+  }, [isAuthLoading, loadInitial]);
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasNext) return;
