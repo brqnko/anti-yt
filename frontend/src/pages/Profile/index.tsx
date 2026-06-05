@@ -137,13 +137,13 @@ function ProfileContent() {
 
         {activeTab === "profile" && (
           <>
-            <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
-              <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
+            <section class="flex flex-col gap-5 border-b border-border-light dark:border-border-dark pb-8">
+              <div>
                 <h2 class="text-xl font-bold">
                   {t("profile.accountDetails")}
                 </h2>
               </div>
-              <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div class="flex flex-col gap-2">
                   <label class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
                     {t("profile.displayName")}
@@ -184,7 +184,7 @@ function ProfileContent() {
                   />
                 </div>
               </div>
-              <div class="px-6 py-4 border-t border-border-light dark:border-border-dark flex items-center">
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   onClick={() => setShowImportDialog(true)}
                   class="flex items-center justify-center gap-2.5 rounded-xl bg-white dark:bg-[#242424] px-5 py-2.5 text-sm font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-[#FF0000]/50 focus:outline-none focus:ring-2 focus:ring-[#FF0000] focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
@@ -195,62 +195,60 @@ function ProfileContent() {
                   </svg>
                   {t("profile.youtubeImport.button")}
                 </button>
+                <div class="flex items-center justify-end gap-3">
+                  {saveSuccess && (
+                    <span class={`text-sm text-green-600 dark:text-green-400 font-medium transition-opacity duration-500 ${saveFading ? "opacity-0" : "opacity-100"}`}>
+                      {t("profile.saved")}
+                    </span>
+                  )}
+                  {saveError && (
+                    <span class="text-sm text-red-500 font-medium">
+                      {saveError}
+                    </span>
+                  )}
+                  <button
+                    onClick={handleSave}
+                    disabled={isSaving || !isNameValid}
+                    class="px-8 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg cursor-pointer border-none"
+                  >
+                    {isSaving ? t("profile.saving") : t("profile.saveChanges")}
+                  </button>
+                </div>
               </div>
-              <div class="px-6 py-4 bg-background-light/50 dark:bg-background-dark/50 border-t border-border-light dark:border-border-dark flex items-center justify-end gap-3">
-                {saveSuccess && (
-                  <span class={`text-sm text-green-600 dark:text-green-400 font-medium transition-opacity duration-500 ${saveFading ? "opacity-0" : "opacity-100"}`}>
-                    {t("profile.saved")}
-                  </span>
-                )}
-                {saveError && (
-                  <span class="text-sm text-red-500 font-medium">
-                    {saveError}
-                  </span>
-                )}
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving || !isNameValid}
-                  class="px-8 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg cursor-pointer border-none"
-                >
-                  {isSaving ? t("profile.saving") : t("profile.saveChanges")}
-                </button>
-              </div>
-            </div>
+            </section>
 
-            <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
-              <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
+            <section class="flex flex-col gap-5 border-b border-border-light dark:border-border-dark pb-8">
+              <div>
                 <h2 class="text-xl font-bold">
                   {t("appearance.title")}
                 </h2>
               </div>
-              <div class="p-6">
-                <div class="flex flex-col gap-2 max-w-xs">
-                  <label class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
-                    {t("appearance.colorMode")}
-                  </label>
-                  <Dropdown
-                    value={mode}
-                    onChange={(v) => setMode(v as ColorMode)}
-                    ariaLabel={t("appearance.colorMode")}
-                    leadingIcon={modeIcons[mode]}
-                    options={colorModes.map((m) => ({
-                      value: m.value,
-                      label: t(`common.colorMode.${m.value}`),
-                    }))}
-                  />
-                </div>
+              <div class="flex flex-col gap-2 max-w-xs">
+                <label class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
+                  {t("appearance.colorMode")}
+                </label>
+                <Dropdown
+                  value={mode}
+                  onChange={(v) => setMode(v as ColorMode)}
+                  ariaLabel={t("appearance.colorMode")}
+                  leadingIcon={modeIcons[mode]}
+                  options={colorModes.map((m) => ({
+                    value: m.value,
+                    label: t(`common.colorMode.${m.value}`),
+                  }))}
+                />
               </div>
-            </div>
+            </section>
 
             <RestrictionsTab />
 
-            <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
-              <div class="px-6 py-4 border-b border-border-light dark:border-border-dark">
+            <section class="flex flex-col gap-4">
+              <div>
                 <h2 class="text-xl font-bold">
                   {t("profile.nav.other")}
                 </h2>
               </div>
-              <div class="p-6 flex flex-col gap-1">
+              <div class="flex flex-col gap-1">
                 <a
                   href={REPORT_FORM_URL}
                   target="_blank"
@@ -277,7 +275,7 @@ function ProfileContent() {
                   {t("profile.deleteAccount")}
                 </button>
               </div>
-            </div>
+            </section>
 
           </>
         )}

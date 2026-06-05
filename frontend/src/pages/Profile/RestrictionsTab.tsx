@@ -105,142 +105,140 @@ export function RestrictionsTab() {
   const isTimeInvalid = !isUnlimited && hours === 0 && minutes === 0;
 
   return (
-    <div class="flex flex-col gap-6 min-w-0 overflow-hidden">
-          <div class="flex flex-col rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark overflow-hidden">
-            <div class="p-6 border-b border-border-light dark:border-border-dark">
-              <h2 class="text-xl font-bold">
-                {t("restrictions.timeConstraints")}
-              </h2>
-            </div>
-            <div class="p-6 flex flex-col gap-8">
-              <div class="flex flex-col gap-6">
-                <div class="flex justify-between items-center flex-wrap gap-2">
-                  <label class="text-base font-semibold">
-                    {t("restrictions.permittedHours")}
-                  </label>
-                  <span class="text-xs font-medium text-text-muted-light dark:text-text-muted-dark">
-                    {t("restrictions.permittedHoursDesc")}
-                  </span>
-                </div>
-                <div class="flex flex-col gap-4">
-                  {timeRanges.map((range) => (
-                    <TimeRangeSlider
-                      key={range.id}
-                      range={range}
-                      onChange={(updated) => updateRange(range.id, updated)}
-                      onDelete={() => deleteRange(range.id)}
-                    />
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  class="flex items-center justify-center gap-2 w-full py-3 border border-dashed border-border-light dark:border-border-dark rounded-lg text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 group cursor-pointer bg-transparent"
-                  onClick={addRange}
-                >
-                  <Icon name="add" />
-                  <span class="text-sm font-bold">
-                    {t("restrictions.addTimeRange")}
-                  </span>
-                </button>
+    <section class="flex flex-col gap-5 min-w-0 overflow-hidden border-b border-border-light dark:border-border-dark pb-8">
+      <div>
+        <h2 class="text-xl font-bold">
+          {t("restrictions.timeConstraints")}
+        </h2>
+      </div>
+      <div class="flex flex-col gap-8">
+        <div class="flex flex-col gap-6">
+          <div class="flex justify-between items-center flex-wrap gap-2">
+            <label class="text-base font-semibold">
+              {t("restrictions.permittedHours")}
+            </label>
+            <span class="text-xs font-medium text-text-muted-light dark:text-text-muted-dark">
+              {t("restrictions.permittedHoursDesc")}
+            </span>
+          </div>
+          <div class="flex flex-col gap-4">
+            {timeRanges.map((range) => (
+              <TimeRangeSlider
+                key={range.id}
+                range={range}
+                onChange={(updated) => updateRange(range.id, updated)}
+                onDelete={() => deleteRange(range.id)}
+              />
+            ))}
+          </div>
+          <button
+            type="button"
+            class="flex items-center justify-center gap-2 w-full py-3 border border-dashed border-border-light dark:border-border-dark rounded-lg text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 group cursor-pointer bg-transparent"
+            onClick={addRange}
+          >
+            <Icon name="add" />
+            <span class="text-sm font-bold">
+              {t("restrictions.addTimeRange")}
+            </span>
+          </button>
+        </div>
+
+        <hr class="border-border-light dark:border-border-dark" />
+
+        <div class="flex flex-col gap-4">
+          <label class="text-base font-semibold">
+            {t("restrictions.dailyCapLimit")}
+          </label>
+          <div class="flex flex-wrap gap-4 items-center">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={!isUnlimited}
+              onClick={() => setIsUnlimited(!isUnlimited)}
+              class={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors cursor-pointer border-none ${
+                !isUnlimited ? "bg-primary" : "bg-gray-300 dark:bg-gray-600"
+              }`}
+            >
+              <span
+                class={`inline-block size-5 rounded-full bg-white transition-transform ${
+                  !isUnlimited ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+            <span class="text-sm font-medium text-text-muted-light dark:text-text-muted-dark">
+              {t("restrictions.enableLimit")}
+            </span>
+
+            <div class="w-px h-6 bg-border-light dark:bg-border-dark" />
+            <div class={`flex flex-wrap gap-4 items-center transition-opacity ${isUnlimited ? "opacity-40 pointer-events-none" : ""}`}>
+              <div class="relative">
+                <input
+                  type="number"
+                  class="w-24 pl-4 pr-8 py-3 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
+                  min={0}
+                  max={23}
+                  value={hours}
+                  disabled={isUnlimited}
+                  onInput={(e) =>
+                    clampHours(
+                      parseInt((e.target as HTMLInputElement).value),
+                    )
+                  }
+                />
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-muted-light dark:text-text-muted-dark font-medium">
+                  {t("restrictions.hr")}
+                </span>
               </div>
-
-              <hr class="border-border-light dark:border-border-dark" />
-
-              <div class="flex flex-col gap-4">
-                <label class="text-base font-semibold">
-                  {t("restrictions.dailyCapLimit")}
-                </label>
-                <div class="flex flex-wrap gap-4 items-center">
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={!isUnlimited}
-                    onClick={() => setIsUnlimited(!isUnlimited)}
-                    class={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors cursor-pointer border-none ${
-                      !isUnlimited ? "bg-primary" : "bg-gray-300 dark:bg-gray-600"
-                    }`}
-                  >
-                    <span
-                      class={`inline-block size-5 rounded-full bg-white transition-transform ${
-                        !isUnlimited ? "translate-x-6" : "translate-x-1"
-                      }`}
-                    />
-                  </button>
-                  <span class="text-sm font-medium text-text-muted-light dark:text-text-muted-dark">
-                    {t("restrictions.enableLimit")}
-                  </span>
-
-                  <div class="w-px h-6 bg-border-light dark:bg-border-dark" />
-                  <div class={`flex flex-wrap gap-4 items-center transition-opacity ${isUnlimited ? "opacity-40 pointer-events-none" : ""}`}>
-                    <div class="relative">
-                      <input
-                        type="number"
-                        class="w-24 pl-4 pr-8 py-3 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
-                        min={0}
-                        max={23}
-                        value={hours}
-                        disabled={isUnlimited}
-                        onInput={(e) =>
-                          clampHours(
-                            parseInt((e.target as HTMLInputElement).value),
-                          )
-                        }
-                      />
-                      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-muted-light dark:text-text-muted-dark font-medium">
-                        {t("restrictions.hr")}
-                      </span>
-                    </div>
-                    <span class="text-text-muted-light dark:text-text-muted-dark font-bold">
-                      :
-                    </span>
-                    <div class="relative">
-                      <input
-                        type="number"
-                        class="w-24 pl-4 pr-8 py-3 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
-                        min={0}
-                        max={59}
-                        value={minutes}
-                        disabled={isUnlimited}
-                        onInput={(e) =>
-                          clampMinutes(
-                            parseInt((e.target as HTMLInputElement).value),
-                          )
-                        }
-                      />
-                      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-muted-light dark:text-text-muted-dark font-medium">
-                        {t("restrictions.min")}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                {!isUnlimited && isTimeInvalid && (
-                  <p class="text-sm text-red-500">
-                    {t("restrictions.zeroTimeError")}
-                  </p>
-                )}
-                <div class="flex items-center gap-3">
-                  <button
-                    class="px-6 py-3 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg flex items-center gap-2 cursor-pointer border-none"
-                    disabled={isSaving || isTimeInvalid}
-                    onClick={handleSave}
-                  >
-                    {isSaving ? t("restrictions.saving") : t("restrictions.save")}
-                  </button>
-                  {saveSuccess && (
-                    <span class={`text-sm text-green-600 dark:text-green-400 font-medium transition-opacity duration-500 ${saveFading ? "opacity-0" : "opacity-100"}`}>
-                      {t("restrictions.saved")}
-                    </span>
-                  )}
-                  {saveError && (
-                    <span class="text-sm text-red-500 font-medium flex items-center gap-1">
-                      <Icon name="error" class="text-[18px]" />
-                      {saveError}
-                    </span>
-                  )}
-                </div>
+              <span class="text-text-muted-light dark:text-text-muted-dark font-bold">
+                :
+              </span>
+              <div class="relative">
+                <input
+                  type="number"
+                  class="w-24 pl-4 pr-8 py-3 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary outline-none text-center font-bold text-lg"
+                  min={0}
+                  max={59}
+                  value={minutes}
+                  disabled={isUnlimited}
+                  onInput={(e) =>
+                    clampMinutes(
+                      parseInt((e.target as HTMLInputElement).value),
+                    )
+                  }
+                />
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-muted-light dark:text-text-muted-dark font-medium">
+                  {t("restrictions.min")}
+                </span>
               </div>
             </div>
           </div>
-    </div>
+          {!isUnlimited && isTimeInvalid && (
+            <p class="text-sm text-red-500">
+              {t("restrictions.zeroTimeError")}
+            </p>
+          )}
+          <div class="flex items-center gap-3">
+            <button
+              class="px-6 py-3 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg flex items-center gap-2 cursor-pointer border-none"
+              disabled={isSaving || isTimeInvalid}
+              onClick={handleSave}
+            >
+              {isSaving ? t("restrictions.saving") : t("restrictions.save")}
+            </button>
+            {saveSuccess && (
+              <span class={`text-sm text-green-600 dark:text-green-400 font-medium transition-opacity duration-500 ${saveFading ? "opacity-0" : "opacity-100"}`}>
+                {t("restrictions.saved")}
+              </span>
+            )}
+            {saveError && (
+              <span class="text-sm text-red-500 font-medium flex items-center gap-1">
+                <Icon name="error" class="text-[18px]" />
+                {saveError}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
