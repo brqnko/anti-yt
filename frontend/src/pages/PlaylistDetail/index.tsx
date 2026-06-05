@@ -16,6 +16,7 @@ import { buildWatchUrl } from "../../utils/url";
 import { PAGE_SIZES } from "../../constants";
 import { Linkify } from "../../components/Linkify";
 import { Icon } from "../../components/Icon";
+import { BrowserBackLink } from "../../components/BrowserBackLink";
 import type {
   GetPlaylistsPlaylistId200,
   GetPlaylistsPlaylistIdVideos200ItemsItem,
@@ -676,13 +677,13 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
     return (
       <DashboardLayout>
         <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
-          <a
-            href="/playlists"
+          <BrowserBackLink
+            fallbackHref="/playlists"
             class="inline-flex items-center gap-1 text-sm text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline mb-6"
           >
             <Icon name="arrow_back" class="text-[18px]" />
             {t("playlistDetail.backToPlaylists")}
-          </a>
+          </BrowserBackLink>
           <PlaylistHeaderSkeleton />
           <div class="flex flex-col divide-y divide-gray-200 dark:divide-gray-800">
             <SkeletonRepeat
@@ -708,13 +709,13 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
             <p class="text-lg font-medium">
               {t("playlistDetail.notFound")}
             </p>
-<a
+            <BrowserBackLink
               class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 no-underline"
-              href="/playlists"
+              fallbackHref="/playlists"
             >
               <Icon name="arrow_back" class="text-[18px]" />
               {t("playlistDetail.backToPlaylists")}
-            </a>
+            </BrowserBackLink>
           </div>
         </div>
       </DashboardLayout>
@@ -745,13 +746,13 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
   return (
     <DashboardLayout>
       <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
-        <a
-          href="/playlists"
+        <BrowserBackLink
+          fallbackHref="/playlists"
           class="inline-flex items-center gap-1 text-sm text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline mb-6"
         >
           <Icon name="arrow_back" class="text-[18px]" />
           {t("playlistDetail.backToPlaylists")}
-        </a>
+        </BrowserBackLink>
 
         <section class="mb-8">
           <div class="flex flex-col sm:flex-row gap-5 md:gap-6 items-start">

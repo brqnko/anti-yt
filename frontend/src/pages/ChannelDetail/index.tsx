@@ -18,6 +18,7 @@ import type {
 } from "../../api/generated/antiYtApi.schemas";
 import { PAGE_SIZES } from "../../constants";
 import { Icon } from "../../components/Icon";
+import { BrowserBackLink } from "../../components/BrowserBackLink";
 import {
   ChannelInfoCardSkeleton,
   ChannelDetailPlaylistCardSkeleton,
@@ -218,13 +219,13 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
           <div class="flex flex-col items-center justify-center py-20 text-text-muted-light dark:text-text-muted-dark">
             <Icon name="search_off" class="text-5xl mb-4" />
             <p class="text-lg font-medium">{t("channelDetail.notFound")}</p>
-            <a
+            <BrowserBackLink
               class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 no-underline"
-              href="/"
+              fallbackHref="/"
             >
               <Icon name="arrow_back" class="text-[18px]" />
               {t("channelDetail.backToDashboard")}
-            </a>
+            </BrowserBackLink>
           </div>
         </div>
       </DashboardLayout>

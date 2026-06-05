@@ -24,6 +24,7 @@ import { useHeartbeat } from "./useHeartbeat";
 import { Linkify } from "../../components/Linkify";
 import { Icon } from "../../components/Icon";
 import { VideoPlayerSkeleton } from "../../components/skeletons";
+import { BrowserBackLink } from "../../components/BrowserBackLink";
 
 const PLAYER_CONTAINER_ID = "yt-player";
 
@@ -720,12 +721,12 @@ function VideoPlayerContent() {
         <div class="flex flex-col items-center justify-center flex-1 text-text-muted-light dark:text-text-muted-dark">
           <Icon name="error" class="text-5xl mb-4" />
           <p class="text-lg font-medium">{t("videoPlayer.notFound")}</p>
-          <a
-            href="/"
+          <BrowserBackLink
+            fallbackHref="/"
             class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 no-underline"
           >
             {t("channelDetail.backToDashboard")}
-          </a>
+          </BrowserBackLink>
         </div>
       </DashboardLayout>
     );

@@ -9,6 +9,7 @@ import { TimeRangeSlider } from "../../components/TimeRangeSlider";
 import { formatTime, parseTimeToMinutes } from "../../utils/format";
 import type { TimeRange } from "../../types/time-range";
 import { Icon } from "../../components/Icon";
+import { BrowserBackLink } from "../../components/BrowserBackLink";
 
 function ScreenTimeSettingsContent() {
   const { t } = useTranslation();
@@ -123,13 +124,13 @@ function ScreenTimeSettingsContent() {
   return (
     <div class="min-h-dvh bg-background-light dark:bg-background-dark flex flex-col items-center px-6 py-12">
       <div class="w-full max-w-lg flex flex-col gap-6">
-        <a
-          href="/"
+        <BrowserBackLink
+          fallbackHref="/"
           class="flex items-center gap-1 text-sm text-taupe dark:text-white/50 hover:text-charcoal dark:hover:text-white/80 no-underline"
         >
           <Icon name="arrow_back" class="text-base" />
           {t("channelDetail.backToDashboard")}
-        </a>
+        </BrowserBackLink>
 
         <h1 class="text-2xl font-bold text-charcoal dark:text-white tracking-tight">
           {t("restrictions.timeConstraints")}

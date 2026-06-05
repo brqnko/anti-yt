@@ -13,6 +13,7 @@ import type {
   GetChannelsChannelIdPlaylists200ItemsItem,
 } from "../../api/generated/antiYtApi.schemas";
 import { Icon } from "../../components/Icon";
+import { BrowserBackLink } from "../../components/BrowserBackLink";
 
 function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
   const { t } = useTranslation();
@@ -115,12 +116,12 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
     <DashboardLayout>
       <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
         <div class="flex items-center gap-3 mb-6">
-          <a
-            href={`/channels/${channelId}`}
+          <BrowserBackLink
+            fallbackHref={`/channels/${channelId}`}
             class="inline-flex items-center text-text-muted-light dark:text-text-muted-dark hover:text-primary no-underline"
           >
             <Icon name="arrow_back" class="text-xl" />
-          </a>
+          </BrowserBackLink>
           <h2 class="text-2xl font-bold">{t("channelDetail.playlists")}</h2>
         </div>
 
