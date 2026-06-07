@@ -95,6 +95,8 @@ type Querier interface {
 	// Redisフィードのハイドレーション用。視聴済みフィルタはRedis側で管理されているためここでは行わない。
 	ListVideoFeedByIDs(ctx context.Context, arg ListVideoFeedByIDsParams) ([]ListVideoFeedByIDsRow, error)
 	ListWatchHistory(ctx context.Context, arg ListWatchHistoryParams) ([]ListWatchHistoryRow, error)
+	// チャンネルの last_seen_at を現在時刻に更新する（bulk fetch の優先順位に反映される）。
+	MarkChannelSeen(ctx context.Context, channelID uuid.UUID) error
 	MarkVideoWatched(ctx context.Context, arg MarkVideoWatchedParams) error
 	// 退会済みユーザーとその関連データを全て削除する。
 	// m_refresh_tokenはm_user_authorizationのCASCADE DELETEで自動削除される。

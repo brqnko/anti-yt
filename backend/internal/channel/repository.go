@@ -67,7 +67,13 @@ func (c *channelRepositoryImpl) Save(ctx context.Context, channel *Channel) (_ i
 func (c *channelRepositoryImpl) FindByIdOrHandle(ctx context.Context, idOrHandle string) (_ *Channel, err error) {
 	defer util.Wrap(&err, "channel.(*channelRepositoryImpl).FindByIdOrHandle")
 
+	var publicID *uuid.UUID
+	if parsed, perr := uuid.Parse(idOrHandle); perr == nil {
+		publicID = &parsed
+	}
+
 	row, err := c.q.FindChannelByExternalID(ctx, sqlc.FindChannelByExternalIDParams{
+		PublicID:         publicID,
 		ExternalID:       idOrHandle,
 		ExternalCustomID: idOrHandle,
 	})

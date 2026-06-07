@@ -222,7 +222,22 @@ func (s *Service) GetChannelUploads(ctx context.Context, userID, channelID uuid.
 func (s *Service) GetChannelDetail(ctx context.Context, channelID uuid.UUID) (_ GetChannelDetailView, err error) {
 	defer util.Wrap(&err, "channel.(*Service).GetChannelDetail")
 
-	return s.channelQS.GetChannelDetail(ctx, channelID)
+	detail, err := s.channelQS.GetChannelDetail(ctx, channelID)
+	if err != nil {
+		return GetChannelDetailView{}, err
+	}
+
+	logger := util.LoggerFromContext(ctx)
+	go func() {
+		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := sqlc.New(s.db).MarkChannelSeen(bgCtx, channelID); err != nil {
+			logger.WarnContext(bgCtx, "failed to mark channel as seen",
+				slog.String("channel_id", channelID.String()), slog.Any("error", err))
+		}
+	}()
+
+	return detail, nil
 }
 
 func (s *Service) GetChannelFeeds(ctx context.Context) (_ []GetValuableChannelView, err error) {

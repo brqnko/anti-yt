@@ -17,7 +17,8 @@ SELECT
 FROM
     m_channel
 WHERE
-    m_channel.external_id = @external_id
+    m_channel.public_id = sqlc.narg('public_id')::uuid
+    OR m_channel.external_id = @external_id
     OR m_channel.external_custom_id = @external_custom_id
 LIMIT
     1;
@@ -202,6 +203,15 @@ WHERE
     OR m_channel.external_custom_id = sqlc.narg('external_channel_id')
 LIMIT
     1;
+
+-- チャンネルの last_seen_at を現在時刻に更新する（bulk fetch の優先順位に反映される）。
+-- name: MarkChannelSeen :exec
+UPDATE
+    m_channel
+SET
+    last_seen_at = current_timestamp
+WHERE
+    public_id = @channel_id;
 
 -- name: ListChannelsForBulkFetch :many
 SELECT

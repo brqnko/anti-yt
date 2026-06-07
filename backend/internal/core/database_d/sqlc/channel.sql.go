@@ -91,13 +91,15 @@ SELECT
 FROM
     m_channel
 WHERE
-    m_channel.external_id = $1
-    OR m_channel.external_custom_id = $2
+    m_channel.public_id = $1::uuid
+    OR m_channel.external_id = $2
+    OR m_channel.external_custom_id = $3
 LIMIT
     1
 `
 
 type FindChannelByExternalIDParams struct {
+	PublicID         *uuid.UUID
 	ExternalID       string
 	ExternalCustomID string
 }
@@ -120,7 +122,7 @@ type FindChannelByExternalIDRow struct {
 }
 
 func (q *Queries) FindChannelByExternalID(ctx context.Context, arg FindChannelByExternalIDParams) (FindChannelByExternalIDRow, error) {
-	row := q.db.QueryRow(ctx, findChannelByExternalID, arg.ExternalID, arg.ExternalCustomID)
+	row := q.db.QueryRow(ctx, findChannelByExternalID, arg.PublicID, arg.ExternalID, arg.ExternalCustomID)
 	var i FindChannelByExternalIDRow
 	err := row.Scan(
 		&i.MChannelID,
@@ -431,6 +433,21 @@ func (q *Queries) ListSubscribersByChannelPublicID(ctx context.Context, arg List
 		return nil, err
 	}
 	return items, nil
+}
+
+const markChannelSeen = `-- name: MarkChannelSeen :exec
+UPDATE
+    m_channel
+SET
+    last_seen_at = current_timestamp
+WHERE
+    public_id = $1
+`
+
+// チャンネルの last_seen_at を現在時刻に更新する（bulk fetch の優先順位に反映される）。
+func (q *Queries) MarkChannelSeen(ctx context.Context, channelID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, markChannelSeen, channelID)
+	return err
 }
 
 const upsertChannel = `-- name: UpsertChannel :one
