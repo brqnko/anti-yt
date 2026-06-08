@@ -12,7 +12,6 @@ import { Dialog } from "../../components/Dialog";
 import { getPlaylist } from "../../api/generated/playlist";
 import { getApiErrorCode } from "../../utils/api-error";
 import { formatTimeAgo } from "../../utils/format";
-import { buildWatchUrl } from "../../utils/url";
 import { PAGE_SIZES } from "../../constants";
 import { Linkify } from "../../components/Linkify";
 import { Icon } from "../../components/Icon";
@@ -755,40 +754,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
         </BrowserBackLink>
 
         <section class="mb-8">
-          <div class="flex flex-col sm:flex-row gap-5 md:gap-6 items-start">
-            {videos.length > 0 ? (
-              <a
-                href={buildWatchUrl(videos[0].video_id, undefined, playlistId)}
-                class="group/thumb relative w-full sm:w-56 aspect-video flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 block no-underline ring-1 ring-border-light dark:ring-border-dark"
-              >
-                {playlistInfo.top_video_thumbnail_url ? (
-                  <img
-                    src={playlistInfo.top_video_thumbnail_url}
-                    alt={playlistInfo.playlist_title}
-                    class="absolute inset-0 w-full h-full object-cover"
-                  />
-                ) : (
-                  <div class="absolute inset-0 flex items-center justify-center">
-                    <Icon name="playlist_play" class="text-5xl text-text-muted-light dark:text-text-muted-dark" />
-                  </div>
-                )}
-                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover/thumb:opacity-100" />
-                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 pointer-events-none">
-                  <div class="size-12 rounded-full bg-primary/90 flex items-center justify-center text-white">
-                    <Icon name="play_arrow" class="text-[28px] ml-1" />
-                  </div>
-                </div>
-              </a>
-            ) : (
-              <div class="relative w-full sm:w-56 aspect-video flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 ring-1 ring-border-light dark:ring-border-dark">
-                <div class="absolute inset-0 flex items-center justify-center">
-                  <Icon name="playlist_play" class="text-5xl text-text-muted-light dark:text-text-muted-dark" />
-                </div>
-              </div>
-            )}
-
-            <div class="min-w-0 flex-1 w-full">
-              <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div class="min-w-0">
                   <h1 class="text-2xl md:text-3xl font-bold text-charcoal dark:text-white leading-tight break-words">
                     {playlistInfo.playlist_title}
@@ -837,8 +803,6 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
         </section>
 
         <div class="border-t border-border-light dark:border-border-dark pt-6">
