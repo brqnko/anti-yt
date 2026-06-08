@@ -10,6 +10,7 @@ import { SWRConfig, type SWRConfiguration } from "swr";
 import { AuthProvider } from "./contexts/AuthContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { ScreenTimeGate } from "./components/ScreenTimeGate";
+import { ErrorBoundary, reloadForStaleChunk } from "./components/ErrorBoundary";
 import "./i18n";
 
 const swrConfig: SWRConfiguration = {
@@ -74,7 +75,9 @@ export function App() {
         <AuthProvider>
           <NotificationProvider>
             <ScreenTimeGate>
-              <AppContent />
+              <ErrorBoundary>
+                <AppContent />
+              </ErrorBoundary>
             </ScreenTimeGate>
           </NotificationProvider>
         </AuthProvider>
@@ -84,6 +87,13 @@ export function App() {
 }
 
 if (typeof window !== "undefined") {
+  // Vite emits this when a dynamic import (lazy route chunk) fails to load,
+  // typically because a deploy replaced the hashed chunk this client still
+  // references. Reload to pull the fresh shell + chunks.
+  window.addEventListener("vite:preloadError", () => {
+    reloadForStaleChunk();
+  });
+
   const el = document.getElementById("app");
   if (el) hydrate(<App />, el);
 }
