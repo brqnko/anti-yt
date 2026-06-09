@@ -182,6 +182,7 @@ type Playlist struct {
 	PlaylistCode   PlaylistCode
 	VideoCount     int
 	RegisteredAt   time.Time
+	ExternalID     string
 }
 
 type PlaylistOption func(*Playlist)
@@ -207,6 +208,12 @@ func WithPlaylistVideoCount(count int) PlaylistOption {
 func WithPlaylistChannelID(channelID uuid.UUID) PlaylistOption {
 	return func(p *Playlist) {
 		p.ChannelID = &channelID
+	}
+}
+
+func WithPlaylistExternalID(externalID string) PlaylistOption {
+	return func(p *Playlist) {
+		p.ExternalID = externalID
 	}
 }
 
@@ -254,6 +261,10 @@ func NewPlaylist(
 		PlaylistCode:   pc,
 		VideoCount:     0,
 		RegisteredAt:   time.Now().UTC(),
+		// ユーザー作成プレイリストはYouTube側のIDを持たないので、
+		// NOT NULL かつ unique な external_id にはpublic_idの文字列を流用する。
+		// bulk fetchで取り込むプレイリストはWithPlaylistExternalIDで上書きする。
+		ExternalID: id.String(),
 	})
 
 	for _, opt := range opts {

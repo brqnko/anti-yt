@@ -21,6 +21,7 @@ type Querier interface {
 	CopyPlaylistVideos(ctx context.Context, arg CopyPlaylistVideosParams) (int, error)
 	// m_user_authorizationの件数を取得する（日次レポート用）
 	CountAuthorizations(ctx context.Context) (int64, error)
+	CountPlaylistByExternalID(ctx context.Context, externalID string) (int, error)
 	CountUserPlaylists(ctx context.Context, userPublicID uuid.UUID) (int, error)
 	// m_user_authorization_idに紐づくh_userとm_userの数を数える
 	CountUsersByAuthorization(ctx context.Context, authorizationPublicID uuid.UUID) (int32, error)

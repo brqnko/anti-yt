@@ -68,6 +68,19 @@ func (q *Queries) CopyPlaylistVideos(ctx context.Context, arg CopyPlaylistVideos
 	return copied_count, err
 }
 
+const countPlaylistByExternalID = `-- name: CountPlaylistByExternalID :one
+SELECT COUNT(*)::int
+FROM m_playlist
+WHERE external_id = $1
+`
+
+func (q *Queries) CountPlaylistByExternalID(ctx context.Context, externalID string) (int, error) {
+	row := q.db.QueryRow(ctx, countPlaylistByExternalID, externalID)
+	var column_1 int
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const countUserPlaylists = `-- name: CountUserPlaylists :one
 SELECT COUNT(*)::int
 FROM m_playlist
@@ -180,7 +193,8 @@ SELECT
     playlist.visibility_code,
     playlist.playlist_code,
     playlist.video_count,
-    playlist.registered_at
+    playlist.registered_at,
+    playlist.external_id
 FROM
     m_playlist playlist
 WHERE
@@ -213,6 +227,7 @@ type GetPlaylistForUpdateRow struct {
 	PlaylistCode        int
 	VideoCount          int
 	RegisteredAt        time.Time
+	ExternalID          string
 }
 
 func (q *Queries) GetPlaylistForUpdate(ctx context.Context, arg GetPlaylistForUpdateParams) (GetPlaylistForUpdateRow, error) {
@@ -226,6 +241,7 @@ func (q *Queries) GetPlaylistForUpdate(ctx context.Context, arg GetPlaylistForUp
 		&i.PlaylistCode,
 		&i.VideoCount,
 		&i.RegisteredAt,
+		&i.ExternalID,
 	)
 	return i, err
 }
@@ -312,7 +328,8 @@ SELECT
     playlist.visibility_code,
     playlist.playlist_code,
     playlist.video_count,
-    playlist.registered_at
+    playlist.registered_at,
+    playlist.external_id
 FROM m_playlist playlist
 WHERE
     playlist.m_user_id = (SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1)
@@ -329,6 +346,7 @@ type GetWatchLaterForUpdateRow struct {
 	PlaylistCode        int
 	VideoCount          int
 	RegisteredAt        time.Time
+	ExternalID          string
 }
 
 func (q *Queries) GetWatchLaterForUpdate(ctx context.Context, userID uuid.UUID) (GetWatchLaterForUpdateRow, error) {
@@ -342,6 +360,7 @@ func (q *Queries) GetWatchLaterForUpdate(ctx context.Context, userID uuid.UUID) 
 		&i.PlaylistCode,
 		&i.VideoCount,
 		&i.RegisteredAt,
+		&i.ExternalID,
 	)
 	return i, err
 }
@@ -970,7 +989,8 @@ INSERT INTO
         playlist_code,
         video_count,
         public_id,
-        registered_at
+        registered_at,
+        external_id
     )
 VALUES
     (
@@ -1000,7 +1020,8 @@ VALUES
         $6,
         $7,
         $8,
-        $9
+        $9,
+        $10
     )
 ON CONFLICT (public_id) DO UPDATE SET
     playlist_title = EXCLUDED.playlist_title,
@@ -1024,6 +1045,7 @@ type UpsertPlaylistParams struct {
 	VideoCount          int
 	PublicID            uuid.UUID
 	RegisteredAt        time.Time
+	ExternalID          string
 }
 
 func (q *Queries) UpsertPlaylist(ctx context.Context, arg UpsertPlaylistParams) (int64, error) {
@@ -1037,6 +1059,7 @@ func (q *Queries) UpsertPlaylist(ctx context.Context, arg UpsertPlaylistParams) 
 		arg.VideoCount,
 		arg.PublicID,
 		arg.RegisteredAt,
+		arg.ExternalID,
 	)
 	var m_playlist_id int64
 	err := row.Scan(&m_playlist_id)
@@ -1054,7 +1077,8 @@ INSERT INTO
         playlist_code,
         video_count,
         public_id,
-        registered_at
+        registered_at,
+        external_id
     )
 VALUES
     (
@@ -1075,7 +1099,8 @@ VALUES
         $5,
         $6,
         $7,
-        $8
+        $8,
+        $9
     )
 ON CONFLICT (public_id) DO UPDATE SET
     playlist_title = EXCLUDED.playlist_title,
@@ -1098,6 +1123,7 @@ type UpsertSystemPlaylistParams struct {
 	VideoCount          int
 	PublicID            uuid.UUID
 	RegisteredAt        time.Time
+	ExternalID          string
 }
 
 func (q *Queries) UpsertSystemPlaylist(ctx context.Context, arg UpsertSystemPlaylistParams) (int64, error) {
@@ -1110,6 +1136,7 @@ func (q *Queries) UpsertSystemPlaylist(ctx context.Context, arg UpsertSystemPlay
 		arg.VideoCount,
 		arg.PublicID,
 		arg.RegisteredAt,
+		arg.ExternalID,
 	)
 	var m_playlist_id int64
 	err := row.Scan(&m_playlist_id)

@@ -150,7 +150,19 @@ channelLoop:
 			continue channelLoop
 		}
 
+		playlistQS := playlist.NewPlaylistQueryService(j.db)
 		for _, ytPlaylist := range ytPlaylists {
+			// 既に取り込み済みのプレイリストはquota節約のためスキップする
+			exists, err := playlistQS.ExistsByExternalID(ctx, ytPlaylist.ID)
+			if err != nil {
+				util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to check playlist existence(exhaust quota job)", slog.String("playlistID", ytPlaylist.ID), slog.Any("error", err))
+				continue
+			}
+			if exists {
+				util.LoggerFromContext(ctx).InfoContext(ctx, "skipping already fetched playlist", slog.String("playlistID", ytPlaylist.ID), slog.String("title", ytPlaylist.Title))
+				continue
+			}
+
 			util.LoggerFromContext(ctx).InfoContext(ctx, "importing playlist", slog.String("playlistID", ytPlaylist.ID), slog.String("title", ytPlaylist.Title))
 
 			// プレイリストの動画ID一覧を全ページ取得
@@ -290,6 +302,7 @@ channelLoop:
 				"external_auto",
 				playlist.WithPlaylistRegisteredAt(ytPlaylist.CreatedAt),
 				playlist.WithPlaylistChannelID(c.ID),
+				playlist.WithPlaylistExternalID(ytPlaylist.ID),
 			)
 			if err != nil {
 				util.LoggerFromContext(ctx).InfoContext(ctx, "failed to create playlist domain(exhaust quota job)", slog.Any("error", err))

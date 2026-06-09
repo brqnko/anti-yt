@@ -49,6 +49,7 @@ func (r *playlistRepositoryImpl) Save(ctx context.Context, playlist *Playlist) (
 		VideoCount:          playlist.VideoCount,
 		PublicID:            playlist.ID,
 		RegisteredAt:        playlist.RegisteredAt,
+		ExternalID:          playlist.ExternalID,
 	})
 	if err != nil {
 		return 0, err
@@ -69,6 +70,7 @@ func (r *playlistRepositoryImpl) SaveSystem(ctx context.Context, playlist *Playl
 		VideoCount:          playlist.VideoCount,
 		PublicID:            playlist.ID,
 		RegisteredAt:        playlist.RegisteredAt,
+		ExternalID:          playlist.ExternalID,
 	})
 	if err != nil {
 		return 0, err
@@ -103,6 +105,7 @@ func (r *playlistRepositoryImpl) FindForUpdate(ctx context.Context, userID, play
 		WithPlaylistID(row.PublicID),
 		WithPlaylistVideoCount(row.VideoCount),
 		WithPlaylistRegisteredAt(row.RegisteredAt),
+		WithPlaylistExternalID(row.ExternalID),
 	)
 	if err != nil {
 		return nil, err
@@ -197,6 +200,7 @@ func (r *playlistRepositoryImpl) FindWatchLaterForUpdate(ctx context.Context, us
 		WithPlaylistID(row.PublicID),
 		WithPlaylistVideoCount(row.VideoCount),
 		WithPlaylistRegisteredAt(row.RegisteredAt),
+		WithPlaylistExternalID(row.ExternalID),
 	)
 	if err != nil {
 		return nil, err

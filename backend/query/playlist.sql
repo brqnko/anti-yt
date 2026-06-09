@@ -9,7 +9,8 @@ INSERT INTO
         playlist_code,
         video_count,
         public_id,
-        registered_at
+        registered_at,
+        external_id
     )
 VALUES
     (
@@ -39,7 +40,8 @@ VALUES
         @playlist_code,
         @video_count,
         @public_id,
-        @registered_at
+        @registered_at,
+        @external_id
     )
 ON CONFLICT (public_id) DO UPDATE SET
     playlist_title = EXCLUDED.playlist_title,
@@ -60,7 +62,8 @@ SELECT
     playlist.visibility_code,
     playlist.playlist_code,
     playlist.video_count,
-    playlist.registered_at
+    playlist.registered_at,
+    playlist.external_id
 FROM
     m_playlist playlist
 WHERE
@@ -466,7 +469,8 @@ SELECT
     playlist.visibility_code,
     playlist.playlist_code,
     playlist.video_count,
-    playlist.registered_at
+    playlist.registered_at,
+    playlist.external_id
 FROM m_playlist playlist
 WHERE
     playlist.m_user_id = (SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_id LIMIT 1)
@@ -622,7 +626,8 @@ INSERT INTO
         playlist_code,
         video_count,
         public_id,
-        registered_at
+        registered_at,
+        external_id
     )
 VALUES
     (
@@ -643,7 +648,8 @@ VALUES
         @playlist_code,
         @video_count,
         @public_id,
-        @registered_at
+        @registered_at,
+        @external_id
     )
 ON CONFLICT (public_id) DO UPDATE SET
     playlist_title = EXCLUDED.playlist_title,
@@ -662,3 +668,8 @@ FROM m_playlist
 WHERE m_user_id = (
     SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_public_id LIMIT 1
 );
+
+-- name: CountPlaylistByExternalID :one
+SELECT COUNT(*)::int
+FROM m_playlist
+WHERE external_id = @external_id;

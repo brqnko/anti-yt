@@ -63,6 +63,7 @@ type PlaylistQueryService interface {
 	Find(ctx context.Context, userID uuid.UUID, playlistID uuid.UUID) (GetPlaylistDetailView, error)
 	FindPlaylistItems(ctx context.Context, userID, playlistID uuid.UUID, cursor *uuid.UUID, limit int32) ([]GetPlaylistItemView, error)
 	FindRecentPlaylists(ctx context.Context, userID uuid.UUID) ([]GetChannelPlaylistsView, error)
+	ExistsByExternalID(ctx context.Context, externalID string) (bool, error)
 }
 
 type playlistQueryServiceImpl struct {
@@ -73,6 +74,16 @@ func NewPlaylistQueryService(db *pgxpool.Pool) PlaylistQueryService {
 	return &playlistQueryServiceImpl{
 		q: sqlc.New(db),
 	}
+}
+
+func (p *playlistQueryServiceImpl) ExistsByExternalID(ctx context.Context, externalID string) (_ bool, err error) {
+	defer util.Wrap(&err, "playlist.(*playlistQueryServiceImpl).ExistsByExternalID(externalID=%s)", externalID)
+
+	count, err := p.q.CountPlaylistByExternalID(ctx, externalID)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 func (p *playlistQueryServiceImpl) FindPlaylists(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetPlaylistsView, err error) {
