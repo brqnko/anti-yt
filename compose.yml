@@ -11,7 +11,11 @@ services:
       - jwt-public
     restart: unless-stopped
     networks:
-      - app-network
+      app-network:
+        # 共有ネットワーク上で他プロジェクトのサービス名と衝突しない一意な名前。
+        # nginxはこのエイリアスを参照する
+        aliases:
+          - anti-yt-backend
 
   frontend:
     build:

@@ -164,6 +164,75 @@ func (q *Queries) ListRefreshTokens(ctx context.Context, arg ListRefreshTokensPa
 	return items, nil
 }
 
+const renewRefreshToken = `-- name: RenewRefreshToken :one
+WITH updated AS (
+    UPDATE
+        m_refresh_token
+    SET
+        expires_at = $1,
+        ip_address = $2,
+        user_agent = $3,
+        country_code = $4,
+        city_name = $5,
+        browser_name = $6,
+        device_type = $7,
+        updated_at = current_timestamp,
+        access_token_jti = $8,
+        last_logged_in_at = $9
+    WHERE
+        token_hash = $10 -- NOTE: token_hashにunique indexがあるため、expires_atにインデックスは張らなくてもよい
+        AND expires_at > current_timestamp
+    RETURNING
+        m_user_authorization_id
+)
+SELECT
+    m_user.public_id
+FROM
+    m_user, updated
+WHERE
+    m_user.m_user_authorization_id = updated.m_user_authorization_id
+LIMIT
+    1
+`
+
+type RenewRefreshTokenParams struct {
+	NewExpiresAt      time.Time
+	NewIpAddress      string
+	NewUserAgent      string
+	NewCountryCode    string
+	NewCityName       string
+	NewBrowserName    string
+	NewDeviceType     string
+	NewAccessTokenJti uuid.UUID
+	LastLoggedInAt    time.Time
+	TokenHashForCheck string
+}
+
+// リフレッシュトークンのセッションを延長します。トークン自体はローテーションしません
+// (HttpOnly Cookieのみで保持されるため、複数タブの同時リフレッシュやiOSのCookie
+// 巻き戻りでトークンが食い違いセッションが破棄される問題を避ける)。
+// token_hash = token_hash_for_check
+// expires_at > current_timestamp
+// の条件をすべて満たす場合にのみ更新されます。条件を満たさない場合は、pgx.ErrNoRowsが返されます。
+// リフレッシュトークンに紐づくuser_authorization_idから、それに紐づくuserのpublic_idを返します。
+func (q *Queries) RenewRefreshToken(ctx context.Context, arg RenewRefreshTokenParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, renewRefreshToken,
+		arg.NewExpiresAt,
+		arg.NewIpAddress,
+		arg.NewUserAgent,
+		arg.NewCountryCode,
+		arg.NewCityName,
+		arg.NewBrowserName,
+		arg.NewDeviceType,
+		arg.NewAccessTokenJti,
+		arg.LastLoggedInAt,
+		arg.TokenHashForCheck,
+	)
+	var public_id uuid.UUID
+	err := row.Scan(&public_id)
+	return public_id, err
+}
+
 const revokeRefreshTokenByHash = `-- name: RevokeRefreshTokenByHash :one
 WITH deleted AS (
     DELETE FROM
@@ -238,79 +307,4 @@ func (q *Queries) RevokeRefreshTokenByID(ctx context.Context, arg RevokeRefreshT
 	var i RevokeRefreshTokenByIDRow
 	err := row.Scan(&i.PublicID, &i.AccessTokenJti)
 	return i, err
-}
-
-const rotateRefreshToken = `-- name: RotateRefreshToken :one
-WITH updated AS (
-    UPDATE
-        m_refresh_token
-    SET
-        token_hash = $1,
-        expires_at = $2,
-        ip_address = $3,
-        user_agent = $4,
-        country_code = $5,
-        city_name = $6,
-        browser_name = $7,
-        device_type = $8,
-        updated_at = current_timestamp,
-        generation = generation + 1,
-        access_token_jti = $9,
-        last_logged_in_at = $10
-    WHERE
-        token_hash = $11 -- NOTE: token_hashにunique indexがあるため、updated_at, expires_atにインデックスは張らなくてもよい
-        AND m_refresh_token.updated_at < $12
-        AND expires_at > current_timestamp
-    RETURNING
-        m_user_authorization_id
-)
-SELECT
-    m_user.public_id
-FROM
-    m_user, updated
-WHERE
-    m_user.m_user_authorization_id = updated.m_user_authorization_id
-LIMIT
-    1
-`
-
-type RotateRefreshTokenParams struct {
-	NewTokenHash      string
-	NewExpiresAt      time.Time
-	NewIpAddress      string
-	NewUserAgent      string
-	NewCountryCode    string
-	NewCityName       string
-	NewBrowserName    string
-	NewDeviceType     string
-	NewAccessTokenJti uuid.UUID
-	LastLoggedInAt    time.Time
-	TokenHashForCheck string
-	UpdatedAtForCheck time.Time
-}
-
-// リフレッシュトークンを更新します。
-// token_hash = token_hash_for_check
-// updated_at < updated_at_for_check
-// expires_at > current_timestamp
-// の条件をすべて満たす場合にのみ更新されます。条件を満たさない場合は、pgx.ErrNoRowsが返されます。
-// リフレッシュトークンに紐づくuser_authorization_idから、それに紐づくuserのpublic_idを返します。
-func (q *Queries) RotateRefreshToken(ctx context.Context, arg RotateRefreshTokenParams) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, rotateRefreshToken,
-		arg.NewTokenHash,
-		arg.NewExpiresAt,
-		arg.NewIpAddress,
-		arg.NewUserAgent,
-		arg.NewCountryCode,
-		arg.NewCityName,
-		arg.NewBrowserName,
-		arg.NewDeviceType,
-		arg.NewAccessTokenJti,
-		arg.LastLoggedInAt,
-		arg.TokenHashForCheck,
-		arg.UpdatedAtForCheck,
-	)
-	var public_id uuid.UUID
-	err := row.Scan(&public_id)
-	return public_id, err
 }

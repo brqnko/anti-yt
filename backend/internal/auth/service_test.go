@@ -566,12 +566,6 @@ func TestService_RefreshToken(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// RotateRefreshTokenのWHERE条件 "updated_at < now - TokenDuration" を満たすために
-		// updated_atを過去にずらす
-		_, err = db.Exec(ctx, "UPDATE m_refresh_token SET updated_at = $1 WHERE token_hash = $2",
-			time.Now().Add(-30*time.Minute), util.Sha256Hex(rawToken))
-		require.NoError(t, err)
-
 		svc := auth.NewService(
 			db,
 			new(GoogleClientMock{}),
@@ -589,13 +583,22 @@ func TestService_RefreshToken(t *testing.T) {
 		)
 
 		// action
-		newRefreshToken, accessToken, _, _, err := svc.RefreshToken(
+		returnedRefreshToken, accessToken, _, _, err := svc.RefreshToken(
 			ctx, rawToken, "127.0.0.1", "JP", "ua",
 		)
 
 		// assert
 		require.NoError(t, err)
-		assert.NotEmpty(t, newRefreshToken)
+		// トークンはローテーションされず、提示されたものがそのまま返る
+		assert.Equal(t, rawToken, returnedRefreshToken)
+		assert.Equal(t, "new-access-token", accessToken)
+
+		// 直後の連続リフレッシュも成功する(複数タブの同時リフレッシュ相当)
+		returnedRefreshToken, accessToken, _, _, err = svc.RefreshToken(
+			ctx, rawToken, "127.0.0.1", "JP", "ua",
+		)
+		require.NoError(t, err)
+		assert.Equal(t, rawToken, returnedRefreshToken)
 		assert.Equal(t, "new-access-token", accessToken)
 	})
 
@@ -617,6 +620,67 @@ func TestService_RefreshToken(t *testing.T) {
 		// action
 		_, _, _, _, err := svc.RefreshToken(
 			ctx, "nonexistent-token", "127.0.0.1", "JP", "ua",
+		)
+
+		// assert
+		assert.ErrorIs(t, err, core.ErrNotFound)
+	})
+
+	t.Run("expired token returns error", func(t *testing.T) {
+		// arrange
+		db := testutil.NewTestPool(t)
+		q := sqlc.New(db)
+		authResult, err := q.SaveAuthorization(ctx, sqlc.SaveAuthorizationParams{
+			Issuer:         "https://accounts.google.com",
+			Sub:            "google-sub-123",
+			LastLoggedInAt: time.Now(),
+			PublicID:       uuid.Must(uuid.NewV7()),
+		})
+		require.NoError(t, err)
+		userPublicID := uuid.Must(uuid.NewV7())
+		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
+			DisplayName:               "Test User",
+			LanguageCode:              "ja",
+			DailyScreenTimeSeconds:    3600,
+			JoinedAt:                  time.Now(),
+			PublicID:                  userPublicID,
+			UserAuthorizationPublicID: authResult.PublicID,
+		})
+		require.NoError(t, err)
+		rawToken := "expired-refresh-token"
+		_, err = q.InsertRefreshToken(ctx, sqlc.InsertRefreshTokenParams{
+			MUserAuthorizationID: authResult.MUserAuthorizationID,
+			TokenHash:            util.Sha256Hex(rawToken),
+			Generation:           1,
+			PublicID:             uuid.Must(uuid.NewV7()),
+			IpAddress:            "127.0.0.1",
+			UserAgent:            "ua",
+			CountryCode:          "JP",
+			CityName:             "",
+			BrowserName:          "test",
+			DeviceType:           "test",
+			ExpiresAt:            time.Now().Add(-time.Hour),
+			AccessTokenJti:       uuid.Must(uuid.NewV7()),
+			ActivatedAt:          time.Now(),
+			LastLoggedInAt:       time.Now(),
+		})
+		require.NoError(t, err)
+
+		svc := auth.NewService(
+			db,
+			new(GoogleClientMock{}),
+			nil,
+			(*channel.Service)(nil),
+			(*playlist.Service)(nil),
+			"http://localhost",
+			new(ServiceMock{}),
+			15*time.Minute, 7*24*time.Hour,
+			new(JtiBlacklistRepositoryMock{}),
+		)
+
+		// action
+		_, _, _, _, err = svc.RefreshToken(
+			ctx, rawToken, "127.0.0.1", "JP", "ua",
 		)
 
 		// assert

@@ -36,18 +36,18 @@ VALUES
 RETURNING
     m_refresh_token_id;
 
--- リフレッシュトークンを更新します。
+-- リフレッシュトークンのセッションを延長します。トークン自体はローテーションしません
+-- (HttpOnly Cookieのみで保持されるため、複数タブの同時リフレッシュやiOSのCookie
+-- 巻き戻りでトークンが食い違いセッションが破棄される問題を避ける)。
 -- token_hash = token_hash_for_check
--- updated_at < updated_at_for_check
 -- expires_at > current_timestamp
 -- の条件をすべて満たす場合にのみ更新されます。条件を満たさない場合は、pgx.ErrNoRowsが返されます。
 -- リフレッシュトークンに紐づくuser_authorization_idから、それに紐づくuserのpublic_idを返します。
--- name: RotateRefreshToken :one
+-- name: RenewRefreshToken :one
 WITH updated AS (
     UPDATE
         m_refresh_token
     SET
-        token_hash = @new_token_hash,
         expires_at = @new_expires_at,
         ip_address = @new_ip_address,
         user_agent = @new_user_agent,
@@ -56,12 +56,10 @@ WITH updated AS (
         browser_name = @new_browser_name,
         device_type = @new_device_type,
         updated_at = current_timestamp,
-        generation = generation + 1,
         access_token_jti = @new_access_token_jti,
         last_logged_in_at = @last_logged_in_at
     WHERE
-        token_hash = @token_hash_for_check -- NOTE: token_hashにunique indexがあるため、updated_at, expires_atにインデックスは張らなくてもよい
-        AND m_refresh_token.updated_at < @updated_at_for_check
+        token_hash = @token_hash_for_check -- NOTE: token_hashにunique indexがあるため、expires_atにインデックスは張らなくてもよい
         AND expires_at > current_timestamp
     RETURNING
         m_user_authorization_id

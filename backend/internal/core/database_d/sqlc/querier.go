@@ -106,6 +106,14 @@ type Querier interface {
 	PushRecentPlaylistId(ctx context.Context, arg PushRecentPlaylistIdParams) error
 	// セッションレベルのアドバイザリロックを解除
 	ReleaseAdvisoryLock(ctx context.Context, lockKey int64) (bool, error)
+	// リフレッシュトークンのセッションを延長します。トークン自体はローテーションしません
+	// (HttpOnly Cookieのみで保持されるため、複数タブの同時リフレッシュやiOSのCookie
+	// 巻き戻りでトークンが食い違いセッションが破棄される問題を避ける)。
+	// token_hash = token_hash_for_check
+	// expires_at > current_timestamp
+	// の条件をすべて満たす場合にのみ更新されます。条件を満たさない場合は、pgx.ErrNoRowsが返されます。
+	// リフレッシュトークンに紐づくuser_authorization_idから、それに紐づくuserのpublic_idを返します。
+	RenewRefreshToken(ctx context.Context, arg RenewRefreshTokenParams) (uuid.UUID, error)
 	// authorization_public_idに紐づく退会済みユーザーをh_userからm_userに復元する。
 	// 元のm_user_id (=h_user_id) を保ったまま戻すため、購読・プレイリスト・視聴履歴などの
 	// 関連データのFKがそのまま生きる。
@@ -120,13 +128,6 @@ type Querier interface {
 	// 削除されたレコードのpublic_idと、紐づくaccess_token_jtiが返されます。
 	// jtiは呼び出し側でブラックリストに保存します。
 	RevokeRefreshTokenByID(ctx context.Context, arg RevokeRefreshTokenByIDParams) (RevokeRefreshTokenByIDRow, error)
-	// リフレッシュトークンを更新します。
-	// token_hash = token_hash_for_check
-	// updated_at < updated_at_for_check
-	// expires_at > current_timestamp
-	// の条件をすべて満たす場合にのみ更新されます。条件を満たさない場合は、pgx.ErrNoRowsが返されます。
-	// リフレッシュトークンに紐づくuser_authorization_idから、それに紐づくuserのpublic_idを返します。
-	RotateRefreshToken(ctx context.Context, arg RotateRefreshTokenParams) (uuid.UUID, error)
 	// 認証テーブルにIssuerとSubを保存する
 	// IssuerとSubの組み合わせで一意制約があり、既に存在する場合は、何もしない。
 	// 重複した場合でも特にエラーは発生せず、既存のレコードが返される。

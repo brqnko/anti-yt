@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/core/database_d/sqlc"
@@ -62,7 +61,7 @@ type RefreshTokenRepository interface {
 	Save(ctx context.Context, authorizationID int64, refreshToken *RefreshToken) (int64, error)
 	RevokeByTokenHash(ctx context.Context, userID uuid.UUID, tokenHash string) error
 	RevokeByID(ctx context.Context, userID, sessionID uuid.UUID) (removedPublicID uuid.UUID, accessTokenJTI uuid.UUID, err error)
-	RotateRefreshToken(ctx context.Context, newRefreshToken *RefreshToken, tokenHashForCheck string, updatedAtForCheck time.Time) (_ uuid.UUID, err error)
+	RenewRefreshToken(ctx context.Context, refreshToken *RefreshToken) (_ uuid.UUID, err error)
 }
 
 type refreshTokenRepositoryImpl struct {
@@ -133,23 +132,21 @@ func (r *refreshTokenRepositoryImpl) RevokeByID(ctx context.Context, userID, ses
 	return row.PublicID, row.AccessTokenJti, nil
 }
 
-func (r *refreshTokenRepositoryImpl) RotateRefreshToken(ctx context.Context, newRefreshToken *RefreshToken, tokenHashForCheck string, updatedAtForCheck time.Time) (_ uuid.UUID, err error) {
-	defer util.Wrap(&err, "auth.(*refreshTokenRepositoryImpl).RotateRefreshToken")
+func (r *refreshTokenRepositoryImpl) RenewRefreshToken(ctx context.Context, refreshToken *RefreshToken) (_ uuid.UUID, err error) {
+	defer util.Wrap(&err, "auth.(*refreshTokenRepositoryImpl).RenewRefreshToken")
 
 	var userID uuid.UUID
-	userID, err = r.q.RotateRefreshToken(ctx, sqlc.RotateRefreshTokenParams{
-		NewTokenHash:      newRefreshToken.TokenHash,
-		NewExpiresAt:      newRefreshToken.ExpiresAt,
-		NewIpAddress:      newRefreshToken.IpAddress,
-		NewUserAgent:      newRefreshToken.UserAgent,
-		NewCountryCode:    newRefreshToken.CountryCode,
-		NewCityName:       newRefreshToken.CityName,
-		NewBrowserName:    newRefreshToken.BrowserName,
-		NewDeviceType:     newRefreshToken.DeviceType,
-		NewAccessTokenJti: newRefreshToken.AccessTokenJTI,
-		TokenHashForCheck: tokenHashForCheck,
-		UpdatedAtForCheck: updatedAtForCheck,
-		LastLoggedInAt:    newRefreshToken.LastLoggedInAt,
+	userID, err = r.q.RenewRefreshToken(ctx, sqlc.RenewRefreshTokenParams{
+		NewExpiresAt:      refreshToken.ExpiresAt,
+		NewIpAddress:      refreshToken.IpAddress,
+		NewUserAgent:      refreshToken.UserAgent,
+		NewCountryCode:    refreshToken.CountryCode,
+		NewCityName:       refreshToken.CityName,
+		NewBrowserName:    refreshToken.BrowserName,
+		NewDeviceType:     refreshToken.DeviceType,
+		NewAccessTokenJti: refreshToken.AccessTokenJTI,
+		TokenHashForCheck: refreshToken.TokenHash,
+		LastLoggedInAt:    refreshToken.LastLoggedInAt,
 	})
 
 	if err != nil {

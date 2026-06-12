@@ -266,19 +266,15 @@ func (s *Service) Logout(ctx context.Context, accessToken, refreshToken string) 
 func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, countryCode, userAgent string) (_, _ string, _, _ time.Time, err error) {
 	defer util.Wrap(&err, "auth.(*Service).RefreshToken")
 
-	tokenHash := util.Sha256Hex(refreshToken)
-
-	newToken, err := util.RandomStringUrlSafe(32)
-	if err != nil {
-		return "", "", time.Time{}, time.Time{}, err
-	}
-	newRefreshToken, err := NewRefreshToken(
+	// トークン自体はローテーションせず、有効期限の延長とメタデータ
+	// (新しいaccess_token_jti, IP/UA等)の更新のみ行う
+	renewedRefreshToken, err := NewRefreshToken(
 		userAgent,
 		ipAddress,
 		countryCode,
 		"",
 		time.Now().UTC().Add(s.refreshTokenDuration),
-		WithRefreshTokenRaw(newToken),
+		WithRefreshTokenRaw(refreshToken),
 	)
 	if err != nil {
 		return "", "", time.Time{}, time.Time{}, err
@@ -295,12 +291,12 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 	}()
 	q := sqlc.New(tx)
 
-	userID, err := NewRefreshTokenRepository(q).RotateRefreshToken(ctx, newRefreshToken, tokenHash, time.Now().UTC().Add(-s.accessTokenDuration).UTC())
-	if err != nil { // 条件を満たさない、あるいはDBエラー
+	userID, err := NewRefreshTokenRepository(q).RenewRefreshToken(ctx, renewedRefreshToken)
+	if err != nil { // トークン不一致・失効、あるいはDBエラー
 		return "", "", time.Time{}, time.Time{}, err
 	}
 
-	accessTokenString, signedAtExpiresAtD, err := s.jwtService.SignUserAccessToken(userID, newRefreshToken.AccessTokenJTI, s.serverURL)
+	accessTokenString, signedAtExpiresAtD, err := s.jwtService.SignUserAccessToken(userID, renewedRefreshToken.AccessTokenJTI, s.serverURL)
 	if err != nil {
 		return "", "", time.Time{}, time.Time{}, err
 	}
@@ -309,7 +305,7 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken, ipAddress, cou
 		return "", "", time.Time{}, time.Time{}, err
 	}
 
-	return newToken, accessTokenString, signedAtExpiresAtD, newRefreshToken.ExpiresAt, nil
+	return refreshToken, accessTokenString, signedAtExpiresAtD, renewedRefreshToken.ExpiresAt, nil
 }
 
 func (s *Service) GetSessions(ctx context.Context, userID uuid.UUID, cursor *uuid.UUID, limit int32) (_ []GetSessionsView, _ bool, err error) {
