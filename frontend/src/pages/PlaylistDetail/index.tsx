@@ -656,9 +656,13 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
     setIsRemoving(true);
     setRemoveError(false);
     try {
-      await getPlaylist().deletePlaylistsPlaylistIdVideos(playlistId, {
-        video_id: removeTarget.video_id,
-      });
+      if (playlistInfo?.playlist_type === "watch_later") {
+        await getPlaylist().deleteVideosVideoIdWatchLater(removeTarget.video_id);
+      } else {
+        await getPlaylist().deletePlaylistsPlaylistIdVideos(playlistId, {
+          video_id: removeTarget.video_id,
+        });
+      }
       setVideos((prev) =>
         prev.filter((v) => v.video_id !== removeTarget.video_id),
       );
@@ -835,7 +839,8 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                         playlistId={playlistId}
                       />
                     </div>
-                    {playlistInfo.playlist_type === "normal" && (
+                    {(playlistInfo.playlist_type === "normal" ||
+                      playlistInfo.playlist_type === "watch_later") && (
                       <button
                         class="flex-shrink-0 p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer bg-transparent border-none opacity-100 lg:opacity-0 lg:group-hover/row:opacity-100 focus:opacity-100"
                         onClick={() => setRemoveTarget(video)}
