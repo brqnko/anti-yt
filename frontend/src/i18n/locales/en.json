@@ -513,8 +513,8 @@
       },
       "typeFilter": "Type",
       "typeAll": "All",
-      "typeChannels": "Channels only",
-      "typeVideos": "Videos only",
+      "typeChannels": "Channels",
+      "typeVideos": "Videos",
       "apply": "Apply",
       "cancel": "Cancel",
       "reset": "Reset"

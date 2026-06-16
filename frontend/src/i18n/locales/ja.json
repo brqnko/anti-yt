@@ -515,8 +515,8 @@
       },
       "typeFilter": "タイプ",
       "typeAll": "すべて",
-      "typeChannels": "チャンネルのみ",
-      "typeVideos": "動画のみ",
+      "typeChannels": "チャンネル",
+      "typeVideos": "動画",
       "apply": "適用",
       "cancel": "キャンセル",
       "reset": "リセット"

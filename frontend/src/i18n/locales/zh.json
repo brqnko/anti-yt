@@ -513,8 +513,8 @@
       },
       "typeFilter": "类型",
       "typeAll": "全部",
-      "typeChannels": "仅频道",
-      "typeVideos": "仅视频",
+      "typeChannels": "频道",
+      "typeVideos": "视频",
       "apply": "应用",
       "cancel": "取消",
       "reset": "重置"
