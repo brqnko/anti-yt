@@ -21,6 +21,7 @@
   },
   "videoCard": {
     "moreOptions": "More options",
+    "watched": "Watched",
     "subscribeChannel": "Subscribe",
     "subscribeDesc": "Allow into your feed",
     "markWatched": "Mark as watched",
@@ -77,61 +78,145 @@
   },
   "terms": {
     "title": "Terms of Service",
-    "metaDescription": "Terms of Service for anti-yt — the rules and obligations that apply when you use our distraction-free YouTube viewer.",
+    "metaDescription": "Terms of Service for anti-yt — the rights, obligations, prohibited conduct, and disclaimers that apply when you use the Service.",
+    "intro": "These Terms of Service (hereinafter, the \"Terms\") set out the conditions for using the various services provided by anti-yt (hereinafter, the \"Service\"). Registered users (hereinafter, \"Users\") shall use the Service in accordance with these Terms.",
+    "effectiveDate": "Last updated: June 20, 2026",
     "sections": {
-      "acceptance": {
-        "title": "Acceptance of Terms",
-        "body": "By accessing and using anti-yt, you agree to be bound by these Terms of Service. If you do not agree to all of these terms, do not use our services. anti-yt provides tools to help you manage your digital consumption through browser-level controls and session management designed to reduce platform addiction."
+      "application": {
+        "title": "Scope of Application",
+        "body": "These Terms apply to all relationships between Users and the Service concerning the use of the Service.\nIn addition to these Terms, the Service may establish various rules and provisions regarding use of the Service (hereinafter, \"Individual Provisions\"). Regardless of their name, these Individual Provisions shall constitute a part of these Terms.\nWhere the provisions of these Terms conflict with those of the Individual Provisions, the Individual Provisions shall prevail unless otherwise stated therein."
       },
-      "serviceDescription": {
-        "title": "Service Description",
-        "body": "anti-yt operates as a digital intermediary that assists users in setting intentional boundaries. Our service includes site blocking, time limits, and content filtering. You acknowledge that these restrictions are self-imposed but enforced by our software to aid in habit formation and long-term behavioral change."
+      "registration": {
+        "title": "Registration",
+        "body": "Registration is completed when a prospective User agrees to these Terms, applies for registration in the manner prescribed by the Service, and the Service approves the application. Registration for the Service is performed through authentication with a Google account.\nThe Service may decline to approve an application for registration if it determines that the applicant falls under any of the following, and is under no obligation to disclose the reasons:\n(1) Where false information was provided in the application;\n(2) Where the application is from a person who has previously violated these Terms;\n(3) Where the Service otherwise determines the registration to be inappropriate."
       },
-      "userObligations": {
-        "title": "User Obligations",
-        "body": "You agree to use anti-yt solely for personal, non-commercial purposes. You shall not attempt to circumvent the technical limitations of the software through unauthorized modification or use of third-party tools designed to bypass anti-yt restrictions, as this undermines the therapeutic intent of the service."
+      "account": {
+        "title": "Account Management",
+        "body": "Users shall appropriately manage, at their own responsibility, their Service account and the Google account used for authentication.\nUnder no circumstances may a User transfer, lend, or share their account with any third party.\nThe User shall bear responsibility for any damage arising from inadequate management of the account, errors in use, or use by a third party, and the Service shall bear no responsibility whatsoever."
       },
-      "privacy": {
-        "title": "Privacy and Data Collection",
-        "body": "Your privacy is fundamental. We collect only the data necessary to provide our services. This includes usage statistics required for reporting and technical logs for troubleshooting. We do not sell your personal data or browsing history to third parties. Our commitment is to your recovery, not your data monetization."
+      "prohibited": {
+        "title": "Prohibited Matters",
+        "body": "In using the Service, Users shall not engage in any of the following acts:",
+        "items": [
+          "Acts that violate laws and regulations or public order and morals",
+          "Acts related to criminal conduct",
+          "Acts that infringe the copyrights, trademarks, or other intellectual property rights contained in the Service",
+          "Acts that destroy or interfere with the functions of the servers or networks of the Service, other Users, or third parties",
+          "Commercially exploiting information obtained through the Service",
+          "Acts that may interfere with the operation of the Service",
+          "Unauthorized access or attempts thereof",
+          "Collecting or accumulating the personal information of other Users",
+          "Using the Service for improper purposes",
+          "Acts that cause disadvantage, damage, or discomfort to other Users of the Service or to third parties",
+          "Impersonating another User",
+          "Directly or indirectly providing benefits to antisocial forces",
+          "Acts that attempt to circumvent or disable the viewing limits or other technical restrictions of the Service",
+          "Any other acts that the Service deems inappropriate"
+        ]
       },
-      "subscription": {
-        "title": "Subscription and Billing",
-        "body": "anti-yt offers premium features via subscription. Fees are billed at the start of each period and are non-refundable except where required by law. You may cancel your subscription at any time through your account settings, and you will continue to have access to premium features until the end of the current billing cycle."
+      "suspension": {
+        "title": "Suspension of the Service",
+        "body": "The Service may suspend or interrupt all or part of the Service without prior notice to Users if it determines that any of the following applies:\n(1) When performing maintenance, inspection, or updates of the computer systems related to the Service;\n(2) When provision of the Service becomes difficult due to force majeure such as earthquake, lightning, fire, power outage, or natural disaster;\n(3) When computers or communication lines are stopped due to an accident;\n(4) When the Service otherwise determines that provision of the Service is difficult.\nThe Service shall bear no responsibility whatsoever for any disadvantage or damage suffered by Users or third parties resulting from the suspension or interruption of the Service."
+      },
+      "restriction": {
+        "title": "Usage Restrictions and Deregistration",
+        "body": "The Service may, without prior notice, restrict all or part of a User's use of the Service or cancel their registration if the User falls under any of the following:\n(1) Where the User violates any provision of these Terms;\n(2) Where it is found that there are false facts in the registered information;\n(3) Where there is no response to contact from the Service for a certain period;\n(4) Where there has been no use of the Service for a certain period since the last use;\n(5) Where the Service otherwise determines the use of the Service to be inappropriate.\nThe Service shall bear no responsibility for any damage caused to Users by actions taken by the Service under this Article."
+      },
+      "withdrawal": {
+        "title": "Withdrawal",
+        "body": "Users may withdraw from the Service through the withdrawal procedure prescribed by the Service. The handling of a User's information after withdrawal shall be governed by the separately established Privacy Policy."
+      },
+      "disclaimer": {
+        "title": "Disclaimer of Warranties and Limitation of Liability",
+        "body": "The Service does not expressly or impliedly warrant that the Service is free from de facto or legal defects (including defects relating to safety, reliability, accuracy, completeness, effectiveness, fitness for a particular purpose, and security, as well as errors, bugs, and infringements of rights).\nThe Service displays videos and other content provided by YouTube, and the Service bears no responsibility whatsoever for the content of videos or other materials displayed through the Service.\nThe Service shall bear no responsibility whatsoever for any damage caused to Users arising from the Service, except in cases of the Service's willful misconduct or gross negligence."
+      },
+      "serviceChange": {
+        "title": "Changes to the Service",
+        "body": "The Service may change, add to, or discontinue the content of the Service upon prior notice to Users, and Users shall consent thereto."
+      },
+      "termsChange": {
+        "title": "Changes to These Terms",
+        "body": "The Service may change these Terms at any time without notice to Users when it deems necessary. If a User begins using the Service after the revision of these Terms, that User shall be deemed to have agreed to the revised Terms."
+      },
+      "personalInfo": {
+        "title": "Handling of Personal Information",
+        "body": "The Service shall appropriately handle personal information obtained through use of the Service in accordance with the Service's \"Privacy Policy.\""
+      },
+      "notification": {
+        "title": "Notice and Contact",
+        "body": "Notices or communications between Users and the Service shall be made in the manner prescribed by the Service. Unless the User submits a change in accordance with a method separately prescribed by the Service, the Service shall regard the currently registered contact information as valid and contact the User accordingly, and such notice or communication shall be deemed to have reached the User at the time of dispatch."
+      },
+      "assignment": {
+        "title": "Prohibition of Assignment of Rights and Obligations",
+        "body": "Users may not assign or pledge as collateral their contractual status or any rights or obligations under these Terms to a third party without the prior written consent of the Service."
+      },
+      "governingLaw": {
+        "title": "Governing Law and Jurisdiction",
+        "body": "These Terms shall be interpreted in accordance with the laws of Japan.\nIn the event of a dispute concerning the Service, the court having jurisdiction over the location of the Service's operator shall have exclusive agreed jurisdiction."
       }
     }
   },
   "privacy": {
     "title": "Privacy Policy",
-    "metaDescription": "Privacy Policy for anti-yt — what data we collect, how we use it, and your rights. We do not sell your personal data.",
+    "metaDescription": "Privacy Policy for anti-yt — the information we collect, how we use it, third-party provision, and procedures for disclosure, correction, and deletion.",
+    "intro": "anti-yt (hereinafter, the \"Service\") establishes the following Privacy Policy (hereinafter, this \"Policy\") regarding the handling of user information, including personal information, in the Service.",
+    "effectiveDate": "Last updated: June 20, 2026",
     "sections": {
-      "dataCollection": {
-        "title": "Information We Collect",
-        "body": "anti-yt collects only the minimum data necessary to provide and improve our services. This includes the email address provided during account creation, anonymized usage statistics, and technical logs for troubleshooting. We do not collect your browsing history or details of blocked content."
+      "definition": {
+        "title": "Personal Information",
+        "body": "\"Personal information\" means \"personal information\" as defined in the Act on the Protection of Personal Information: information about a living individual that can identify the specific individual by name, date of birth, or other description contained in the information, as well as information that can identify a specific individual on its own, such as personal identification data."
       },
-      "dataUsage": {
-        "title": "How We Use Your Information",
-        "body": "The data we collect is used solely to provide, maintain, and improve our services, generate usage reports, diagnose and resolve technical issues, and send important service-related notifications. We do not use your data for marketing purposes."
+      "collection": {
+        "title": "How We Collect Personal Information",
+        "body": "When a User registers, the Service obtains an identifier (ID) for identifying the account through authentication with a Google account. The Service does not obtain information such as the User's name, email address, postal address, or phone number.\nThe Service may also obtain information generated or registered by Users in the course of using the Service (such as subscribed channels, playlists, watch history, viewing-limit settings, and usage statistics), as well as session information related to access (such as device type, approximate region, and user agent) and technical logs of operating status."
       },
-      "dataSharing": {
-        "title": "Third-Party Sharing",
-        "body": "anti-yt does not sell, rent, or trade your personal data to third parties. We may share minimal data with trusted partners essential to service operations (such as hosting providers) only when required, or when we are legally obligated to do so."
+      "purpose": {
+        "title": "Purposes of Collecting and Using Personal Information",
+        "body": "The purposes for which the Service collects and uses personal information are as follows:",
+        "items": [
+          "To provide and operate the Service",
+          "To respond to inquiries from Users (including verifying identity)",
+          "To send necessary notices regarding new features, updates, maintenance, and important announcements of the service being used",
+          "To identify Users who have violated the Terms of Service or who attempt to use the Service for improper or unjust purposes, and to refuse their use",
+          "To allow Users to view, change, or delete their own registered information and to view their usage status",
+          "For purposes incidental to the above purposes of use"
+        ]
       },
-      "cookies": {
-        "title": "Cookies and Tracking",
-        "body": "anti-yt uses only cookies necessary for authentication and session management. We do not use third-party tracking cookies or advertising cookies. You can manage cookies through your browser settings, though some features may be limited as a result."
+      "purposeChange": {
+        "title": "Changes to Purposes of Use",
+        "body": "The Service shall change the purposes of use of personal information only where it is reasonably recognized that the new purpose of use is related to the purpose before the change.\nWhere the purpose of use has been changed, the Service shall notify Users of the changed purpose by the method prescribed by the Service, or announce it on this website."
       },
-      "security": {
-        "title": "Data Protection",
-        "body": "We implement industry-standard encryption and security measures to protect your data. Data is transmitted using encrypted connections and protected from unauthorized access through access controls. However, no method of transmission over the Internet is 100% secure."
+      "thirdParty": {
+        "title": "Provision of Personal Information to Third Parties",
+        "body": "Except in the following cases, the Service will not provide personal information to third parties without obtaining the User's prior consent, except where permitted under the Act on the Protection of Personal Information and other laws. The Service does not sell, lend, or trade Users' personal information.",
+        "items": [
+          "Where required by laws and regulations",
+          "Where necessary to protect a person's life, body, or property, and it is difficult to obtain the consent of the individual",
+          "Where particularly necessary to improve public health or promote the sound development of children, and it is difficult to obtain the consent of the individual",
+          "Where it is necessary to cooperate with a national agency, a local government, or a party entrusted thereby in performing duties prescribed by law, and obtaining the consent of the individual is likely to impede the performance of such duties",
+          "Where handling is entrusted to a subcontractor, such as a hosting provider, to the extent necessary for the operation of the Service"
+        ]
       },
-      "userRights": {
-        "title": "Your Rights",
-        "body": "You have the right to request access to, correction of, and deletion of your personal data. You can export your data or delete your account through your account settings. Upon account deletion, all associated data will be permanently erased within 30 days."
+      "disclosure": {
+        "title": "Disclosure of Personal Information",
+        "body": "When requested by an individual to disclose personal information, the Service will disclose it to the individual without delay. However, if disclosure would fall under any of the following, the Service may decide not to disclose all or part of it, and will notify the individual to that effect without delay:\n(1) Where there is a risk of harming the life, body, property, or other rights or interests of the individual or a third party;\n(2) Where there is a risk of significantly impeding the proper conduct of the Service's business;\n(3) Where it would otherwise violate laws and regulations."
       },
-      "changes": {
-        "title": "Policy Changes",
-        "body": "This privacy policy may be updated as needed. We will notify you of significant changes through in-service notifications or email. By continuing to use the service after changes are made, you agree to the updated policy."
+      "correction": {
+        "title": "Correction and Deletion of Personal Information",
+        "body": "Where the personal information held by the Service is incorrect, Users may request the Service to correct, add to, or delete (hereinafter, \"Correction, etc.\") the personal information in accordance with the procedure prescribed by the Service.\nUsers may export their own data and delete their account from the profile settings of the Service. Upon deletion of an account, all associated data will be erased within 30 days.\nWhere the Service receives a request from a User as described in the preceding paragraph and determines that it is necessary to respond to the request, it shall make the Correction, etc. of the personal information without delay."
+      },
+      "suspensionOfUse": {
+        "title": "Suspension of Use of Personal Information",
+        "body": "Where the Service is requested by an individual to suspend or erase (hereinafter, \"Suspension of Use, etc.\") personal information on the grounds that it is being handled beyond the scope of the purposes of use or that it was obtained by improper means, the Service will conduct the necessary investigation without delay and, based on the results, carry out the Suspension of Use, etc. of the personal information and notify the individual to that effect. However, where Suspension of Use, etc. would require substantial cost or is otherwise difficult, and where alternative measures necessary to protect the rights and interests of the User can be taken, the Service will take such alternative measures."
+      },
+      "policyChange": {
+        "title": "Changes to This Privacy Policy",
+        "body": "The contents of this Policy may be changed without notice to Users, except for matters otherwise provided by law or in this Policy.\nUnless otherwise specified by the Service, the revised Privacy Policy shall take effect from the time it is posted on this website."
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "For inquiries regarding this Policy, please use the contact address below.\n\nService name: anti-yt\nOperator: brqnko",
+        "linkLabel": "contact@brqnko.rs"
       }
     }
   },
@@ -327,6 +412,8 @@
     "title": "Analytics",
     "timeWasted": "Time Watched",
     "dailyAverage": "Daily Average",
+    "totalVideos": "Videos Watched",
+    "totalVideosUnit": "",
     "weeklyUsageTrends": "This Week's Usage",
     "dailyLimit": "Daily Limit ({{hours}}h)",
     "tooltipVideos": "{{count}} videos",
@@ -453,7 +540,6 @@
   },
   "explore": {
     "pageTitle": "Explore Channels",
-    "metaDescription": "Discover curated YouTube channels worth subscribing to, organized by category — handpicked alternatives to algorithmic recommendations.",
     "title": "Explore Channels",
     "allCategories": "All Categories",
     "noChannels": "No channels found",
@@ -472,7 +558,6 @@
   },
   "search": {
     "pageTitle": "Search",
-    "metaDescription": "Search YouTube videos without the algorithmic feed. Find what you actually want to watch on anti-yt.",
     "inputPlaceholder": "Search...",
     "placeholder": "Search",
     "resultsFor": "Results for \"{{query}}\"",

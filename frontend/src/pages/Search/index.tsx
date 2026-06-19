@@ -52,7 +52,6 @@ function SearchContent() {
   const searchQuery = params.get("q") || "";
   useMeta({
     title: searchQuery ? `${searchQuery} - ${t("search.pageTitle")}` : t("search.pageTitle"),
-    description: t("search.metaDescription"),
     canonicalPath: "/search",
   });
 

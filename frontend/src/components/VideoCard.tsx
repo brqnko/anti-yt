@@ -35,6 +35,7 @@ const VideoThumbnail = memo(function VideoThumbnail({
   lengthSeconds,
   progressPercent,
   size,
+  isWatched,
 }: {
   watchUrl: string;
   thumbnailUrl: string;
@@ -42,7 +43,9 @@ const VideoThumbnail = memo(function VideoThumbnail({
   lengthSeconds: number;
   progressPercent: number;
   size: "card" | "row";
+  isWatched?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <a
       href={watchUrl}
@@ -57,9 +60,14 @@ const VideoThumbnail = memo(function VideoThumbnail({
         decoding="async"
         width={480}
         height={270}
-        class="absolute inset-0 w-full h-full object-cover"
+        class={`absolute inset-0 w-full h-full object-cover${isWatched ? " brightness-[0.55]" : ""}`}
       />
       <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/thumb:opacity-100" />
+      {isWatched && (
+        <span class="absolute top-2 left-2 bg-black/80 text-white text-xs font-bold px-1.5 py-0.5 rounded">
+          {t("videoCard.watched")}
+        </span>
+      )}
       <span class="absolute bottom-2 right-2 bg-black/80 text-white text-xs font-bold px-1.5 py-0.5 rounded">
         {formatDuration(lengthSeconds)}
       </span>
@@ -221,6 +229,7 @@ export const VideoCard = memo(function VideoCard({
       lengthSeconds={lengthSeconds}
       progressPercent={progressPercent}
       size={layout}
+      isWatched={isWatched}
     />
   );
 

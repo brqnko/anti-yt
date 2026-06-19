@@ -78,6 +78,8 @@ export type PlaylistType = typeof PlaylistType[keyof typeof PlaylistType];
 
 export const PlaylistType = {
   normal: 'normal',
+  external_auto: 'external_auto',
+  watch_later: 'watch_later',
 } as const;
 
 /**

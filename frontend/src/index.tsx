@@ -11,6 +11,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { ScreenTimeGate } from "./components/ScreenTimeGate";
 import { ErrorBoundary, reloadForStaleChunk } from "./components/ErrorBoundary";
+import { RobotsMeta } from "./components/RobotsMeta";
 import "./i18n";
 
 const swrConfig: SWRConfiguration = {
@@ -44,27 +45,30 @@ import "./style.css";
 
 function AppContent() {
   return (
-    <Router>
-      <Route path="/" component={Dashboard} />
-      <Route path="/channels" component={Channels} />
-      <Route path="/channels/explore" component={Explore} />
-      <Route path="/channels/:channelId" component={ChannelDetail} />
-      <Route path="/channels/:channelId/playlists" component={ChannelPlaylists} />
-      <Route path="/watch/:videoId" component={VideoPlayer} />
-      <Route path="/analytics" component={Analytics} />
-      <Route path="/history" component={History} />
-      <Route path="/playlists" component={Playlists} />
-      <Route path="/playlists/:playlistId" component={PlaylistDetail} />
-      <Route path="/search" component={Search} />
-      <Route path="/profile" component={Profile} />
-      <Route path="/screen-time-settings" component={ScreenTimeSettings} />
-      <Route path="/register" component={Register} />
-      <Route path="/reactivation" component={Reactivation} />
-      <Route path="/terms" component={Terms} />
-      <Route path="/privacy" component={Privacy} />
-      <Route path="/about" component={About} />
-      <Route default component={NotFound} />
-    </Router>
+    <>
+      <RobotsMeta />
+      <Router>
+        <Route path="/" component={Dashboard} />
+        <Route path="/channels" component={Channels} />
+        <Route path="/channels/explore" component={Explore} />
+        <Route path="/channels/:channelId" component={ChannelDetail} />
+        <Route path="/channels/:channelId/playlists" component={ChannelPlaylists} />
+        <Route path="/watch/:videoId" component={VideoPlayer} />
+        <Route path="/analytics" component={Analytics} />
+        <Route path="/history" component={History} />
+        <Route path="/playlists" component={Playlists} />
+        <Route path="/playlists/:playlistId" component={PlaylistDetail} />
+        <Route path="/search" component={Search} />
+        <Route path="/profile" component={Profile} />
+        <Route path="/screen-time-settings" component={ScreenTimeSettings} />
+        <Route path="/register" component={Register} />
+        <Route path="/reactivation" component={Reactivation} />
+        <Route path="/terms" component={Terms} />
+        <Route path="/privacy" component={Privacy} />
+        <Route path="/about" component={About} />
+        <Route default component={NotFound} />
+      </Router>
+    </>
   );
 }
 

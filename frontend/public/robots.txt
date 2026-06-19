@@ -1,19 +1,17 @@
 User-agent: *
+
+# Account-only / utility pages — no value to crawl.
 Disallow: /analytics
 Disallow: /history
 Disallow: /profile
 Disallow: /screen-time-settings
 Disallow: /register
 Disallow: /reactivation
-Allow: /
-Allow: /channels
-Allow: /channels/explore
-Allow: /channels/
-Allow: /watch/
-Allow: /playlists
-Allow: /playlists/
-Allow: /search
-Allow: /terms
-Allow: /privacy
+
+# Pages that surface third-party YouTube content (/watch/, /search, /channels/<id>,
+# /playlists/<id>, ...) are intentionally left crawlable so search engines can read
+# the `noindex` directive (served via the X-Robots-Tag header / robots meta) and
+# drop them from the index. Only /, /about, /terms and /privacy are meant to be
+# indexed.
 
 Sitemap: https://anti-yt.brqnko.rs/sitemap.xml

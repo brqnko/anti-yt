@@ -55,7 +55,6 @@ function ExploreContent() {
   const { t } = useTranslation();
   useMeta({
     title: t("explore.pageTitle"),
-    description: t("explore.metaDescription"),
     canonicalPath: "/channels/explore",
   });
 

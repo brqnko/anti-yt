@@ -157,6 +157,7 @@ export function HistoryTab() {
                         }}
                         watchedAt={item.watched_at}
                         watchedSeconds={item.watch_position_seconds}
+                        isWatched
                       />
                     </div>
                   ))}
