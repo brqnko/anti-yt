@@ -204,7 +204,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
               <SkeletonRepeat count={4} render={(i) => <ChannelDetailPlaylistCardSkeleton key={i} />} />
             </div>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div class="card-grid">
             <SkeletonRepeat count={6} render={(i) => <VideoCardSkeleton key={i} />} />
           </div>
         </div>
@@ -311,12 +311,12 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
           </div>
 
           {isVideosLoading ? (
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div class="card-grid">
               <SkeletonRepeat count={6} render={(i) => <VideoCardSkeleton key={i} />} />
             </div>
           ) : videos.length > 0 ? (
             <>
-              <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div class="card-grid">
                 {videos.map((video) => (
                   <ChannelVideoCard
                     key={video.video_id}

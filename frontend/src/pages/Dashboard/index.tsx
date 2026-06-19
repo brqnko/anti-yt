@@ -265,7 +265,7 @@ function DashboardContent() {
         </div>
         )}
         {isLoadingFeed ? (
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div class="card-grid">
             <SkeletonRepeat count={6} render={(i) => <VideoCardSkeleton key={i} />} />
           </div>
         ) : feedRateLimited ? (
@@ -276,7 +276,7 @@ function DashboardContent() {
           </div>
         ) : feedVideos.length > 0 ? (
           <>
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div class="card-grid">
               {feedVideos.map((video) => (
                 <FeedVideoCard
                   key={video.video_id}

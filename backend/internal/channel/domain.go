@@ -80,7 +80,8 @@ func NewChannel(fetchedAt, rssFetchedAt time.Time, channel youtube_d.Channel, op
 		ID:            id,
 		FetchedAt:     fetchedAt,
 		RSSFetchedAt:  rssFetchedAt,
-		BulkFetchedAt: now.AddDate(-1, 0, 0),
+		// 下限なし: 初回 bulk fetch で uploads playlist の全動画を遡って取得する
+		BulkFetchedAt: time.Time{},
 		LastSeenAt:    now,
 		Channel:       channel,
 	})

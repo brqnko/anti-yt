@@ -5,6 +5,7 @@ import { useMeta } from "../../hooks/useMeta";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { AuthPromptDialog } from "../../components/AuthPromptDialog";
+import { AddPlaylistDialog } from "../../components/AddPlaylistDialog";
 import { getVideo } from "../../api/generated/video";
 import { getHistory } from "../../api/generated/history";
 import { getPlaylist } from "../../api/generated/playlist";
@@ -274,8 +275,8 @@ function VideoPlayerContent() {
   const [addingToPlaylist, setAddingToPlaylist] = useState<string | null>(null);
   const [addedToPlaylist, setAddedToPlaylist] = useState<string | null>(null);
   const [failedToAddPlaylist, setFailedToAddPlaylist] = useState<string | null>(null);
-  const [addedPlaylistIds, setAddedPlaylistIds] = useState<Set<string>>(new Set());
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
+  const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
   const [showImportVideo, setShowImportVideo] = useState(false);
   const [showEditPlaylist, setShowEditPlaylist] = useState(false);
   const [markingWatched, setMarkingWatched] = useState(false);
@@ -384,9 +385,14 @@ function VideoPlayerContent() {
       if (removingVideoId || !playlistId) return;
       setRemovingVideoId(videoIdToRemove);
       try {
-        await getPlaylist().deletePlaylistsPlaylistIdVideos(playlistId, {
-          video_id: videoIdToRemove,
-        });
+        if (playlistInfo?.playlist_type === "watch_later") {
+          await getPlaylist().deleteVideosVideoIdWatchLater(videoIdToRemove);
+          if (videoIdToRemove === videoId) setMarkedWatchLater(false);
+        } else {
+          await getPlaylist().deletePlaylistsPlaylistIdVideos(playlistId, {
+            video_id: videoIdToRemove,
+          });
+        }
         setPlaylistVideos((prev) => prev.filter((v) => v.video_id !== videoIdToRemove));
         setPlaylistInfo((prev) =>
           prev ? { ...prev, playlist_video_count: Math.max(0, prev.playlist_video_count - 1) } : prev,
@@ -396,7 +402,7 @@ function VideoPlayerContent() {
         setRemovingVideoId(null);
       }
     },
-    [playlistId, removingVideoId],
+    [playlistId, removingVideoId, playlistInfo?.playlist_type, videoId],
   );
 
   const openPlaylistDialog = useCallback(async () => {
@@ -423,7 +429,7 @@ function VideoPlayerContent() {
 
   const handleAddToPlaylist = useCallback(
     async (plId: string) => {
-      if (addingToPlaylist || !videoId || addedPlaylistIds.has(plId)) return;
+      if (addingToPlaylist || !videoId) return;
       setAddingToPlaylist(plId);
       setFailedToAddPlaylist(null);
       try {
@@ -431,7 +437,6 @@ function VideoPlayerContent() {
           video_id: videoId,
         });
         setAddedToPlaylist(plId);
-        setAddedPlaylistIds((prev) => new Set(prev).add(plId));
         if (addedToastTimerRef.current) clearTimeout(addedToastTimerRef.current);
         addedToastTimerRef.current = setTimeout(() => setAddedToPlaylist(null), 2000);
       } catch {
@@ -442,7 +447,7 @@ function VideoPlayerContent() {
         setAddingToPlaylist(null);
       }
     },
-    [addingToPlaylist, videoId, addedPlaylistIds],
+    [addingToPlaylist, videoId],
   );
 
   const reloadPlaylist = useCallback(async () => {
@@ -1106,7 +1111,8 @@ function VideoPlayerContent() {
                             </p>
                           </div>
                         </a>
-                        {playlistInfo?.playlist_type === "normal" && (
+                        {(playlistInfo?.playlist_type === "normal" ||
+                          playlistInfo?.playlist_type === "watch_later") && (
                           <button
                             class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer bg-transparent border-none hidden group-hover/pv:block focus:block"
                             title={t("playlistDetail.removeVideo")}
@@ -1139,6 +1145,16 @@ function VideoPlayerContent() {
             <h2 class="text-xl font-bold text-charcoal dark:text-white mb-4">
               {t("videoPlayer.addToPlaylist")}
             </h2>
+            <button
+              type="button"
+              class="flex items-center gap-3 p-3 mb-2 rounded-xl border border-dashed border-border-light dark:border-border-dark hover:border-primary/50 hover:bg-primary/5 w-full text-left bg-transparent cursor-pointer"
+              onClick={() => setShowCreatePlaylist(true)}
+            >
+              <Icon name="add" class="text-primary text-xl" />
+              <span class="text-sm font-semibold text-charcoal dark:text-white">
+                {t("videoPlayer.createPlaylist")}
+              </span>
+            </button>
             <div class="flex flex-col gap-2 overflow-y-auto flex-1">
               {playlistDialogLoading ? null : userPlaylists.length === 0 ? (
                 <p class="text-sm text-text-muted-light dark:text-text-muted-dark text-center py-8">
@@ -1146,18 +1162,17 @@ function VideoPlayerContent() {
                 </p>
               ) : (
                 userPlaylists.map((pl) => {
-                  const alreadyAdded = addedPlaylistIds.has(pl.playlist_id);
                   return (
                     <button
                       key={pl.playlist_id}
                       class={`flex items-center gap-3 p-3 rounded-xl border w-full text-left ${
-                        alreadyAdded || addedToPlaylist === pl.playlist_id
+                        addedToPlaylist === pl.playlist_id
                           ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-800 cursor-default opacity-70"
                           : failedToAddPlaylist === pl.playlist_id
                             ? "bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-800 cursor-pointer"
                             : "bg-background-light dark:bg-neutral-800 border-border-light dark:border-border-dark hover:border-primary/30 cursor-pointer"
                       }`}
-                      disabled={alreadyAdded || addingToPlaylist === pl.playlist_id}
+                      disabled={addingToPlaylist === pl.playlist_id}
                       onClick={() => handleAddToPlaylist(pl.playlist_id)}
                     >
                       <Icon name="playlist_play" class="text-primary text-xl" />
@@ -1171,7 +1186,7 @@ function VideoPlayerContent() {
                           })}
                         </p>
                       </div>
-                      {alreadyAdded || addedToPlaylist === pl.playlist_id ? (
+                      {addedToPlaylist === pl.playlist_id ? (
                         <Icon name="check_circle" class="text-green-600 dark:text-green-400 text-xl" />
                       ) : failedToAddPlaylist === pl.playlist_id ? (
                         <Icon name="error" class="text-red-500 text-xl" />
@@ -1184,6 +1199,15 @@ function VideoPlayerContent() {
               )}
             </div>
       </Dialog>
+
+      <AddPlaylistDialog
+        open={showCreatePlaylist}
+        onClose={() => setShowCreatePlaylist(false)}
+        onAdded={(playlist) => {
+          setUserPlaylists((prev) => [playlist, ...prev]);
+          handleAddToPlaylist(playlist.playlist_id);
+        }}
+      />
 
       {playlistId && (
         <AddVideoDialog

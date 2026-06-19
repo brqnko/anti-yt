@@ -138,7 +138,7 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
 
         {playlists.length > 0 ? (
           <>
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div class="card-grid">
               {playlists.map((pl) => (
                 <a
                   key={pl.playlist_id}

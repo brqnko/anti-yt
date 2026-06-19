@@ -147,7 +147,7 @@ function PlaylistsContent() {
         </div>
 
         {isLoading ? (
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div class="card-grid">
             <SkeletonRepeat count={6} render={(i) => <PlaylistCardSkeleton key={i} />} />
           </div>
         ) : error ? (
@@ -163,7 +163,7 @@ function PlaylistsContent() {
           </div>
         ) : playlists.length > 0 ? (
           <>
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div class="card-grid">
               {playlists.map((playlist) => (
                 <PlaylistCard
                   key={playlist.playlist_id}

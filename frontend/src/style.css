@@ -56,6 +56,18 @@ body {
 }
 
 
+/* Card grid: columns are sized by available width, not viewport breakpoints.
+   When the sidebar toggles, the card width stays ~constant and a column is
+   added/removed instead of every card squishing during the width animation.
+   min(...,100%) keeps it at a single column (no overflow) on narrow screens. */
+@layer components {
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+    gap: 1.5rem;
+  }
+}
+
 @keyframes fade-in-up {
   from {
     opacity: 0;
