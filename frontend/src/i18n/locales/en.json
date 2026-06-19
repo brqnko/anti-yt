@@ -433,6 +433,7 @@
   },
   "history": {
     "pageTitle": "Watch History",
+    "title": "Watch History",
     "today": "Today",
     "yesterday": "Yesterday",
     "noHistory": "No watch history",
@@ -560,6 +561,7 @@
     "pageTitle": "Search",
     "inputPlaceholder": "Search...",
     "placeholder": "Search",
+    "clear": "Clear",
     "resultsFor": "Results for \"{{query}}\"",
     "noResults": "No results found",
     "noResultsDesc": "Try searching with different keywords.",

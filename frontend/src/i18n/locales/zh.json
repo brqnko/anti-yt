@@ -433,6 +433,7 @@
   },
   "history": {
     "pageTitle": "观看历史",
+    "title": "观看历史",
     "today": "今天",
     "yesterday": "昨天",
     "noHistory": "暂无观看历史",
@@ -560,6 +561,7 @@
     "pageTitle": "搜索",
     "inputPlaceholder": "搜索...",
     "placeholder": "搜索",
+    "clear": "清除",
     "resultsFor": "「{{query}}」的搜索结果",
     "noResults": "未找到结果",
     "noResultsDesc": "请尝试使用不同的关键词搜索。",

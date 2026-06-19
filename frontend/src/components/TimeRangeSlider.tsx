@@ -135,7 +135,7 @@ export function TimeRangeSlider({
         <button
           type="button"
           class="mt-4 size-10 flex items-center justify-center text-taupe hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl border border-transparent hover:border-red-100 dark:hover:border-red-900/30 cursor-pointer"
-          title={t("register.restrictions.removeRange")}
+          title={t("restrictions.removeRange")}
           onClick={onDelete}
         >
           <Icon name="delete" class="text-xl" />

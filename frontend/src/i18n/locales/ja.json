@@ -433,6 +433,7 @@
   },
   "history": {
     "pageTitle": "視聴履歴",
+    "title": "視聴履歴",
     "today": "今日",
     "yesterday": "昨日",
     "noHistory": "視聴履歴がありません",
@@ -560,6 +561,7 @@
     "pageTitle": "検索",
     "inputPlaceholder": "検索...",
     "placeholder": "検索してみましょう",
+    "clear": "クリア",
     "resultsFor": "「{{query}}」の検索結果",
     "noResults": "検索結果がありません",
     "noResultsDesc": "別のキーワードで検索してみてください。",
