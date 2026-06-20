@@ -1,5 +1,7 @@
 # anti-yt
 
+日本語 | [English](README.en.md)
+
 ## アーキテクチャ
 
 ```mermaid
