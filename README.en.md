@@ -57,8 +57,6 @@ openssl genpkey -algorithm Ed25519 -out .devcontainer/jwt_private.pem
 openssl pkey -in .devcontainer/jwt_private.pem -pubout -out .devcontainer/jwt_public.pem
 ```
 
-Create the password file for PostgreSQL at `.devcontainer/password.txt`.
-
 Generate a self-signed certificate for Nginx in `.devcontainer/`.
 
 ```sh

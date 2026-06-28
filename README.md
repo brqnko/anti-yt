@@ -57,8 +57,6 @@ openssl genpkey -algorithm Ed25519 -out .devcontainer/jwt_private.pem
 openssl pkey -in .devcontainer/jwt_private.pem -pubout -out .devcontainer/jwt_public.pem
 ```
 
-PostgreSQL用のパスワードファイルを.devcontainer/password.txtに作成してください。
-
 Nginx用の自己署名証明書を.devcontainer/に生成してください。
 
 ```sh
