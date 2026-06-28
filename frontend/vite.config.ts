@@ -22,12 +22,8 @@ function generateWebP(): Plugin {
         import("node:path"),
       ]);
       const dir = "dist";
-      let entries: Awaited<ReturnType<typeof fs.readdir>>;
-      try {
-        entries = await fs.readdir(dir, { recursive: true, withFileTypes: true });
-      } catch {
-        return;
-      }
+      const entries = await fs.readdir(dir, { recursive: true, withFileTypes: true }).catch(() => null);
+      if (!entries) return;
       const targets = entries
         .filter((e) => e.isFile() && /\.(png|jpe?g)$/i.test(e.name))
         .map((e) => path.join(e.parentPath ?? dir, e.name));
