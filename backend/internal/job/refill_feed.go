@@ -51,6 +51,10 @@ func (j *refillFeedJob) run(ctx context.Context) (err error) {
 			continue
 		}
 
+		if err := j.feedRepo.DeleteAll(ctx, userID); err != nil {
+			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to clear feed(refill feed job)", slog.String("user_id", userID.String()), slog.Any("error", err))
+			continue
+		}
 		if err := j.feedRepo.PushMany(ctx, userID, videoIDs); err != nil {
 			util.LoggerFromContext(ctx).ErrorContext(ctx, "failed to push feed(refill feed job)", slog.String("user_id", userID.String()), slog.Any("error", err))
 			continue
