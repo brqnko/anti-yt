@@ -26,6 +26,7 @@ import { Linkify } from "../../components/Linkify";
 import { Icon } from "../../components/Icon";
 import { VideoPlayerSkeleton } from "../../components/skeletons";
 import { BrowserBackLink } from "../../components/BrowserBackLink";
+import { useNotification } from "../../contexts/NotificationContext";
 
 const PLAYER_CONTAINER_ID = "yt-player";
 
@@ -40,23 +41,18 @@ function AddVideoDialog({
   onClose: () => void;
   onAdded: () => void;
 }) {
-  const { t } = useTranslation();
+  const { show } = useNotification();
   const [text, setText] = useState("");
   const [isAdding, setIsAdding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (open) {
-      setText("");
-      setError(null);
-    }
+    if (open) setText("");
   }, [open]);
 
   const handleSubmit = async () => {
     const trimmed = text.trim();
     if (!trimmed || isAdding) return;
     setIsAdding(true);
-    setError(null);
     try {
       await getPlaylist().postPlaylistsPlaylistIdVideos(playlistId, {
         external_video_text: trimmed,
@@ -65,11 +61,13 @@ function AddVideoDialog({
       onClose();
     } catch (err) {
       const code = getApiErrorCode(err);
-      setError(code ? t(`apiErrors.${code}`, t("playlistDetail.addVideoError")) : t("playlistDetail.addVideoError"));
+      show({ type: "error", messageKey: code ? `apiErrors.${code}` : "playlistDetail.addVideoError" });
     } finally {
       setIsAdding(false);
     }
   };
+
+  const { t } = useTranslation();
 
   return (
     <Dialog open={open} onClose={onClose} ariaLabel={t("playlistDetail.addVideo")} panelClass="flex flex-col gap-4">
@@ -100,9 +98,6 @@ function AddVideoDialog({
             disabled={isAdding}
           />
         </div>
-        {error && (
-          <p class="text-sm text-red-500" role="alert">{error}</p>
-        )}
         <div class="flex justify-end gap-3 pt-2">
           <button
             class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
@@ -134,23 +129,21 @@ function EditPlaylistDialog({
   onSaved: (p: { playlist_title: string; playlist_description: string }) => void;
 }) {
   const { t } = useTranslation();
+  const { show } = useNotification();
   const [title, setTitle] = useState(playlist.playlist_title);
   const [description, setDescription] = useState(playlist.playlist_description);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setTitle(playlist.playlist_title);
       setDescription(playlist.playlist_description);
-      setError(null);
     }
   }, [open, playlist]);
 
   const handleSave = async () => {
     if (!title.trim() || isSaving) return;
     setIsSaving(true);
-    setError(null);
     try {
       await getPlaylist().patchPlaylistsPlaylistId(playlist.playlist_id, {
         playlist_title: title.trim(),
@@ -163,7 +156,7 @@ function EditPlaylistDialog({
       onClose();
     } catch (err) {
       const code = getApiErrorCode(err);
-      setError(code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : t("playlistDetail.editDialog.error"));
+      show({ type: "error", messageKey: code ? `apiErrors.${code}` : "playlistDetail.editDialog.error" });
     } finally {
       setIsSaving(false);
     }
@@ -199,11 +192,6 @@ function EditPlaylistDialog({
             />
           </div>
         </div>
-        {error && (
-          <p class="text-sm text-red-500" role="alert">
-            {error}
-          </p>
-        )}
         <div class="flex justify-end gap-3 pt-2">
           <button
             class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"

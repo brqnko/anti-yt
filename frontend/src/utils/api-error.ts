@@ -10,3 +10,18 @@ export function getApiErrorCode(err: unknown): string | null {
   }
   return null;
 }
+
+/**
+ * Resolves an i18n message key for an API error, for use with notifications.
+ * Prefers the specific `apiErrors.<code>` key when it exists, otherwise
+ * returns the given fallback key.
+ */
+export function apiErrorMessageKey(
+  i18n: { exists: (key: string) => boolean },
+  err: unknown,
+  fallbackKey: string,
+): string {
+  const code = getApiErrorCode(err);
+  if (code && i18n.exists(`apiErrors.${code}`)) return `apiErrors.${code}`;
+  return fallbackKey;
+}

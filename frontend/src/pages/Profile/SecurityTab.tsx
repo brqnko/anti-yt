@@ -3,6 +3,7 @@ import { createPortal } from "preact/compat";
 import { useTranslation } from "react-i18next";
 import { getAuth } from "../../api/generated/auth";
 import type { GetUsersMeSessions200ItemsItem } from "../../api/generated/antiYtApi.schemas";
+import { useNotification } from "../../contexts/NotificationContext";
 import { Icon } from "../../components/Icon";
 import { SessionTableRowSkeleton, SkeletonRepeat } from "../../components/skeletons";
 
@@ -69,6 +70,7 @@ function SessionMenu({ onRevoke }: { onRevoke: () => void }) {
 
 export function SecurityTab() {
   const { t } = useTranslation();
+  const { show } = useNotification();
   const [sessions, setSessions] = useState<GetUsersMeSessions200ItemsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -76,7 +78,6 @@ export function SecurityTab() {
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [revokeError, setRevokeError] = useState<string | null>(null);
 
   const loadSessions = async (cursor?: string) => {
     try {
@@ -110,14 +111,13 @@ export function SecurityTab() {
 
   const handleRevoke = async (sessionId: string) => {
     setRevokingId(sessionId);
-    setRevokeError(null);
     try {
       const { deleteUsersMeSessionsSessionId } = getAuth();
       await deleteUsersMeSessionsSessionId(sessionId);
       setSessions((prev) => prev.filter((s) => s.id !== sessionId));
       setConfirmRevokeId(null);
     } catch {
-      setRevokeError(t("security.revokeError"));
+      show({ type: "error", messageKey: "security.revokeError" });
     } finally {
       setRevokingId(null);
     }
@@ -263,12 +263,6 @@ export function SecurityTab() {
               <p class="text-sm text-text-muted-light dark:text-text-muted-dark leading-relaxed">
                 {t("security.revokeConfirmDesc", { name: session.browser_name })}
               </p>
-              {revokeError && (
-                <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
-                  <Icon name="error" class="text-base" />
-                  {revokeError}
-                </div>
-              )}
               <div class="flex justify-end gap-3 mt-2">
                 <button
                   onClick={() => setConfirmRevokeId(null)}

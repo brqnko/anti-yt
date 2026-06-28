@@ -58,14 +58,14 @@ export function TimeRangeSlider({
   const thumbs = (
     <>
       <div
-        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full cursor-grab z-10 active:scale-95 transition-transform touch-none`}
+        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full cursor-grab z-10 active:scale-95 transition-transform touch-none before:content-[''] before:absolute before:-inset-3`}
         style={{ left: `${startPct}%` }}
         onPointerDown={handlePointerDown("start")}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
       />
       <div
-        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full cursor-grab z-10 active:scale-95 transition-transform touch-none`}
+        class={`absolute top-1/2 -mt-2 -ml-2 size-4 bg-white ${variant === "register" ? "dark:bg-[#2a2721]" : "dark:bg-card-dark"} border-2 border-primary rounded-full cursor-grab z-10 active:scale-95 transition-transform touch-none before:content-[''] before:absolute before:-inset-3`}
         style={{ left: `${endPct}%` }}
         onPointerDown={handlePointerDown("end")}
         onPointerMove={handlePointerMove}

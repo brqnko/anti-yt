@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { getChannel } from "../api/generated/channel";
 import type { PostChannelsSubscribe201 } from "../api/generated/antiYtApi.schemas";
 import { getApiErrorCode } from "../utils/api-error";
+import { useNotification } from "../contexts/NotificationContext";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
 
@@ -18,15 +19,14 @@ export function AddChannelDialog({
   onAdded,
 }: AddChannelDialogProps) {
   const { t } = useTranslation();
+  const { show } = useNotification();
   const [channelId, setChannelId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
       setChannelId("");
       setIsSubmitting(false);
-      setError(null);
     }
   }, [open]);
 
@@ -36,7 +36,6 @@ export function AddChannelDialog({
     const trimmed = channelId.trim();
     if (!trimmed || isSubmitting) return;
     setIsSubmitting(true);
-    setError(null);
     try {
       const res = await getChannel().postChannelsSubscribe({
         channel_id: trimmed,
@@ -45,7 +44,7 @@ export function AddChannelDialog({
       onClose();
     } catch (err) {
       const code = getApiErrorCode(err);
-      setError(code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : t("channels.addChannelDialog.error"));
+      show({ type: "error", messageKey: code ? `apiErrors.${code}` : "channels.addChannelDialog.error" });
     } finally {
       setIsSubmitting(false);
     }
@@ -83,11 +82,6 @@ export function AddChannelDialog({
             }
           />
         </div>
-        {error && (
-          <p class="text-sm text-red-500 mt-2" role="alert">
-            {error}
-          </p>
-        )}
         <div class="flex justify-end gap-3 mt-6">
           <button
             class="px-4 py-2 rounded-xl text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 bg-transparent border-none cursor-pointer"

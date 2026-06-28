@@ -5,6 +5,7 @@ import { getPlaylist } from "../api/generated/playlist";
 import type { PostPlaylists201 } from "../api/generated/antiYtApi.schemas";
 import { CACHE_KEYS } from "../api/cache-keys";
 import { getApiErrorCode } from "../utils/api-error";
+import { useNotification } from "../contexts/NotificationContext";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
 
@@ -20,11 +21,11 @@ export function AddPlaylistDialog({
   onAdded,
 }: AddPlaylistDialogProps) {
   const { t } = useTranslation();
+  const { show } = useNotification();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [importUrl, setImportUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -32,7 +33,6 @@ export function AddPlaylistDialog({
       setDescription("");
       setImportUrl("");
       setIsSubmitting(false);
-      setError(null);
     }
   }, [open]);
 
@@ -42,7 +42,6 @@ export function AddPlaylistDialog({
     const trimmedTitle = title.trim();
     if (!trimmedTitle || isSubmitting) return;
     setIsSubmitting(true);
-    setError(null);
     try {
       const res = await getPlaylist().postPlaylists({
         playlist_title: trimmedTitle,
@@ -56,7 +55,7 @@ export function AddPlaylistDialog({
       onClose();
     } catch (err) {
       const code = getApiErrorCode(err);
-      setError(code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : t("dashboard.addPlaylistDialog.error"));
+      show({ type: "error", messageKey: code ? `apiErrors.${code}` : "dashboard.addPlaylistDialog.error" });
     } finally {
       setIsSubmitting(false);
     }
@@ -125,12 +124,6 @@ export function AddPlaylistDialog({
             </div>
           </div>
         </div>
-
-        {error && (
-          <p class="text-sm text-red-500 mt-3" role="alert">
-            {error}
-          </p>
-        )}
 
         <div class="flex justify-end gap-3 mt-6">
           <button

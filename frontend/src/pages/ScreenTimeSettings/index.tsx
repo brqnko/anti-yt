@@ -4,16 +4,18 @@ import { useTitle } from "../../hooks/useTitle";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { useAuth } from "../../contexts/AuthContext";
 import { getUser } from "../../api/generated/user";
-import { getApiErrorCode } from "../../utils/api-error";
+import { apiErrorMessageKey } from "../../utils/api-error";
 import { TimeRangeSlider } from "../../components/TimeRangeSlider";
 import { formatTime, parseTimeToMinutes } from "../../utils/format";
 import type { TimeRange } from "../../types/time-range";
 import { Icon } from "../../components/Icon";
 import { BrowserBackLink } from "../../components/BrowserBackLink";
+import { useNotification } from "../../contexts/NotificationContext";
 
 function ScreenTimeSettingsContent() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { clearScreenTimeBlock } = useAuth();
+  const { show } = useNotification();
   useTitle(t("restrictions.timeConstraints"));
 
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
@@ -45,14 +47,11 @@ function ScreenTimeSettingsContent() {
   }, []);
 
   const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveFading, setSaveFading] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
 
   const addRange = () => {
     setTimeRanges([
       ...timeRanges,
-      { id: crypto.randomUUID(), startMinutes: 540, endMinutes: 660 },
+      { id: crypto.randomUUID(), startMinutes: 0, endMinutes: 1440 },
     ]);
   };
 
@@ -66,8 +65,6 @@ function ScreenTimeSettingsContent() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    setSaveSuccess(false);
-    setSaveError(null);
     try {
       const { patchUsersMeStatus } = getUser();
       const updated = await patchUsersMeStatus({
@@ -95,20 +92,12 @@ function ScreenTimeSettingsContent() {
         setIsUnlimited(true);
       }
       clearScreenTimeBlock();
-      setSaveSuccess(true);
-      setSaveFading(false);
-      setTimeout(() => setSaveFading(true), 2500);
-      setTimeout(() => {
-        setSaveSuccess(false);
-        setSaveFading(false);
-      }, 3000);
+      show({ type: "success", messageKey: "restrictions.saved" });
     } catch (err) {
-      const code = getApiErrorCode(err);
-      setSaveError(
-        code
-          ? t(`apiErrors.${code}`, t("apiErrors.fallback"))
-          : t("restrictions.saveError"),
-      );
+      show({
+        type: "error",
+        messageKey: apiErrorMessageKey(i18n, err, "restrictions.saveError"),
+      });
     } finally {
       setIsSaving(false);
     }
@@ -171,7 +160,7 @@ function ScreenTimeSettingsContent() {
           <label class="text-base font-semibold">
             {t("restrictions.dailyCapLimit")}
           </label>
-          <div class="flex flex-wrap gap-4 items-center">
+          <div class="flex flex-wrap items-center gap-3 tablet:gap-4">
             <button
               type="button"
               role="switch"
@@ -193,9 +182,9 @@ function ScreenTimeSettingsContent() {
               {t("restrictions.enableLimit")}
             </span>
 
-            <div class="w-px h-6 bg-border-light dark:bg-border-dark" />
+            <div class="hidden tablet:block w-px h-6 bg-border-light dark:bg-border-dark" />
             <div
-              class={`flex flex-wrap gap-4 items-center transition-opacity ${isUnlimited ? "opacity-40 pointer-events-none" : ""}`}
+              class={`flex items-center gap-2 tablet:gap-4 transition-opacity ${isUnlimited ? "opacity-40 pointer-events-none" : ""}`}
             >
               <div class="relative">
                 <input
@@ -237,34 +226,19 @@ function ScreenTimeSettingsContent() {
                 </span>
               </div>
             </div>
+            <button
+              class="w-full tablet:w-auto tablet:ml-auto justify-center px-6 py-3 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg flex items-center gap-2 cursor-pointer border-none"
+              disabled={isSaving || isTimeInvalid}
+              onClick={handleSave}
+            >
+              {isSaving ? t("restrictions.saving") : t("restrictions.save")}
+            </button>
           </div>
           {!isUnlimited && isTimeInvalid && (
             <p class="text-sm text-red-500">
               {t("restrictions.zeroTimeError")}
             </p>
           )}
-          <div class="flex items-center gap-3">
-            <button
-              class="px-6 py-3 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg flex items-center gap-2 cursor-pointer border-none"
-              disabled={isSaving || isTimeInvalid}
-              onClick={handleSave}
-            >
-              {isSaving ? t("restrictions.saving") : t("restrictions.save")}
-            </button>
-            {saveSuccess && (
-              <span
-                class={`text-sm text-green-600 dark:text-green-400 font-medium transition-opacity duration-500 ${saveFading ? "opacity-0" : "opacity-100"}`}
-              >
-                {t("restrictions.saved")}
-              </span>
-            )}
-            {saveError && (
-              <span class="text-sm text-red-500 font-medium flex items-center gap-1">
-                <Icon name="error" class="text-[18px]" />
-                {saveError}
-              </span>
-            )}
-          </div>
         </section>
       </div>
     </div>

@@ -2,13 +2,14 @@ import { createContext, type ComponentChildren } from "preact";
 import { useState, useEffect, useCallback, useContext, useMemo, useRef } from "preact/hooks";
 import { NotificationHost } from "../components/NotificationHost";
 
-type NotificationType = "error" | "info";
+type NotificationType = "error" | "info" | "success";
 
 interface NotificationItem {
   id: string;
   type: NotificationType;
   messageKey: string;
   durationMs: number;
+  isExiting?: boolean;
 }
 
 interface ShowNotificationInput {
@@ -36,12 +37,17 @@ export function NotificationProvider({ children }: { children: ComponentChildren
   const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const dismiss = useCallback((id: string) => {
-    const timer = timersRef.current.get(id);
-    if (timer) {
-      clearTimeout(timer);
-      timersRef.current.delete(id);
-    }
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isExiting: true } : n)),
+    );
+    setTimeout(() => {
+      const timer = timersRef.current.get(id);
+      if (timer) {
+        clearTimeout(timer);
+        timersRef.current.delete(id);
+      }
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+    }, 420);
   }, []);
 
   const scheduleDismiss = useCallback(

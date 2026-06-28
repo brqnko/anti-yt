@@ -60,12 +60,7 @@
       "time": {
         "title": "限制每天的时间",
         "body": "您可以限制可观看的时间段和每日上限。再也不会让休息时间超时。",
-        "mock": {
-          "title": "可观看时间",
-          "windowLabel": "时段",
-          "dailyLabel": "每日上限",
-          "remainingLabel": "剩余"
-        }
+
       },
       "analytics": {
         "title": "回顾您的使用时间",
@@ -300,7 +295,7 @@
     "addTimeRange": "添加时间段",
     "removeRange": "删除时间段",
     "dailyCapLimit": "每日上限",
-    "enableLimit": "启用限制",
+    "enableLimit": "启用",
     "hr": "时",
     "min": "分",
     "save": "保存",

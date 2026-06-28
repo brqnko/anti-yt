@@ -5,7 +5,7 @@ import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { useAuth } from "../../contexts/AuthContext";
 import { getUser } from "../../api/generated/user";
-import { getApiErrorCode } from "../../utils/api-error";
+import { apiErrorMessageKey } from "../../utils/api-error";
 import { languages, modeIcons, REPORT_FORM_URL } from "../../constants";
 import { useColorMode, type ColorMode } from "../../hooks/useColorMode";
 import { RestrictionsTab } from "./RestrictionsTab";
@@ -13,6 +13,7 @@ import { SecurityTab } from "./SecurityTab";
 import { HistoryTab } from "./HistoryTab";
 import { Icon } from "../../components/Icon";
 import { Dropdown } from "../../components/Dropdown";
+import { useNotification } from "../../contexts/NotificationContext";
 
 type Tab = "profile" | "security" | "history";
 
@@ -20,6 +21,7 @@ function ProfileContent() {
   const { t, i18n } = useTranslation();
   const { logout } = useAuth();
   const { mode, setMode } = useColorMode();
+  const { show } = useNotification();
 
   const colorModes: { value: ColorMode; icon: string }[] = [
     { value: "light", icon: modeIcons.light },
@@ -47,9 +49,6 @@ function ProfileContent() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveFading, setSaveFading] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importSubscriptions, setImportSubscriptions] = useState(false);
   const [importLikes, setImportLikes] = useState(false);
@@ -61,8 +60,6 @@ function ProfileContent() {
   const handleSave = async () => {
     if (!isNameValid) return;
     setIsSaving(true);
-    setSaveSuccess(false);
-    setSaveError(null);
     try {
       const { patchUsersMeStatus } = getUser();
       await patchUsersMeStatus({
@@ -71,13 +68,12 @@ function ProfileContent() {
       });
       i18n.changeLanguage(languageCode);
       localStorage.setItem("lang", languageCode);
-      setSaveSuccess(true);
-      setSaveFading(false);
-      setTimeout(() => setSaveFading(true), 2500);
-      setTimeout(() => { setSaveSuccess(false); setSaveFading(false); }, 3000);
+      show({ type: "success", messageKey: "profile.saved" });
     } catch (err) {
-      const code = getApiErrorCode(err);
-      setSaveError(code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : t("apiErrors.fallback"));
+      show({
+        type: "error",
+        messageKey: apiErrorMessageKey(i18n, err, "apiErrors.fallback"),
+      });
     } finally {
       setIsSaving(false);
     }
@@ -97,11 +93,11 @@ function ProfileContent() {
 
   return (
     <DashboardLayout>
-      <div class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-10 py-8 flex flex-col gap-6">
+      <div class="flex-1 max-w-6xl w-full mx-auto px-4 tablet:px-6 lg:px-10 py-8 flex flex-col gap-6">
         <nav class="flex items-center gap-1 bg-background-light dark:bg-background-dark p-1 rounded-full border border-border-light dark:border-border-dark overflow-x-auto">
           <button
             onClick={() => setActiveTab("profile")}
-            class={`flex-1 px-4 py-1.5 rounded-full text-sm font-bold cursor-pointer border-none whitespace-nowrap ${
+            class={`flex-1 px-3 tablet:px-4 py-1.5 rounded-full text-sm font-bold cursor-pointer border-none whitespace-nowrap ${
               activeTab === "profile"
                 ? "bg-card-light dark:bg-card-dark text-primary"
                 : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
@@ -111,7 +107,7 @@ function ProfileContent() {
           </button>
           <button
             onClick={() => setActiveTab("security")}
-            class={`flex-1 px-4 py-1.5 rounded-full text-sm font-bold cursor-pointer border-none whitespace-nowrap ${
+            class={`flex-1 px-3 tablet:px-4 py-1.5 rounded-full text-sm font-bold cursor-pointer border-none whitespace-nowrap ${
               activeTab === "security"
                 ? "bg-card-light dark:bg-card-dark text-primary"
                 : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
@@ -121,7 +117,7 @@ function ProfileContent() {
           </button>
           <button
             onClick={() => setActiveTab("history")}
-            class={`flex-1 px-4 py-1.5 rounded-full text-sm font-bold cursor-pointer border-none whitespace-nowrap ${
+            class={`flex-1 px-3 tablet:px-4 py-1.5 rounded-full text-sm font-bold cursor-pointer border-none whitespace-nowrap ${
               activeTab === "history"
                 ? "bg-card-light dark:bg-card-dark text-primary"
                 : "bg-transparent text-text-muted-light dark:text-text-muted-dark hover:text-primary"
@@ -143,7 +139,7 @@ function ProfileContent() {
                   {t("profile.accountDetails")}
                 </h2>
               </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div class="grid grid-cols-1 tablet:grid-cols-2 gap-6">
                 <div class="flex flex-col gap-2">
                   <label class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
                     {t("profile.displayName")}
@@ -184,10 +180,10 @@ function ProfileContent() {
                   />
                 </div>
               </div>
-              <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex flex-col gap-4 tablet:flex-row tablet:items-center tablet:justify-between">
                 <button
                   onClick={() => setShowImportDialog(true)}
-                  class="flex items-center justify-center gap-2.5 rounded-xl bg-white dark:bg-[#242424] px-5 py-2.5 text-sm font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-[#FF0000]/50 focus:outline-none focus:ring-2 focus:ring-[#FF0000] focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
+                  class="flex items-center justify-center gap-2.5 rounded-xl bg-white dark:bg-[#242424] w-full tablet:w-auto px-5 py-2.5 text-sm font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-[#FF0000]/50 focus:outline-none focus:ring-2 focus:ring-[#FF0000] focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
                 >
                   <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z" fill="#FF0000"/>
@@ -195,21 +191,11 @@ function ProfileContent() {
                   </svg>
                   {t("profile.youtubeImport.button")}
                 </button>
-                <div class="flex items-center justify-end gap-3">
-                  {saveSuccess && (
-                    <span class={`text-sm text-green-600 dark:text-green-400 font-medium transition-opacity duration-500 ${saveFading ? "opacity-0" : "opacity-100"}`}>
-                      {t("profile.saved")}
-                    </span>
-                  )}
-                  {saveError && (
-                    <span class="text-sm text-red-500 font-medium">
-                      {saveError}
-                    </span>
-                  )}
+                <div class="flex flex-col gap-2 tablet:flex-row tablet:items-center tablet:justify-end tablet:gap-3">
                   <button
                     onClick={handleSave}
                     disabled={isSaving || !isNameValid}
-                    class="px-8 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg cursor-pointer border-none"
+                    class="w-full tablet:w-auto px-8 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg cursor-pointer border-none"
                   >
                     {isSaving ? t("profile.saving") : t("profile.saveChanges")}
                   </button>
@@ -223,7 +209,7 @@ function ProfileContent() {
                   {t("appearance.title")}
                 </h2>
               </div>
-              <div class="flex flex-col gap-2 max-w-xs">
+              <div class="flex flex-col gap-2 w-full tablet:max-w-xs">
                 <label class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
                   {t("appearance.colorMode")}
                 </label>

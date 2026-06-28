@@ -6,6 +6,7 @@ import { DashboardLayout } from "../../components/DashboardLayout";
 import { getChannel } from "../../api/generated/channel";
 import { formatSubscriberCount } from "../../utils/format";
 import type { GetChannelsSubscribed200ItemsItem } from "../../api/generated/antiYtApi.schemas";
+import { useNotification } from "../../contexts/NotificationContext";
 import { Icon } from "../../components/Icon";
 import { Dialog } from "../../components/Dialog";
 import { AddChannelDialog } from "../../components/AddChannelDialog";
@@ -26,14 +27,11 @@ function RemoveChannelDialog({
   onConfirm: () => Promise<void>;
 }) {
   const { t } = useTranslation();
+  const { show } = useNotification();
   const [isRemoving, setIsRemoving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!open) {
-      setIsRemoving(false);
-      setError(null);
-    }
+    if (!open) setIsRemoving(false);
   }, [open]);
 
   if (!open || !channel) return null;
@@ -41,12 +39,11 @@ function RemoveChannelDialog({
   const handleConfirm = async () => {
     if (isRemoving) return;
     setIsRemoving(true);
-    setError(null);
     try {
       await onConfirm();
       onClose();
     } catch {
-      setError(t("channels.unsubscribeError"));
+      show({ type: "error", messageKey: "channels.unsubscribeError" });
     } finally {
       setIsRemoving(false);
     }
@@ -74,9 +71,6 @@ function RemoveChannelDialog({
         <p class="text-sm text-text-muted-light dark:text-text-muted-dark mb-4">
           {t("channels.unsubscribeDialog.description", { name: channel.external_channel_display_name })}
         </p>
-        {error && (
-          <p class="text-sm text-red-500 mb-4">{error}</p>
-        )}
         <div class="flex justify-end gap-3">
           <button
             class="px-4 py-2 rounded-xl text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 bg-transparent border-none cursor-pointer"

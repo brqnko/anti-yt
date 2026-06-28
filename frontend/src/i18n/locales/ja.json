@@ -60,12 +60,7 @@
       "time": {
         "title": "一日の時間を制限しましょう",
         "body": "視聴可能な時間帯と1日の上限を制限することができます。休憩時間をオーバーすることはもうありません。",
-        "mock": {
-          "title": "視聴可能時間",
-          "windowLabel": "時間帯",
-          "dailyLabel": "1日の上限",
-          "remainingLabel": "残り"
-        }
+
       },
       "analytics": {
         "title": "利用時間を振り返ろう",
@@ -300,7 +295,7 @@
     "addTimeRange": "時間帯を追加",
     "removeRange": "時間帯を削除",
     "dailyCapLimit": "1日の上限時間",
-    "enableLimit": "制限を有効にする",
+    "enableLimit": "有効にする",
     "hr": "時間",
     "min": "分",
     "save": "保存",

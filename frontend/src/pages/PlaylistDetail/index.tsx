@@ -11,6 +11,7 @@ import { VideoCard } from "../../components/VideoCard";
 import { Dialog } from "../../components/Dialog";
 import { getPlaylist } from "../../api/generated/playlist";
 import { getApiErrorCode } from "../../utils/api-error";
+import { useNotification } from "../../contexts/NotificationContext";
 import { formatTimeAgo } from "../../utils/format";
 import { PAGE_SIZES } from "../../constants";
 import { Linkify } from "../../components/Linkify";
@@ -167,23 +168,21 @@ function EditPlaylistDialog({
   onSaved: (p: { playlist_title: string; playlist_description: string }) => void;
 }) {
   const { t } = useTranslation();
+  const { show } = useNotification();
   const [title, setTitle] = useState(playlist.playlist_title);
   const [description, setDescription] = useState(playlist.playlist_description);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setTitle(playlist.playlist_title);
       setDescription(playlist.playlist_description);
-      setError(null);
     }
   }, [open, playlist]);
 
   const handleSave = async () => {
     if (!title.trim() || isSaving) return;
     setIsSaving(true);
-    setError(null);
     try {
       await getPlaylist().patchPlaylistsPlaylistId(playlist.playlist_id, {
         playlist_title: title.trim(),
@@ -193,11 +192,10 @@ function EditPlaylistDialog({
         playlist_title: title.trim(),
         playlist_description: description.trim(),
       });
-
       onClose();
     } catch (err) {
       const code = getApiErrorCode(err);
-      setError(code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : t("playlistDetail.editDialog.error"));
+      show({ type: "error", messageKey: code ? `apiErrors.${code}` : "playlistDetail.editDialog.error" });
     } finally {
       setIsSaving(false);
     }
@@ -233,11 +231,6 @@ function EditPlaylistDialog({
             />
           </div>
         </div>
-        {error && (
-          <p class="text-sm text-red-500" role="alert">
-            {error}
-          </p>
-        )}
         <div class="flex justify-end gap-3 pt-2">
           <button
             class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
@@ -307,14 +300,12 @@ function RemoveVideoDialog({
   onClose,
   onConfirm,
   isRemoving,
-  error,
 }: {
   open: boolean;
   videoTitle: string;
   onClose: () => void;
   onConfirm: () => void;
   isRemoving: boolean;
-  error: boolean;
 }) {
   const { t } = useTranslation();
 
@@ -326,11 +317,6 @@ function RemoveVideoDialog({
         <p class="text-sm text-text-muted-light dark:text-text-muted-dark">
           {t("playlistDetail.removeVideoDialog.description", { title: videoTitle })}
         </p>
-        {error && (
-          <p class="text-sm text-red-500" role="alert">
-            {t("playlistDetail.removeVideoDialog.error")}
-          </p>
-        )}
         <div class="flex justify-end gap-3 pt-2">
           <button
             class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
@@ -364,22 +350,18 @@ function AddVideoDialog({
   onAdded: () => void;
 }) {
   const { t } = useTranslation();
+  const { show } = useNotification();
   const [text, setText] = useState("");
   const [isAdding, setIsAdding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (open) {
-      setText("");
-      setError(null);
-    }
+    if (open) setText("");
   }, [open]);
 
   const handleSubmit = async () => {
     const trimmed = text.trim();
     if (!trimmed || isAdding) return;
     setIsAdding(true);
-    setError(null);
     try {
       await getPlaylist().postPlaylistsPlaylistIdVideos(playlistId, {
         external_video_text: trimmed,
@@ -388,7 +370,7 @@ function AddVideoDialog({
       onClose();
     } catch (err) {
       const code = getApiErrorCode(err);
-      setError(code ? t(`apiErrors.${code}`, t("playlistDetail.addVideoError")) : t("playlistDetail.addVideoError"));
+      show({ type: "error", messageKey: code ? `apiErrors.${code}` : "playlistDetail.addVideoError" });
     } finally {
       setIsAdding(false);
     }
@@ -423,9 +405,6 @@ function AddVideoDialog({
             disabled={isAdding}
           />
         </div>
-        {error && (
-          <p class="text-sm text-red-500" role="alert">{error}</p>
-        )}
         <div class="flex justify-end gap-3 pt-2">
           <button
             class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
@@ -457,23 +436,21 @@ function CopyPlaylistDialog({
   onCopied: (playlistId: string) => void;
 }) {
   const { t } = useTranslation();
+  const { show } = useNotification();
   const [title, setTitle] = useState(playlist.playlist_title);
   const [description, setDescription] = useState(playlist.playlist_description);
   const [isCopying, setIsCopying] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setTitle(playlist.playlist_title);
       setDescription(playlist.playlist_description);
-      setError(null);
     }
   }, [open, playlist]);
 
   const handleCopy = async () => {
     if (!title.trim() || isCopying) return;
     setIsCopying(true);
-    setError(null);
     try {
       const res = await getPlaylist().postPlaylistsPlaylistIdCopy(playlist.playlist_id, {
         playlist_title: title.trim(),
@@ -482,7 +459,7 @@ function CopyPlaylistDialog({
       onCopied(res.playlist_id);
     } catch (err) {
       const code = getApiErrorCode(err);
-      setError(code ? t(`apiErrors.${code}`, t("apiErrors.fallback")) : t("playlistDetail.copyDialog.error"));
+      show({ type: "error", messageKey: code ? `apiErrors.${code}` : "playlistDetail.copyDialog.error" });
     } finally {
       setIsCopying(false);
     }
@@ -518,11 +495,6 @@ function CopyPlaylistDialog({
             />
           </div>
         </div>
-        {error && (
-          <p class="text-sm text-red-500" role="alert">
-            {error}
-          </p>
-        )}
         <div class="flex justify-end gap-3 pt-2">
           <button
             class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
@@ -546,6 +518,7 @@ function CopyPlaylistDialog({
 
 function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
   const { t } = useTranslation();
+  const { show } = useNotification();
   const { route } = useLocation();
   const { isLoading: isAuthLoading, requireAuth, showAuthPrompt, closeAuthPrompt } = useRequireAuth();
 
@@ -563,7 +536,6 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<GetPlaylistsPlaylistIdVideos200ItemsItem | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
-  const [removeError, setRemoveError] = useState(false);
 
   const [showAddVideo, setShowAddVideo] = useState(false);
   const [showCopy, setShowCopy] = useState(false);
@@ -654,7 +626,6 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
   const handleRemoveVideo = async () => {
     if (!removeTarget || isRemoving) return;
     setIsRemoving(true);
-    setRemoveError(false);
     try {
       if (playlistInfo?.playlist_type === "watch_later") {
         await getPlaylist().deleteVideosVideoIdWatchLater(removeTarget.video_id);
@@ -670,7 +641,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
       setPlaylistInfo(refreshed);
       setRemoveTarget(null);
     } catch {
-      setRemoveError(true);
+      show({ type: "error", messageKey: "playlistDetail.removeVideoDialog.error" });
     } finally {
       setIsRemoving(false);
     }
@@ -901,13 +872,9 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
       <RemoveVideoDialog
         open={!!removeTarget}
         videoTitle={removeTarget?.external_video_title ?? ""}
-        onClose={() => {
-          setRemoveTarget(null);
-          setRemoveError(false);
-        }}
+        onClose={() => setRemoveTarget(null)}
         onConfirm={handleRemoveVideo}
         isRemoving={isRemoving}
-        error={removeError}
       />
 
       <AddVideoDialog

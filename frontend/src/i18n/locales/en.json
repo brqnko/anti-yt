@@ -60,12 +60,7 @@
       "time": {
         "title": "Cap your daily screen time",
         "body": "Restrict both the hours you can watch and your daily limit. No more breaks that quietly turn into hours.",
-        "mock": {
-          "title": "Allowed window",
-          "windowLabel": "Window",
-          "dailyLabel": "Daily cap",
-          "remainingLabel": "Remaining"
-        }
+
       },
       "analytics": {
         "title": "Look back on your viewing time",
@@ -300,7 +295,7 @@
     "addTimeRange": "Add another time range",
     "removeRange": "Remove time range",
     "dailyCapLimit": "Daily Cap Limit",
-    "enableLimit": "Enable limit",
+    "enableLimit": "Enable",
     "hr": "HR",
     "min": "MIN",
     "save": "Save",
