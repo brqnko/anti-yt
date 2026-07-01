@@ -273,7 +273,7 @@
     "aboutBannerCta": "了解更多 →",
     "rateLimitedTitle": "请稍候",
     "rateLimitedDesc": "您已达到请求限制，请稍后再试。",
-    "endOfFeed": "您已看完所有内容",
+    "endOfFeed": "🎉 您已看完所有内容",
     "sidebarFooter": {
       "copyright": "© 2026 anti-yt"
     },
@@ -431,7 +431,7 @@
     "today": "今天",
     "yesterday": "昨天",
     "noHistory": "暂无观看历史",
-    "endOfHistory": "已到达历史记录末尾",
+    "endOfHistory": "🎉 已到达历史记录末尾",
     "watchedAgo": "{{time}}前观看",
     "loadError": "加载历史记录失败",
     "retry": "重试"
@@ -465,6 +465,7 @@
     "addVideoError": "添加视频失败，请检查 URL。",
     "delete": "删除",
     "removeVideo": "删除视频",
+    "markWatchedError": "更新观看状态失败",
     "noVideos": "暂无视频",
     "notFound": "未找到播放列表",
     "loadError": "加载播放列表失败",
@@ -559,12 +560,11 @@
     "resultsFor": "「{{query}}」的搜索结果",
     "noResults": "未找到结果",
     "noResultsDesc": "请尝试使用不同的关键词搜索。",
-    "endOfResults": "已加载全部结果",
+    "endOfResults": "🎉 已加载全部结果",
     "loadError": "搜索失败",
     "retry": "重试",
     "filters": {
       "title": "搜索筛选",
-      "close": "关闭",
       "order": "排序方式",
       "orderDefault": "默认（相关性）",
       "orderOptions": {

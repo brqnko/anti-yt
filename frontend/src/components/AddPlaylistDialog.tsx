@@ -62,7 +62,7 @@ export function AddPlaylistDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} ariaLabel={t("dashboard.addPlaylistDialog.title")} showCloseButton closeButtonLabel={t("dashboard.addPlaylistDialog.cancel")}>
+    <Dialog open={open} onClose={onClose} ariaLabel={t("dashboard.addPlaylistDialog.title")}>
         <h2 class="text-2xl font-bold text-charcoal dark:text-white mb-5">
           {t("dashboard.addPlaylistDialog.title")}
         </h2>

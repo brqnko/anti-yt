@@ -55,7 +55,7 @@ export function SearchFilterDialog({
     draft.order || draft.published_after || draft.published_before || draft.region_code || draft.relevance_language || draft.type;
 
   return (
-    <Dialog open={open} onClose={onClose} ariaLabel={t("search.filters.title")} showCloseButton closeButtonLabel={t("search.filters.close")} panelClass="max-h-[85vh] overflow-y-auto">
+    <Dialog open={open} onClose={onClose} ariaLabel={t("search.filters.title")} panelClass="max-h-[85vh] overflow-y-auto">
         <h2 class="text-2xl font-bold text-charcoal dark:text-white mb-6">
           {t("search.filters.title")}
         </h2>

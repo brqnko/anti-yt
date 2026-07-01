@@ -666,6 +666,13 @@ SELECT
         LIMIT
             1
     ), 0)::int AS last_watch_seconds,
+    EXISTS (
+        SELECT 1 FROM t_video_watched
+        WHERE t_video_watched.m_video_id = video.m_video_id
+            AND t_video_watched.m_user_id = (
+                SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = $1 LIMIT 1
+            )
+    )::bool AS is_watched,
     channel.public_id AS channel_id,
     channel.external_icon_url AS external_channel_icon_url,
     channel.external_display_name AS external_channel_displayname
@@ -754,6 +761,7 @@ type ListPlaylistVideosRow struct {
 	ExternalCreatedAt          time.Time
 	ExternalLengthSeconds      int
 	LastWatchSeconds           int
+	IsWatched                  bool
 	ChannelID                  uuid.UUID
 	ExternalChannelIconUrl     string
 	ExternalChannelDisplayname string
@@ -780,6 +788,7 @@ func (q *Queries) ListPlaylistVideos(ctx context.Context, arg ListPlaylistVideos
 			&i.ExternalCreatedAt,
 			&i.ExternalLengthSeconds,
 			&i.LastWatchSeconds,
+			&i.IsWatched,
 			&i.ChannelID,
 			&i.ExternalChannelIconUrl,
 			&i.ExternalChannelDisplayname,

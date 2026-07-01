@@ -273,7 +273,7 @@
     "aboutBannerCta": "Learn more →",
     "rateLimitedTitle": "Please wait a moment",
     "rateLimitedDesc": "You've reached the request limit. Please try again later.",
-    "endOfFeed": "You're all caught up",
+    "endOfFeed": "🎉 You're all caught up",
     "sidebarFooter": {
       "copyright": "© 2026 anti-yt"
     },
@@ -431,7 +431,7 @@
     "today": "Today",
     "yesterday": "Yesterday",
     "noHistory": "No watch history",
-    "endOfHistory": "You've reached the end of your history",
+    "endOfHistory": "🎉 You've reached the end of your history",
     "watchedAgo": "Watched {{time}}",
     "loadError": "Failed to load history",
     "retry": "Try again"
@@ -465,6 +465,7 @@
     "addVideoError": "Failed to add video. Please check the URL.",
     "delete": "Delete",
     "removeVideo": "Remove video",
+    "markWatchedError": "Failed to update watched status",
     "noVideos": "No videos yet",
     "notFound": "Playlist not found",
     "loadError": "Failed to load playlist",
@@ -559,12 +560,11 @@
     "resultsFor": "Results for \"{{query}}\"",
     "noResults": "No results found",
     "noResultsDesc": "Try searching with different keywords.",
-    "endOfResults": "All results loaded",
+    "endOfResults": "🎉 All results loaded",
     "loadError": "Search failed",
     "retry": "Try again",
     "filters": {
       "title": "Search Filters",
-      "close": "Close",
       "order": "Sort By",
       "orderDefault": "Default (Relevance)",
       "orderOptions": {

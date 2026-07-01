@@ -51,7 +51,7 @@ export function AddChannelDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} ariaLabel={t("channels.addChannelDialog.title")} maxWidth="max-w-sm" showCloseButton closeButtonLabel={t("channels.addChannelDialog.cancel")}>
+    <Dialog open={open} onClose={onClose} ariaLabel={t("channels.addChannelDialog.title")} maxWidth="max-w-sm">
         <h2 class="text-2xl font-bold text-charcoal dark:text-white mb-2">
           {t("channels.addChannelDialog.title")}
         </h2>

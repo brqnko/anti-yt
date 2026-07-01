@@ -173,6 +173,7 @@ func (h *APIHandler) GetPlaylistsPlaylistIdVideos(ctx context.Context, request G
 			ExternalVideoLengthSeconds int             `json:"external_video_length_seconds"`
 			ExternalVideoThumbnailUrl  string          `json:"external_video_thumbnail_url"`
 			ExternalVideoTitle         string          `json:"external_video_title"`
+			IsWatched                  bool            `json:"is_watched"`
 			LastWatchSeconds           *int            `json:"last_watch_seconds,omitempty"`
 			VideoId                    util.Base64UUID `json:"video_id"`
 		}, len(videos)),
@@ -188,6 +189,7 @@ func (h *APIHandler) GetPlaylistsPlaylistIdVideos(ctx context.Context, request G
 		resp.Items[i].ExternalVideoLengthSeconds = v.ExternalVideoLengthSeconds
 		resp.Items[i].ExternalChannelIconUrl = v.ExternalChannelIconUrl
 		resp.Items[i].ExternalChannelDisplayName = v.ExternalChannelDisplayName
+		resp.Items[i].IsWatched = v.IsWatched
 		resp.Items[i].LastWatchSeconds = v.LastWatchSeconds
 	}
 

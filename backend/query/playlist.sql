@@ -326,6 +326,13 @@ SELECT
         LIMIT
             1
     ), 0)::int AS last_watch_seconds,
+    EXISTS (
+        SELECT 1 FROM t_video_watched
+        WHERE t_video_watched.m_video_id = video.m_video_id
+            AND t_video_watched.m_user_id = (
+                SELECT m_user.m_user_id FROM m_user WHERE m_user.public_id = @user_id LIMIT 1
+            )
+    )::bool AS is_watched,
     channel.public_id AS channel_id,
     channel.external_icon_url AS external_channel_icon_url,
     channel.external_display_name AS external_channel_displayname

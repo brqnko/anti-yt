@@ -1,6 +1,5 @@
 import type { ComponentChildren } from "preact";
 import { useEscapeKey } from "../hooks/useEscapeKey";
-import { Icon } from "./Icon";
 
 interface DialogProps {
   open: boolean;
@@ -10,10 +9,6 @@ interface DialogProps {
   maxWidth?: string;
   /** Extra classes for the panel div. */
   panelClass?: string;
-  /** Show a close (×) button in the top-right corner. */
-  showCloseButton?: boolean;
-  /** Aria-label for the close button. */
-  closeButtonLabel?: string;
   children: ComponentChildren;
 }
 
@@ -23,8 +18,6 @@ export function Dialog({
   ariaLabel,
   maxWidth = "max-w-md",
   panelClass,
-  showCloseButton = false,
-  closeButtonLabel,
   children,
 }: DialogProps) {
   useEscapeKey(open, onClose);
@@ -42,15 +35,6 @@ export function Dialog({
       <div
         class={`relative bg-white dark:bg-[#2a2721] rounded-2xl ring-1 ring-black/10 dark:ring-white/10 border border-gray-100 dark:border-neutral-800 p-8 ${maxWidth} w-full ${panelClass ?? ""}`}
       >
-        {showCloseButton && (
-          <button
-            class="absolute top-4 right-4 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white bg-transparent border-none cursor-pointer"
-            onClick={onClose}
-            aria-label={closeButtonLabel}
-          >
-            <Icon name="close" />
-          </button>
-        )}
         {children}
       </div>
     </div>

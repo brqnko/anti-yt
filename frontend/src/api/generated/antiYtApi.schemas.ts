@@ -855,6 +855,7 @@ export type GetPlaylistsPlaylistIdVideos200ItemsItem = {
   external_video_length_seconds: number;
   /** @minimum 0 */
   last_watch_seconds?: number;
+  is_watched: boolean;
 };
 
 export type GetPlaylistsPlaylistIdVideos200 = {

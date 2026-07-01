@@ -50,7 +50,7 @@ function RemoveChannelDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} ariaLabel={t("channels.unsubscribeDialog.title")} maxWidth="max-w-sm" showCloseButton>
+    <Dialog open={open} onClose={onClose} ariaLabel={t("channels.unsubscribeDialog.title")} maxWidth="max-w-sm">
         <div class="flex items-center gap-3 mb-4">
           <h2 class="text-lg font-bold text-charcoal dark:text-white">
             {t("channels.unsubscribeDialog.title")}

@@ -273,7 +273,7 @@
     "aboutBannerCta": "もっと知る →",
     "rateLimitedTitle": "しばらくお待ちください",
     "rateLimitedDesc": "リクエスト数が上限に達しました。時間をおいてから再度お試しください。",
-    "endOfFeed": "すべての動画を読み込みました",
+    "endOfFeed": "🎉 すべての動画を読み込みました",
     "sidebarFooter": {
       "copyright": "© 2026 anti-yt"
     },
@@ -431,7 +431,7 @@
     "today": "今日",
     "yesterday": "昨日",
     "noHistory": "視聴履歴がありません",
-    "endOfHistory": "すべての履歴を読み込みました",
+    "endOfHistory": "🎉 すべての履歴を読み込みました",
     "watchedAgo": "{{time}}に視聴",
     "loadError": "履歴の読み込みに失敗しました",
     "retry": "再試行"
@@ -465,6 +465,7 @@
     "addVideoError": "動画の追加に失敗しました。URLを確認してください。",
     "delete": "削除",
     "removeVideo": "動画を削除",
+    "markWatchedError": "視聴状態の更新に失敗しました",
     "noVideos": "動画がありません",
     "notFound": "プレイリストが見つかりません",
     "loadError": "プレイリストの読み込みに失敗しました",
@@ -559,12 +560,11 @@
     "resultsFor": "「{{query}}」の検索結果",
     "noResults": "検索結果がありません",
     "noResultsDesc": "別のキーワードで検索してみてください。",
-    "endOfResults": "すべての検索結果を読み込みました",
+    "endOfResults": "🎉 すべての検索結果を読み込みました",
     "loadError": "検索に失敗しました",
     "retry": "再試行",
     "filters": {
       "title": "検索フィルター",
-      "close": "閉じる",
       "order": "並び順",
       "orderDefault": "デフォルト（関連度順）",
       "orderOptions": {

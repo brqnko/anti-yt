@@ -10,6 +10,7 @@ import { AuthPromptDialog } from "../../components/AuthPromptDialog";
 import { VideoCard } from "../../components/VideoCard";
 import { Dialog } from "../../components/Dialog";
 import { getPlaylist } from "../../api/generated/playlist";
+import { getHistory } from "../../api/generated/history";
 import { getApiErrorCode } from "../../utils/api-error";
 import { useNotification } from "../../contexts/NotificationContext";
 import { formatTimeAgo } from "../../utils/format";
@@ -623,6 +624,24 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
     }
   };
 
+  const handleToggleWatched = async (video: GetPlaylistsPlaylistIdVideos200ItemsItem) => {
+    const nextIsWatched = !video.is_watched;
+    try {
+      if (nextIsWatched) {
+        await getHistory().postVideosVideoIdWatched(video.video_id);
+      } else {
+        await getHistory().deleteVideosVideoIdWatched(video.video_id);
+      }
+      setVideos((prev) =>
+        prev.map((v) =>
+          v.video_id === video.video_id ? { ...v, is_watched: nextIsWatched } : v,
+        ),
+      );
+    } catch {
+      show({ type: "error", messageKey: "playlistDetail.markWatchedError" });
+    }
+  };
+
   const handleRemoveVideo = async () => {
     if (!removeTarget || isRemoving) return;
     setIsRemoving(true);
@@ -807,9 +826,21 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                         }}
                         dateStr={video.external_video_created_at}
                         watchedSeconds={video.last_watch_seconds}
+                        isWatched={video.is_watched}
                         playlistId={playlistId}
                       />
                     </div>
+                    <button
+                      class={`flex-shrink-0 p-1.5 rounded-lg cursor-pointer bg-transparent border-none opacity-100 lg:opacity-0 lg:group-hover/row:opacity-100 focus:opacity-100 ${
+                        video.is_watched
+                          ? "text-primary hover:text-text-muted-light dark:hover:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5"
+                          : "text-text-muted-light dark:text-text-muted-dark hover:text-primary hover:bg-primary/5"
+                      }`}
+                      onClick={() => requireAuth(() => handleToggleWatched(video))}
+                      title={video.is_watched ? t("videoCard.unmarkWatched") : t("videoCard.markWatched")}
+                    >
+                      <Icon name="check_circle" class="text-[20px]" />
+                    </button>
                     {(playlistInfo.playlist_type === "normal" ||
                       playlistInfo.playlist_type === "watch_later") && (
                       <button

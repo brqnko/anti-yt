@@ -152,7 +152,17 @@ const VideoCardMenu = memo(function VideoCardMenu({
       >
         <Icon name="more_vert" class="text-[20px]" />
       </button>
-      <Dialog open={open} onClose={() => setOpen(false)} ariaLabel={t("videoCard.moreOptions")} maxWidth="max-w-sm" showCloseButton closeButtonLabel={t("common.close")}>
+      <Dialog open={open} onClose={() => setOpen(false)} ariaLabel={t("videoCard.moreOptions")} maxWidth="max-w-sm">
+            <div class="flex justify-end mb-4">
+              <button
+                type="button"
+                class="text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white bg-transparent border-none cursor-pointer"
+                onClick={() => setOpen(false)}
+                aria-label={t("common.close")}
+              >
+                <Icon name="close" />
+              </button>
+            </div>
             {onToggleSubscription && (
               <div class="flex items-center justify-between">
                 <div class="flex flex-col">

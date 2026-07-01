@@ -10,6 +10,7 @@ import { getVideo } from "../../api/generated/video";
 import { getHistory } from "../../api/generated/history";
 import { getPlaylist } from "../../api/generated/playlist";
 import { Dialog } from "../../components/Dialog";
+import { Icon } from "../../components/Icon";
 import { formatDuration, formatSubscriberCount } from "../../utils/format";
 import { buildWatchUrl } from "../../utils/url";
 import { getApiErrorCode } from "../../utils/api-error";
@@ -23,7 +24,6 @@ import type {
 import { useYouTubePlayer, PlayerState } from "./useYouTubePlayer";
 import { useHeartbeat } from "./useHeartbeat";
 import { Linkify } from "../../components/Linkify";
-import { Icon } from "../../components/Icon";
 import { VideoPlayerSkeleton } from "../../components/skeletons";
 import { BrowserBackLink } from "../../components/BrowserBackLink";
 import { useNotification } from "../../contexts/NotificationContext";
@@ -1127,12 +1127,21 @@ function VideoPlayerContent() {
         open={showPlaylistDialog}
         onClose={() => setShowPlaylistDialog(false)}
         ariaLabel={t("videoPlayer.addToPlaylist")}
-        showCloseButton
         panelClass="max-h-[80vh] flex flex-col p-6"
       >
-            <h2 class="text-xl font-bold text-charcoal dark:text-white mb-4">
-              {t("videoPlayer.addToPlaylist")}
-            </h2>
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-bold text-charcoal dark:text-white">
+                {t("videoPlayer.addToPlaylist")}
+              </h2>
+              <button
+                type="button"
+                class="text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white bg-transparent border-none cursor-pointer"
+                onClick={() => setShowPlaylistDialog(false)}
+                aria-label={t("common.close")}
+              >
+                <Icon name="close" />
+              </button>
+            </div>
             <button
               type="button"
               class="flex items-center gap-3 p-3 mb-2 rounded-xl border border-dashed border-border-light dark:border-border-dark hover:border-primary/50 hover:bg-primary/5 w-full text-left bg-transparent cursor-pointer"

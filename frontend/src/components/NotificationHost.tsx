@@ -29,7 +29,7 @@ export function NotificationHost() {
         >
           <div style={{ overflow: "hidden" }}>
             <div
-              class="flex items-center gap-3 bg-card-light dark:bg-card-dark rounded-2xl shadow-lg ring-1 ring-border-light dark:ring-border-dark px-4 py-3"
+              class="flex items-center gap-3 bg-card-light dark:bg-card-dark rounded-2xl ring-1 ring-border-light dark:ring-border-dark px-4 py-3"
               style={{
                 animation: n.isExiting
                   ? "notification-out 0.2s ease-in forwards"

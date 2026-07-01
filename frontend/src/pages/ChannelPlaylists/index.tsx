@@ -115,14 +115,17 @@ function ChannelPlaylistsContent({ channelId }: { channelId: string }) {
   return (
     <DashboardLayout>
       <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
-        <div class="flex items-center gap-3 mb-6">
+        <div class="flex items-center mb-6">
           <BrowserBackLink
             fallbackHref={`/channels/${channelId}`}
-            class="inline-flex items-center text-text-muted-light dark:text-text-muted-dark hover:text-primary no-underline"
+            class="inline-flex items-center gap-3 text-charcoal dark:text-white hover:text-primary no-underline"
           >
-            <Icon name="arrow_back" class="text-xl" />
+            <Icon
+              name="arrow_back"
+              class="text-xl text-text-muted-light dark:text-text-muted-dark"
+            />
+            <h2 class="text-2xl font-bold">{t("channelDetail.playlists")}</h2>
           </BrowserBackLink>
-          <h2 class="text-2xl font-bold">{t("channelDetail.playlists")}</h2>
         </div>
 
         {isLoading ? null : (

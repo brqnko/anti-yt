@@ -38,7 +38,10 @@ import (
 )
 
 func main() {
-	os.Exit(run(context.Background()))
+	if err := run(context.Background()); err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
 }
 
 type config struct {
@@ -58,21 +61,18 @@ type config struct {
 	redisURL    string
 }
 
-func run(ctx context.Context) int {
+func run(ctx context.Context) error {
 	jwtPrivate, err := loadPrivateKey("/run/secrets/jwt-private")
 	if err != nil {
-		fmt.Printf("failed to load jwt-private: %v\n", err)
-		return 1
+		return fmt.Errorf("failed to load jwt-private: %w", err)
 	}
 	jwtPublic, err := loadPublicKey("/run/secrets/jwt-public")
 	if err != nil {
-		fmt.Printf("failed to load jwt-public: %v\n", err)
-		return 1
+		return fmt.Errorf("failed to load jwt-public: %w", err)
 	}
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
-		fmt.Printf("invalid or missing PORT: %v\n", err)
-		return 1
+		return fmt.Errorf("invalid or missing PORT: %w", err)
 	}
 	cfg := config{
 		env:                    os.Getenv("ENV"),
@@ -111,8 +111,7 @@ func run(ctx context.Context) int {
 	defer cancel()
 	otelShutdown, err := otel_d.Setup(initCtx, "anti-yt-backend", cfg.env)
 	if err != nil {
-		slog.Error("failed to setup otel", slog.Any("error", err))
-		return 1
+		return fmt.Errorf("failed to setup otel: %w", err)
 	}
 	defer func() {
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -125,8 +124,7 @@ func run(ctx context.Context) int {
 	initCtx, cancel = context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 	if err = database_d.RunMigration(initCtx, cfg.databaseURL); err != nil {
-		slog.Error("failed to run migration", slog.Any("error", err))
-		return 1
+		return fmt.Errorf("failed to run migration: %w", err)
 	}
 	slog.Info("migration ok")
 
@@ -134,8 +132,7 @@ func run(ctx context.Context) int {
 	defer cancel()
 	db, err := database_d.ConnectPostgres(initCtx, cfg.databaseURL)
 	if err != nil {
-		slog.Error("failed to connect db", slog.Any("error", err))
-		return 1
+		return fmt.Errorf("failed to connect db: %w", err)
 	}
 	defer db.Close()
 
@@ -143,8 +140,7 @@ func run(ctx context.Context) int {
 	defer cancel()
 	redisClient, err := database_d.ConnectRedis(initCtx, cfg.redisURL)
 	if err != nil {
-		slog.Error("failed to connect redis", slog.Any("error", err))
-		return 1
+		return fmt.Errorf("failed to connect redis: %w", err)
 	}
 	defer func() {
 		if err := redisClient.Close(); err != nil {
@@ -157,8 +153,7 @@ func run(ctx context.Context) int {
 	defer cancel()
 	oidcClient, err := oidc.NewGoogleClient(initCtx, cfg.oidcGoogleClientID, cfg.oidcGoogleClientSecret, fmt.Sprintf("%s/v1/auth/google/callback", cfg.serverURL))
 	if err != nil {
-		slog.Error("failed to create oidc client", slog.Any("error", err))
-		return 1
+		return fmt.Errorf("failed to create oidc client: %w", err)
 	}
 
 	accessTokenDuration := 30 * time.Minute
@@ -168,8 +163,7 @@ func run(ctx context.Context) int {
 	defer cancel()
 	youtubeClient, err := youtube_d.NewClient(initCtx, cfg.youtubeDataAPIKey, cfg.oidcGoogleClientID, cfg.oidcGoogleClientSecret, fmt.Sprintf("%s/v1/auth/oauth/youtube/callback", cfg.serverURL))
 	if err != nil {
-		slog.Error("failed to create youtube client", slog.Any("error", err))
-		return 1
+		return fmt.Errorf("failed to create youtube client: %w", err)
 	}
 	slog.Info("youtube api ok")
 
@@ -177,38 +171,32 @@ func run(ctx context.Context) int {
 	defer cancel()
 	llmClient, err := llm.NewGemini(initCtx, cfg.geminiAPIKey, "gemini-2.5-flash-lite")
 	if err != nil {
-		slog.Error("failed to create llm client", slog.Any("error", err))
-		return 1
+		return fmt.Errorf("failed to create llm client: %w", err)
 	}
 	slog.Info("gemini api ok")
 
 	scheduler := scheduler.NewService()
+	defer scheduler.Stop()
 	if err := scheduler.AddFunc("0 0 * * *", job.NewLLMSummaryJob(db, llmClient, discord_d.NewClient(cfg.discordWebhookURL))); err != nil {
-		slog.Error("failed to setup llm summary job", slog.Any("error", err))
-		return 1
+		return fmt.Errorf("failed to setup llm summary job: %w", err)
 	}
 	if err := scheduler.AddFunc("0 0 * * *", job.NewPurgeLeftUserJob(db, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)), discord_d.NewClient(cfg.discordWebhookURL))); err != nil {
-		slog.Error("failed to setup purge left user job", slog.Any("error", err))
-		return 1
+		return fmt.Errorf("failed to setup purge left user job: %w", err)
 	}
 	exhaustQuotaJob := job.NewExhaustQuotaJob(db, youtubeClient, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)), discord_d.NewClient(cfg.discordWebhookURL))
 	if err := scheduler.AddFunc("0 6 * * *", exhaustQuotaJob); err != nil { // 夏
-		slog.Error("failed to setup exhaust quota job (PDT)", slog.Any("error", err))
-		return 1
+		return fmt.Errorf("failed to setup exhaust quota job (PDT): %w", err)
 	}
 	if err := scheduler.AddFunc("0 7 * * *", exhaustQuotaJob); err != nil { // 冬
-		slog.Error("failed to setup exhaust quota job (PST)", slog.Any("error", err))
-		return 1
+		return fmt.Errorf("failed to setup exhaust quota job (PST): %w", err)
 	}
 	go exhaustQuotaJob.Run()
 	if err := scheduler.AddFunc("0 * * * *", job.NewRefillFeedJob(db, database_d.NewFeedRepository(redisClient, 1000, sqlc.New(db)))); err != nil {
-		slog.Error("failed to setup refill feed job", slog.Any("error", err))
-		return 1
+		return fmt.Errorf("failed to setup refill feed job: %w", err)
 	}
 
 	if err := scheduler.AddFunc("0 0 * * *", job.NewAuthorizationReportJob(db, discord_d.NewClient(cfg.discordWebhookURL))); err != nil {
-		slog.Error("failed to setup authorization report job", slog.Any("error", err))
-		return 1
+		return fmt.Errorf("failed to setup authorization report job: %w", err)
 	}
 
 	r := chi.NewRouter()
@@ -300,15 +288,20 @@ func run(ctx context.Context) int {
 		Handler: otelhttp.NewHandler(r, "http.server"),
 	})
 
+	serverErr := make(chan error, 1)
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("shutting down the server", slog.Any("error", err))
+			serverErr <- err
 		}
 	}()
 
 	slog.Info("listening")
 
-	<-ctx.Done()
+	select {
+	case <-ctx.Done():
+	case err := <-serverErr:
+		return fmt.Errorf("failed to listen and serve: %w", err)
+	}
 
 	slog.Info("graceful shutdown")
 
@@ -316,15 +309,12 @@ func run(ctx context.Context) int {
 	defer cancel()
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		slog.Error("failed to shutdown server", slog.Any("error", err))
-		return 1
+		return fmt.Errorf("failed to shutdown server: %w", err)
 	}
-
-	scheduler.Stop()
 
 	slog.Info("graceful shutdown ok")
 
-	return 0
+	return nil
 }
 
 func loadPrivateKey(path string) (_ ed25519.PrivateKey, err error) {
