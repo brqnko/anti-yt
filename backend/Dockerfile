@@ -12,7 +12,7 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=bind,target=. \
     CGO_ENABLED=0 GOARCH=$TARGETARCH go build -o /bin/server ./cmd/api
 
-FROM alpine:3.23 AS final
+FROM alpine:3.24 AS final
 
 RUN apk add --no-cache tzdata
 
