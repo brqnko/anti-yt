@@ -41,6 +41,25 @@ function generateWebP(): Plugin {
   };
 }
 
+const manualChunkGroups = {
+  "vendor-preact": ["preact", "preact-iso"],
+  "vendor-swr": ["swr"],
+  "vendor-i18n": ["i18next", "react-i18next"],
+  "vendor-axios": ["axios"],
+} as const;
+
+function isNodeModulePackage(id: string, packageName: string) {
+  return id.includes(`/node_modules/${packageName}/`);
+}
+
+function manualChunks(id: string) {
+  for (const [chunkName, packageNames] of Object.entries(manualChunkGroups)) {
+    if (packageNames.some((packageName) => isNodeModulePackage(id, packageName))) {
+      return chunkName;
+    }
+  }
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
@@ -55,12 +74,7 @@ export default defineConfig({
     reportCompressedSize: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          "vendor-preact": ["preact", "preact-iso", "preact/hooks", "preact/compat"],
-          "vendor-swr": ["swr"],
-          "vendor-i18n": ["i18next", "react-i18next"],
-          "vendor-axios": ["axios"],
-        },
+        manualChunks,
       },
     },
   },
