@@ -464,7 +464,7 @@
     "addVideoCancel": "Cancel",
     "addVideoError": "Failed to add video. Please check the URL.",
     "delete": "Delete",
-    "removeVideo": "Remove video",
+    "removeVideo": "Remove from playlist",
     "markWatchedError": "Failed to update watched status",
     "noVideos": "No videos yet",
     "notFound": "Playlist not found",

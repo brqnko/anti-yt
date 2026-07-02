@@ -124,6 +124,103 @@ function PlaylistActionsMenu({
   );
 }
 
+function PlaylistVideoMenu({
+  isWatched,
+  onToggleWatched,
+  onRemove,
+  isRemoving,
+  canRemove,
+}: {
+  isWatched?: boolean;
+  onToggleWatched: () => Promise<void>;
+  onRemove: () => void;
+  isRemoving: boolean;
+  canRemove: boolean;
+}) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [marking, setMarking] = useState(false);
+
+  const handleMarkWatched = async () => {
+    if (marking) return;
+    setMarking(true);
+    try {
+      await onToggleWatched();
+      setOpen(false);
+    } finally {
+      setMarking(false);
+    }
+  };
+
+  const handleRemove = () => {
+    if (isRemoving) return;
+    setOpen(false);
+    onRemove();
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        class="flex-shrink-0 p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none opacity-100 lg:opacity-0 lg:group-hover/row:opacity-100 focus:opacity-100"
+        onClick={() => setOpen(true)}
+        aria-label={t("videoCard.moreOptions")}
+      >
+        <Icon name="more_vert" class="text-[20px]" />
+      </button>
+      <Dialog open={open} onClose={() => setOpen(false)} ariaLabel={t("videoCard.moreOptions")} maxWidth="max-w-sm">
+        <div class="flex justify-end mb-4">
+          <button
+            type="button"
+            class="text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white bg-transparent border-none cursor-pointer"
+            onClick={() => setOpen(false)}
+            aria-label={t("common.close")}
+          >
+            <Icon name="close" />
+          </button>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex flex-col">
+            <span class="text-sm font-bold text-charcoal dark:text-white">
+              {isWatched ? t("videoCard.unmarkWatched") : t("videoCard.markWatched")}
+            </span>
+            <span class="text-xs text-text-muted-light dark:text-text-muted-dark">
+              {isWatched ? t("videoCard.unmarkWatchedDesc") : t("videoCard.markWatchedDesc")}
+            </span>
+          </div>
+          <button
+            class={`flex-shrink-0 ml-3 px-3 py-1.5 rounded-lg text-sm font-medium ${
+              marking
+                ? "bg-gray-200 dark:bg-gray-700 text-text-muted-light dark:text-text-muted-dark cursor-not-allowed"
+                : isWatched
+                  ? "bg-gray-200 dark:bg-gray-700 text-charcoal dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer"
+                  : "bg-primary text-white hover:bg-primary/90 cursor-pointer"
+            } border-none`}
+            onClick={handleMarkWatched}
+            disabled={marking}
+          >
+            {isWatched ? t("videoCard.unmarkWatchedButton") : t("videoCard.markWatchedButton")}
+          </button>
+        </div>
+        {canRemove && (
+          <div class="flex items-center justify-between mt-4">
+            <span class="text-sm font-bold text-charcoal dark:text-white">
+              {t("playlistDetail.removeVideo")}
+            </span>
+            <button
+              class="flex-shrink-0 ml-3 px-3 py-1.5 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 cursor-pointer border-none disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleRemove}
+              disabled={isRemoving}
+            >
+              {isRemoving ? t("playlistDetail.removeVideoDialog.removing") : t("playlistDetail.delete")}
+            </button>
+          </div>
+        )}
+      </Dialog>
+    </>
+  );
+}
+
 function PlaylistDescription({ description }: { description: string }) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -289,50 +386,6 @@ function DeleteConfirmDialog({
             {isDeleting
               ? t("playlistDetail.deleteDialog.deleting")
               : t("playlistDetail.deleteDialog.confirm")}
-          </button>
-        </div>
-    </Dialog>
-  );
-}
-
-function RemoveVideoDialog({
-  open,
-  videoTitle,
-  onClose,
-  onConfirm,
-  isRemoving,
-}: {
-  open: boolean;
-  videoTitle: string;
-  onClose: () => void;
-  onConfirm: () => void;
-  isRemoving: boolean;
-}) {
-  const { t } = useTranslation();
-
-  return (
-    <Dialog open={open} onClose={onClose} ariaLabel={t("playlistDetail.removeVideoDialog.title")} maxWidth="max-w-sm" panelClass="flex flex-col gap-4">
-        <h2 class="text-xl font-bold text-charcoal dark:text-white">
-          {t("playlistDetail.removeVideoDialog.title")}
-        </h2>
-        <p class="text-sm text-text-muted-light dark:text-text-muted-dark">
-          {t("playlistDetail.removeVideoDialog.description", { title: videoTitle })}
-        </p>
-        <div class="flex justify-end gap-3 pt-2">
-          <button
-            class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer bg-transparent border-none"
-            onClick={onClose}
-          >
-            {t("playlistDetail.removeVideoDialog.cancel")}
-          </button>
-          <button
-            class="px-4 py-2 rounded-lg text-sm font-bold bg-red-600 text-white hover:bg-red-700 cursor-pointer border-none disabled:opacity-50"
-            onClick={onConfirm}
-            disabled={isRemoving}
-          >
-            {isRemoving
-              ? t("playlistDetail.removeVideoDialog.removing")
-              : t("playlistDetail.removeVideoDialog.confirm")}
           </button>
         </div>
     </Dialog>
@@ -535,8 +588,7 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [removeTarget, setRemoveTarget] = useState<GetPlaylistsPlaylistIdVideos200ItemsItem | null>(null);
-  const [isRemoving, setIsRemoving] = useState(false);
+  const [removingVideoId, setRemovingVideoId] = useState<string | null>(null);
 
   const [showAddVideo, setShowAddVideo] = useState(false);
   const [showCopy, setShowCopy] = useState(false);
@@ -642,27 +694,26 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
     }
   };
 
-  const handleRemoveVideo = async () => {
-    if (!removeTarget || isRemoving) return;
-    setIsRemoving(true);
+  const handleRemoveVideo = async (video: GetPlaylistsPlaylistIdVideos200ItemsItem) => {
+    if (removingVideoId) return;
+    setRemovingVideoId(video.video_id);
     try {
       if (playlistInfo?.playlist_type === "watch_later") {
-        await getPlaylist().deleteVideosVideoIdWatchLater(removeTarget.video_id);
+        await getPlaylist().deleteVideosVideoIdWatchLater(video.video_id);
       } else {
         await getPlaylist().deletePlaylistsPlaylistIdVideos(playlistId, {
-          video_id: removeTarget.video_id,
+          video_id: video.video_id,
         });
       }
       setVideos((prev) =>
-        prev.filter((v) => v.video_id !== removeTarget.video_id),
+        prev.filter((v) => v.video_id !== video.video_id),
       );
       const refreshed = await getPlaylist().getPlaylistsPlaylistId(playlistId);
       setPlaylistInfo(refreshed);
-      setRemoveTarget(null);
     } catch {
       show({ type: "error", messageKey: "playlistDetail.removeVideoDialog.error" });
     } finally {
-      setIsRemoving(false);
+      setRemovingVideoId(null);
     }
   };
 
@@ -830,27 +881,16 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
                         playlistId={playlistId}
                       />
                     </div>
-                    <button
-                      class={`flex-shrink-0 p-1.5 rounded-lg cursor-pointer bg-transparent border-none opacity-100 lg:opacity-0 lg:group-hover/row:opacity-100 focus:opacity-100 ${
-                        video.is_watched
-                          ? "text-primary hover:text-text-muted-light dark:hover:text-text-muted-dark hover:bg-black/5 dark:hover:bg-white/5"
-                          : "text-text-muted-light dark:text-text-muted-dark hover:text-primary hover:bg-primary/5"
-                      }`}
-                      onClick={() => requireAuth(() => handleToggleWatched(video))}
-                      title={video.is_watched ? t("videoCard.unmarkWatched") : t("videoCard.markWatched")}
-                    >
-                      <Icon name="check_circle" class="text-[20px]" />
-                    </button>
-                    {(playlistInfo.playlist_type === "normal" ||
-                      playlistInfo.playlist_type === "watch_later") && (
-                      <button
-                        class="flex-shrink-0 p-1.5 rounded-lg text-text-muted-light dark:text-text-muted-dark hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer bg-transparent border-none opacity-100 lg:opacity-0 lg:group-hover/row:opacity-100 focus:opacity-100"
-                        onClick={() => setRemoveTarget(video)}
-                        title={t("playlistDetail.removeVideo")}
-                      >
-                        <Icon name="close" class="text-[20px]" />
-                      </button>
-                    )}
+                    <PlaylistVideoMenu
+                      isWatched={video.is_watched}
+                      onToggleWatched={() => requireAuth(() => handleToggleWatched(video))}
+                      onRemove={() => handleRemoveVideo(video)}
+                      isRemoving={removingVideoId === video.video_id}
+                      canRemove={
+                        playlistInfo.playlist_type === "normal" ||
+                        playlistInfo.playlist_type === "watch_later"
+                      }
+                    />
                   </div>
                 ))}
               </div>
@@ -898,14 +938,6 @@ function PlaylistDetailContent({ playlistId }: { playlistId: string }) {
         onClose={() => setShowDelete(false)}
         onConfirm={handleDelete}
         isDeleting={isDeleting}
-      />
-
-      <RemoveVideoDialog
-        open={!!removeTarget}
-        videoTitle={removeTarget?.external_video_title ?? ""}
-        onClose={() => setRemoveTarget(null)}
-        onConfirm={handleRemoveVideo}
-        isRemoving={isRemoving}
       />
 
       <AddVideoDialog

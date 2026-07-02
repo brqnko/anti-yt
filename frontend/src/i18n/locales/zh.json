@@ -464,7 +464,7 @@
     "addVideoCancel": "取消",
     "addVideoError": "添加视频失败，请检查 URL。",
     "delete": "删除",
-    "removeVideo": "删除视频",
+    "removeVideo": "从播放列表中删除",
     "markWatchedError": "更新观看状态失败",
     "noVideos": "暂无视频",
     "notFound": "未找到播放列表",

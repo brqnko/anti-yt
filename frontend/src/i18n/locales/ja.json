@@ -464,7 +464,7 @@
     "addVideoCancel": "キャンセル",
     "addVideoError": "動画の追加に失敗しました。URLを確認してください。",
     "delete": "削除",
-    "removeVideo": "動画を削除",
+    "removeVideo": "プレイリストから削除",
     "markWatchedError": "視聴状態の更新に失敗しました",
     "noVideos": "動画がありません",
     "notFound": "プレイリストが見つかりません",

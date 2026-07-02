@@ -51,7 +51,7 @@ export function DashboardLayout({
 
       <div class="flex flex-1 w-full tablet:overflow-hidden">
         <aside
-          class={`hidden tablet:flex flex-col border-r border-border-light dark:border-border-dark shrink-0 transition-[width,opacity] duration-200 ${
+          class={`hidden tablet:flex flex-col border-r border-border-light dark:border-border-dark shrink-0 ${
             sidebarOpen
               ? "w-64 opacity-100 overflow-hidden"
               : "w-0 opacity-0 overflow-hidden"
