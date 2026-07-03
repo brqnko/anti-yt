@@ -29,7 +29,7 @@
     "eslint-config-preact": "^2.0.0",
     "orval": "^8.19.0",
     "prettier": "^3.9.4",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.3",
     "svgo": "^4.0.1",
     "typescript": "^6.0.3",
     "unplugin-icons": "^23.0.1",
