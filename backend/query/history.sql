@@ -45,6 +45,17 @@ SELECT
     m_video.external_length_seconds AS external_video_length_seconds,
     t_video_watch.watch_position_seconds,
     t_video_watch.watch_start_at AS watched_at,
+    EXISTS (
+        SELECT
+            1
+        FROM
+            t_video_watched
+        WHERE
+            t_video_watched.m_user_id = t_video_watch.m_user_id
+            AND t_video_watched.m_video_id = t_video_watch.m_video_id
+        LIMIT
+            1
+    )::bool AS is_watched,
     m_channel.public_id AS channel_id,
     m_channel.external_display_name AS external_channel_display_name,
     m_channel.external_icon_url AS external_channel_icon_url

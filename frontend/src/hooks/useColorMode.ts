@@ -15,11 +15,15 @@ function applyTheme(mode: ColorMode) {
   document.documentElement.setAttribute("data-theme", resolved);
 }
 
+export function isColorMode(value: string | null): value is ColorMode {
+  return value === "light" || value === "dark" || value === "system";
+}
+
 export function useColorMode() {
   const [mode, setMode] = useState<ColorMode>(() => {
     if (typeof window === "undefined") return "system";
     const stored = localStorage.getItem(STORAGE_KEY);
-    return (stored as ColorMode) || "system";
+    return isColorMode(stored) ? stored : "system";
   });
 
   useEffect(() => {

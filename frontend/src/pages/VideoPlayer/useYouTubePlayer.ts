@@ -32,15 +32,29 @@ const IFRAME_API_TIMEOUT_MS = 10_000;
 const STORAGE_KEY_VOLUME = "yt-player-volume";
 const STORAGE_KEY_MUTED = "yt-player-muted";
 const STORAGE_KEY_LOOP = "yt-player-loop";
+const PLAYER_STATE_VALUES = Object.values(PlayerState);
 
-function loadPreference<T>(key: string, fallback: T): T {
+function toPlayerStateValue(state: number): PlayerStateValue {
+  return PLAYER_STATE_VALUES.find((value) => value === state) ?? PlayerState.UNSTARTED;
+}
+
+function loadJsonPreference(key: string): unknown {
   try {
     const raw = localStorage.getItem(key);
-    if (raw === null) return fallback;
-    return JSON.parse(raw) as T;
+    return raw === null ? undefined : JSON.parse(raw);
   } catch {
-    return fallback;
+    return undefined;
   }
+}
+
+function loadNumberPreference(key: string, fallback: number): number {
+  const value = loadJsonPreference(key);
+  return typeof value === "number" ? value : fallback;
+}
+
+function loadBooleanPreference(key: string, fallback: boolean): boolean {
+  const value = loadJsonPreference(key);
+  return typeof value === "boolean" ? value : fallback;
 }
 
 function savePreference(key: string, value: unknown): void {
@@ -107,9 +121,9 @@ export function useYouTubePlayer({
   const [playerState, setPlayerState] = useState<PlayerStateValue>(PlayerState.UNSTARTED);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolumeState] = useState(() => loadPreference(STORAGE_KEY_VOLUME, 100));
-  const [isMuted, setIsMuted] = useState(() => loadPreference(STORAGE_KEY_MUTED, false));
-  const [isLooping, setIsLooping] = useState(() => loadPreference(STORAGE_KEY_LOOP, false));
+  const [volume, setVolumeState] = useState(() => loadNumberPreference(STORAGE_KEY_VOLUME, 100));
+  const [isMuted, setIsMuted] = useState(() => loadBooleanPreference(STORAGE_KEY_MUTED, false));
+  const [isLooping, setIsLooping] = useState(() => loadBooleanPreference(STORAGE_KEY_LOOP, false));
   const isLoopingRef = useRef(isLooping);
   const rafRef = useRef<number | null>(null);
   const currentTimeRef = useRef(0);
@@ -255,8 +269,8 @@ export function useYouTubePlayer({
             setDuration(player.getDuration());
             loadedVideoIdRef.current = currentVideoId;
 
-            const savedVolume = loadPreference(STORAGE_KEY_VOLUME, 100);
-            const savedMuted = loadPreference(STORAGE_KEY_MUTED, false);
+            const savedVolume = loadNumberPreference(STORAGE_KEY_VOLUME, 100);
+            const savedMuted = loadBooleanPreference(STORAGE_KEY_MUTED, false);
             player.setVolume(savedVolume);
             setVolumeState(savedVolume);
             if (savedMuted) {
@@ -270,7 +284,7 @@ export function useYouTubePlayer({
           },
           onStateChange: (e: YT.OnStateChangeEvent) => {
             if (cancelled) return;
-            const state = e.data as PlayerStateValue;
+            const state = toPlayerStateValue(e.data);
             setPlayerState(state);
             onStateChangeRef.current?.(state);
 

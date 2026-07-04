@@ -3,19 +3,20 @@ import { useLocation } from "preact-iso";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./Icon";
 import { AuthPromptDialog } from "./AuthPromptDialog";
-import { SearchFilterDialog, type SearchFilters } from "./SearchFilterDialog";
+import { SearchFilterDialog, parseSearchOrder, parseSearchType, type SearchFilters } from "./SearchFilterDialog";
 import { useAuth } from "../contexts/AuthContext";
 
 function parseFiltersFromURL(qs: string): SearchFilters {
   const p = new URLSearchParams(qs);
   const filters: SearchFilters = {};
-  if (p.get("order")) filters.order = p.get("order")!;
+  const order = parseSearchOrder(p.get("order"));
+  if (order) filters.order = order;
   if (p.get("published_after")) filters.published_after = p.get("published_after")!;
   if (p.get("published_before")) filters.published_before = p.get("published_before")!;
   if (p.get("region_code")) filters.region_code = p.get("region_code")!;
   if (p.get("relevance_language")) filters.relevance_language = p.get("relevance_language")!;
-  const t = p.get("type");
-  if (t === "channel" || t === "video") filters.type = t;
+  const type = parseSearchType(p.get("type"));
+  if (type) filters.type = type;
   return filters;
 }
 

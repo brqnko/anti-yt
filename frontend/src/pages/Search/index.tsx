@@ -12,6 +12,7 @@ import type { GetSearch200ItemsItem } from "../../api/generated/antiYtApi.schema
 import { Icon } from "../../components/Icon";
 import { VideoCardSkeleton, ChannelRowSkeleton, SkeletonRepeat } from "../../components/skeletons";
 import { formatSubscriberCount } from "../../utils/format";
+import { parseSearchOrder, parseSearchType } from "../../components/SearchFilterDialog";
 
 function ChannelRow({ item }: { item: GetSearch200ItemsItem }) {
   const { t } = useTranslation();
@@ -55,12 +56,12 @@ function SearchContent() {
     canonicalPath: "/search",
   });
 
-  const order = params.get("order") || undefined;
+  const order = parseSearchOrder(params.get("order"));
   const published_after = params.get("published_after") || undefined;
   const published_before = params.get("published_before") || undefined;
   const region_code = params.get("region_code") || undefined;
   const relevance_language = params.get("relevance_language") || undefined;
-  const typeParam = params.get("type") as "channel" | "video" | null;
+  const typeParam = parseSearchType(params.get("type"));
 
   const filterKey = JSON.stringify({ order, published_after, published_before, region_code, relevance_language });
 
@@ -78,7 +79,7 @@ function SearchContent() {
       limit: PAGE_SIZES.SEARCH,
       language: navigator.language,
       cursor,
-      order: order as any,
+      order,
       published_after: published_after ? `${published_after}T00:00:00Z` : undefined,
       published_before: published_before ? `${published_before}T23:59:59Z` : undefined,
       region_code,

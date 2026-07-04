@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "preact/hooks";
 import type { RefObject } from "preact";
+import { AxiosError } from "axios";
 import { getHistory } from "../../api/generated/history";
 import { getCookie } from "../../utils/cookie";
 
@@ -117,7 +118,7 @@ export function useHeartbeat({
         }
       })
       .catch((err: unknown) => {
-        const status = (err as { response?: { status?: number } })?.response?.status;
+        const status = err instanceof AxiosError ? err.response?.status : undefined;
         console.warn(`[heartbeat] request failed (status=${status ?? "unknown"}) — pausing playback`);
         togglePlay();
       });

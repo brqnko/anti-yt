@@ -85,12 +85,16 @@ export function NotificationProvider({ children }: { children: ComponentChildren
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
+      if (!(e instanceof CustomEvent)) return;
+      const detail = e.detail;
       if (!detail || typeof detail.messageKey !== "string") return;
       show({
-        type: detail.type,
+        type:
+          detail.type === "error" || detail.type === "success" || detail.type === "info"
+            ? detail.type
+            : "info",
         messageKey: detail.messageKey,
-        durationMs: detail.durationMs,
+        durationMs: typeof detail.durationMs === "number" ? detail.durationMs : undefined,
       });
     };
     window.addEventListener("notification:show", handler);

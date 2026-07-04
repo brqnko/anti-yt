@@ -5,12 +5,14 @@ import { getUser } from "../api/generated/user";
 import { getAuth } from "../api/generated/auth";
 import { getCookie } from "../utils/cookie";
 
+type ScreenTimeBlockReason = "limit_exceeded" | "outside_time_range";
+
 interface AuthState {
   isLoading: boolean;
   isAuthenticated: boolean;
   error: Error | null;
   screenTimeBlocked: boolean;
-  screenTimeBlockReason: "limit_exceeded" | "outside_time_range" | null;
+  screenTimeBlockReason: ScreenTimeBlockReason | null;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
   clearScreenTimeBlock: () => void;
@@ -32,9 +34,7 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [screenTimeBlocked, setScreenTimeBlocked] = useState(false);
-  const [screenTimeBlockReason, setScreenTimeBlockReason] = useState<
-    "limit_exceeded" | "outside_time_range" | null
-  >(null);
+  const [screenTimeBlockReason, setScreenTimeBlockReason] = useState<ScreenTimeBlockReason | null>(null);
 
   const checkAuth = useCallback(async () => {
     if (typeof window === "undefined") {
@@ -102,9 +102,12 @@ export function AuthProvider({ children }: { children: ComponentChildren }) {
 
   useEffect(() => {
     const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
+      if (!(e instanceof CustomEvent)) return;
+      const reason = e.detail?.reason;
       setScreenTimeBlocked(true);
-      setScreenTimeBlockReason(detail?.reason ?? "limit_exceeded");
+      setScreenTimeBlockReason(
+        reason === "outside_time_range" ? "outside_time_range" : "limit_exceeded",
+      );
     };
     window.addEventListener("screen-time:blocked", handler);
     return () => window.removeEventListener("screen-time:blocked", handler);

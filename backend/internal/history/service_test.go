@@ -51,10 +51,10 @@ func setupChannel(t *testing.T, ctx context.Context, q sqlc.Querier) uuid.UUID {
 		ExternalCreatedAt:         time.Now().Add(-365 * 24 * time.Hour),
 		ExternalUploadsPlaylistID: "UU" + channelPublicID.String()[:24],
 		PublicID:                  channelPublicID,
-		RssFetchedAt:             time.Now(),
-		FetchedAt:                time.Now(),
-		BulkFetchedAt:            time.Now(),
-		LastSeenAt:               time.Now(),
+		RssFetchedAt:              time.Now(),
+		FetchedAt:                 time.Now(),
+		BulkFetchedAt:             time.Now(),
+		LastSeenAt:                time.Now(),
 	})
 	require.NoError(t, err)
 	return channelPublicID
@@ -306,6 +306,34 @@ func TestService_GetHistory(t *testing.T) {
 		assert.False(t, hasMore)
 		assert.Equal(t, videoID, views[0].VideoId)
 		assert.Equal(t, "Test Video", views[0].ExternalVideoTitle)
+		assert.False(t, views[0].IsWatched)
+	})
+
+	t.Run("returns watched status", func(t *testing.T) {
+		db := testutil.NewTestPool(t)
+		q := sqlc.New(db)
+		userID := setupUser(t, ctx, q)
+		channelID := setupChannel(t, ctx, q)
+		videoID := setupVideo(t, ctx, q, channelID, 300)
+
+		svc := history.NewService(db, testutil.NewFeedRepo(t, sqlc.New(db)))
+
+		_, err := svc.Heartbeat(ctx, userID, videoID, 10, nil, loc)
+		require.NoError(t, err)
+
+		views, _, err := svc.GetHistory(ctx, userID, 10, nil, loc)
+		require.NoError(t, err)
+		require.Len(t, views, 1)
+		assert.False(t, views[0].IsWatched)
+
+		err = svc.MarkVideoWatched(ctx, userID, videoID)
+		require.NoError(t, err)
+
+		views, hasMore, err := svc.GetHistory(ctx, userID, 10, nil, loc)
+		require.NoError(t, err)
+		require.Len(t, views, 1)
+		assert.False(t, hasMore)
+		assert.True(t, views[0].IsWatched)
 	})
 
 	t.Run("pagination with hasMore", func(t *testing.T) {

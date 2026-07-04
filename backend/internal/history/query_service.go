@@ -19,6 +19,7 @@ type GetHistoryView struct {
 	ExternalVideoLengthSeconds int
 	WatchPositionSeconds       int
 	WatchedAt                  time.Time
+	IsWatched                  bool
 	ChannelId                  uuid.UUID
 	ExternalChannelDisplayName string
 	ExternalChannelIconUrl     string
@@ -69,6 +70,7 @@ func (h *historyQueryServiceImpl) FindHistory(ctx context.Context, userID uuid.U
 			ExternalVideoLengthSeconds: row.ExternalVideoLengthSeconds,
 			WatchPositionSeconds:       row.WatchPositionSeconds,
 			WatchedAt:                  row.WatchedAt,
+			IsWatched:                  row.IsWatched,
 			ChannelId:                  row.ChannelID,
 			ExternalChannelDisplayName: row.ExternalChannelDisplayName,
 			ExternalChannelIconUrl:     row.ExternalChannelIconUrl,
@@ -117,7 +119,7 @@ func (h *historyQueryServiceImpl) FindTotalWatchSeconds(ctx context.Context, use
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
 
 	row, err := h.q.GetDailyWatchSummary(ctx, sqlc.GetDailyWatchSummaryParams{
-		PublicID:    userID,
+		PublicID:   userID,
 		TodayStart: todayStart,
 	})
 	if err != nil {

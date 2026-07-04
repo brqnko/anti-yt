@@ -660,6 +660,8 @@ export type GetHistory200ItemsItem = {
   watch_position_seconds: number;
   /** 履歴の時刻 */
   watched_at: string;
+  /** ユーザーが視聴済みとしてマークしているかどうか */
+  is_watched: boolean;
   /** サムネイルURL */
   external_video_thumbnail_url: string;
   /** 動画のタイトル */

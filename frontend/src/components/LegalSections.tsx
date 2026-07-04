@@ -30,10 +30,13 @@ export function LegalSections({
             <p class="mt-0 mb-12 whitespace-pre-line">{t(`${ns}.intro`)}</p>
 
             {sections.map((s) => {
-              const items = s.items
-                ? (t(`${ns}.sections.${s.key}.items`, {
+              const itemValue = s.items
+                ? t(`${ns}.sections.${s.key}.items`, {
                     returnObjects: true,
-                  }) as string[])
+                  })
+                : null;
+              const items = Array.isArray(itemValue)
+                ? itemValue.filter((item): item is string => typeof item === "string")
                 : null;
 
               return (

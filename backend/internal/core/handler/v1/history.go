@@ -28,6 +28,7 @@ func (h *APIHandler) GetHistory(ctx context.Context, request GetHistoryRequestOb
 		ExternalVideoLengthSeconds int             `json:"external_video_length_seconds"`
 		ExternalVideoThumbnailUrl  string          `json:"external_video_thumbnail_url"`
 		ExternalVideoTitle         string          `json:"external_video_title"`
+		IsWatched                  bool            `json:"is_watched"`
 		VideoId                    util.Base64UUID `json:"video_id"`
 		WatchId                    util.Base64UUID `json:"watch_id"`
 		WatchPositionSeconds       int             `json:"watch_position_seconds"`
@@ -40,6 +41,7 @@ func (h *APIHandler) GetHistory(ctx context.Context, request GetHistoryRequestOb
 		items[i].ExternalVideoTitle = v.ExternalVideoTitle
 		items[i].ExternalVideoThumbnailUrl = v.ExternalVideoThumbnailUrl
 		items[i].ExternalVideoLengthSeconds = v.ExternalVideoLengthSeconds
+		items[i].IsWatched = v.IsWatched
 		items[i].WatchPositionSeconds = v.WatchPositionSeconds
 		items[i].WatchedAt = v.WatchedAt
 		items[i].ChannelId = util.Base64UUID(v.ChannelId)

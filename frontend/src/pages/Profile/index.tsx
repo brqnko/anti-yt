@@ -215,7 +215,7 @@ function ProfileContent() {
                 </label>
                 <Dropdown
                   value={mode}
-                  onChange={(v) => setMode(v as ColorMode)}
+                  onChange={(v) => setMode(v)}
                   ariaLabel={t("appearance.colorMode")}
                   leadingIcon={modeIcons[mode]}
                   options={colorModes.map((m) => ({

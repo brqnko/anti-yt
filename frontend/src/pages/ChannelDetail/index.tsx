@@ -10,11 +10,12 @@ import { ChannelInfoCard } from "../../components/ChannelInfoCard";
 import { getChannel } from "../../api/generated/channel";
 import { getHistory } from "../../api/generated/history";
 import { VideoCard } from "../../components/VideoCard";
-import type {
+import {
+  GetChannelsChannelIdVideosOrder,
+  type GetChannelsChannelIdVideosOrder as ChannelVideoOrder,
   GetChannelsChannelId200,
   GetChannelsChannelIdPlaylists200ItemsItem,
   GetChannelsChannelIdVideos200ItemsItem,
-  GetChannelsChannelIdVideosOrder,
 } from "../../api/generated/antiYtApi.schemas";
 import { PAGE_SIZES } from "../../constants";
 import { Icon } from "../../components/Icon";
@@ -25,6 +26,12 @@ import {
   VideoCardSkeleton,
   SkeletonRepeat,
 } from "../../components/skeletons";
+
+const CHANNEL_VIDEO_ORDER_OPTIONS = Object.values(GetChannelsChannelIdVideosOrder);
+
+function parseChannelVideoOrder(value: string): ChannelVideoOrder | undefined {
+  return CHANNEL_VIDEO_ORDER_OPTIONS.find((order) => order === value);
+}
 
 const ChannelVideoCard = memo(function ChannelVideoCard({
   video,
@@ -68,7 +75,7 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
   const [isToggling, setIsToggling] = useState(false);
   const [hasNextVideos, setHasNextVideos] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [order, setOrder] = useState<GetChannelsChannelIdVideosOrder>("newer");
+  const [order, setOrder] = useState<ChannelVideoOrder>("newer");
   const [watchedVideoIds, setWatchedVideoIds] = useState<Set<string>>(new Set());
   const cursorRef = useRef<string | undefined>(undefined);
   const channelUuidRef = useRef<string | undefined>(undefined);
@@ -299,14 +306,19 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
               class="text-sm bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-1.5 cursor-pointer"
               value={order}
               onChange={(e) => {
-                setOrder((e.target as HTMLSelectElement).value as GetChannelsChannelIdVideosOrder);
+                const nextOrder = parseChannelVideoOrder((e.target as HTMLSelectElement).value);
+                if (!nextOrder) return;
+                setOrder(nextOrder);
                 setVideos([]);
                 setHasNextVideos(false);
                 cursorRef.current = undefined;
               }}
             >
-              <option value="newer">{t("channelDetail.orderNewer")}</option>
-              <option value="older">{t("channelDetail.orderOlder")}</option>
+              {CHANNEL_VIDEO_ORDER_OPTIONS.map((value) => (
+                <option key={value} value={value}>
+                  {t(`channelDetail.order${value === "newer" ? "Newer" : "Older"}`)}
+                </option>
+              ))}
             </select>
           </div>
 

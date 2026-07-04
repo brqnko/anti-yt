@@ -1,15 +1,17 @@
 import { useState, useEffect } from "preact/hooks";
 import { useTranslation } from "react-i18next";
 import { Dialog } from "./Dialog";
-import { GetSearchOrder } from "../api/generated/antiYtApi.schemas";
+import { GetSearchOrder, type GetSearchOrder as SearchOrder } from "../api/generated/antiYtApi.schemas";
+
+export type SearchType = "channel" | "video";
 
 export interface SearchFilters {
-  order?: string;
+  order?: SearchOrder;
   published_after?: string;
   published_before?: string;
   region_code?: string;
   relevance_language?: string;
-  type?: "channel" | "video";
+  type?: SearchType;
 }
 
 interface SearchFilterDialogProps {
@@ -20,6 +22,14 @@ interface SearchFilterDialogProps {
 }
 
 const ORDER_OPTIONS = Object.values(GetSearchOrder);
+
+export function parseSearchOrder(value: string | null): SearchOrder | undefined {
+  return ORDER_OPTIONS.find((order) => order === value);
+}
+
+export function parseSearchType(value: string | null): SearchType | undefined {
+  return value === "channel" || value === "video" ? value : undefined;
+}
 
 const REGION_CODES = ["", "JP", "US", "TW", "HK"] as const;
 const LANGUAGES = ["", "ja", "en", "zh-Hant", "zh-Hans"] as const;
@@ -90,9 +100,10 @@ export function SearchFilterDialog({
             <select
               class="w-full px-3 py-2.5 rounded-xl bg-background-light dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-charcoal dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all text-sm"
               value={draft.order || ""}
-              onChange={(e) =>
-                setDraft({ ...draft, order: (e.target as HTMLSelectElement).value || undefined })
-              }
+              onChange={(e) => {
+                const value = (e.target as HTMLSelectElement).value;
+                setDraft({ ...draft, order: parseSearchOrder(value) });
+              }}
             >
               <option value="">{t("search.filters.orderDefault")}</option>
               {ORDER_OPTIONS.map((o) => (

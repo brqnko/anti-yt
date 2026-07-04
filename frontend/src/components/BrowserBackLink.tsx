@@ -14,8 +14,8 @@ export function BrowserBackLink({
   onClick,
   ...props
 }: BrowserBackLinkProps) {
-  const handleClick = (event: MouseEvent) => {
-    onClick?.(event as unknown as JSX.TargetedMouseEvent<HTMLAnchorElement>);
+  const handleClick = (event: JSX.TargetedMouseEvent<HTMLAnchorElement>) => {
+    onClick?.(event);
     if (
       event.defaultPrevented ||
       event.button !== 0 ||

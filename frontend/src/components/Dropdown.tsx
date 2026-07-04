@@ -2,29 +2,29 @@ import { useState, useRef, useEffect } from "preact/hooks";
 import { createPortal } from "preact/compat";
 import { Icon } from "./Icon";
 
-interface DropdownOption {
-  value: string;
+interface DropdownOption<T extends string = string> {
+  value: T;
   label: string;
   icon?: string;
 }
 
-interface DropdownProps {
-  value: string;
-  options: DropdownOption[];
-  onChange: (value: string) => void;
+interface DropdownProps<T extends string = string> {
+  value: T;
+  options: readonly DropdownOption<T>[];
+  onChange: (value: T) => void;
   ariaLabel?: string;
   leadingIcon?: string;
   className?: string;
 }
 
-export function Dropdown({
+export function Dropdown<T extends string = string>({
   value,
   options,
   onChange,
   ariaLabel,
   leadingIcon,
   className,
-}: DropdownProps) {
+}: DropdownProps<T>) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0, width: 0 });
   const triggerRef = useRef<HTMLButtonElement>(null);
