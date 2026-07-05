@@ -207,8 +207,10 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
         <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
           <ChannelInfoCardSkeleton />
           <div class="mb-8">
-            <div class="flex gap-4 overflow-x-auto pb-2">
-              <SkeletonRepeat count={4} render={(i) => <ChannelDetailPlaylistCardSkeleton key={i} />} />
+            <div class="w-full min-w-0 overflow-x-auto pb-2">
+              <div class="flex w-max gap-4">
+                <SkeletonRepeat count={4} render={(i) => <ChannelDetailPlaylistCardSkeleton key={i} />} />
+              </div>
             </div>
           </div>
           <div class="card-grid">
@@ -250,51 +252,53 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
         />
 
         {playlists.length > 0 && (
-          <div class="mb-8">
-            <div class="flex items-center justify-between mb-4">
+          <section class="mb-8 flex w-full min-w-0 flex-col gap-4">
+            <div class="flex items-center justify-between gap-4">
               <h3 class="text-lg font-bold">
                 {t("channelDetail.playlists")}
               </h3>
               <a
                 href={`/channels/${channelId}/playlists`}
-                class="text-sm font-medium text-primary hover:text-primary/80 no-underline"
+                class="flex-shrink-0 text-sm font-medium text-primary hover:text-primary/80 no-underline"
               >
                 {t("channelDetail.showMore")}
               </a>
             </div>
-            <div class="flex gap-4 overflow-x-auto pb-2">
-              {playlists.map((pl) => (
-                <a
-                  key={pl.playlist_id}
-                  href={`/playlists/${pl.playlist_id}`}
-                  class="group flex-shrink-0 w-56 bg-card-light dark:bg-card-dark rounded-xl border border-transparent hover:border-primary/20 overflow-hidden no-underline"
-                >
-                  <div class="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
-                    {pl.top_video_thumbnail_url ? (
-                      <img
-                        src={pl.top_video_thumbnail_url}
-                        alt={pl.playlist_title}
-                        loading="lazy"
-                        class="absolute inset-0 w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div class="absolute inset-0 flex items-center justify-center">
-                        <Icon name="playlist_play" class="text-4xl text-text-muted-light dark:text-text-muted-dark" />
-                      </div>
-                    )}
-                  </div>
-                  <div class="p-3">
-                    <h4 class="text-sm font-bold text-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-primary">
-                      {pl.playlist_title}
-                    </h4>
-                    <span class="text-xs text-text-muted-light dark:text-text-muted-dark mt-1 block">
-                      {t("playlists.videoCount", { count: pl.playlist_video_count })}
-                    </span>
-                  </div>
-                </a>
-              ))}
+            <div class="w-full min-w-0 overflow-x-auto pb-2">
+              <div class="flex w-max gap-4">
+                {playlists.map((pl) => (
+                  <a
+                    key={pl.playlist_id}
+                    href={`/playlists/${pl.playlist_id}`}
+                    class="group w-56 flex-shrink-0 overflow-hidden rounded-xl border border-transparent bg-card-light no-underline hover:border-primary/20 dark:bg-card-dark"
+                  >
+                    <div class="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+                      {pl.top_video_thumbnail_url ? (
+                        <img
+                          src={pl.top_video_thumbnail_url}
+                          alt={pl.playlist_title}
+                          loading="lazy"
+                          class="absolute inset-0 w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div class="absolute inset-0 flex items-center justify-center">
+                          <Icon name="playlist_play" class="text-4xl text-text-muted-light dark:text-text-muted-dark" />
+                        </div>
+                      )}
+                    </div>
+                    <div class="p-3">
+                      <h4 class="text-sm font-bold text-charcoal dark:text-white leading-tight line-clamp-2 group-hover:text-primary">
+                        {pl.playlist_title}
+                      </h4>
+                      <span class="text-xs text-text-muted-light dark:text-text-muted-dark mt-1 block">
+                        {t("playlists.videoCount", { count: pl.playlist_video_count })}
+                      </span>
+                    </div>
+                  </a>
+                ))}
+              </div>
             </div>
-          </div>
+          </section>
         )}
 
         <div>
