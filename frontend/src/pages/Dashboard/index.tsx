@@ -294,7 +294,7 @@ function DashboardContent() {
             <div ref={sentinelRef} class="h-1" />
             {!hasNext && !isLoadingMore && (
               <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">
-                🎉 {t("dashboard.endOfFeed")}
+                {t("dashboard.endOfFeed")}
               </p>
             )}
           </>

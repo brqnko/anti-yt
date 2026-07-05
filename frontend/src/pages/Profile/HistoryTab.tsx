@@ -157,6 +157,7 @@ export function HistoryTab() {
                         }}
                         watchedAt={item.watched_at}
                         watchedSeconds={item.watch_position_seconds}
+                        isWatched={item.is_watched}
                       />
                     </div>
                   ))}
@@ -179,7 +180,7 @@ export function HistoryTab() {
           {hasNext && <div ref={sentinelRef} class="h-1" />}
           {!hasNext && !isLoadingMore && (
             <p class="text-center text-sm text-text-muted-light dark:text-text-muted-dark py-8">
-              🎉 {t("history.endOfHistory")}
+              {t("history.endOfHistory")}
             </p>
           )}
         </>

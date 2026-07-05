@@ -2,7 +2,6 @@ User-agent: *
 
 # Account-only / utility pages — no value to crawl.
 Disallow: /analytics
-Disallow: /history
 Disallow: /profile
 Disallow: /screen-time-settings
 Disallow: /register

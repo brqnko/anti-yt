@@ -277,10 +277,15 @@ export const VideoCard = memo(function VideoCard({
                     {formatTimeAgo(dateStr, t)}
                   </span>
                 )}
+                {watchedAt && (
+                  <span class="flex-shrink-0 sm:hidden">
+                    {t("history.watchedAgo", { time: formatTimeAgo(watchedAt, t) })}
+                  </span>
+                )}
               </div>
             )}
             {watchedAt && (
-              <span class="text-xs text-text-muted-light dark:text-text-muted-dark mt-2 block">
+              <span class={`${channel ? "hidden sm:block" : "block"} text-xs text-text-muted-light dark:text-text-muted-dark mt-2`}>
                 {t("history.watchedAgo", { time: formatTimeAgo(watchedAt, t) })}
               </span>
             )}

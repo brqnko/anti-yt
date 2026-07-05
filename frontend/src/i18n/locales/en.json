@@ -426,8 +426,6 @@
     "goToSettings": "Screen Time Settings"
   },
   "history": {
-    "pageTitle": "Watch History",
-    "title": "Watch History",
     "today": "Today",
     "yesterday": "Yesterday",
     "noHistory": "No watch history",
