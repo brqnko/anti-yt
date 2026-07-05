@@ -37,4 +37,3 @@ secrets:
 networks:
   app-network:
     external: true
-    name: anti-yt-network

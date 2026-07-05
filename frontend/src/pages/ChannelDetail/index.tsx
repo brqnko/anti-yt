@@ -23,6 +23,7 @@ import { BrowserBackLink } from "../../components/BrowserBackLink";
 import {
   ChannelInfoCardSkeleton,
   ChannelDetailPlaylistCardSkeleton,
+  Skeleton,
   VideoCardSkeleton,
   SkeletonRepeat,
 } from "../../components/skeletons";
@@ -206,13 +207,17 @@ function ChannelDetailContent({ channelId }: { channelId: string }) {
       <DashboardLayout>
         <div class="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto px-6 py-6 lg:py-10">
           <ChannelInfoCardSkeleton />
-          <div class="mb-8">
+          <section class="mb-8 flex w-full min-w-0 flex-col gap-4">
+            <div class="flex items-center justify-between gap-4">
+              <Skeleton class="h-7 w-28 rounded" />
+              <Skeleton class="h-5 w-20 flex-shrink-0 rounded" />
+            </div>
             <div class="w-full min-w-0 overflow-x-auto pb-2">
               <div class="flex w-max gap-4">
                 <SkeletonRepeat count={4} render={(i) => <ChannelDetailPlaylistCardSkeleton key={i} />} />
               </div>
             </div>
-          </div>
+          </section>
           <div class="card-grid">
             <SkeletonRepeat count={6} render={(i) => <VideoCardSkeleton key={i} />} />
           </div>
