@@ -50,7 +50,7 @@ jobs:
           docker logs pg
           exit 1
 
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version: stable
           cache: true
