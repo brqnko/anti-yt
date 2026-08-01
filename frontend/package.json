@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.2",
-    "axios": "^1.18.1",
+    "axios": "^1.19.0",
     "i18next": "^26.3.4",
     "preact": "^10.29.2",
     "preact-iso": "^2.12.0",
