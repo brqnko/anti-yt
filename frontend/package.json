@@ -14,7 +14,7 @@
     "axios": "^1.19.0",
     "i18next": "^26.3.4",
     "preact": "^10.29.2",
-    "preact-iso": "^2.12.0",
+    "preact-iso": "^2.12.1",
     "preact-render-to-string": "^6.6.7",
     "react-i18next": "^17.0.6",
     "swr": "^2.4.1",
