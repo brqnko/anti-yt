@@ -10,7 +10,7 @@
     "generate": "orval"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.3.2",
+    "@tailwindcss/vite": "^4.3.3",
     "axios": "^1.19.0",
     "i18next": "^26.3.4",
     "preact": "^10.29.2",
