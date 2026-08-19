@@ -46,6 +46,21 @@ func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID, cursor *uuid.UU
 		return nil, false, err
 	}
 
+	if userID != uuid.Nil {
+		now := time.Now().UTC()
+		go func() {
+			bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := sqlc.New(s.db).UpdateSubscribedChannelsLastSeenAt(bgCtx, sqlc.UpdateSubscribedChannelsLastSeenAtParams{
+				UserPublicID: userID,
+				LastSeenAt:   now,
+			}); err != nil {
+				util.LoggerFromContext(ctx).WarnContext(bgCtx, "failed to mark subscribed channels as seen in feed",
+					slog.String("user_id", userID.String()), slog.Any("error", err))
+			}
+		}()
+	}
+
 	if len(videos) > int(limit) {
 		return videos[:limit], true, nil
 	}

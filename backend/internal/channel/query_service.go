@@ -218,9 +218,9 @@ func (c *channelQueryServiceImpl) GetChannelUploads(ctx context.Context, userID,
 func (c *channelQueryServiceImpl) ListChannelVideoIDs(ctx context.Context, userID, channelID uuid.UUID, limit int32) (_ []uuid.UUID, err error) {
 	defer util.Wrap(&err, "channel.(*channelQueryServiceImpl).ListChannelVideoIDs(userID=%s,channelID=%s)", userID, channelID)
 
-	_ = userID
 	rows, err := c.q.ListChannelVideoIDs(ctx, sqlc.ListChannelVideoIDsParams{
 		ChannelID:  channelID,
+		UserID:     userID,
 		QueryLimit: limit,
 	})
 	if err != nil {

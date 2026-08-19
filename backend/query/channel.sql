@@ -213,6 +213,19 @@ SET
 WHERE
     public_id = @channel_id;
 
+-- 指定ユーザーが登録しているチャンネルの last_seen_at を更新する。
+-- name: UpdateSubscribedChannelsLastSeenAt :exec
+UPDATE
+    m_channel AS c
+SET
+    last_seen_at = @last_seen_at
+FROM
+    m_user_subscribing_channel usc
+    INNER JOIN m_user u ON u.m_user_id = usc.m_user_id
+WHERE
+    usc.m_channel_id = c.m_channel_id
+    AND u.public_id = @user_public_id;
+
 -- name: ListChannelsForBulkFetch :many
 SELECT
     c.public_id,

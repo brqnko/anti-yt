@@ -139,6 +139,8 @@ type Querier interface {
 	TryAcquireAdvisoryXactLock(ctx context.Context, lockKey int64) (bool, error)
 	UnmarkVideoWatched(ctx context.Context, arg UnmarkVideoWatchedParams) error
 	UpdateHeartbeat(ctx context.Context, arg UpdateHeartbeatParams) error
+	// 指定ユーザーが登録しているチャンネルの last_seen_at を更新する。
+	UpdateSubscribedChannelsLastSeenAt(ctx context.Context, arg UpdateSubscribedChannelsLastSeenAtParams) error
 	// ユーザーを更新する。
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
 	UpsertChannel(ctx context.Context, arg UpsertChannelParams) (UpsertChannelRow, error)

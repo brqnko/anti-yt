@@ -450,6 +450,30 @@ func (q *Queries) MarkChannelSeen(ctx context.Context, channelID uuid.UUID) erro
 	return err
 }
 
+const updateSubscribedChannelsLastSeenAt = `-- name: UpdateSubscribedChannelsLastSeenAt :exec
+UPDATE
+    m_channel AS c
+SET
+    last_seen_at = $1
+FROM
+    m_user_subscribing_channel usc
+    INNER JOIN m_user u ON u.m_user_id = usc.m_user_id
+WHERE
+    usc.m_channel_id = c.m_channel_id
+    AND u.public_id = $2
+`
+
+type UpdateSubscribedChannelsLastSeenAtParams struct {
+	LastSeenAt   time.Time
+	UserPublicID uuid.UUID
+}
+
+// 指定ユーザーが登録しているチャンネルの last_seen_at を更新する。
+func (q *Queries) UpdateSubscribedChannelsLastSeenAt(ctx context.Context, arg UpdateSubscribedChannelsLastSeenAtParams) error {
+	_, err := q.db.Exec(ctx, updateSubscribedChannelsLastSeenAt, arg.LastSeenAt, arg.UserPublicID)
+	return err
+}
+
 const upsertChannel = `-- name: UpsertChannel :one
 INSERT INTO
     m_channel (
