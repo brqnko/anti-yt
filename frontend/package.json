@@ -30,7 +30,7 @@
     "orval": "^8.19.0",
     "prettier": "^3.9.4",
     "sharp": "^0.35.4",
-    "svgo": "^4.0.1",
+    "svgo": "^4.1.0",
     "typescript": "^6.0.3",
     "unplugin-icons": "^23.0.1",
     "vite": "^8.2.2",
