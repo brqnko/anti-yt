@@ -27,7 +27,7 @@
     "@types/youtube": "^0.3.0",
     "eslint": "^9.0.0",
     "eslint-config-preact": "^2.0.0",
-    "orval": "^8.19.0",
+    "orval": "^8.38.0",
     "prettier": "^3.9.4",
     "sharp": "^0.35.4",
     "svgo": "^4.1.0",
