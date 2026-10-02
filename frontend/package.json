@@ -16,7 +16,7 @@
     "preact": "^10.29.2",
     "preact-iso": "^2.12.2",
     "preact-render-to-string": "^6.6.7",
-    "react-i18next": "^17.0.6",
+    "react-i18next": "^17.0.15",
     "swr": "^2.5.1",
     "tailwindcss": "^4.2.1"
   },
