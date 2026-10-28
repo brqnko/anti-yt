@@ -36,40 +36,6 @@
     "navPrivacy": "隐私政策",
     "languageSelect": "选择语言"
   },
-  "about": {
-    "pageTitle": "关于",
-    "metaDescription": "anti-yt 是无算法推荐的 YouTube 观看器，配合每日时间上限与使用分析，帮您拿回数字时间。",
-    "hero": {
-      "title1": "告别",
-      "title2": "YouTube 依赖",
-      "description": "anti-yt 是一项免费服务，仅显示您订阅频道的视频，并让您自行管理屏幕使用时间。",
-      "feature1": "不显示推荐",
-      "feature2": "设置时间限制",
-      "feature3": "让 YouTube 更有益"
-    },
-    "statement": {
-      "heading": "YouTube 是否在占用您的时间？",
-      "body1": "我们认为推荐算法是让人沉迷 YouTube 的最大原因。我们只会推送您允许的频道的视频。",
-      "body2": "让 YouTube 更有意义地为您所用。"
-    },
-    "principles": {
-      "feed": {
-        "title": "不被推荐左右",
-        "body": "只把您订阅的有价值的频道作为推荐显示。再也不会被无限滚动夺走时间。"
-      },
-      "time": {
-        "title": "限制每天的时间",
-        "body": "您可以限制可观看的时间段和每日上限。再也不会让休息时间超时。"
-      },
-      "analytics": {
-        "title": "回顾您的使用时间",
-        "body": "可视化过去一周的观看数据。回顾过去的行为，反思自己。"
-      }
-    },
-    "finalCta": {
-      "description": "按照您自己的方式设计的观看体验\n<b>免费</b>开始使用"
-    }
-  },
   "terms": {
     "title": "服务条款",
     "metaDescription": "anti-yt 的服务条款，规定了使用本服务时适用的权利、义务、禁止事项及免责事项等条件。",
@@ -242,8 +208,7 @@
       "bottomChannels": "频道",
       "bottomPlaylists": "播放列表",
       "bottomAnalytics": "分析",
-      "bottomProfile": "个人资料",
-      "aboutAntiYt": "什么是 anti-yt？"
+      "bottomProfile": "个人资料"
     },
     "addPlaylist": "创建播放列表",
     "addPlaylistDialog": {
@@ -265,12 +230,6 @@
     "showAllPlaylists": "显示全部",
     "noVideosDesc": "订阅频道后，最新视频将显示在这里。",
     "goToChannels": "前往频道",
-    "aboutBanner": "告别\nYouTube 依赖",
-    "aboutBannerDesc": "anti-yt 是一项免费服务，仅显示您订阅频道的视频，\n并让您自行管理屏幕使用时间。",
-    "aboutBannerFeature1": "不显示推荐",
-    "aboutBannerFeature2": "设置时间限制",
-    "aboutBannerFeature3": "让 YouTube 更有益",
-    "aboutBannerCta": "了解更多 →",
     "rateLimitedTitle": "请稍候",
     "rateLimitedDesc": "您已达到请求限制，请稍后再试。",
     "endOfFeed": "🎉 您已看完所有内容",

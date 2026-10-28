@@ -6,7 +6,7 @@ import { useLocation } from "preact-iso";
 // pages — surfaces third-party YouTube content or private data, so it is marked
 // noindex. This mirrors the X-Robots-Tag header set in nginx.conf and keeps the
 // rendered <meta name="robots"> consistent for JS-rendering crawlers.
-const INDEXABLE = new Set(["/", "/about", "/terms", "/privacy"]);
+const INDEXABLE = new Set(["/", "/terms", "/privacy"]);
 
 export function RobotsMeta() {
   const { path } = useLocation();

@@ -168,45 +168,6 @@ function DashboardContent() {
             <ExploreChannelsBanner />
           </div>
         )}
-        {!isAuthenticated && !isAuthLoading && (
-          <a
-            href="/about"
-            class="relative overflow-hidden grid md:grid-cols-[1.1fr_1fr] items-center gap-8 md:gap-14 px-8 md:px-10 py-10 pb-20 md:pb-14 rounded-xl no-underline mb-8 bg-background-light border border-border-light"
-          >
-            <div class="flex flex-col gap-4 md:pl-8 lg:pl-12">
-              <span class="whitespace-pre-line text-3xl md:text-4xl font-black text-charcoal leading-[1.15] tracking-tight">
-                {t("dashboard.aboutBanner")}
-              </span>
-              <div class="relative">
-                <div
-                  aria-hidden="true"
-                  class="pointer-events-none absolute inset-0 flex items-center justify-center"
-                >
-                  <div class="size-56 rounded-full bg-red-400/20 blur-3xl -translate-x-52" />
-                </div>
-                <span class="relative whitespace-pre-line text-sm font-medium text-text-muted-light leading-relaxed block">
-                  {t("dashboard.aboutBannerDesc")}
-                </span>
-              </div>
-            </div>
-            <div class="relative">
-              <div
-                aria-hidden="true"
-                class="pointer-events-none absolute inset-0 flex items-center justify-center"
-              >
-                <div class="size-72 rounded-full bg-green-400/20 blur-3xl -translate-x-44" />
-              </div>
-              <ul class="relative flex flex-col gap-3 list-disc pl-5 text-lg md:text-xl font-bold text-charcoal marker:text-primary">
-                <li>{t("dashboard.aboutBannerFeature1")}</li>
-                <li>{t("dashboard.aboutBannerFeature2")}</li>
-                <li>{t("dashboard.aboutBannerFeature3")}</li>
-              </ul>
-            </div>
-            <span class="absolute bottom-5 right-8 text-base md:text-lg font-bold text-charcoal">
-              {t("dashboard.aboutBannerCta")}
-            </span>
-          </a>
-        )}
         {recentPlaylists.length > 0 && (
           <section class="mb-8 flex w-full min-w-0 flex-col gap-4">
             <div class="flex items-center justify-between gap-4">
