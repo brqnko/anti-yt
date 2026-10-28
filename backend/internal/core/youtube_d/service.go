@@ -443,7 +443,10 @@ func NewClient(ctx context.Context, apiKey, oauthClientID, oauthClientSecret, oa
 	if err != nil {
 		return nil, err
 	}
-	ytClient, err := youtube.NewService(ctx, option.WithHTTPClient(new(http.Client{Transport: otelhttp.NewTransport(baseTransport)})))
+	ytClient, err := youtube.NewService(ctx, option.WithHTTPClient(new(http.Client{
+		Transport: otelhttp.NewTransport(baseTransport),
+		Timeout:   30 * time.Second,
+	})))
 	if err != nil {
 		return nil, err
 	}
