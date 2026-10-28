@@ -14,7 +14,6 @@ import (
 type HUser struct {
 	HUserID                int64
 	MUserAuthorizationID   int64
-	DisplayName            string
 	LanguageCode           string
 	DailyScreenTimeSeconds int
 	JoinedAt               time.Time
@@ -92,7 +91,6 @@ type MRefreshToken struct {
 type MUser struct {
 	MUserID                int64
 	MUserAuthorizationID   int64
-	DisplayName            string
 	LanguageCode           string
 	DailyScreenTimeSeconds int
 	JoinedAt               time.Time

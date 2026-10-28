@@ -1560,16 +1560,12 @@ paths:
                   type: integer
                   description: 毎日のスクリーン時間制限
                   minimum: 0
-                display_name:
-                  type: string
-                  description: ユーザーの表示名
-                  minLength: 3
                 language_code:
                   type: string
                   minLength: 2
                   maxLength: 2
                   description: アカウントの言語コード
-              required: [ screen_time, display_name, language_code ]
+              required: [ screen_time, language_code ]
       responses:
         "201":
           description: 201 Created
@@ -1647,10 +1643,6 @@ paths:
                   type: integer
                   description: 毎日のスクリーン時間制限
                   minimum: 0
-                display_name:
-                  type: string
-                  description: ユーザーの表示名
-                  minLength: 3
                 language_code:
                   type: string
                   minLength: 2
@@ -2583,10 +2575,6 @@ components:
           type: string
           format: uuid
           description: ユーザーID
-        display_name:
-          type: string
-          description: ユーザーの表示名
-          minLength: 3
         language_code:
           type: string
           minLength: 2
@@ -2605,7 +2593,7 @@ components:
           type: integer
           description: 毎日のスクリーン時間制限
           minimum: 0
-      required: [ id, display_name, language_code, joined_at, screen_time ]
+      required: [ id, language_code, joined_at, screen_time ]
 
     SearchType:
       type: string

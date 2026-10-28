@@ -26,7 +26,6 @@ func setupUser(t *testing.T, ctx context.Context, q sqlc.Querier) uuid.UUID {
 	})
 	require.NoError(t, err)
 	_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-		DisplayName:               "Test User",
 		LanguageCode:              "ja",
 		DailyScreenTimeSeconds:    3600,
 		JoinedAt:                  time.Now(),
@@ -168,7 +167,6 @@ func TestService_Heartbeat(t *testing.T) {
 		})
 		require.NoError(t, err)
 		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-			DisplayName:               "Unlimited User",
 			LanguageCode:              "ja",
 			DailyScreenTimeSeconds:    24 * 60 * 60,
 			JoinedAt:                  time.Now(),

@@ -22,7 +22,6 @@ WITH deleted AS (
     RETURNING
         m_user.m_user_id,
         m_user.m_user_authorization_id,
-        m_user.display_name,
         m_user.language_code,
         m_user.daily_screen_time_seconds,
         m_user.joined_at,
@@ -32,7 +31,6 @@ INSERT INTO
     h_user (
         h_user_id,
         m_user_authorization_id,
-        display_name,
         language_code,
         daily_screen_time_seconds,
         joined_at,
@@ -43,7 +41,6 @@ INSERT INTO
 SELECT
     deleted.m_user_id AS h_user_id,
     deleted.m_user_authorization_id AS m_user_authorization_id,
-    deleted.display_name AS display_name,
     deleted.language_code AS language_code,
     deleted.daily_screen_time_seconds AS daily_screen_time_seconds,
     deleted.joined_at AS joined_at,
@@ -134,7 +131,6 @@ func (q *Queries) DeleteScreenTimeRangesByUserID(ctx context.Context, mUserID in
 const getUserForUpdate = `-- name: GetUserForUpdate :one
 SELECT
     m_user.public_id,
-    m_user.display_name,
     m_user.language_code,
     m_user.joined_at,
     m_user.daily_screen_time_seconds
@@ -149,7 +145,6 @@ FOR UPDATE
 
 type GetUserForUpdateRow struct {
 	PublicID               uuid.UUID
-	DisplayName            string
 	LanguageCode           string
 	JoinedAt               time.Time
 	DailyScreenTimeSeconds int
@@ -161,7 +156,6 @@ func (q *Queries) GetUserForUpdate(ctx context.Context, userPublicID uuid.UUID) 
 	var i GetUserForUpdateRow
 	err := row.Scan(
 		&i.PublicID,
-		&i.DisplayName,
 		&i.LanguageCode,
 		&i.JoinedAt,
 		&i.DailyScreenTimeSeconds,
@@ -171,7 +165,6 @@ func (q *Queries) GetUserForUpdate(ctx context.Context, userPublicID uuid.UUID) 
 
 const getUserProfile = `-- name: GetUserProfile :many
 SELECT
-    m_user.display_name,
     m_user.language_code,
     m_user.joined_at,
     m_user.daily_screen_time_seconds,
@@ -187,7 +180,6 @@ ORDER BY
 `
 
 type GetUserProfileRow struct {
-	DisplayName            string
 	LanguageCode           string
 	JoinedAt               time.Time
 	DailyScreenTimeSeconds int
@@ -206,7 +198,6 @@ func (q *Queries) GetUserProfile(ctx context.Context, userPublicID uuid.UUID) ([
 	for rows.Next() {
 		var i GetUserProfileRow
 		if err := rows.Scan(
-			&i.DisplayName,
 			&i.LanguageCode,
 			&i.JoinedAt,
 			&i.DailyScreenTimeSeconds,
@@ -227,7 +218,6 @@ const insertUser = `-- name: InsertUser :one
 INSERT INTO
     m_user (
         m_user_authorization_id,
-        display_name,
         language_code,
         daily_screen_time_seconds,
         joined_at,
@@ -240,12 +230,11 @@ SELECT
     $2,
     $3,
     $4,
-    $5,
     '{}'::bigint[]
 FROM
     m_user_authorization
 WHERE
-    m_user_authorization.public_id = $6
+    m_user_authorization.public_id = $5
 LIMIT
     1
 RETURNING
@@ -253,7 +242,6 @@ RETURNING
 `
 
 type InsertUserParams struct {
-	DisplayName               string
 	LanguageCode              string
 	DailyScreenTimeSeconds    int
 	JoinedAt                  time.Time
@@ -264,7 +252,6 @@ type InsertUserParams struct {
 // ユーザーを作成する。
 func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (int64, error) {
 	row := q.db.QueryRow(ctx, insertUser,
-		arg.DisplayName,
 		arg.LanguageCode,
 		arg.DailyScreenTimeSeconds,
 		arg.JoinedAt,
@@ -433,7 +420,6 @@ restored AS (
     RETURNING
         h_user_id,
         m_user_authorization_id,
-        display_name,
         language_code,
         daily_screen_time_seconds,
         joined_at,
@@ -444,7 +430,6 @@ inserted AS (
         m_user (
             m_user_id,
             m_user_authorization_id,
-            display_name,
             language_code,
             daily_screen_time_seconds,
             joined_at,
@@ -455,7 +440,6 @@ inserted AS (
     SELECT
         h_user_id,
         m_user_authorization_id,
-        display_name,
         language_code,
         daily_screen_time_seconds,
         joined_at,
@@ -488,18 +472,16 @@ const updateUser = `-- name: UpdateUser :one
 UPDATE
     m_user
 SET
-    display_name = $1,
-    language_code = $2,
-    daily_screen_time_seconds = $3,
+    language_code = $1,
+    daily_screen_time_seconds = $2,
     updated_at = CURRENT_TIMESTAMP
 WHERE
-    m_user.public_id = $4
+    m_user.public_id = $3
 RETURNING
     m_user_id
 `
 
 type UpdateUserParams struct {
-	DisplayName            string
 	LanguageCode           string
 	DailyScreenTimeSeconds int
 	UserPublicID           uuid.UUID
@@ -507,12 +489,7 @@ type UpdateUserParams struct {
 
 // ユーザーを更新する。
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error) {
-	row := q.db.QueryRow(ctx, updateUser,
-		arg.DisplayName,
-		arg.LanguageCode,
-		arg.DailyScreenTimeSeconds,
-		arg.UserPublicID,
-	)
+	row := q.db.QueryRow(ctx, updateUser, arg.LanguageCode, arg.DailyScreenTimeSeconds, arg.UserPublicID)
 	var m_user_id int64
 	err := row.Scan(&m_user_id)
 	return m_user_id, err

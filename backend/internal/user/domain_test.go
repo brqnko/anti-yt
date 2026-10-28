@@ -1,7 +1,6 @@
 package user_test
 
 import (
-	"strings"
 	"testing"
 	"time"
 
@@ -93,68 +92,6 @@ func TestIsUnlimitedScreenTimeSeconds(t *testing.T) {
 
 			// assert
 			assert.Equal(t, c.want, got)
-		})
-	}
-}
-
-func TestNewDisplayName(t *testing.T) {
-	t.Parallel()
-
-	type arg struct {
-		name string
-	}
-
-	type want struct {
-		name user.DisplayName
-	}
-
-	cases := map[string]struct {
-		arg     arg
-		want    *want
-		wantErr error
-	}{
-		"success": {
-			arg:     arg{name: "testuser"},
-			want:    &want{name: user.DisplayName("testuser")},
-			wantErr: nil,
-		},
-		"29 chars": {
-			arg:     arg{name: strings.Repeat("a", 29)},
-			want:    &want{name: user.DisplayName(strings.Repeat("a", 29))},
-			wantErr: nil,
-		},
-		"30 chars": {
-			arg:     arg{name: strings.Repeat("a", 30)},
-			want:    nil,
-			wantErr: user.ErrDisplayNameTooLong,
-		},
-		"empty": {
-			arg:     arg{name: ""},
-			want:    nil,
-			wantErr: user.ErrDisplayNameTooShort,
-		},
-		"spaces only": {
-			arg:     arg{name: "   "},
-			want:    nil,
-			wantErr: user.ErrDisplayNameTooShort,
-		},
-	}
-
-	for name, c := range cases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			// act
-			got, err := user.NewDisplayName(c.arg.name)
-
-			// assert
-			if c.wantErr != nil {
-				assert.ErrorIs(t, err, c.wantErr)
-				assert.Empty(t, got)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, c.want.name, got)
-			}
 		})
 	}
 }
@@ -576,13 +513,11 @@ func TestNewUser(t *testing.T) {
 	ptr := func(v int) *int { return &v }
 
 	type arg struct {
-		displayName     string
 		languageCode    string
 		screenTimeLimit *int
 	}
 
 	type want struct {
-		displayName     user.DisplayName
 		languageCode    user.LanguageCode
 		screenUnlimited bool
 	}
@@ -593,23 +528,19 @@ func TestNewUser(t *testing.T) {
 		wantErr error
 	}{
 		"success": {
-			arg:  arg{displayName: "testuser", languageCode: "ja", screenTimeLimit: ptr(3600)},
-			want: &want{displayName: "testuser", languageCode: "ja", screenUnlimited: false},
+			arg:  arg{languageCode: "ja", screenTimeLimit: ptr(3600)},
+			want: &want{languageCode: "ja", screenUnlimited: false},
 		},
 		"success unlimited": {
-			arg:  arg{displayName: "testuser", languageCode: "ja", screenTimeLimit: nil},
-			want: &want{displayName: "testuser", languageCode: "ja", screenUnlimited: true},
-		},
-		"invalid display name": {
-			arg:     arg{displayName: "", languageCode: "ja", screenTimeLimit: nil},
-			wantErr: user.ErrDisplayNameTooShort,
+			arg:  arg{languageCode: "ja", screenTimeLimit: nil},
+			want: &want{languageCode: "ja", screenUnlimited: true},
 		},
 		"invalid language code": {
-			arg:     arg{displayName: "testuser", languageCode: "invalid", screenTimeLimit: nil},
+			arg:     arg{languageCode: "invalid", screenTimeLimit: nil},
 			wantErr: user.ErrLanguageCodeNotSupported,
 		},
 		"invalid screen time limit": {
-			arg:     arg{displayName: "testuser", languageCode: "ja", screenTimeLimit: ptr(-1)},
+			arg:     arg{languageCode: "ja", screenTimeLimit: ptr(-1)},
 			wantErr: user.ErrDailyScreenTimeOutOfRange,
 		},
 	}
@@ -619,7 +550,7 @@ func TestNewUser(t *testing.T) {
 			t.Parallel()
 
 			// act
-			got, err := user.NewUser(c.arg.displayName, c.arg.languageCode, c.arg.screenTimeLimit)
+			got, err := user.NewUser(c.arg.languageCode, c.arg.screenTimeLimit)
 
 			// assert
 			if c.wantErr != nil {
@@ -627,7 +558,6 @@ func TestNewUser(t *testing.T) {
 				assert.Nil(t, got)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, c.want.displayName, got.DisplayName)
 				assert.Equal(t, c.want.languageCode, got.LanguageCode)
 				assert.Equal(t, c.want.screenUnlimited, got.ScreenTimeLimit.IsUnlimited())
 			}

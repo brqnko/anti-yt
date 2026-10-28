@@ -283,8 +283,6 @@
       "cancel": "取消",
       "selectAtLeastOne": "请至少选择一项"
     },
-    "displayName": "显示名称",
-    "displayNamePlaceholder": "您的姓名",
     "language": "语言",
     "saveChanges": "保存更改",
     "saving": "保存中...",
@@ -565,8 +563,6 @@
     "channel.invalid_channel_id": "无效的频道 ID。",
     "channel.invalid_channel_handle": "无效的频道句柄。",
     "channel.invalid_subscription_limit": "已达到订阅上限。",
-    "user.display_name_too_long": "显示名称过长。",
-    "user.display_name_too_short": "显示名称过短。",
     "user.invalid_daily_screen_time": "每日屏幕时间限制超出范围。",
     "user.unsupported_language_code": "不支持的语言代码。",
     "user.invalid_screen_time_range_order": "开始时间必须早于结束时间。",

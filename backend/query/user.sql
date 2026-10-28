@@ -3,7 +3,6 @@
 INSERT INTO
     m_user (
         m_user_authorization_id,
-        display_name,
         language_code,
         daily_screen_time_seconds,
         joined_at,
@@ -12,7 +11,6 @@ INSERT INTO
     )
 SELECT
     m_user_authorization.m_user_authorization_id,
-    @display_name,
     @language_code,
     @daily_screen_time_seconds,
     @joined_at,
@@ -32,7 +30,6 @@ RETURNING
 UPDATE
     m_user
 SET
-    display_name = @display_name,
     language_code = @language_code,
     daily_screen_time_seconds = @daily_screen_time_seconds,
     updated_at = CURRENT_TIMESTAMP
@@ -116,7 +113,6 @@ SELECT
 -- name: GetUserForUpdate :one
 SELECT
     m_user.public_id,
-    m_user.display_name,
     m_user.language_code,
     m_user.joined_at,
     m_user.daily_screen_time_seconds
@@ -131,7 +127,6 @@ FOR UPDATE;
 -- m_user.public_idから、ユーザーのプロファイルとスクリーン時間制限範囲を取得する。
 -- name: GetUserProfile :many
 SELECT
-    m_user.display_name,
     m_user.language_code,
     m_user.joined_at,
     m_user.daily_screen_time_seconds,
@@ -162,7 +157,6 @@ WITH deleted AS (
     RETURNING
         m_user.m_user_id,
         m_user.m_user_authorization_id,
-        m_user.display_name,
         m_user.language_code,
         m_user.daily_screen_time_seconds,
         m_user.joined_at,
@@ -172,7 +166,6 @@ INSERT INTO
     h_user (
         h_user_id,
         m_user_authorization_id,
-        display_name,
         language_code,
         daily_screen_time_seconds,
         joined_at,
@@ -183,7 +176,6 @@ INSERT INTO
 SELECT
     deleted.m_user_id AS h_user_id,
     deleted.m_user_authorization_id AS m_user_authorization_id,
-    deleted.display_name AS display_name,
     deleted.language_code AS language_code,
     deleted.daily_screen_time_seconds AS daily_screen_time_seconds,
     deleted.joined_at AS joined_at,
@@ -211,7 +203,6 @@ restored AS (
     RETURNING
         h_user_id,
         m_user_authorization_id,
-        display_name,
         language_code,
         daily_screen_time_seconds,
         joined_at,
@@ -222,7 +213,6 @@ inserted AS (
         m_user (
             m_user_id,
             m_user_authorization_id,
-            display_name,
             language_code,
             daily_screen_time_seconds,
             joined_at,
@@ -233,7 +223,6 @@ inserted AS (
     SELECT
         h_user_id,
         m_user_authorization_id,
-        display_name,
         language_code,
         daily_screen_time_seconds,
         joined_at,

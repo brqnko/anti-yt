@@ -2,9 +2,7 @@ package user
 
 import (
 	"sort"
-	"strings"
 	"time"
-	"unicode/utf8"
 
 	"github.com/brqnko/anti-yt/backend/internal/core"
 	"github.com/brqnko/anti-yt/backend/internal/util"
@@ -13,9 +11,6 @@ import (
 
 var (
 	ErrDailyScreenTimeOutOfRange = core.NewDomainError("user.invalid_daily_screen_time", "daily screen time limit is out of range", core.StatusBadRequest)
-
-	ErrDisplayNameTooLong  = core.NewDomainError("user.display_name_too_long", "display name is too long", core.StatusBadRequest)
-	ErrDisplayNameTooShort = core.NewDomainError("user.display_name_too_short", "display name is too short", core.StatusBadRequest)
 
 	ErrLanguageCodeNotSupported = core.NewDomainError("user.unsupported_language_code", "language code is not supported", core.StatusBadRequest)
 
@@ -85,28 +80,6 @@ func (d DailyScreenTimeLimit) ToIntPtr() *int {
 	}
 	v := int(d.duration.Seconds())
 	return &v
-}
-
-type DisplayName string
-
-func NewDisplayName(s string) (_ DisplayName, err error) {
-	defer util.Wrap(&err, "user.NewDisplayName")
-
-	str := strings.TrimSpace(s)
-
-	length := utf8.RuneCountInString(str)
-	if length < 1 {
-		return "", ErrDisplayNameTooShort
-	}
-	if length > 29 {
-		return "", ErrDisplayNameTooLong
-	}
-
-	return DisplayName(str), nil
-}
-
-func (d DisplayName) String() string {
-	return string(d)
 }
 
 type LanguageCode string
@@ -341,7 +314,6 @@ func (s *DailyScreenTimeLimitRangeSet) BlockedUntil(now time.Time) *time.Time {
 
 type User struct {
 	ID              uuid.UUID
-	DisplayName     DisplayName
 	LanguageCode    LanguageCode
 	JoinedAt        time.Time
 	ScreenTimeLimit DailyScreenTimeLimit
@@ -359,20 +331,6 @@ func WithUserJoinedAt(joinedAt time.Time) UserOption {
 	return func(u *User) {
 		u.JoinedAt = joinedAt
 	}
-}
-
-func (u *User) SetDisplayName(displayName *string) (err error) {
-	defer util.Wrap(&err, "user.(*User).SetDisplayName")
-
-	if displayName == nil {
-		return nil
-	}
-	dn, err := NewDisplayName(*displayName)
-	if err != nil {
-		return err
-	}
-	u.DisplayName = dn
-	return nil
 }
 
 func (u *User) SetLanguageCode(languageCode *string) (err error) {
@@ -403,13 +361,9 @@ func (u *User) SetScreenTimeLimit(dailyScreenLimit *int) (err error) {
 	return nil
 }
 
-func NewUser(displayName string, languageCode string, dailyScreenLimit *int, opts ...UserOption) (_ *User, err error) {
+func NewUser(languageCode string, dailyScreenLimit *int, opts ...UserOption) (_ *User, err error) {
 	defer util.Wrap(&err, "user.NewUser")
 
-	dn, err := NewDisplayName(displayName)
-	if err != nil {
-		return nil, err
-	}
 	lc, err := NewLanguageCode(languageCode)
 	if err != nil {
 		return nil, err
@@ -426,7 +380,6 @@ func NewUser(displayName string, languageCode string, dailyScreenLimit *int, opt
 
 	u := new(User{
 		ID:              id,
-		DisplayName:     dn,
 		LanguageCode:    lc,
 		JoinedAt:        time.Now().UTC(),
 		ScreenTimeLimit: stl,

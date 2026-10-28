@@ -8,7 +8,6 @@
 | ---- | ---- | ------- | -------- | -------- | ------- | ------- |
 | h_user_id | bigint |  | false |  |  |  |
 | m_user_authorization_id | bigint |  | false |  |  |  |
-| display_name | varchar(32) |  | false |  |  |  |
 | language_code | varchar(2) |  | false |  |  |  |
 | daily_screen_time_seconds | integer |  | false |  |  |  |
 | joined_at | timestamp with time zone |  | false |  |  |  |
@@ -24,7 +23,6 @@
 | ---- | ---- | ---------- |
 | h_user_created_at_not_null | n | NOT NULL created_at |
 | h_user_daily_screen_time_seconds_not_null | n | NOT NULL daily_screen_time_seconds |
-| h_user_display_name_not_null | n | NOT NULL display_name |
 | h_user_h_user_id_not_null | n | NOT NULL h_user_id |
 | h_user_joined_at_not_null | n | NOT NULL joined_at |
 | h_user_language_code_not_null | n | NOT NULL language_code |

@@ -15,7 +15,6 @@ import (
 
 type UserStatusView struct {
 	UserID               uuid.UUID
-	DisplayName          string
 	LanguageCode         string
 	JoinedAt             time.Time
 	DailyScreenSeconds   *int
@@ -68,7 +67,6 @@ func (u *userQueryServiceImpl) Find(ctx context.Context, userID uuid.UUID) (_ Us
 
 	return UserStatusView{
 		UserID:               userID,
-		DisplayName:          first.DisplayName,
 		LanguageCode:         first.LanguageCode,
 		JoinedAt:             first.JoinedAt.UTC(),
 		DailyScreenSeconds:   dailyScreenSeconds,
