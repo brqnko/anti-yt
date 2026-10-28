@@ -87,7 +87,7 @@ export default defineConfig({
       prerender: {
         enabled: true,
         renderTarget: "#app",
-        additionalPrerenderRoutes: ["/404", "/terms", "/privacy", "/about"],
+        additionalPrerenderRoutes: ["/404", "/terms", "/privacy"],
         previewMiddlewareEnabled: false,
         previewMiddlewareFallback: "/404",
       },
@@ -126,7 +126,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,webp,woff2}"],
-        globIgnores: ["**/about-preview.png", "**/explore-banner.png"],
+        globIgnores: ["**/explore-banner.png"],
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {

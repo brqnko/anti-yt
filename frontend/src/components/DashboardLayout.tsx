@@ -114,9 +114,6 @@ export function DashboardLayout({
             </div>
             <div class="border-t border-border-light dark:border-border-dark mx-1 my-1" />
             <div class="px-3 pt-3 pb-2 flex flex-col gap-y-2">
-              <a href="/about" class="text-xs text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white no-underline">
-                {t("dashboard.nav.aboutAntiYt")}
-              </a>
               <a
                 href="https://github.com/brqnko/anti-yt"
                 target="_blank"

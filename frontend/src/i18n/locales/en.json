@@ -36,40 +36,6 @@
     "navPrivacy": "Privacy Policy",
     "languageSelect": "Select language"
   },
-  "about": {
-    "pageTitle": "About",
-    "metaDescription": "Learn how anti-yt helps you break free from YouTube's algorithm with subscription-only feeds, daily time caps, and screen time analytics.",
-    "hero": {
-      "title1": "Break free",
-      "title2": "from YouTube",
-      "description": "anti-yt is a free service that shows only videos from channels you subscribe to, and lets you manage your own screen time.",
-      "feature1": "No recommendations",
-      "feature2": "Set time limits",
-      "feature3": "Make YouTube more useful"
-    },
-    "statement": {
-      "heading": "Is YouTube stealing your time?",
-      "body1": "We believe the recommendation algorithm is the main reason people get hooked on YouTube. We only surface videos from channels you've allowed.",
-      "body2": "Put YouTube to more meaningful use."
-    },
-    "principles": {
-      "feed": {
-        "title": "Don't get pulled in by recommendations",
-        "body": "Only the channels you've subscribed to show up as recommendations. No more endless scrolling that drains your time."
-      },
-      "time": {
-        "title": "Cap your daily screen time",
-        "body": "Restrict both the hours you can watch and your daily limit. No more breaks that quietly turn into hours."
-      },
-      "analytics": {
-        "title": "Look back on your viewing time",
-        "body": "Visualize a full week of viewing data. Look back on your past behavior and reflect on how you've been spending your time."
-      }
-    },
-    "finalCta": {
-      "description": "Begin a viewing experience designed on your own terms\n<b>for free</b>"
-    }
-  },
   "terms": {
     "title": "Terms of Service",
     "metaDescription": "Terms of Service for anti-yt — the rights, obligations, prohibited conduct, and disclaimers that apply when you use the Service.",
@@ -242,8 +208,7 @@
       "bottomChannels": "Channels",
       "bottomPlaylists": "Playlist",
       "bottomAnalytics": "Analytics",
-      "bottomProfile": "Profile",
-      "aboutAntiYt": "What is anti-yt?"
+      "bottomProfile": "Profile"
     },
     "addPlaylist": "Create Playlist",
     "addPlaylistDialog": {
@@ -265,12 +230,6 @@
     "showAllPlaylists": "Show all",
     "noVideosDesc": "Subscribe to channels to see their latest videos here.",
     "goToChannels": "Go to channels",
-    "aboutBanner": "Break free\nfrom YouTube",
-    "aboutBannerDesc": "anti-yt is a free service that shows only videos from channels you subscribe to,\nand lets you manage your own screen time.",
-    "aboutBannerFeature1": "No recommendations",
-    "aboutBannerFeature2": "Set time limits",
-    "aboutBannerFeature3": "Make YouTube more useful",
-    "aboutBannerCta": "Learn more →",
     "rateLimitedTitle": "Please wait a moment",
     "rateLimitedDesc": "You've reached the request limit. Please try again later.",
     "endOfFeed": "🎉 You're all caught up",

@@ -10,7 +10,7 @@ Disallow: /reactivation
 # Pages that surface third-party YouTube content (/watch/, /search, /channels/<id>,
 # /playlists/<id>, ...) are intentionally left crawlable so search engines can read
 # the `noindex` directive (served via the X-Robots-Tag header / robots meta) and
-# drop them from the index. Only /, /about, /terms and /privacy are meant to be
+# drop them from the index. Only /, /terms and /privacy are meant to be
 # indexed.
 
 Sitemap: https://anti-yt.brqnko.rs/sitemap.xml
