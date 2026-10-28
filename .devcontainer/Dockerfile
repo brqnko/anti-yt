@@ -11,14 +11,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN wget -O /tmp/go.tar.gz \
-        https://go.dev/dl/go1.26.1.linux-${TARGETARCH}.tar.gz \
+        https://go.dev/dl/go1.27.3.linux-${TARGETARCH}.tar.gz \
     && tar -C /usr/local -xzf /tmp/go.tar.gz \
     && rm /tmp/go.tar.gz
 
 ENV GOROOT=/usr/local/go
 ENV GOPATH=/root/go
-ENV PATH="${GOROOT}/bin:${PATH}"
-ENV PATH="${GOPATH}/bin:${PATH}"
+ENV PATH="${GOPATH}/bin:${GOROOT}/bin:${PATH}"
+
+# ログインシェルでも Go を使えるよう、/etc/profile に上書きされる PATH を補う
+RUN printf '%s\n' 'export PATH="$GOPATH/bin:$GOROOT/bin:$PATH"' > /etc/profile.d/go.sh
 
 RUN wget -O /tmp/tbls.tar.gz \
         https://github.com/k1LoW/tbls/releases/download/v1.93.0/tbls_v1.93.0_linux_${TARGETARCH}.tar.gz \
