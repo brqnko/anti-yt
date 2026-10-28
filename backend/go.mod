@@ -20,7 +20,7 @@ require (
 )
 
 require (
-	github.com/alicebob/miniredis/v2 v2.37.0
+	github.com/alicebob/miniredis/v2 v2.38.0
 	github.com/exaring/otelpgx v0.11.1
 	github.com/peterldowns/pgtestdb/migrators/goosemigrator v0.1.1
 	github.com/redis/go-redis/extra/redisotel/v9 v9.20.0
