@@ -32,7 +32,6 @@ function ProfileContent() {
 
   const [activeTab, setActiveTab] = useState<Tab>("profile");
 
-  const [displayName, setDisplayName] = useState("");
   const [languageCode, setLanguageCode] = useState(
     languages.find((l) => l.code === i18n.language)?.code ?? "en",
   );
@@ -40,7 +39,6 @@ function ProfileContent() {
   useEffect(() => {
     const { getUsersMeStatus } = getUser();
     getUsersMeStatus().then((user) => {
-      setDisplayName(user.display_name ?? "");
       setLanguageCode(user.language_code);
     }).catch(() => {});
   }, []);
@@ -53,17 +51,11 @@ function ProfileContent() {
   const [importSubscriptions, setImportSubscriptions] = useState(false);
   const [importLikes, setImportLikes] = useState(false);
 
-  const trimmedName = displayName.trim();
-  const nameLength = [...trimmedName].length;
-  const isNameValid = nameLength >= 3 && nameLength <= 29;
-
   const handleSave = async () => {
-    if (!isNameValid) return;
     setIsSaving(true);
     try {
       const { patchUsersMeStatus } = getUser();
       await patchUsersMeStatus({
-        display_name: displayName.trim(),
         language_code: languageCode,
       });
       i18n.changeLanguage(languageCode);
@@ -139,31 +131,7 @@ function ProfileContent() {
                   {t("profile.accountDetails")}
                 </h2>
               </div>
-              <div class="grid grid-cols-1 tablet:grid-cols-2 gap-6">
-                <div class="flex flex-col gap-2">
-                  <label class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
-                    {t("profile.displayName")}
-                  </label>
-                  <div class="relative">
-                    <span class="absolute inset-y-0 left-3 flex items-center text-text-muted-light dark:text-text-muted-dark">
-                      <Icon name="edit" class="text-[20px]" />
-                    </span>
-                    <input
-                      type="text"
-                      value={displayName}
-                      onInput={(e) =>
-                        setDisplayName((e.target as HTMLInputElement).value)
-                      }
-                      placeholder={t("profile.displayNamePlaceholder")}
-                      class="w-full pl-10 pr-4 py-2.5 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all font-medium"
-                    />
-                  </div>
-                  <div class="mt-1 flex items-center justify-end">
-                    <span class={`text-xs tabular-nums ${nameLength > 29 ? "text-red-500" : "text-text-muted-light dark:text-text-muted-dark"}`}>
-                      {nameLength}/29
-                    </span>
-                  </div>
-                </div>
+              <div class="w-full tablet:max-w-xs">
                 <div class="flex flex-col gap-2">
                   <label class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
                     {t("profile.language")}
@@ -194,7 +162,7 @@ function ProfileContent() {
                 <div class="flex flex-col gap-2 tablet:flex-row tablet:items-center tablet:justify-end tablet:gap-3">
                   <button
                     onClick={handleSave}
-                    disabled={isSaving || !isNameValid}
+                    disabled={isSaving}
                     class="w-full tablet:w-auto px-8 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg cursor-pointer border-none"
                   >
                     {isSaving ? t("profile.saving") : t("profile.saveChanges")}

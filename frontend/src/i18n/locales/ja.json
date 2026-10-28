@@ -283,8 +283,6 @@
       "cancel": "キャンセル",
       "selectAtLeastOne": "少なくとも1つ選択してください"
     },
-    "displayName": "表示名",
-    "displayNamePlaceholder": "あなたの名前",
     "language": "言語",
     "saveChanges": "変更を保存",
     "saving": "保存中...",
@@ -565,8 +563,6 @@
     "channel.invalid_channel_id": "無効なチャンネルIDです。",
     "channel.invalid_channel_handle": "無効なチャンネルハンドルです。",
     "channel.invalid_subscription_limit": "登録数の上限に達しました。",
-    "user.display_name_too_long": "表示名が長すぎます。",
-    "user.display_name_too_short": "表示名が短すぎます。",
     "user.invalid_daily_screen_time": "1日の視聴時間制限が範囲外です。",
     "user.unsupported_language_code": "サポートされていない言語コードです。",
     "user.invalid_screen_time_range_order": "開始時刻は終了時刻より前にしてください。",

@@ -261,7 +261,6 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		})
 		require.NoError(t, err)
 		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-			DisplayName:               "Test User",
 			LanguageCode:              "ja",
 			DailyScreenTimeSeconds:    3600,
 			JoinedAt:                  time.Now(),
@@ -312,7 +311,6 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		})
 		require.NoError(t, err)
 		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-			DisplayName:               "Test User",
 			LanguageCode:              "ja",
 			DailyScreenTimeSeconds:    3600,
 			JoinedAt:                  time.Now(),
@@ -363,7 +361,6 @@ func TestService_GoogleOIDCCallback(t *testing.T) {
 		require.NoError(t, err)
 		userPublicID := uuid.Must(uuid.NewV7())
 		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-			DisplayName:               "Test User",
 			LanguageCode:              "ja",
 			DailyScreenTimeSeconds:    3600,
 			JoinedAt:                  time.Now(),
@@ -423,7 +420,6 @@ func TestService_Logout(t *testing.T) {
 		require.NoError(t, err)
 		userPublicID := uuid.Must(uuid.NewV7())
 		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-			DisplayName:               "Test User",
 			LanguageCode:              "ja",
 			DailyScreenTimeSeconds:    3600,
 			JoinedAt:                  time.Now(),
@@ -490,7 +486,6 @@ func TestService_Logout(t *testing.T) {
 		require.NoError(t, err)
 		userPublicID := uuid.Must(uuid.NewV7())
 		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-			DisplayName:               "Test User",
 			LanguageCode:              "ja",
 			DailyScreenTimeSeconds:    3600,
 			JoinedAt:                  time.Now(),
@@ -539,7 +534,6 @@ func TestService_RefreshToken(t *testing.T) {
 		require.NoError(t, err)
 		userPublicID := uuid.Must(uuid.NewV7())
 		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-			DisplayName:               "Test User",
 			LanguageCode:              "ja",
 			DailyScreenTimeSeconds:    3600,
 			JoinedAt:                  time.Now(),
@@ -639,7 +633,6 @@ func TestService_RefreshToken(t *testing.T) {
 		require.NoError(t, err)
 		userPublicID := uuid.Must(uuid.NewV7())
 		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-			DisplayName:               "Test User",
 			LanguageCode:              "ja",
 			DailyScreenTimeSeconds:    3600,
 			JoinedAt:                  time.Now(),
@@ -704,7 +697,6 @@ func TestService_GetSessions(t *testing.T) {
 		require.NoError(t, err)
 		userPublicID := uuid.Must(uuid.NewV7())
 		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-			DisplayName:               "Test User",
 			LanguageCode:              "ja",
 			DailyScreenTimeSeconds:    3600,
 			JoinedAt:                  time.Now(),
@@ -766,7 +758,6 @@ func TestService_GetSessions(t *testing.T) {
 		require.NoError(t, err)
 		userPublicID := uuid.Must(uuid.NewV7())
 		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-			DisplayName:               "Test User",
 			LanguageCode:              "ja",
 			DailyScreenTimeSeconds:    3600,
 			JoinedAt:                  time.Now(),
@@ -828,7 +819,6 @@ func TestService_GetSessions(t *testing.T) {
 		require.NoError(t, err)
 		userPublicID := uuid.Must(uuid.NewV7())
 		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-			DisplayName:               "Test User",
 			LanguageCode:              "ja",
 			DailyScreenTimeSeconds:    3600,
 			JoinedAt:                  time.Now(),
@@ -875,7 +865,6 @@ func TestService_RemoveSession(t *testing.T) {
 		require.NoError(t, err)
 		userPublicID := uuid.Must(uuid.NewV7())
 		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-			DisplayName:               "Test User",
 			LanguageCode:              "ja",
 			DailyScreenTimeSeconds:    3600,
 			JoinedAt:                  time.Now(),
@@ -945,7 +934,6 @@ func TestService_RemoveSession(t *testing.T) {
 		require.NoError(t, err)
 		userPublicID := uuid.Must(uuid.NewV7())
 		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-			DisplayName:               "Test User",
 			LanguageCode:              "ja",
 			DailyScreenTimeSeconds:    3600,
 			JoinedAt:                  time.Now(),
@@ -1049,7 +1037,6 @@ func TestService_ReactivateAccount(t *testing.T) {
 		require.NoError(t, err)
 		userPublicID := uuid.Must(uuid.NewV7())
 		_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-			DisplayName:               "Test User",
 			LanguageCode:              "ja",
 			DailyScreenTimeSeconds:    3600,
 			JoinedAt:                  time.Now(),

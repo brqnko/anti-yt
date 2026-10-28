@@ -27,7 +27,6 @@ func setupUser(t *testing.T, ctx context.Context, q sqlc.Querier) (authPublicID 
 	require.NoError(t, err)
 	userPublicID = uuid.Must(uuid.NewV7())
 	_, err = q.InsertUser(ctx, sqlc.InsertUserParams{
-		DisplayName:               "Test User",
 		LanguageCode:              "ja",
 		DailyScreenTimeSeconds:    3600,
 		JoinedAt:                  time.Now(),
@@ -84,14 +83,12 @@ func TestService_CreateNewUser(t *testing.T) {
 			"register-token",
 			&screenLimit,
 			nil,
-			"Test User",
 			"ja",
 			time.UTC,
 		)
 
 		// assert
 		require.NoError(t, err)
-		assert.Equal(t, "Test User", u.DisplayName.String())
 		assert.Equal(t, "ja", u.LanguageCode.String())
 		assert.Equal(t, "access-token", accessToken)
 		assert.False(t, expiresAt.IsZero())
@@ -141,12 +138,11 @@ func TestService_CreateNewUser(t *testing.T) {
 
 		// action
 		u, rangeSet, _, _, err := svc.CreateNewUser(
-			ctx, "register-token", &screenLimit, ranges, "Ranged User", "en", time.UTC,
+			ctx, "register-token", &screenLimit, ranges, "en", time.UTC,
 		)
 
 		// assert
 		require.NoError(t, err)
-		assert.Equal(t, "Ranged User", u.DisplayName.String())
 		assert.Equal(t, "en", u.LanguageCode.String())
 		require.NotNil(t, rangeSet)
 		assert.Equal(t, []user.DailyScreenTimeLimitRange{
@@ -193,7 +189,7 @@ func TestService_CreateNewUser(t *testing.T) {
 
 		// action
 		u, _, _, _, err := svc.CreateNewUser(
-			ctx, "register-token", nil, nil, "Unlimited User", "ja", time.UTC,
+			ctx, "register-token", nil, nil, "ja", time.UTC,
 		)
 
 		// assert
@@ -218,34 +214,11 @@ func TestService_CreateNewUser(t *testing.T) {
 
 		// action
 		_, _, _, _, err := svc.CreateNewUser(
-			ctx, "invalid-token", nil, nil, "Test User", "ja", time.UTC,
+			ctx, "invalid-token", nil, nil, "ja", time.UTC,
 		)
 
 		// assert
 		assert.ErrorIs(t, err, tokenErr)
-	})
-
-	t.Run("invalid display name returns error", func(t *testing.T) {
-		// arrange
-		svc := user.NewService(
-			testutil.NewTestPool(t),
-			new(ServiceMock{
-				VerifyRegisterTokenFunc: func(_ string) (uuid.UUID, uuid.UUID, error) {
-					return uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), nil
-				},
-			}),
-			"http://localhost",
-			15*time.Minute,
-			new(JtiBlacklistRepositoryMock{}),
-		)
-
-		// action
-		_, _, _, _, err := svc.CreateNewUser(
-			ctx, "register-token", nil, nil, "", "ja", time.UTC,
-		)
-
-		// assert
-		assert.ErrorIs(t, err, user.ErrDisplayNameTooShort)
 	})
 
 	t.Run("invalid language code returns error", func(t *testing.T) {
@@ -264,7 +237,7 @@ func TestService_CreateNewUser(t *testing.T) {
 
 		// action
 		_, _, _, _, err := svc.CreateNewUser(
-			ctx, "register-token", nil, nil, "Test User", "xx", time.UTC,
+			ctx, "register-token", nil, nil, "xx", time.UTC,
 		)
 
 		// assert
@@ -296,7 +269,7 @@ func TestService_CreateNewUser(t *testing.T) {
 
 		// action
 		_, _, _, _, err := svc.CreateNewUser(
-			ctx, "register-token", nil, nil, "Duplicate User", "ja", time.UTC,
+			ctx, "register-token", nil, nil, "ja", time.UTC,
 		)
 
 		// assert
@@ -337,7 +310,7 @@ func TestService_CreateNewUser(t *testing.T) {
 
 		// action
 		_, _, _, _, err = svc.CreateNewUser(
-			ctx, "register-token", nil, nil, "Test User", "ja", time.UTC,
+			ctx, "register-token", nil, nil, "ja", time.UTC,
 		)
 
 		// assert
@@ -347,24 +320,6 @@ func TestService_CreateNewUser(t *testing.T) {
 
 func TestService_EditUser(t *testing.T) {
 	ctx := context.Background()
-
-	t.Run("update display name", func(t *testing.T) {
-		// arrange
-		db := testutil.NewTestPool(t)
-		q := sqlc.New(db)
-		_, userPublicID := setupUser(t, ctx, q)
-
-		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
-
-		newName := "Updated Name"
-
-		// action
-		u, _, err := svc.EditUser(ctx, userPublicID, &newName, nil, nil, nil, time.UTC)
-
-		// assert
-		require.NoError(t, err)
-		assert.Equal(t, "Updated Name", u.DisplayName.String())
-	})
 
 	t.Run("update language code", func(t *testing.T) {
 		// arrange
@@ -377,11 +332,16 @@ func TestService_EditUser(t *testing.T) {
 		newLang := "en"
 
 		// action
-		u, _, err := svc.EditUser(ctx, userPublicID, nil, &newLang, nil, nil, time.UTC)
+		u, _, err := svc.EditUser(ctx, userPublicID, &newLang, nil, nil, time.UTC)
 
 		// assert
 		require.NoError(t, err)
 		assert.Equal(t, "en", u.LanguageCode.String())
+		view, err := svc.GetUserStatus(ctx, userPublicID)
+		require.NoError(t, err)
+		assert.Equal(t, "en", view.LanguageCode)
+		require.NotNil(t, view.DailyScreenSeconds)
+		assert.Equal(t, 3600, *view.DailyScreenSeconds)
 	})
 
 	t.Run("update screen time limit", func(t *testing.T) {
@@ -395,7 +355,7 @@ func TestService_EditUser(t *testing.T) {
 		newLimit := 7200
 
 		// action
-		u, _, err := svc.EditUser(ctx, userPublicID, nil, nil, &newLimit, nil, time.UTC)
+		u, _, err := svc.EditUser(ctx, userPublicID, nil, &newLimit, nil, time.UTC)
 
 		// assert
 		require.NoError(t, err)
@@ -416,7 +376,7 @@ func TestService_EditUser(t *testing.T) {
 		}
 
 		// action
-		_, rangeSet, err := svc.EditUser(ctx, userPublicID, nil, nil, nil, &newRanges, time.UTC)
+		_, rangeSet, err := svc.EditUser(ctx, userPublicID, nil, nil, &newRanges, time.UTC)
 
 		// assert
 		require.NoError(t, err)
@@ -435,7 +395,6 @@ func TestService_EditUser(t *testing.T) {
 
 		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
 
-		newName := "New Name"
 		newLang := "en"
 		newLimit := 1800
 		newRanges := []struct{ Start, End int }{
@@ -443,11 +402,10 @@ func TestService_EditUser(t *testing.T) {
 		}
 
 		// action
-		u, _, err := svc.EditUser(ctx, userPublicID, &newName, &newLang, &newLimit, &newRanges, time.UTC)
+		u, _, err := svc.EditUser(ctx, userPublicID, &newLang, &newLimit, &newRanges, time.UTC)
 
 		// assert
 		require.NoError(t, err)
-		assert.Equal(t, "New Name", u.DisplayName.String())
 		assert.Equal(t, "en", u.LanguageCode.String())
 		assert.Equal(t, 1800, u.ScreenTimeLimit.Seconds())
 	})
@@ -457,30 +415,13 @@ func TestService_EditUser(t *testing.T) {
 		db := testutil.NewTestPool(t)
 		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
 
-		newName := "Updated Name"
+		newLang := "en"
 
 		// action
-		_, _, err := svc.EditUser(ctx, uuid.Must(uuid.NewV7()), &newName, nil, nil, nil, time.UTC)
+		_, _, err := svc.EditUser(ctx, uuid.Must(uuid.NewV7()), &newLang, nil, nil, time.UTC)
 
 		// assert
 		assert.ErrorIs(t, err, core.ErrNotFound)
-	})
-
-	t.Run("invalid display name returns error", func(t *testing.T) {
-		// arrange
-		db := testutil.NewTestPool(t)
-		q := sqlc.New(db)
-		_, userPublicID := setupUser(t, ctx, q)
-
-		svc := user.NewService(db, new(ServiceMock{}), "http://localhost", 15*time.Minute, new(JtiBlacklistRepositoryMock{}))
-
-		emptyName := ""
-
-		// action
-		_, _, err := svc.EditUser(ctx, userPublicID, &emptyName, nil, nil, nil, time.UTC)
-
-		// assert
-		assert.ErrorIs(t, err, user.ErrDisplayNameTooShort)
 	})
 
 	t.Run("invalid language code returns error", func(t *testing.T) {
@@ -494,7 +435,7 @@ func TestService_EditUser(t *testing.T) {
 		invalidLang := "xx"
 
 		// action
-		_, _, err := svc.EditUser(ctx, userPublicID, nil, &invalidLang, nil, nil, time.UTC)
+		_, _, err := svc.EditUser(ctx, userPublicID, &invalidLang, nil, nil, time.UTC)
 
 		// assert
 		assert.ErrorIs(t, err, user.ErrLanguageCodeNotSupported)
@@ -518,7 +459,6 @@ func TestService_GetUserStatus(t *testing.T) {
 		// assert
 		require.NoError(t, err)
 		assert.Equal(t, userPublicID, view.UserID)
-		assert.Equal(t, "Test User", view.DisplayName)
 		assert.Equal(t, "ja", view.LanguageCode)
 		assert.NotNil(t, view.DailyScreenSeconds)
 		assert.Equal(t, 3600, *view.DailyScreenSeconds)

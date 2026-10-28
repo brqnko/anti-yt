@@ -15,7 +15,6 @@ export default function Register() {
         const { postUsersMe } = getUser();
         const lang = navigator.language?.startsWith("ja") ? "ja" : "en";
         await postUsersMe({
-          display_name: "anonymous",
           language_code: lang,
           screen_time: [{ start_time: "00:00", end_time: "24:00" }],
         });

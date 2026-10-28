@@ -50,7 +50,6 @@ func (s *Service) CreateNewUser(
 	accessToken string,
 	dailyScreenLimit *int,
 	screenLimits []struct{ Start, End int },
-	displayName string,
 	languageCode string,
 	loc *time.Location,
 ) (_ *User, _ *DailyScreenTimeLimitRangeSet, _ string, _ time.Time, err error) {
@@ -61,7 +60,7 @@ func (s *Service) CreateNewUser(
 		return nil, nil, "", time.Time{}, err
 	}
 
-	user, err := NewUser(displayName, languageCode, dailyScreenLimit)
+	user, err := NewUser(languageCode, dailyScreenLimit)
 	if err != nil {
 		return nil, nil, "", time.Time{}, err
 	}
@@ -152,7 +151,7 @@ func (s *Service) CreateNewUser(
 	return user, rangeSet, newAccessToken, accessTokenExpiresAt, nil
 }
 
-func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName, newLanguageCode *string, newDailyScreenLimit *int, newScreenLimits *[]struct{ Start, End int }, loc *time.Location) (_ *User, _ *DailyScreenTimeLimitRangeSet, err error) {
+func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newLanguageCode *string, newDailyScreenLimit *int, newScreenLimits *[]struct{ Start, End int }, loc *time.Location) (_ *User, _ *DailyScreenTimeLimitRangeSet, err error) {
 	defer util.Wrap(&err, "user.(*Service).EditUser(userID=%s)", userID)
 
 	tx, err := s.db.Begin(ctx)
@@ -171,9 +170,6 @@ func (s *Service) EditUser(ctx context.Context, userID uuid.UUID, newDisplayName
 		return nil, nil, err
 	}
 
-	if err := u.SetDisplayName(newDisplayName); err != nil {
-		return nil, nil, err
-	}
 	if err := u.SetLanguageCode(newLanguageCode); err != nil {
 		return nil, nil, err
 	}

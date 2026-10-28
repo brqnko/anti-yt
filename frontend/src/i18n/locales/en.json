@@ -283,8 +283,6 @@
       "cancel": "Cancel",
       "selectAtLeastOne": "Please select at least one option"
     },
-    "displayName": "Display Name",
-    "displayNamePlaceholder": "Your name",
     "language": "Language",
     "saveChanges": "Save Changes",
     "saving": "Saving...",
@@ -565,8 +563,6 @@
     "channel.invalid_channel_id": "Invalid channel ID.",
     "channel.invalid_channel_handle": "Invalid channel handle.",
     "channel.invalid_subscription_limit": "Subscription limit reached.",
-    "user.display_name_too_long": "Display name is too long.",
-    "user.display_name_too_short": "Display name is too short.",
     "user.invalid_daily_screen_time": "Daily screen time limit is out of range.",
     "user.unsupported_language_code": "Unsupported language code.",
     "user.invalid_screen_time_range_order": "Start time must be before end time.",

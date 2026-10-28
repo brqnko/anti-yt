@@ -38,11 +38,6 @@ export interface User {
   /** ユーザーID */
   id: string;
   /**
-     * ユーザーの表示名
-     * @minLength 3
-     */
-  display_name: string;
-  /**
      * アカウントの言語コード
      * @minLength 2
      * @maxLength 2
@@ -603,11 +598,6 @@ export type PostUsersMeBody = {
      */
   daily_screen_seconds?: number;
   /**
-     * ユーザーの表示名
-     * @minLength 3
-     */
-  display_name: string;
-  /**
      * アカウントの言語コード
      * @minLength 2
      * @maxLength 2
@@ -622,11 +612,6 @@ export type PatchUsersMeStatusBody = {
      * @minimum 0
      */
   daily_screen_seconds?: number;
-  /**
-     * ユーザーの表示名
-     * @minLength 3
-     */
-  display_name?: string;
   /**
      * アカウントの言語コード
      * @minLength 2

@@ -36,7 +36,6 @@ func (h *APIHandler) GetUsersMeStatus(ctx context.Context, request GetUsersMeSta
 	loc := hutil.TimezoneFromContext(ctx)
 	return GetUsersMeStatus200JSONResponse{
 		DailyScreenSeconds: view.DailyScreenSeconds,
-		DisplayName:        view.DisplayName,
 		Id:                 util.Base64UUID(view.UserID),
 		JoinedAt:           view.JoinedAt.In(loc),
 		LanguageCode:       view.LanguageCode,
@@ -59,14 +58,13 @@ func (h *APIHandler) PatchUsersMeStatus(ctx context.Context, request PatchUsersM
 	}
 
 	loc := hutil.TimezoneFromContext(ctx)
-	u, rangeSet, err := h.userService.EditUser(ctx, userID, request.Body.DisplayName, request.Body.LanguageCode, request.Body.DailyScreenSeconds, screenTimeDto, loc)
+	u, rangeSet, err := h.userService.EditUser(ctx, userID, request.Body.LanguageCode, request.Body.DailyScreenSeconds, screenTimeDto, loc)
 	if err != nil {
 		return nil, err
 	}
 
 	return PatchUsersMeStatus200JSONResponse{
 		DailyScreenSeconds: u.ScreenTimeLimit.ToIntPtr(),
-		DisplayName:        u.DisplayName.String(),
 		Id:                 util.Base64UUID(u.ID),
 		JoinedAt:           u.JoinedAt.In(loc),
 		LanguageCode:       u.LanguageCode.String(),
@@ -90,7 +88,6 @@ func (h *APIHandler) PostUsersMe(ctx context.Context, request PostUsersMeRequest
 		accessToken,
 		request.Body.DailyScreenSeconds,
 		screenTimeDto,
-		request.Body.DisplayName,
 		request.Body.LanguageCode,
 		loc,
 	)
@@ -111,7 +108,6 @@ func (h *APIHandler) PostUsersMe(ctx context.Context, request PostUsersMeRequest
 
 	return PostUsersMe201JSONResponse{
 		DailyScreenSeconds: u.ScreenTimeLimit.ToIntPtr(),
-		DisplayName:        u.DisplayName.String(),
 		Id:                 util.Base64UUID(u.ID),
 		JoinedAt:           u.JoinedAt.In(loc),
 		LanguageCode:       u.LanguageCode.String(),

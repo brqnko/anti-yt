@@ -44,7 +44,6 @@ func (r *userRepositoryImpl) FindForUpdate(ctx context.Context, userID uuid.UUID
 	}
 
 	u, err := NewUser(
-		row.DisplayName,
 		row.LanguageCode,
 		&row.DailyScreenTimeSeconds,
 		WithUserID(row.PublicID),
@@ -80,7 +79,6 @@ func (r *userRepositoryImpl) Save(ctx context.Context, u *User, authorizationID 
 	defer util.Wrap(&err, "user.(*userRepositoryImpl).Save(authorizationID=%s)", authorizationID)
 
 	mUserID, err := r.q.InsertUser(ctx, sqlc.InsertUserParams{
-		DisplayName:               u.DisplayName.String(),
 		LanguageCode:              u.LanguageCode.String(),
 		DailyScreenTimeSeconds:    u.ScreenTimeLimit.Seconds(),
 		JoinedAt:                  u.JoinedAt,
@@ -97,7 +95,6 @@ func (r *userRepositoryImpl) Update(ctx context.Context, u *User) (_ int64, err 
 	defer util.Wrap(&err, "user.(*userRepositoryImpl).Update")
 
 	mUserID, err := r.q.UpdateUser(ctx, sqlc.UpdateUserParams{
-		DisplayName:            u.DisplayName.String(),
 		LanguageCode:           u.LanguageCode.String(),
 		DailyScreenTimeSeconds: u.ScreenTimeLimit.Seconds(),
 		UserPublicID:           u.ID,
