@@ -128,10 +128,10 @@ function ProfileContent() {
             <section class="flex flex-col gap-5 border-b border-border-light dark:border-border-dark pb-8">
               <div>
                 <h2 class="text-xl font-bold">
-                  {t("profile.accountDetails")}
+                  {t("appearance.title")}
                 </h2>
               </div>
-              <div class="w-full tablet:max-w-xs">
+              <div class="grid grid-cols-1 tablet:grid-cols-2 gap-5 w-full">
                 <div class="flex flex-col gap-2">
                   <label class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
                     {t("profile.language")}
@@ -147,50 +147,30 @@ function ProfileContent() {
                     }))}
                   />
                 </div>
-              </div>
-              <div class="flex flex-col gap-4 tablet:flex-row tablet:items-center tablet:justify-between">
-                <button
-                  onClick={() => setShowImportDialog(true)}
-                  class="flex items-center justify-center gap-2.5 rounded-xl bg-white dark:bg-[#242424] w-full tablet:w-auto px-5 py-2.5 text-sm font-bold text-slate-700 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#2a2a2a] hover:border-[#FF0000]/50 focus:outline-none focus:ring-2 focus:ring-[#FF0000] focus:ring-offset-2 dark:focus:ring-offset-[var(--color-bg)] cursor-pointer"
-                >
-                  <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z" fill="#FF0000"/>
-                    <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="#ffffff"/>
-                  </svg>
-                  {t("profile.youtubeImport.button")}
-                </button>
-                <div class="flex flex-col gap-2 tablet:flex-row tablet:items-center tablet:justify-end tablet:gap-3">
-                  <button
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    class="w-full tablet:w-auto px-8 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg cursor-pointer border-none"
-                  >
-                    {isSaving ? t("profile.saving") : t("profile.saveChanges")}
-                  </button>
+                <div class="flex flex-col gap-2">
+                  <label class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
+                    {t("appearance.colorMode")}
+                  </label>
+                  <Dropdown
+                    value={mode}
+                    onChange={(v) => setMode(v)}
+                    ariaLabel={t("appearance.colorMode")}
+                    leadingIcon={modeIcons[mode]}
+                    options={colorModes.map((m) => ({
+                      value: m.value,
+                      label: t(`common.colorMode.${m.value}`),
+                    }))}
+                  />
                 </div>
               </div>
-            </section>
-
-            <section class="flex flex-col gap-5 border-b border-border-light dark:border-border-dark pb-8">
-              <div>
-                <h2 class="text-xl font-bold">
-                  {t("appearance.title")}
-                </h2>
-              </div>
-              <div class="flex flex-col gap-2 w-full tablet:max-w-xs">
-                <label class="text-sm font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider">
-                  {t("appearance.colorMode")}
-                </label>
-                <Dropdown
-                  value={mode}
-                  onChange={(v) => setMode(v)}
-                  ariaLabel={t("appearance.colorMode")}
-                  leadingIcon={modeIcons[mode]}
-                  options={colorModes.map((m) => ({
-                    value: m.value,
-                    label: t(`common.colorMode.${m.value}`),
-                  }))}
-                />
+              <div class="flex justify-end w-full">
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  class="w-full tablet:w-auto px-5 py-2 text-sm bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg cursor-pointer border-none"
+                >
+                  {isSaving ? t("profile.saving") : t("profile.saveChanges")}
+                </button>
               </div>
             </section>
 
@@ -203,6 +183,16 @@ function ProfileContent() {
                 </h2>
               </div>
               <div class="flex flex-col gap-1">
+                <button
+                  onClick={() => setShowImportDialog(true)}
+                  class="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-text-muted-light dark:text-text-muted-dark hover:text-charcoal dark:hover:text-white font-bold cursor-pointer bg-transparent border-none"
+                >
+                  <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z" fill="#FF0000"/>
+                    <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="#ffffff"/>
+                  </svg>
+                  {t("profile.youtubeImport.button")}
+                </button>
                 <a
                   href={REPORT_FORM_URL}
                   target="_blank"

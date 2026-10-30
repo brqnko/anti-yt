@@ -249,7 +249,6 @@
   "restrictions": {
     "timeConstraints": "时间限制",
     "permittedHours": "允许时段",
-    "permittedHoursDesc": "定义允许观看的时间窗口",
     "addTimeRange": "添加时间段",
     "removeRange": "删除时间段",
     "dailyCapLimit": "每日上限",
@@ -271,7 +270,6 @@
       "reportProblem": "报告问题",
       "other": "其他"
     },
-    "accountDetails": "账户",
     "youtubeImport": {
       "button": "从 YouTube 导入",
       "dialogTitle": "选择要导入的数据",
@@ -284,7 +282,7 @@
       "selectAtLeastOne": "请至少选择一项"
     },
     "language": "语言",
-    "saveChanges": "保存更改",
+    "saveChanges": "保存",
     "saving": "保存中...",
     "saved": "已保存！",
     "deleteAccount": "删除账户",
@@ -316,7 +314,7 @@
     "loadMore": "加载更多"
   },
   "appearance": {
-    "title": "外观",
+    "title": "显示设置",
     "colorMode": "颜色模式"
   },
   "channelDetail": {
@@ -387,7 +385,6 @@
     "yesterday": "昨天",
     "noHistory": "暂无观看历史",
     "endOfHistory": "🎉 已到达历史记录末尾",
-    "watchedAgo": "{{time}}前观看",
     "loadError": "加载历史记录失败",
     "retry": "重试"
   },

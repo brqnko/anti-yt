@@ -249,7 +249,6 @@
   "restrictions": {
     "timeConstraints": "時間制約",
     "permittedHours": "許可時間帯",
-    "permittedHoursDesc": "視聴が許可される時間帯を設定",
     "addTimeRange": "時間帯を追加",
     "removeRange": "時間帯を削除",
     "dailyCapLimit": "1日の上限時間",
@@ -271,7 +270,6 @@
       "reportProblem": "問題を報告",
       "other": "その他"
     },
-    "accountDetails": "アカウント",
     "youtubeImport": {
       "button": "YouTubeからインポート",
       "dialogTitle": "インポートするデータを選択",
@@ -284,7 +282,7 @@
       "selectAtLeastOne": "少なくとも1つ選択してください"
     },
     "language": "言語",
-    "saveChanges": "変更を保存",
+    "saveChanges": "保存",
     "saving": "保存中...",
     "saved": "保存しました！",
     "deleteAccount": "アカウントを削除",
@@ -316,7 +314,7 @@
     "loadMore": "もっと読み込む"
   },
   "appearance": {
-    "title": "見た目設定",
+    "title": "表示設定",
     "colorMode": "カラーモード"
   },
   "channelDetail": {
@@ -387,7 +385,6 @@
     "yesterday": "昨日",
     "noHistory": "視聴履歴がありません",
     "endOfHistory": "🎉 すべての履歴を読み込みました",
-    "watchedAgo": "{{time}}に視聴",
     "loadError": "履歴の読み込みに失敗しました",
     "retry": "再試行"
   },

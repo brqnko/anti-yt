@@ -109,14 +109,9 @@ export function RestrictionsTab() {
       </div>
       <div class="flex flex-col gap-8">
         <div class="flex flex-col gap-6">
-          <div class="flex justify-between items-center flex-wrap gap-2">
-            <label class="text-base font-semibold">
-              {t("restrictions.permittedHours")}
-            </label>
-            <span class="text-xs font-medium text-text-muted-light dark:text-text-muted-dark">
-              {t("restrictions.permittedHoursDesc")}
-            </span>
-          </div>
+          <label class="text-base font-semibold">
+            {t("restrictions.permittedHours")}
+          </label>
           <div class="flex flex-col gap-4">
             {timeRanges.map((range) => (
               <TimeRangeSlider
