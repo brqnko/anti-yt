@@ -249,7 +249,6 @@
   "restrictions": {
     "timeConstraints": "Time Constraints",
     "permittedHours": "Permitted Hours",
-    "permittedHoursDesc": "Define windows when viewing is allowed",
     "addTimeRange": "Add another time range",
     "removeRange": "Remove time range",
     "dailyCapLimit": "Daily Cap Limit",
@@ -271,7 +270,6 @@
       "reportProblem": "Report a Problem",
       "other": "Other"
     },
-    "accountDetails": "Account",
     "youtubeImport": {
       "button": "Import from YouTube",
       "dialogTitle": "Select data to import",
@@ -284,7 +282,7 @@
       "selectAtLeastOne": "Please select at least one option"
     },
     "language": "Language",
-    "saveChanges": "Save Changes",
+    "saveChanges": "Save",
     "saving": "Saving...",
     "saved": "Saved!",
     "deleteAccount": "Delete Account",
@@ -316,7 +314,7 @@
     "loadMore": "Load More"
   },
   "appearance": {
-    "title": "Appearance",
+    "title": "Display Settings",
     "colorMode": "Color Mode"
   },
   "channelDetail": {
@@ -387,7 +385,6 @@
     "yesterday": "Yesterday",
     "noHistory": "No watch history",
     "endOfHistory": "🎉 You've reached the end of your history",
-    "watchedAgo": "Watched {{time}}",
     "loadError": "Failed to load history",
     "retry": "Try again"
   },

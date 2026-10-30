@@ -155,7 +155,6 @@ export function HistoryTab() {
                           iconUrl: item.external_channel_icon_url,
                           displayName: item.external_channel_display_name,
                         }}
-                        watchedAt={item.watched_at}
                         watchedSeconds={item.watch_position_seconds}
                         isWatched={item.is_watched}
                       />

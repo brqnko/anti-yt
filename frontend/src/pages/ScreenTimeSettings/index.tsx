@@ -126,14 +126,9 @@ function ScreenTimeSettingsContent() {
         </h1>
 
         <section class="flex flex-col gap-6 border-b border-border-light dark:border-border-dark pb-8">
-          <div class="flex justify-between items-center flex-wrap gap-2">
-            <label class="text-base font-semibold">
-              {t("restrictions.permittedHours")}
-            </label>
-            <span class="text-xs font-medium text-text-muted-light dark:text-text-muted-dark">
-              {t("restrictions.permittedHoursDesc")}
-            </span>
-          </div>
+          <label class="text-base font-semibold">
+            {t("restrictions.permittedHours")}
+          </label>
           <div class="flex flex-col gap-4">
             {timeRanges.map((range) => (
               <TimeRangeSlider
